@@ -2,7 +2,7 @@
   <article>
     <header>
       <h1><%= title %></h1>
-      <p>Post by <%= author %> on <%= date %></p>
+      <p>Posted on <%= date %> by <%= author %></p>
     </header>
     <div>
       <%= contents %>

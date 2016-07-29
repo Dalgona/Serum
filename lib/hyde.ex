@@ -6,8 +6,9 @@ defmodule Hyde do
   @build_posts "site-build/posts/"
   @posts "site/posts/"
 
+  EEx.function_from_file :defp, :listhtml, @templates <> "list.html.eex", [:posts]
   EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :author, :title, :date]
-  EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :site_name, :site_description]
+  EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :site_name, :site_description]
 
   def build_posts() do
     files = File.ls!(@src_posts) |> Enum.filter(&(String.ends_with? &1, ".md"))
@@ -18,11 +19,11 @@ defmodule Hyde do
     File.rm_rf! @posts
     File.mkdir_p! @posts
 
-#    IO.puts "Generating metadata..."
-#    metalist = mkmeta(files, [])
-#    File.open!("#{@build_posts}metadata.json", [:write], fn device ->
-#      IO.write device, Poison.encode!(metalist)
-#    end)
+    IO.puts "Generating metadata..."
+    metalist = mkmeta(files, [])
+    File.open!("#{@build_posts}metadata.json", [:write], fn device ->
+      IO.write device, Poison.encode!(metalist)
+    end)
 
     Enum.each files, fn x ->
       [year, month, day|_] = String.split(x, "-") |> Enum.map(fn x ->
@@ -47,30 +48,18 @@ defmodule Hyde do
       datestr = "#{dow}, #{day} #{monabbr month} #{year}"
       res = File.read!(@build_posts <> x)
             |> posthtml(getcfg(:author), title, datestr)
-            |> basehtml(getcfg(:site_name), getcfg(:site_description))
+            |> basehtml("#{getcfg(:site_name)} - #{title}", getcfg(:site_name), getcfg(:site_description))
       IO.write file, res
       File.close file
     end
-  end
 
-#  def build_posts() do
-#    files = File.ls!(@build_posts) |> Enum.filter(&(String.ends_with? &1, ".md.html"))
-#    IO.puts "Cleaning directory `#{@posts}`..."
-#    File.rm_rf! @posts
-#    File.mkdir_p! @posts
-#
-#    Enum.each files, fn x ->
-#      out = @posts <> String.replace(x, ".md", "")
-#
-#      IO.puts "  GEN  #{@build_posts <> x} -> #{out}"
-#      out |> File.open!([:write], fn device ->
-#        res = File.read!(@build_posts <> x)
-#              |> posthtml(getcfg(:author))
-#              |> basehtml(getcfg(:site_name), getcfg(:site_description))
-#        IO.write device, res
-#      end)
-#    end
-#  end
+    IO.puts "Generating posts index..."
+    File.open!("#{@posts}index.html", [:write], fn device ->
+      res = listhtml(metalist)
+            |> basehtml("#{getcfg(:site_name)} - All Posts", getcfg(:site_name), getcfg(:site_description))
+      IO.write device, res
+    end)
+  end
 
   defp getcfg(key), do: Application.get_env(:hyde, key, "")
 
@@ -104,7 +93,7 @@ defmodule Hyde do
   end
 
   defp mkmeta([h|t], l) do
-    out = "#{@build_posts}#{h}.html"
+    out = "#{getcfg :base_url}posts/#{String.replace h, ".md", ".html"}"
     [year, month, day|_] = String.split(h, "-") |> Enum.map(fn x ->
       case Integer.parse(x) do
         {x, _} -> x
