@@ -6,9 +6,15 @@ defmodule Hyde do
   @build_posts "site-build/posts/"
   @posts "site/posts/"
 
-  EEx.function_from_file :defp, :listhtml, @templates <> "list.html.eex", [:posts]
-  EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :author, :title, :date]
-  EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :site_name, :site_description]
+  EEx.function_from_file :defp, :listhtml, @templates <> "list.html.eex", [:posts, :assigns]
+  EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :title, :date, :assigns]
+  EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :assigns]
+
+  def build() do
+    build_posts
+    build_pages
+    copy_assets
+  end
 
   def build_posts() do
     files = File.ls!(@src_posts) |> Enum.filter(&(String.ends_with? &1, ".md"))
@@ -25,6 +31,7 @@ defmodule Hyde do
       IO.write device, Poison.encode!(metalist)
     end)
 
+    ctx = Application.get_all_env :hyde
     Enum.each files, fn x ->
       [year, month, day|_] = String.split(x, "-") |> Enum.map(fn x ->
         case Integer.parse(x) do
@@ -47,18 +54,29 @@ defmodule Hyde do
       dow = dowstr :calendar.day_of_the_week(year, month, day)
       datestr = "#{dow}, #{day} #{monabbr month} #{year}"
       res = File.read!(@build_posts <> x)
-            |> posthtml(getcfg(:author), title, datestr)
-            |> basehtml("#{getcfg(:site_name)} - #{title}", getcfg(:site_name), getcfg(:site_description))
+            |> posthtml(title, datestr, ctx)
+            |> genpage(title, ctx)
       IO.write file, res
       File.close file
     end
 
     IO.puts "Generating posts index..."
     File.open!("#{@posts}index.html", [:write], fn device ->
-      res = listhtml(metalist)
-            |> basehtml("#{getcfg(:site_name)} - All Posts", getcfg(:site_name), getcfg(:site_description))
-      IO.write device, res
+      IO.write device, (listhtml(metalist, ctx) |> genpage("All Posts", ctx))
     end)
+  end
+
+  def build_pages() do
+    :not_implemented
+  end
+
+  def copy_assets() do
+    :not_implemented
+  end
+
+  defp genpage(content, title, context) do
+    content
+    |> basehtml(title, context)
   end
 
   defp getcfg(key), do: Application.get_env(:hyde, key, "")
@@ -100,13 +118,12 @@ defmodule Hyde do
         :error -> nil
       end
     end)
-    dow = dowstr :calendar.day_of_the_week(year, month, day)
     title = File.open!("#{@src_posts}#{h}", [:read], fn device -> IO.gets device, "" end)
             |> String.trim
             |> String.replace(~r/^# /, "")
     mkmeta(t, l ++ [%Hyde.Postmeta{
       title: title,
-      date: "#{dow}, #{day} #{monabbr month} #{year}",
+      date: "#{day} #{monabbr month} #{year}",
       file: out
     }])
   end
