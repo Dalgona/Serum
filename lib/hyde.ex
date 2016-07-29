@@ -3,35 +3,47 @@ defmodule Hyde do
 
   @templates "templates/"
   @src_posts "posts/"
-  @build_posts "site-build/posts/"
+  @src_pages "pages/"
+  @src_assets "assets/"
+  @src_media "media/"
   @posts "site/posts/"
+  @pages "site/"
+  @assets "site/assets/"
+  @media "site/media/"
 
+  EEx.function_from_file :defp, :navhtml, @templates <> "nav.html.eex", [:pages, :assigns]
   EEx.function_from_file :defp, :listhtml, @templates <> "list.html.eex", [:posts, :assigns]
   EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :title, :date, :assigns]
   EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :assigns]
 
   def build() do
-    build_posts
-    build_pages
+    context = Application.get_all_env :hyde
+    pagemeta = File.read!("#{@src_pages}pages.json")
+               |> Poison.decode!(as: [%Hyde.Pagemeta{}])
+    compile_nav pagemeta, context
+    build_posts context
+    build_pages pagemeta, context
     copy_assets
   end
 
-  def build_posts() do
-    files = File.ls!(@src_posts) |> Enum.filter(&(String.ends_with? &1, ".md"))
-    IO.puts "Cleaning directory `#{@build_posts}`..."
-    File.rm_rf! @build_posts
-    File.mkdir_p! @build_posts
+  def compile_nav(meta, ctx) do
+    IO.puts "Compiling main navigation HTML stub..."
+    html = meta
+           |> Enum.filter(&(&1.menu))
+           |> navhtml(ctx)
+    Application.put_env :hyde, :navstub, html
+  end
+
+  def build_posts(ctx) do
+    files = File.ls!(@src_posts)
+            |> Enum.filter(&(String.ends_with? &1, ".md"))
+            |> Enum.map(&(String.replace &1, ~r/\.md$/, ""))
     IO.puts "Cleaning directory `#{@posts}`..."
     File.rm_rf! @posts
     File.mkdir_p! @posts
 
-    IO.puts "Generating metadata..."
     metalist = mkmeta(files, [])
-    File.open!("#{@build_posts}metadata.json", [:write], fn device ->
-      IO.write device, Poison.encode!(metalist)
-    end)
 
-    ctx = Application.get_all_env :hyde
     Enum.each files, fn x ->
       [year, month, day|_] = String.split(x, "-") |> Enum.map(fn x ->
         case Integer.parse(x) do
@@ -39,44 +51,61 @@ defmodule Hyde do
           :error -> nil
         end
       end)
-      out = "#{@build_posts}#{x}.html"
-      IO.puts "  MD2HTML  #{@src_posts}#{x} -> #{out}"
-      file = File.open!(out, [:write])
-      [title|lines] = File.read!(@src_posts <> x) |> String.split("\n")
-      title = title |> String.trim |> String.replace(~r/^# /, "")
-      IO.write file, Earmark.to_html(lines)
-      File.close file
-
-      x = x <> ".html"
-      out = @posts <> String.replace(x, ".md", "")
-      IO.puts "  GEN  #{@build_posts}#{x} -> #{out}"
-      file = File.open!(out, [:write])
       dow = dowstr :calendar.day_of_the_week(year, month, day)
       datestr = "#{dow}, #{day} #{monabbr month} #{year}"
-      res = File.read!(@build_posts <> x)
-            |> posthtml(title, datestr, ctx)
-            |> genpage(title, ctx)
-      IO.write file, res
-      File.close file
+
+      [title|lines] = File.read!("#{@src_posts}#{x}.md") |> String.split("\n")
+      title = title |> String.trim |> String.replace(~r/^# /, "")
+      stub = Earmark.to_html lines
+      html = stub
+             |> posthtml(title, datestr, ctx)
+             |> genpage(title, ctx)
+      File.open!("#{@posts}#{x}.html", [:write], fn device ->
+        IO.write device, html
+      end)
+      IO.puts "  GEN  #{@src_posts}#{x}.md -> #{@posts}#{x}.html"
     end
 
     IO.puts "Generating posts index..."
     File.open!("#{@posts}index.html", [:write], fn device ->
-      IO.write device, (listhtml(metalist, ctx) |> genpage("All Posts", ctx))
+      IO.write device, (metalist |> Enum.reverse |> listhtml(ctx) |> genpage("All Posts", ctx))
     end)
   end
 
-  def build_pages() do
-    :not_implemented
+  def build_pages(meta, ctx) do
+    IO.puts "Cleaning pages..."
+    File.ls!(@pages)
+    |> Enum.filter(&(String.ends_with? &1, ".html"))
+    |> Enum.each(&(File.rm_rf! &1))
+    Enum.each meta, fn x ->
+      html = File.read!("#{@src_pages}#{x.name}.md")
+             |> Earmark.to_html
+             |> genpage(x.title, ctx)
+      File.open! "#{@pages}#{x.name}.html", [:write], fn device ->
+        IO.write device, html
+      end
+      IO.puts "  GEN  #{@src_pages}#{x.name}.md -> #{@pages}#{x.name}.html"
+    end
   end
 
   def copy_assets() do
-    :not_implemented
+    IO.puts "Cleaning assets and media directories..."
+    File.rm_rf! @assets
+    File.rm_rf! @media
+    IO.puts "Copying assets and media..."
+    case File.cp_r(@src_assets, @assets) do
+      {:error, :enoent, _} -> IO.puts "Assets directory not found. Skipping..."
+      {:ok, _} -> nil
+    end
+    case File.cp_r(@src_media, @media) do
+      {:error, :enoent, _} -> IO.puts "Media directory not found. Skipping..."
+      {:ok, _} -> nil
+    end
   end
 
-  defp genpage(content, title, context) do
+  defp genpage(content, title, ctx) do
     content
-    |> basehtml(title, context)
+    |> basehtml(title, ctx ++ [navigation: getcfg(:navstub)])
   end
 
   defp getcfg(key), do: Application.get_env(:hyde, key, "")
@@ -111,20 +140,20 @@ defmodule Hyde do
   end
 
   defp mkmeta([h|t], l) do
-    out = "#{getcfg :base_url}posts/#{String.replace h, ".md", ".html"}"
+    url = "#{getcfg :base_url}posts/#{h}.html"
     [year, month, day|_] = String.split(h, "-") |> Enum.map(fn x ->
       case Integer.parse(x) do
         {x, _} -> x
         :error -> nil
       end
     end)
-    title = File.open!("#{@src_posts}#{h}", [:read], fn device -> IO.gets device, "" end)
+    title = File.open!("#{@src_posts}#{h}.md", [:read], fn device -> IO.gets device, "" end)
             |> String.trim
             |> String.replace(~r/^# /, "")
     mkmeta(t, l ++ [%Hyde.Postmeta{
       title: title,
       date: "#{day} #{monabbr month} #{year}",
-      file: out
+      file: url
     }])
   end
 

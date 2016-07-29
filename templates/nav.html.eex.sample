@@ -1,0 +1,8 @@
+<nav>
+  <ul>
+    <%= for x <- pages do %>
+      <li><a href="<%= "#{@base_url}#{x.name}.html" %>"><%= x.menu_text %></a></li>
+    <% end %>
+    <li><a href="<%= "#{@base_url}posts/" %>">Posts</a></li>
+  </ul>
+</nav>

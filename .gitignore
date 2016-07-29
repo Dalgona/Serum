@@ -20,5 +20,6 @@ erl_crash.dump
 *.swo
 *~
 
-site-build
 site
+assets
+media

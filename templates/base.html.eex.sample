@@ -10,7 +10,7 @@
         <p><a href="<%= @base_url %>"><%= @site_name %></a></p>
         <p><%= @site_description %></p>
       </header>
-      <nav><%# navigation %></nav>
+      <nav><%= @navigation %></nav>
       <main><%= contents %></main>
       <footer>
       </footer>
