@@ -1,0 +1,14 @@
+<section>
+  <article>
+    <header>
+      <h1><%= title %></h1>
+      <p>Post by <%= author %> on <%= date %></p>
+    </header>
+    <div>
+      <%= contents %>
+    </div>
+  </article>
+  <%#<nav>
+    Placeholder for the pagination nav
+    </nav>%>
+</section>

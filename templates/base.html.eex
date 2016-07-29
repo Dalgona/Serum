@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title><%# page_title %></title>
+  </head>
+  <body>
+    <div id="wrapper">
+      <header>
+        <p><%= site_name %></p>
+        <p><%= site_description %></p>
+      </header>
+      <nav><%# navigation %></nav>
+      <main><%= contents %></main>
+      <footer>
+      </footer>
+    </div>
+  </body>
+</html>
