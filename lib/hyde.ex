@@ -38,6 +38,7 @@ defmodule Hyde do
     files = File.ls!(@src_posts)
             |> Enum.filter(&(String.ends_with? &1, ".md"))
             |> Enum.map(&(String.replace &1, ~r/\.md$/, ""))
+            |> Enum.sort
     IO.puts "Cleaning directory `#{@posts}`..."
     File.rm_rf! @posts
     File.mkdir_p! @posts
