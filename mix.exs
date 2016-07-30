@@ -14,7 +14,7 @@ defmodule Hyde.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :pandex]]
   end
 
   # Dependencies can be Hex packages:
@@ -27,7 +27,7 @@ defmodule Hyde.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:earmark, "~> 1.0.1"},
+    [{:pandex, "~> 0.1.0"},
      {:poison, "~> 2.2"}]
   end
 end

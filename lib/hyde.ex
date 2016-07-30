@@ -56,7 +56,7 @@ defmodule Hyde do
 
       [title|lines] = File.read!("#{@src_posts}#{x}.md") |> String.split("\n")
       title = title |> String.trim |> String.replace(~r/^# /, "")
-      stub = Earmark.to_html lines
+      {:ok, stub} = lines |> Enum.join("\n") |> Pandex.commonmark_to_html5
       html = stub
              |> posthtml(title, datestr, ctx)
              |> genpage(title, ctx)
@@ -78,13 +78,16 @@ defmodule Hyde do
     |> Enum.filter(&(String.ends_with? &1, ".html"))
     |> Enum.each(&(File.rm_rf! &1))
     Enum.each meta, fn x ->
-      html = File.read!("#{@src_pages}#{x.name}.md")
-             |> Earmark.to_html
-             |> genpage(x.title, ctx)
+      txt = File.read!("#{@src_pages}#{x.name}.#{x.type}")
+      {_, html} = case x.type do
+        "md" -> Pandex.commonmark_to_html5 txt
+        "html" -> {nil, txt}
+      end
+      html = genpage(html, x.title, ctx)
       File.open! "#{@pages}#{x.name}.html", [:write], fn device ->
         IO.write device, html
       end
-      IO.puts "  GEN  #{@src_pages}#{x.name}.md -> #{@pages}#{x.name}.html"
+      IO.puts "  GEN  #{@src_pages}#{x.name}.#{x.type} -> #{@pages}#{x.name}.html"
     end
   end
 
