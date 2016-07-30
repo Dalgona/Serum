@@ -16,7 +16,15 @@ defmodule Hyde do
   EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :title, :date, :assigns]
   EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :assigns]
 
+  def info() do
+    IO.puts "Hyde -- Yet Another Static Website Generator v0.9.0"
+    IO.puts "Copyright (C) 2016, Dalgona. <dalgona@hontou.moe>"
+    IO.puts "View in GitHub: https://github.com/Dalgona/Hyde"
+    IO.puts ""
+  end
+
   def build() do
+    IO.puts "Rebuilding Website..."
     context = Application.get_all_env :hyde
     pagemeta = File.read!("#{@src_pages}pages.json")
                |> Poison.decode!(as: [%Hyde.Pagemeta{}])
@@ -24,6 +32,10 @@ defmodule Hyde do
     build_posts context
     build_pages pagemeta, context
     copy_assets
+    IO.puts ""
+    IO.puts "Your website is now ready to be served!"
+    IO.puts "Copy(move) the contents of `#{@pages}` directory"
+    IO.puts "into your public webpages directory."
   end
 
   def compile_nav(meta, ctx) do
@@ -57,13 +69,17 @@ defmodule Hyde do
 
       [title|lines] = File.read!("#{@src_posts}#{x}.md") |> String.split("\n")
       title = title |> String.trim |> String.replace(~r/^# /, "")
-      {:ok, stub} = lines |> Enum.join("\n") |> Pandex.commonmark_to_html5
-      html = stub
-             |> posthtml(title, datestr, ctx)
-             |> genpage(title, ctx)
-      File.open!("#{@posts}#{x}.html", [:write], fn device ->
-        IO.write device, html
-      end)
+      try do
+        {:ok, stub} = lines |> Enum.join("\n") |> Pandex.commonmark_to_html5
+        html = stub
+               |> posthtml(title, datestr, ctx)
+               |> genpage(title, ctx)
+        File.open!("#{@posts}#{x}.html", [:write], fn device ->
+          IO.write device, html
+        end)
+      rescue
+        _ in ErlangError -> exit "`pandoc` (>= 1.14) is required for the build process."
+      end
       IO.puts "  GEN  #{@src_posts}#{x}.md -> #{@posts}#{x}.html"
     end
 
@@ -80,13 +96,17 @@ defmodule Hyde do
     |> Enum.each(&(File.rm_rf! &1))
     Enum.each meta, fn x ->
       txt = File.read!("#{@src_pages}#{x.name}.#{x.type}")
-      {_, html} = case x.type do
-        "md" -> Pandex.commonmark_to_html5 txt
-        "html" -> {nil, txt}
-      end
-      html = genpage(html, x.title, ctx)
-      File.open! "#{@pages}#{x.name}.html", [:write], fn device ->
-        IO.write device, html
+      try do
+        {_, html} = case x.type do
+          "md" -> Pandex.commonmark_to_html5 txt
+          "html" -> {nil, txt}
+        end
+        html = genpage(html, x.title, ctx)
+        File.open! "#{@pages}#{x.name}.html", [:write], fn device ->
+          IO.write device, html
+        end
+      rescue
+        _ in ErlangError -> exit "`pandoc` (>= 1.14) is required for the build process."
       end
       IO.puts "  GEN  #{@src_pages}#{x.name}.#{x.type} -> #{@pages}#{x.name}.html"
     end
