@@ -10,23 +10,23 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :hyde, key: :value
+#     config :serum, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:hyde, :key)
+#     Application.get_env(:serum, :key)
 #
 # Or configure a 3rd-party app:
 #
 #     config :logger, level: :info
 #
 
-config :hyde, site_name: "Sample Site"
-config :hyde, site_description: "Welcome to my website."
-config :hyde, author: "Dalgona."
-config :hyde, author_email: "dalgona@hontou.moe"
+config :serum, site_name: "Sample Site"
+config :serum, site_description: "Welcome to my website."
+config :serum, author: "Dalgona."
+config :serum, author_email: "dalgona@hontou.moe"
 
-config :hyde, base_url: "/site/"
+config :serum, base_url: "/site/"
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

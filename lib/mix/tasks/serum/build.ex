@@ -1,9 +1,9 @@
-defmodule Mix.Tasks.Hyde.Build do
+defmodule Mix.Tasks.Serum.Build do
   use Mix.Task
 
   @shortdoc "Rebuild the whole site"
   def run(_) do
-    Hyde.info
-    Hyde.build
+    Serum.info
+    Serum.build
   end
 end

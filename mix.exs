@@ -1,8 +1,8 @@
-defmodule Hyde.Mixfile do
+defmodule Serum.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :hyde,
+    [app: :serum,
      version: "0.9.0",
      elixir: "~> 1.3",
      build_embedded: Mix.env == :prod,

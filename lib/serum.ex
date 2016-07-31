@@ -1,4 +1,4 @@
-defmodule Hyde do
+defmodule Serum do
   require EEx
 
   @templates "templates/"
@@ -17,17 +17,17 @@ defmodule Hyde do
   EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :assigns]
 
   def info() do
-    IO.puts "Hyde -- Yet Another Static Website Generator v0.9.0"
+    IO.puts "Serum -- Yet Another Static Website Generator v0.9.0"
     IO.puts "Copyright (C) 2016, Dalgona. <dalgona@hontou.moe>"
-    IO.puts "View in GitHub: https://github.com/Dalgona/Hyde"
+    IO.puts "View in GitHub: https://github.com/Dalgona/Serum"
     IO.puts ""
   end
 
   def build() do
     IO.puts "Rebuilding Website..."
-    context = Application.get_all_env :hyde
+    context = Application.get_all_env :serum
     pagemeta = File.read!("#{@src_pages}pages.json")
-               |> Poison.decode!(as: [%Hyde.Pagemeta{}])
+               |> Poison.decode!(as: [%Serum.Pagemeta{}])
     compile_nav pagemeta, context
     build_posts context
     build_pages pagemeta, context
@@ -43,7 +43,7 @@ defmodule Hyde do
     html = meta
            |> Enum.filter(&(&1.menu))
            |> navhtml(ctx)
-    Application.put_env :hyde, :navstub, html
+    Application.put_env :serum, :navstub, html
   end
 
   def build_posts(ctx) do
@@ -132,7 +132,7 @@ defmodule Hyde do
     |> basehtml(title, ctx ++ [navigation: getcfg(:navstub)])
   end
 
-  defp getcfg(key), do: Application.get_env(:hyde, key, "")
+  defp getcfg(key), do: Application.get_env(:serum, key, "")
 
   defp dowstr(n) do
     case n do
@@ -174,7 +174,7 @@ defmodule Hyde do
     title = File.open!("#{@src_posts}#{h}.md", [:read], fn device -> IO.gets device, "" end)
             |> String.trim
             |> String.replace(~r/^# /, "")
-    mkmeta(t, l ++ [%Hyde.Postmeta{
+    mkmeta(t, l ++ [%Serum.Postmeta{
       title: title,
       date: "#{day} #{monabbr month} #{year}",
       file: url

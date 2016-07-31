@@ -1,4 +1,4 @@
-defmodule Hyde.Postmeta do
+defmodule Serum.Postmeta do
   @derive [Poison.Encoder]
   defstruct [:title, :date, :file]
 end
