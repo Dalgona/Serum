@@ -11,16 +11,45 @@ defmodule Serum do
   @assets "site/assets/"
   @media "site/media/"
 
-  EEx.function_from_file :defp, :navhtml, @templates <> "nav.html.eex", [:pages, :assigns]
-  EEx.function_from_file :defp, :listhtml, @templates <> "list.html.eex", [:posts, :assigns]
-  EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :title, :date, :assigns]
-  EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :page_title, :assigns]
+  EEx.function_from_file :defp, :navhtml, @templates <> "nav.html.eex", [:assigns]
+  EEx.function_from_file :defp, :listhtml, @templates <> "list.html.eex", [:assigns]
+  EEx.function_from_file :defp, :posthtml, @templates <> "post.html.eex", [:contents, :assigns]
+  EEx.function_from_file :defp, :basehtml, @templates <> "base.html.eex", [:contents, :assigns]
 
-  def info() do
-    IO.puts "Serum -- Yet Another Static Website Generator v0.9.0"
-    IO.puts "Copyright (C) 2016, Dalgona. <dalgona@hontou.moe>"
-    IO.puts "View in GitHub: https://github.com/Dalgona/Serum"
-    IO.puts ""
+  def init(), do: init "."
+
+  def init(dir) do
+    dir = if String.ends_with?(dir, "/"), do: dir, else: dir<>"/"
+    if File.exists? dir do
+      IO.puts "Warning: The directory `#{dir}` already exists and might not be empty."
+    end
+
+    ["posts", "pages", "media", "templates", "assets/css", "assets/js", "assets/images"]
+    |> Enum.each(fn x ->
+      File.mkdir_p! "#{dir}#{x}"
+      IO.puts "Created directory `#{dir}#{x}`."
+    end)
+
+    projmeta =
+      %{site_name: "New Website",
+        site_description: "Welcome to my website!",
+        author: "Somebody",
+        author_email: "somebody@example.com",
+        base_url: "/"}
+      |> Poison.encode!(pretty: true, indent: 2)
+    File.open! "#{dir}serum.json", [:write], fn f -> IO.write f, projmeta end
+    IO.puts "Generated `#{dir}serum.json`."
+    File.open! "#{dir}pages/pages.json", [:write], fn f -> IO.write f, "[]" end
+    IO.puts "Generated `#{dir}pages/pages.json`."
+
+    File.open! "#{dir}templates/base.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_base end
+    File.open! "#{dir}templates/nav.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_nav end
+    File.open! "#{dir}templates/list.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_list end
+    File.open! "#{dir}templates/post.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_post end
+    IO.puts "Generated essential templates into `#{dir}templates/`."
+
+    IO.puts "\nSuccessfully initialized a new Serum project!"
+    IO.puts "try `serum build #{dir}` to build the site."
   end
 
   def build() do
@@ -40,9 +69,7 @@ defmodule Serum do
 
   def compile_nav(meta, ctx) do
     IO.puts "Compiling main navigation HTML stub..."
-    html = meta
-           |> Enum.filter(&(&1.menu))
-           |> navhtml(ctx)
+    html = navhtml(ctx ++ [pages: Enum.filter(meta, &(&1.menu))])
     Application.put_env :serum, :navstub, html
   end
 
@@ -72,8 +99,8 @@ defmodule Serum do
       try do
         {:ok, stub} = lines |> Enum.join("\n") |> Pandex.commonmark_to_html5
         html = stub
-               |> posthtml(title, datestr, ctx)
-               |> genpage(title, ctx)
+               |> posthtml(ctx ++ [title: title, date: datestr])
+               |> genpage(ctx ++ [page_title: title])
         File.open!("#{@posts}#{x}.html", [:write], fn device ->
           IO.write device, html
         end)
@@ -85,7 +112,7 @@ defmodule Serum do
 
     IO.puts "Generating posts index..."
     File.open!("#{@posts}index.html", [:write], fn device ->
-      IO.write device, (metalist |> Enum.reverse |> listhtml(ctx) |> genpage("All Posts", ctx))
+      IO.write device, (listhtml(ctx ++ [posts: Enum.reverse(metalist)]) |> genpage(ctx ++ [page_title: "All Posts"]))
     end)
   end
 
@@ -101,7 +128,7 @@ defmodule Serum do
           "md" -> Pandex.commonmark_to_html5 txt
           "html" -> {nil, txt}
         end
-        html = genpage(html, x.title, ctx)
+        html = genpage(html, ctx ++ [page_title: x.title])
         File.open! "#{@pages}#{x.name}.html", [:write], fn device ->
           IO.write device, html
         end
@@ -127,9 +154,9 @@ defmodule Serum do
     end
   end
 
-  defp genpage(content, title, ctx) do
+  defp genpage(content, ctx) do
     content
-    |> basehtml(title, ctx ++ [navigation: getcfg(:navstub)])
+    |> basehtml(ctx ++ [navigation: getcfg(:navstub)])
   end
 
   defp getcfg(key), do: Application.get_env(:serum, key, "")
