@@ -21,13 +21,6 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
-config :serum, site_name: "Sample Site"
-config :serum, site_description: "Welcome to my website."
-config :serum, author: "Dalgona."
-config :serum, author_email: "dalgona@hontou.moe"
-
-config :serum, base_url: "/site/"
-
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
