@@ -2,10 +2,10 @@ defmodule Serum.Cmdline do
   def main(args) do
     info
     case args do
-      ["init"] -> Serum.init
+      ["init"] -> Serum.init "."
       ["init", dir] -> Serum.init dir
-      ["build"] -> IO.puts :build
-      ["build", dir] -> IO.puts :build_dir
+      ["build"] -> Serum.build "."
+      ["build", dir] -> Serum.build dir
       ["version"|_] -> nil
       _ -> usage
     end
