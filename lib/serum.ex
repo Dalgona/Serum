@@ -92,9 +92,9 @@ defmodule Serum do
     |> Enum.each(&(File.rm_rf! &1))
     Enum.each meta, fn x ->
       txt = File.read!("#{dir}pages/#{x.name}.#{x.type}")
-      {_, html} = case x.type do
-        "md" -> Pandex.commonmark_to_html5 txt
-        "html" -> {nil, txt}
+      html = case x.type do
+        "md" -> Earmark.to_html txt
+        "html" -> txt
       end
       html = genpage(html, proj ++ [page_title: x.title])
       File.open! "#{dir}site/#{x.name}.html", [:write], fn device ->
@@ -130,7 +130,7 @@ defmodule Serum do
 
       [title|lines] = File.read!("#{srcdir}#{x}.md") |> String.split("\n")
       title = title |> String.trim |> String.replace(~r/^# /, "")
-      {:ok, stub} = lines |> Enum.join("\n") |> Pandex.commonmark_to_html5
+      stub = lines |> Earmark.to_html
       html = render(template_post, proj ++ [title: title, date: datestr, contents: stub])
              |> genpage(proj ++ [page_title: title])
       File.open!("#{dstdir}#{x}.html", [:write], fn device ->
