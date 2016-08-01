@@ -36,6 +36,9 @@ defmodule Serum do
     File.open! "#{dir}templates/post.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_post end
     IO.puts "Generated essential templates into `#{dir}templates/`."
 
+    File.open! "#{dir}.gitignore", [:write], fn f -> IO.write f, "site\n" end
+    IO.puts "Generated `#{dir}.gitignore`."
+
     IO.puts "\nSuccessfully initialized a new Serum project!"
     IO.puts "try `serum build #{dir}` to build the site."
   end
