@@ -1,26 +1,26 @@
 # Serum
 
-**Serum**은 [Elixir](http://elixir-lang.org)로 작성된 간단한 정적 웹사이트 생성기입니다.
+**Serum** is a simple static website generator written in [Elixir](http://elixir-lang.org).
 
-Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 기능에 중점을 두고 있으며, 마크다운 문서를 작성하는 법과 EEx(Embedded Elixir) 템플릿을 다루는 법만 알고 있으면 손쉽게 사이트를 만들 수 있습니다.
+Like some of other static website generators, Serum focuses on blogging. And if you know how to write markdown documents and how to handle EEx templates, you can easily build your own website.
 
-## 시작하기
+## Getting Started
 
-### 요구사항
+### Requirement
 
-* Elixir 1.3 이상
+* Elixir 1.3 or newer
 
-    이는 현재 개발 환경에 의해 지정되었으며, 차후 테스트를 통해 요구되는 최소 버전이 더 낮아질 수 있습니다.
+    Determined by current development environment. Could support lower versions after tests.
 
-### 프로젝트 생성 및 빌드
+### Initializing and Building the Project
 
-1. 먼저 `git`을 이용하여 로컬에 이 저장소를 복제하세요.
+1. Use `git` to clone this repository.
 
     ```sh
     % git clone https://github.com/Dalgona/Serum.git
     ```
 
-2. 복제된 저장소에 들어가서 아래 명령을 입력하여 의존하는 모듈을 내려받고 Serum을 빌드하면 현재 디렉토리에 `serum` 실행 파일이 생성됩니다.
+2. Type the commands below to fetch the dependencies and build Serum. The `serum` executable will be created under your PWD.
 
     ```sh
     % cd Serum
@@ -28,25 +28,25 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
     % mix escript.build
     ```
 
-3. `serum init [directory]` 명령을 실행하면 현재 디렉토리 또는 지정한 디렉토리에 새로운 Serum 프로젝트를 생성할 수 있습니다.
+3. Execute `serum init [directory]` to create a new Serum project at current or specified directory.
 
-    > *Serum 저장소가 위치한 디렉토리에 프로젝트를 생성하는 것은 권장되지 않습니다.*
+    > *It is NOT recommended to initialize a new project to where Serum repository is located.*
 
     ```sh
     % ./serum init /path/to/project
     ```
 
-4. `serum build [directory]`명령으로 생성된 프로젝트를 빌드합니다.
+4. Type `serum build [directory]` to build the generated project.
 
     ```sh
     % ./serum build /path/to/project
     ```
 
-    빌드가 완료되면 `/path/to/project/site` 디렉토리에 웹사이트의 루트가 생성됩니다. 이 디렉토리의 내용물을 여러분이 사용하고 있는 웹 서버의 www 디렉토리로 복사하거나 외부 호스팅 서비스에 업로드하세요.
+    When the build completes, the root of your website will be created under `/path/to/project/site` directory. Copy the contents of this directory to your own www directory, or upload them to the external web hosting service.
 
-### 프로젝트 설정하기
+### Configuration
 
-프로젝트 초기화가 완료되면 해당 디렉토리 아래에 아래와 같은 구조가 생성됩니다.
+When you initialize a new project, Serum will create directory/file structure described below:
 
 ```text
 /path/to/project/
@@ -67,7 +67,7 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 +-- media
 ```
 
-`serum.json` 파일에는 현재 프로젝트 (웹 사이트)의 정보를 담고 있습니다. 이 파일의 구조는 아래와 같습니다.
+`serum.json` holds information about the current project, which looks like:
 
 ```json
 {
@@ -79,15 +79,15 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 }
 ```
 
-* `site_name` &mdash; 웹 사이트의 제목입니다.
-* `site_description` &mdash; 웹 사이트에 대한 설명입니다. 부제목으로 이용할 수도 있습니다.
-* `author_name` &mdash; 포스트 작성자의 이름입니다.
-* `author_email` &mdash; 포스트 작성자의 이메일 주소입니다.
-* `base_url` &mdash; 웹 사이트의 기준 경로입니다. 경로의 끝에 `/`를 붙이는 것을 권장합니다.
+* `site_name` &mdash; The title of your website.
+* `site_description` &mdash; The description of your website. Can be used as a subtitle.
+* `author_name` &mdash; The name of author of blog posts.
+* `author_email` &mdash; The email address of the author.
+* `base_url` &mdash; The base path of your web site. I recommend you to put a trailing `/`.
 
-> 위 속성들은 템플릿에서 `<%= @site_name %>`과 같은 방법으로 접근할 수 있습니다.
+> These attributes can be referenced by using template tags like `<%= @site_name %>`.
 
-### 사이트에 페이지 추가하기
+### Adding Pages to Your Website
 
 `pages/` 디렉토리에는 블로그 포스트를 제외한 웹 사이트를 구성하는 기타 페이지의 소스 코드를 추가할 수 있습니다. 마크다운(파일 이름이 `.md`로 끝나야 함)과 HTML(파일 이름이 `.html`로 끝나야 함) 이 두 가지의 파일 형식을 지원하며, 프로젝트를 빌드하면 해당 파일의 내용이 `templates/base.html.eex` 템플릿과 결합하여 완성된 페이지가 사이트의 루트 디렉토리(`site/`)에 생성됩니다.
 
