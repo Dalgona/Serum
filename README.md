@@ -93,9 +93,9 @@ When you initialize a new project, Serum will create directory/file structure de
 
 페이지가 사이트에 제대로 표시되게 하기 위해서는 `pages/` 디렉토리 내에 `pages.json` 파일도 적절하게 만들어 주어야 합니다. 이 파일에는 각각의 페이지의 제목과 해당 페이지가 사이트의 내비게이션 영역에 어떻게 표시되는지에 대한 정보가 포함되어 있습니다. 이 파일의 구조는 아래와 같습니다.
 
-```json
+```js
 [
-  ...,
+  // ...,
   {
     "name": "index",
     "type": "html",
@@ -104,7 +104,7 @@ When you initialize a new project, Serum will create directory/file structure de
     "menu_text": "About",
     "menu_icon": "assets/images/menu_index.png"
   },
-  ...
+  // ...
 ]
 ```
 
