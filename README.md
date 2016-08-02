@@ -89,9 +89,9 @@ When you initialize a new project, Serum will create directory/file structure de
 
 ### Adding Pages to Your Website
 
-`pages/` 디렉토리에는 블로그 포스트를 제외한 웹 사이트를 구성하는 기타 페이지의 소스 코드를 추가할 수 있습니다. 마크다운(파일 이름이 `.md`로 끝나야 함)과 HTML(파일 이름이 `.html`로 끝나야 함) 이 두 가지의 파일 형식을 지원하며, 프로젝트를 빌드하면 해당 파일의 내용이 `templates/base.html.eex` 템플릿과 결합하여 완성된 페이지가 사이트의 루트 디렉토리(`site/`)에 생성됩니다.
+Inside `pages/` directory you can put source codes for pages other than blog posts. Serum accepts both markdown files(names should end with `.md`) and HTML files(names should end with `.html`), and those files will be combined with `templates/base.html.eex` template and will produce output files into the root directory of website(`site/`).
 
-페이지가 사이트에 제대로 표시되게 하기 위해서는 `pages/` 디렉토리 내에 `pages.json` 파일도 적절하게 만들어 주어야 합니다. 이 파일에는 각각의 페이지의 제목과 해당 페이지가 사이트의 내비게이션 영역에 어떻게 표시되는지에 대한 정보가 포함되어 있습니다. 이 파일의 구조는 아래와 같습니다.
+To display your pages properly, you also need to configure `pages.json` inside `pages/` directory. This file contains titles and other attributes of each page, which look like:
 
 ```js
 [
@@ -108,54 +108,53 @@ When you initialize a new project, Serum will create directory/file structure de
 ]
 ```
 
-* `name` &mdash; 페이지 소스 파일의 이름입니다.
-* `type` &mdash; 페이지 소스 파일의 확장자입니다. `"html"`이나 `"md"`중 하나만 사용 가능합니다.
-* `title` &mdash; 웹 브라우저의 제목 표시줄에 나타나는 텍스트입니다.
-* `menu` &mdash; 해당 페이지의 링크가 내비게이션 영역에 나타날지를 결정합니다. 템플릿에 따라 무시될 수도 있습니다.
-* `menu_text` &mdash; 내비게이션 영역에 나타나는 링크 텍스트입니다.
-* `menu_icon` &mdash; 내비게이션 영역에 나타나는 이미지의 경로입니다. 템플릿에 따라 무시될 수도 있습니다.
+* `name` &mdash; The filename of page source file.
+* `type` &mdash; The extension of page source file. Only "html" and "md" are accepted.
+* `title` &mdash; The text that appears on the titlebar of your web browser.
+* `menu` &mdash; Sets whether the link of specified page appears in the navigation area. Ignored by some templates.
+* `menu_text` &mdash; The link text that appears on the navigation area.
+* `menu_icon` &mdash; The path of image file that appears on the navigation area. Ignored by some templates.
 
-> `pages/` 디렉토리에 페이지 소스 파일이 저장되어 있어도 `pages.json`에 해당 파일에 대한 정보가 정의되어 있지 않으면 빌드 시 사이트에 포함되지 않습니다.
+> If you do not define properties for a page in `pages.json`, that page WILL NOT included in the website when building the project, even if the source code for that page exists under `pages/` directory.
 
-### 새 포스트 작성하기
+### Writing a New Post
 
-`posts/` 디렉토리에 여러분이 작성할 블로그 포스트의 마크다운 파일이 저장됩니다. 이 디렉토리 내에 저장되는 파일은 모두 `yyyy-MM-dd-hhmm-title-slug.md`의 규칙을 따라야 합니다. 각각의 마크다운 파일의 첫 줄은 반드시 `#` 문자, 공백(`'\x20'`), 그리고 해당 포스트의 제목으로 이루어져 있어야 합니다. Serum은 마크다운 파일의 첫 줄을 처리하여 포스트의 메타데이터를 생성합니다.
+`posts/` directory holds markdown of your blog posts. All markdown files under this directory must follow the naming rule of `yyyy-MM-dd-hhmm-title-slug.md`, and the very first line of each markdown file must start with `#` character, followed by a space(`'\x20'`), and title of the post, as Serum parses the first line of each file and generates post metadata.
 
-아래는 유효한 마크다운 파일의 예시입니다.
+Below is an example of valid markdown file:
 
 `2016-08-01-1946-my-new-post.md:`
 
 ```markdown
-# 안녕하세요! 나의 첫 포스트입니다
+# Hello! This is My First Post
 
 Lorem ipsum dolor sit amet, consectetur adipiscing ...
 ```
 
-사이트를 빌드하면 `posts/` 디렉토리의 각각의 마크다운 파일들이 HTML로 변환되고 `templates/post.html.eex` 템플릿에 적용된 후, 다시 `templates/base.html.eex` 템플릿과 결합하여 `site/posts/` 디렉토리에 저장됩니다.
+When building the website, all markdown files under the `posts/` directory are converted into HTML, applied by `templates/post.html.eex` template, and then combined with `templates/base.html.eex` template to produce the output file under `site/posts/` directory. Also, Serum generates `site/posts/index.html`, which is a list of all blog posts.
 
-### 템플릿
+### Templates
 
-Serum은 네 개의 템플릿(`base.html.eex`, `list.html.eex`, `post.html.eex` 및 `nav.html.eex`)을 사용하여 웹 페이지들을 만듭니다. 새로운 프로젝트를 생성하면 프로젝트의 `templates/` 디렉토리에 최소한의 기능이 구현된 템플릿이 같이 생성되는데, 이 템플릿 파일에는 Serum에서 제공하는 모든 템플릿 변수들이 다 사용되고 있으므로 이를 참고하여 여러분만의 페이지 템플릿을 만드세요. 각 템플릿 파일의 역할은 아래와 같습니다.
+Serum generates web pages by applying four templates: `base.html.eex`, `list.html.eex`, `post.html.eex` and `nav.html.eex`. When the new project is created, the minimally implemented templates are also created under `templates/` directory, which still have all template variables provided by Serum. So you can create your own templates base on those files. The role of each templates are described below:
 
-* `base.html.eex` &mdash; 웹 사이트의 전반적인 구조와 디자인을 담당합니다. HTML 루트 태그가 이 템플릿에 정의되어 있습니다.
-* `list.html.eex` &mdash; 등록된 모든 블로그 포스트의 목록입니다.
-* `post.html.eex` &mdash; 블로그 포스트 페이지 템플릿입니다.
-* `nav.html.eex` &mdash; 사이트의 내비게이션 영역에 들어갈 내용입니다.
+* `base.html.eex` &mdash; Defines the overall structure and design of your website. The HTML root tag is located inside this template.
+* `list.html.eex` &mdash; Template for the list of all registered blog posts.
+* `post.html.eex` &mdash; Template for a single blog post.
+* `nav.html.eex` &mdash; Template for the navigation area of the website.
 
-### 애셋과 미디어
+### Assets and Media
 
-`assets` 디렉토리에는 프로젝트에서 사용하는 스타일시트나 자바스크립트, 이미지와 같은 리소스를 저장할 수 있습니다. 프로젝트를 생성하면 편의를 위해 `assets` 디렉토리 안에 `css`, `js`, `images` 디렉토리가 같이 만들어지지만, 여러분의 필요에 따라 내부 디렉토리 구조를 변경해도 큰 상관은 없습니다. `assets` 디렉토리는 프로젝트를 빌드할 때 `site/assets/` 디렉토리로 그대로 복사되므로 템플릿 내에서 `href="<%= @base_url %>assets/css/style.css"`와 같은 방법으로 참조할 수 있습니다.
+You can put all resources such as stylesheets, scripts and images under `assets/` directory. Serum also creates `css`, `js` `images` directory under `assets/` for the convenience, but it does not matter even if you modify the directory structure as needed. When the site is being built, `assets/` directory itself is copied into `site/assets/` directory, so you can reference the resources like this: `href="<%= @base_url %>assets/css/style.css"`.
 
-`media` 디렉토리에는 블로그 포스트에서 참조될 사진들이 저장됩니다. 포스트에 삽입할 사진을 이 디렉토리 아래에 집어 넣으면 마크다운 문서에서 `%media:` 문법으로 해당 사진 파일을 가리킬 수 있습니다. 예를 들면, `![Image](%media:foo.jpg)` 이 코드는 HTML로 변환되기 전에 `![Image](/base/url/media/foo.jpg)`로 확장됩니다.
+All pictures referenced by blog posts should be saved under `media/` directory. Then you can point to that media in the markdown by using `%media:` syntax. For example, the code `![Image](%media:foo.jpg)` will be expanded into `![Image](/base/url/media/foo.jpg)`, before converted into HTML.
 
-> **참고**: 구현상의 제약에 의해, `%media:` 참조를 사용하는 경우에는 이미지의 대체 텍스트에 `]` 문자를 사용하거나, 이미지의 원본 URL에 `)` 문자를 사용하면 예기치 않은 결과가 발생할 수도 있습니다.
+> **NOTE**: Due to the limitations caused by the implementation, using `]` character in the alternative text and using `)` character in the source URL of the image may result in unexpected behavior.
 
 ## TODO
 
-* 본 문서의 영어판 작성
-* TODO 생각해내기
+* Finding what to do next
 
-## 개발자 연락처
+## Contact the Developer
 
 * Email: <dalgona@hontou.moe>
-* Twitter: [@d57pub_](https://twitter.com/d57pub_)
+* Twitter: [@d57_kr](https://twitter.com/d57_kr)

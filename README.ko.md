@@ -131,7 +131,7 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 Lorem ipsum dolor sit amet, consectetur adipiscing ...
 ```
 
-사이트를 빌드하면 `posts/` 디렉토리의 각각의 마크다운 파일들이 HTML로 변환되고 `templates/post.html.eex` 템플릿에 적용된 후, 다시 `templates/base.html.eex` 템플릿과 결합하여 `site/posts/` 디렉토리에 저장됩니다.
+사이트를 빌드하면 `posts/` 디렉토리의 각각의 마크다운 파일들이 HTML로 변환되고 `templates/post.html.eex` 템플릿에 적용된 후, 다시 `templates/base.html.eex` 템플릿과 결합하여 `site/posts/` 디렉토리에 저장됩니다. 또한 사이트가 빌드될 때 모든 포스트의 목록이 포함된 `site/posts/index.html` 파일도 생성됩니다.
 
 ### 템플릿
 
@@ -144,18 +144,17 @@ Serum은 네 개의 템플릿(`base.html.eex`, `list.html.eex`, `post.html.eex` 
 
 ### 애셋과 미디어
 
-`assets` 디렉토리에는 프로젝트에서 사용하는 스타일시트나 자바스크립트, 이미지와 같은 리소스를 저장할 수 있습니다. 프로젝트를 생성하면 편의를 위해 `assets` 디렉토리 안에 `css`, `js`, `images` 디렉토리가 같이 만들어지지만, 여러분의 필요에 따라 내부 디렉토리 구조를 변경해도 큰 상관은 없습니다. `assets` 디렉토리는 프로젝트를 빌드할 때 `site/assets/` 디렉토리로 그대로 복사되므로 템플릿 내에서 `href="<%= @base_url %>assets/css/style.css"`와 같은 방법으로 참조할 수 있습니다.
+`assets/` 디렉토리에는 프로젝트에서 사용하는 스타일시트나 자바스크립트, 이미지와 같은 리소스를 저장할 수 있습니다. 프로젝트를 생성하면 편의를 위해 `assets/` 디렉토리 안에 `css`, `js`, `images` 디렉토리가 같이 만들어지지만, 여러분의 필요에 따라 내부 디렉토리 구조를 변경해도 큰 상관은 없습니다. `assets/` 디렉토리는 프로젝트를 빌드할 때 `site/assets/` 디렉토리로 그대로 복사되므로 템플릿 내에서 `href="<%= @base_url %>assets/css/style.css"`와 같은 방법으로 참조할 수 있습니다.
 
-`media` 디렉토리에는 블로그 포스트에서 참조될 사진들이 저장됩니다. 포스트에 삽입할 사진을 이 디렉토리 아래에 집어 넣으면 마크다운 문서에서 `%media:` 문법으로 해당 사진 파일을 가리킬 수 있습니다. 예를 들면, `![Image](%media:foo.jpg)` 이 코드는 HTML로 변환되기 전에 `![Image](/base/url/media/foo.jpg)`로 확장됩니다.
+`media/` 디렉토리에는 블로그 포스트에서 참조될 사진들이 저장됩니다. 포스트에 삽입할 사진을 이 디렉토리 아래에 집어 넣으면 마크다운 문서에서 `%media:` 문법으로 해당 사진 파일을 가리킬 수 있습니다. 예를 들면, `![Image](%media:foo.jpg)` 이 코드는 HTML로 변환되기 전에 `![Image](/base/url/media/foo.jpg)`로 확장됩니다.
 
 > **참고**: 구현상의 제약에 의해, `%media:` 참조를 사용하는 경우에는 이미지의 대체 텍스트에 `]` 문자를 사용하거나, 이미지의 원본 URL에 `)` 문자를 사용하면 예기치 않은 결과가 발생할 수도 있습니다.
 
 ## TODO
 
-* 본 문서의 영어판 작성
 * TODO 생각해내기
 
 ## 개발자 연락처
 
 * Email: <dalgona@hontou.moe>
-* Twitter: [@d57pub_](https://twitter.com/d57pub_)
+* Twitter: [@d57_kr](https://twitter.com/d57_kr)
