@@ -4,6 +4,8 @@
 
 Like some of other static website generators, Serum focuses on blogging. And if you know how to write markdown documents and how to handle EEx templates, you can easily build your own website.
 
+Check out the [sample project](https://github.com/Dalgona/serum-sample) and the [website](http://include.iostream.kr/serum-sample)!
+
 ## Getting Started
 
 ### Requirement

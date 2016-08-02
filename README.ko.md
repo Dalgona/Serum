@@ -4,6 +4,8 @@
 
 Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 기능에 중점을 두고 있으며, 마크다운 문서를 작성하는 법과 EEx(Embedded Elixir) 템플릿을 다루는 법만 알고 있으면 손쉽게 사이트를 만들 수 있습니다.
 
+[샘플 프로젝트](https://github.com/Dalgona/serum-sample)와 [웹사이트](http://include.iostream.kr/serum-sample)를 확인해보세요!
+
 ## 시작하기
 
 ### 요구사항

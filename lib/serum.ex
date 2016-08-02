@@ -26,26 +26,26 @@ defmodule Serum do
         author_email: "somebody@example.com",
         base_url: "/"}
       |> Poison.encode!(pretty: true, indent: 2)
-    File.open! "#{dir}serum.json", [:write], fn f -> IO.write f, projmeta end
+    File.open! "#{dir}serum.json", [:write, :utf8], fn f -> IO.write f, projmeta end
     IO.puts "Generated `#{dir}serum.json`."
-    File.open! "#{dir}pages/index.md", [:write], fn f -> IO.write f, "*Hello, world!*\n" end
-    File.open! "#{dir}pages/pages.json", [:write], fn f ->
+    File.open! "#{dir}pages/index.md", [:write, :utf8], fn f -> IO.write f, "*Hello, world!*\n" end
+    File.open! "#{dir}pages/pages.json", [:write, :utf8], fn f ->
       tmp = Poison.encode! [
         %Serum.Pagemeta{name: "index", type: "md", title: "Welcome!", menu: true, menu_text: "Home", menu_icon: ""}
       ], pretty: true, indent: 2
       IO.write f, tmp
     end
     IO.puts "Generated `#{dir}pages/pages.json`."
-    File.open! "#{dir}posts/README", [:write], fn f -> IO.write f, Serum.Payload.posts_readme end
+    File.open! "#{dir}posts/README", [:write, :utf8], fn f -> IO.write f, Serum.Payload.posts_readme end
     IO.puts "Generated `#{dir}posts/README`."
 
-    File.open! "#{dir}templates/base.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_base end
-    File.open! "#{dir}templates/nav.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_nav end
-    File.open! "#{dir}templates/list.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_list end
-    File.open! "#{dir}templates/post.html.eex", [:write], fn f -> IO.write f, Serum.Payload.template_post end
+    File.open! "#{dir}templates/base.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_base end
+    File.open! "#{dir}templates/nav.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_nav end
+    File.open! "#{dir}templates/list.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_list end
+    File.open! "#{dir}templates/post.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_post end
     IO.puts "Generated essential templates into `#{dir}templates/`."
 
-    File.open! "#{dir}.gitignore", [:write], fn f -> IO.write f, "site\n" end
+    File.open! "#{dir}.gitignore", [:write, :utf8], fn f -> IO.write f, "site\n" end
     IO.puts "Generated `#{dir}.gitignore`."
 
     IO.puts "\nSuccessfully initialized a new Serum project!"
@@ -109,7 +109,7 @@ defmodule Serum do
         "html" -> txt
       end
       html = genpage(html, proj ++ [page_title: x.title])
-      File.open! "#{dir}site/#{x.name}.html", [:write], fn device ->
+      File.open! "#{dir}site/#{x.name}.html", [:write, :utf8], fn device ->
         IO.write device, html
       end
       IO.puts "  GEN  #{dir}pages/#{x.name}.#{x.type} -> #{dir}site/#{x.name}.html"
@@ -145,7 +145,7 @@ defmodule Serum do
       stub = lines |> Enum.join("\n") |> Earmark.to_html
       html = render(template_post, proj ++ [title: title, date: datestr, contents: stub])
              |> genpage(proj ++ [page_title: title])
-      File.open!("#{dstdir}#{x}.html", [:write], fn device ->
+      File.open!("#{dstdir}#{x}.html", [:write, :utf8], fn device ->
         IO.write device, html
       end)
       IO.puts "  GEN  #{srcdir}#{x}.md -> #{dstdir}#{x}.html"
@@ -153,7 +153,7 @@ defmodule Serum do
 
     IO.puts "Generating posts index..."
     metalist = mkmeta(dir, proj, files, [])
-    File.open!("#{dstdir}index.html", [:write], fn device ->
+    File.open!("#{dstdir}index.html", [:write, :utf8], fn device ->
       html = render(template_list, proj ++ [posts: Enum.reverse metalist])
              |> genpage(proj ++ [page_title: "All Posts"])
       IO.write device, html
