@@ -27,7 +27,13 @@ defmodule Serum do
       |> Poison.encode!(pretty: true, indent: 2)
     File.open! "#{dir}serum.json", [:write], fn f -> IO.write f, projmeta end
     IO.puts "Generated `#{dir}serum.json`."
-    File.open! "#{dir}pages/pages.json", [:write], fn f -> IO.write f, "[]" end
+    File.open! "#{dir}pages/index.md", [:write], fn f -> IO.write f, "*Hello, world!*\n" end
+    File.open! "#{dir}pages/pages.json", [:write], fn f ->
+      tmp = Poison.encode! [
+        %Serum.Pagemeta{name: "index", type: "md", title: "Welcome!", menu: true, menu_text: "Home", menu_icon: ""}
+      ], pretty: true, indent: 2
+      IO.write f, tmp
+    end
     IO.puts "Generated `#{dir}pages/pages.json`."
     File.open! "#{dir}posts/README", [:write], fn f -> IO.write f, Serum.Payload.posts_readme end
     IO.puts "Generated `#{dir}posts/README`."
