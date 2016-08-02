@@ -146,9 +146,9 @@ Serum generates web pages by applying four templates: `base.html.eex`, `list.htm
 
 You can put all resources such as stylesheets, scripts and images under `assets/` directory. Serum also creates `css`, `js` `images` directory under `assets/` for the convenience, but it does not matter even if you modify the directory structure as needed. When the site is being built, `assets/` directory itself is copied into `site/assets/` directory, so you can reference the resources like this: `href="<%= @base_url %>assets/css/style.css"`.
 
-All pictures referenced by blog posts should be saved under `media/` directory. Then you can point to that media in the markdown by using `%media:` syntax. For example, the code `![Image](%media:foo.jpg)` will be expanded into `![Image](/base/url/media/foo.jpg)`, before converted into HTML.
+All pictures referenced by blog posts should be saved under `media/` directory. Then you can point to that media in the markdown by using `%media:` syntax. For example, the code `![Image](%media:foo.jpg)` will be expanded into `<img src="/base/url/media/foo.jpg" alt="Image">`.
 
-> **NOTE**: Due to the limitations caused by the implementation, using `]` character in the alternative text and using `)` character in the source URL of the image may result in unexpected behavior.
+> **NOTE**: Due to the limitations caused by the implementation, using `"` character in the source URL of the image may result in unexpected behavior.
 
 ## TODO
 

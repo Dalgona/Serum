@@ -3,8 +3,9 @@ defmodule Serum do
 
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
-  @media_re ~r/!\[(?<alt>[^]]*)\]\(%media:(?<src>[^)]*)\)/
-  @media_re_unesc ~r/!\[(?<alt>[^]]*)\]\(%%(?<rest>[^)]*)\)/
+  @re_media ~r/(?<type>href|src)="%25media:(?<url>[^"]*)"/
+  @re_posts ~r/(?<type>href|src)="%25posts:(?<url>[^"]*)"/
+  @re_pages ~r/(?<type>href|src)="%25pages:(?<url>[^"]*)"/
 
   def init(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir<>"/"
@@ -141,7 +142,7 @@ defmodule Serum do
 
       [title|lines] = File.read!("#{srcdir}#{x}.md") |> String.split("\n")
       title = title |> String.trim |> String.replace(~r/^# /, "")
-      stub = lines |> Enum.join("\n") |> process_media(proj) |> Earmark.to_html
+      stub = lines |> Enum.join("\n") |> Earmark.to_html
       html = render(template_post, proj ++ [title: title, date: datestr, contents: stub])
              |> genpage(proj ++ [page_title: title])
       File.open!("#{dstdir}#{x}.html", [:write], fn device ->
@@ -176,6 +177,7 @@ defmodule Serum do
 
   defp genpage(contents, ctx) do
     template = getglobal "template_base"
+    contents = process_links contents, ctx
     render template, ctx ++ [contents: contents, navigation: getglobal :navstub]
   end
 
@@ -184,9 +186,12 @@ defmodule Serum do
     html
   end
 
-  defp process_media(contents, proj) do
-    tmp = Regex.replace @media_re, contents, "![\\1](#{Keyword.get proj, :base_url}media/\\2)"
-    Regex.replace @media_re_unesc, tmp, "![\\1](%\\2)"
+  defp process_links(contents, proj) do
+    base = Keyword.get proj, :base_url
+    contents = Regex.replace @re_media, contents, ~s(\\1="#{base}media/\\2")
+    contents = Regex.replace @re_posts, contents, ~s(\\1="#{base}posts/\\2.html")
+    contents = Regex.replace @re_pages, contents, ~s(\\1="#{base}\\2.html")
+    contents
   end
 
   defp mkmeta(dir, proj, [h|t], l) do
