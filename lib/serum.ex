@@ -42,6 +42,7 @@ defmodule Serum do
     File.open! "#{dir}templates/base.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_base end
     File.open! "#{dir}templates/nav.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_nav end
     File.open! "#{dir}templates/list.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_list end
+    File.open! "#{dir}templates/page.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_page end
     File.open! "#{dir}templates/post.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_post end
     IO.puts "Generated essential templates into `#{dir}templates/`."
 
@@ -67,7 +68,7 @@ defmodule Serum do
              |> Map.to_list
 
       IO.puts "Loading templates..."
-      ["base", "list", "post", "nav"]
+      ["base", "list", "page", "post", "nav"]
       |> Enum.each(fn x ->
         tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
         putglobal "template_#{x}", tree
@@ -98,17 +99,21 @@ defmodule Serum do
   end
 
   def build_pages(dir, proj, meta) do
+    template = getglobal "template_page"
+
     IO.puts "Cleaning pages..."
     File.ls!("#{dir}site/")
     |> Enum.filter(&(String.ends_with? &1, ".html"))
-    |> Enum.each(&(File.rm_rf! &1))
+    |> Enum.each(&(File.rm_rf! "#{dir}site/#{&1}"))
+
     Enum.each meta, fn x ->
       txt = File.read!("#{dir}pages/#{x.name}.#{x.type}")
       html = case x.type do
         "md" -> Earmark.to_html txt
         "html" -> txt
       end
-      html = genpage(html, proj ++ [page_title: x.title])
+      html = render(template, proj ++ [contents: html])
+             |> genpage(proj ++ [page_title: x.title])
       File.open! "#{dir}site/#{x.name}.html", [:write, :utf8], fn device ->
         IO.write device, html
       end

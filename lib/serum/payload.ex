@@ -32,6 +32,10 @@ defmodule Serum.Payload do
     ~s(</ul>\n)
   end
 
+  def template_page() do
+    "<%= @contents %>\n"
+  end
+
   def template_post() do
     "<h1><%= @title %></h1>\n" <>
     "<p>Posted on <%= @date %> by <%= @author %></p>\n" <>
