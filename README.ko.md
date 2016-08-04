@@ -6,6 +6,8 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 
 [샘플 프로젝트](https://github.com/Dalgona/serum-sample)와 [웹사이트](http://include.iostream.kr/serum-sample)를 확인해보세요!
 
+[개발자의 개인 웹사이트](https://dalgona.github.io)도 최근 Serum을 이용하여 다시 만들어졌습니다!
+
 ## 시작하기
 
 ### 요구사항

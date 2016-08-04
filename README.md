@@ -6,6 +6,8 @@ Like some of other static website generators, Serum focuses on blogging. And if 
 
 Check out the [sample project](https://github.com/Dalgona/serum-sample) and the [website](http://include.iostream.kr/serum-sample)!
 
+Or take a look at [the developer's personal website](https://dalgona.github.io), it's recently rebuilt with Serum!
+
 ## Getting Started
 
 ### Requirement
