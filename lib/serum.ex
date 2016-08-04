@@ -1,5 +1,6 @@
 defmodule Serum do
   require EEx
+  import Serum.Payload
 
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
@@ -39,11 +40,12 @@ defmodule Serum do
     File.open! "#{dir}posts/README", [:write, :utf8], fn f -> IO.write f, Serum.Payload.posts_readme end
     IO.puts "Generated `#{dir}posts/README`."
 
-    File.open! "#{dir}templates/base.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_base end
-    File.open! "#{dir}templates/nav.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_nav end
-    File.open! "#{dir}templates/list.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_list end
-    File.open! "#{dir}templates/page.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_page end
-    File.open! "#{dir}templates/post.html.eex", [:write, :utf8], fn f -> IO.write f, Serum.Payload.template_post end
+    %{base: template_base,
+      nav:  template_nav,
+      list: template_list,
+      page: template_page,
+      post: template_post}
+    |> Enum.each(fn {n, t} -> File.open! "#{dir}templates/#{n}.html.eex", [:write, :utf8], &(IO.write &1, t) end)
     IO.puts "Generated essential templates into `#{dir}templates/`."
 
     File.open! "#{dir}.gitignore", [:write, :utf8], fn f -> IO.write f, "site\n" end
@@ -135,34 +137,47 @@ defmodule Serum do
     File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
-    Enum.each files, fn x ->
-      [year, month, day|_] = String.split(x, "-") |> Enum.map(fn x ->
-        case Integer.parse(x) do
-          {int, _} -> int
-          :error -> nil
-        end
-      end)
-      dow = elem @dowstr, :calendar.day_of_the_week(year, month, day)
-      datestr = "#{dow}, #{day} #{elem @monabbr, month} #{year}"
+    putglobal :tags, %{}
+    metalist = mkmeta(dir, proj, files, [])
+    Enum.each metalist, fn meta ->
+      Enum.each meta.tags, fn t ->
+        tagmap = getglobal :tags
+        posts = Map.get tagmap, t, []
+        tagmap = Map.put tagmap, t, posts ++ [meta]
+        putglobal :tags, tagmap
+      end
 
-      [title|lines] = File.read!("#{srcdir}#{x}.md") |> String.split("\n")
-      title = title |> String.trim |> String.replace(~r/^# /, "")
-      stub = lines |> Enum.join("\n") |> Earmark.to_html
-      html = render(template_post, proj ++ [title: title, date: datestr, contents: stub])
-             |> genpage(proj ++ [page_title: title])
-      File.open!("#{dstdir}#{x}.html", [:write, :utf8], fn device ->
-        IO.write device, html
-      end)
-      IO.puts "  GEN  #{srcdir}#{x}.md -> #{dstdir}#{x}.html"
+      [y, m, d] = meta.raw_date
+      dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
+      datestr = "#{dow}, #{meta.date}"
+
+      [_, _|lines] = File.read!("#{srcdir}#{meta.file}.md") |> String.split("\n")
+      stub = lines |> Earmark.to_html
+      html = render(template_post, proj ++ [title: meta.title, date: datestr, tags: meta.tags, contents: stub])
+             |> genpage(proj ++ [page_title: meta.title])
+
+      File.open! "#{dstdir}#{meta.file}.html", [:write, :utf8], &(IO.write &1, html)
+      IO.puts "  GEN  #{srcdir}#{meta.file}.md -> #{dstdir}#{meta.file}.html"
     end
 
     IO.puts "Generating posts index..."
-    metalist = mkmeta(dir, proj, files, [])
-    File.open!("#{dstdir}index.html", [:write, :utf8], fn device ->
-      html = render(template_list, proj ++ [posts: Enum.reverse metalist])
+    File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
+      html = render(template_list, proj ++ [header: "All Posts", posts: Enum.reverse metalist])
              |> genpage(proj ++ [page_title: "All Posts"])
       IO.write device, html
-    end)
+    end
+
+    tagmap = getglobal :tags
+    File.rm_rf! "#{dir}site/tags/"
+    File.mkdir_p! "#{dir}site/tags/"
+    Enum.each tagmap, fn {k, v} ->
+      pt = "Posts Tagged \"#{k}\""
+      File.open! "#{dir}site/tags/#{k}.html", [:write, :utf8], fn device ->
+        html = render(template_list, proj ++ [header: pt, posts: Enum.reverse(v)])
+               |> genpage(proj ++ [page_title: pt])
+        IO.write device, html
+      end
+    end
   end
 
   def copy_assets(dir) do
@@ -207,13 +222,24 @@ defmodule Serum do
         :error -> nil
       end
     end)
-    title = File.open!("#{dir}posts/#{h}.md", [:read], fn device -> IO.gets device, "" end)
-            |> String.trim
-            |> String.replace(~r/^# /, "")
+    [title, tags] = File.open!("#{dir}posts/#{h}.md", [:read, :utf8], fn f ->
+      [IO.gets(f, ""), IO.gets(f, "")]
+    end)
+    unless title =~ ~r/^# /, do: exit("Invalid post markdown format")
+    unless tags  =~ ~r/^# ?/, do: exit("Invalid post markdown format")
+    title = title |> String.trim
+                  |> String.replace(~r/^# /, "")
+    tags = tags |> String.replace(~r/^# ?/, "")
+                |> String.split(~r/, ?/)
+                |> Enum.filter(&(&1 != ""))
+                |> Enum.map(&(String.trim &1))
     mkmeta(dir, proj, t, l ++ [%Serum.Postmeta{
+      file: h,
       title: title,
       date: "#{day} #{elem @monabbr, month} #{year}",
-      file: url
+      raw_date: [year, month, day],
+      tags: tags,
+      url: url
     }])
   end
 

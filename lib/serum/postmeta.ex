@@ -1,4 +1,3 @@
 defmodule Serum.Postmeta do
-  @derive [Poison.Encoder]
-  defstruct [:title, :date, :file]
+  defstruct [:file, :title, :date, :raw_date, :tags, :url]
 end
