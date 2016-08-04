@@ -91,7 +91,7 @@ When you initialize a new project, Serum will create directory/file structure de
 
 ### Adding Pages to Your Website
 
-Inside `pages/` directory you can put source codes for pages other than blog posts. Serum accepts both markdown files(names should end with `.md`) and HTML files(names should end with `.html`), and those files will be combined with `templates/base.html.eex` template and will produce output files into the root directory of website(`site/`).
+Inside `pages/` directory you can put source codes for pages other than blog posts. Serum accepts both markdown files(names should end with `.md`) and HTML files(names should end with `.html`), and those files will be applied by `templates/page.html.eex` template, and then combined with `templates/base.html.eex` template and will produce output files into the root directory of website(`site/`).
 
 To display your pages properly, you also need to configure `pages.json` inside `pages/` directory. This file contains titles and other attributes of each page, which look like:
 
@@ -141,7 +141,8 @@ Serum generates web pages by applying four templates: `base.html.eex`, `list.htm
 
 * `base.html.eex` &mdash; Defines the overall structure and design of your website. The HTML root tag is located inside this template.
 * `list.html.eex` &mdash; Template for the list of all registered blog posts.
-* `post.html.eex` &mdash; Template for a single blog post.
+* `post.html.eex` &mdash; Template for blog posts.
+* `page.html.eex` &mdash; Template for pages other than blog posts.
 * `nav.html.eex` &mdash; Template for the navigation area of the website.
 
 ### Assets and Media
