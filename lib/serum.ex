@@ -170,8 +170,8 @@ defmodule Serum do
     tagmap = getglobal :tags
     File.rm_rf! "#{dir}site/tags/"
     Enum.each tagmap, fn {k, v} ->
-      tagdir = "#{dir}site/tags/#{k}/"
-      pt = "Posts Tagged \"#{k}\""
+      tagdir = "#{dir}site/tags/#{k.name}/"
+      pt = "Posts Tagged \"#{k.name}\""
       File.mkdir_p! tagdir
       File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
         html = render(template_list, proj ++ [header: pt, posts: Enum.reverse(v)])
@@ -233,7 +233,10 @@ defmodule Serum do
     tags = tags |> String.replace(~r/^# ?/, "")
                 |> String.split(~r/, ?/)
                 |> Enum.filter(&(&1 != ""))
-                |> Enum.map(&(String.trim &1))
+                |> Enum.map(fn x ->
+                  tag = String.trim x
+                  %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
+                end)
     mkmeta(dir, proj, t, l ++ [%Serum.Postmeta{
       file: h,
       title: title,
