@@ -169,10 +169,11 @@ defmodule Serum do
 
     tagmap = getglobal :tags
     File.rm_rf! "#{dir}site/tags/"
-    File.mkdir_p! "#{dir}site/tags/"
     Enum.each tagmap, fn {k, v} ->
+      tagdir = "#{dir}site/tags/#{k}/"
       pt = "Posts Tagged \"#{k}\""
-      File.open! "#{dir}site/tags/#{k}.html", [:write, :utf8], fn device ->
+      File.mkdir_p! tagdir
+      File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
         html = render(template_list, proj ++ [header: pt, posts: Enum.reverse(v)])
                |> genpage(proj ++ [page_title: pt])
         IO.write device, html
