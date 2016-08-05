@@ -123,7 +123,7 @@ To display your pages properly, you also need to configure `pages.json` inside `
 
 ### Writing a New Post
 
-`posts/` directory holds markdown of your blog posts. All markdown files under this directory must follow the naming rule of `yyyy-MM-dd-hhmm-title-slug.md`, and the very first line of each markdown file must start with `#` character, followed by a space(`'\x20'`), and title of the post, as Serum parses the first line of each file and generates post metadata.
+`posts/` directory holds markdown of your blog posts. All markdown files under this directory must follow the naming rule of `yyyy-MM-dd-hhmm-title-slug.md`, and the very first line of each markdown file must start with `#` character, followed by a space(`'\x20'`) and title of the post, and the second line must start with `#` character, followed by a space and a list of tags delimited by a comma(`,`). Serum parses the first two lines of each file and generates post metadata.
 
 Below is an example of valid markdown file:
 
@@ -131,6 +131,16 @@ Below is an example of valid markdown file:
 
 ```markdown
 # Hello! This is My First Post
+# sample, hello
+
+Lorem ipsum dolor sit amet, consectetur adipiscing ...
+```
+
+If you don't want to specify tags for a post, just put a `#` character on the second line.
+
+```markdown
+# Hello! This is My First Post
+#
 
 Lorem ipsum dolor sit amet, consectetur adipiscing ...
 ```

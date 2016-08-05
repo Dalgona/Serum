@@ -25,9 +25,10 @@ defmodule Serum.Payload do
   end
 
   def template_list() do
+    ~s(<h2><%= @header %></h2>\n) <>
     ~s(<ul>\n) <>
     ~s(<%= for x <- @posts do %>\n) <>
-    ~s(<li><a href="<%= x.file %>"><%= x.title %></a>&nbsp;&mdash;&nbsp;<span class="date"><%= x.date %></span></li>\n) <>
+    ~s(<li><a href="<%= x.url %>"><%= x.title %></a>&nbsp;&mdash;&nbsp;<span class="date"><%= x.date %></span></li>\n) <>
     ~s(<% end %>\n) <>
     ~s(</ul>\n)
   end
@@ -39,14 +40,14 @@ defmodule Serum.Payload do
   def template_post() do
     "<h1><%= @title %></h1>\n" <>
     "<p>Posted on <%= @date %> by <%= @author %></p>\n" <>
+    "<%= unless Enum.empty? @tags do %>\n" <>
+    "<p>Tags:</p>\n" <>
+    "<ul>\n" <>
+    "<% for t <- @tags do %>\n" <>
+    "<li><a href=\"<%= t.list_url %>\"><%= t.name %></a></li>\n" <>
+    "<% end %>\n" <>
+    "</ul>\n" <>
+    "<% end %>\n" <>
     "<%= @contents %>\n"
-  end
-
-  def posts_readme() do
-    "This directory holds source markdown files of your articles.\n" <>
-    "Each source file should be named as \"yyyy-MM-dd-hhmm-title-slug.md\",\n" <>
-    "for example, \"2016-07-29-1228-hello-my-website.md\" is a valid file name.\n\n" <>
-    "One more thing, each markdown file must start with a pound sign ('#'),\n" <>
-    "a space (' '), and the title of your post in the very first line.\n"
   end
 end

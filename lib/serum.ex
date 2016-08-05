@@ -37,8 +37,6 @@ defmodule Serum do
       IO.write f, tmp
     end
     IO.puts "Generated `#{dir}pages/pages.json`."
-    File.open! "#{dir}posts/README", [:write, :utf8], fn f -> IO.write f, Serum.Payload.posts_readme end
-    IO.puts "Generated `#{dir}posts/README`."
 
     %{base: template_base,
       nav:  template_nav,
