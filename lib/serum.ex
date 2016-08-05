@@ -230,7 +230,7 @@ defmodule Serum do
                   |> String.replace(~r/^# /, "")
     tags = tags |> String.replace(~r/^# ?/, "")
                 |> String.split(~r/, ?/)
-                |> Enum.filter(&(&1 != ""))
+                |> Enum.filter(&(String.trim(&1) != ""))
                 |> Enum.map(fn x ->
                   tag = String.trim x
                   %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
