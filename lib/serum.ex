@@ -135,16 +135,8 @@ defmodule Serum do
     File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
-    putglobal :tags, %{}
     metalist = mkmeta(dir, proj, files, [])
     Enum.each metalist, fn meta ->
-      Enum.each meta.tags, fn t ->
-        tagmap = getglobal :tags
-        posts = Map.get tagmap, t, []
-        tagmap = Map.put tagmap, t, posts ++ [meta]
-        putglobal :tags, tagmap
-      end
-
       [y, m, d] = meta.raw_date
       dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
       datestr = "#{dow}, #{meta.date}"
@@ -165,8 +157,11 @@ defmodule Serum do
       IO.write device, html
     end
 
-    tagmap = getglobal :tags
     File.rm_rf! "#{dir}site/tags/"
+    tagmap = Enum.reduce metalist, %{}, fn m, a ->
+      tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
+      Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
+    end
     Enum.each tagmap, fn {k, v} ->
       tagdir = "#{dir}site/tags/#{k.name}/"
       pt = "Posts Tagged \"#{k.name}\""
@@ -214,22 +209,16 @@ defmodule Serum do
   end
 
   defp mkmeta(dir, proj, [h|t], l) do
-    url = "#{Keyword.get proj, :base_url}posts/#{h}.html"
     [year, month, day|_] = String.split(h, "-") |> Enum.map(fn x ->
       case Integer.parse(x) do
         {x, _} -> x
         :error -> nil
       end
     end)
-    [title, tags] = File.open!("#{dir}posts/#{h}.md", [:read, :utf8], fn f ->
-      [IO.gets(f, ""), IO.gets(f, "")]
-    end)
-    unless title =~ ~r/^# /, do: exit("Invalid post markdown format")
-    unless tags  =~ ~r/^# ?/, do: exit("Invalid post markdown format")
+    ["# " <> title, "#" <> tags] =
+      File.open!("#{dir}posts/#{h}.md", [:read, :utf8], &([IO.gets(&1, ""), IO.gets(&1, "")]))
     title = title |> String.trim
-                  |> String.replace(~r/^# /, "")
-    tags = tags |> String.replace(~r/^# ?/, "")
-                |> String.split(~r/, ?/)
+    tags = tags |> String.split(~r/, ?/)
                 |> Enum.filter(&(String.trim(&1) != ""))
                 |> Enum.map(fn x ->
                   tag = String.trim x
@@ -241,7 +230,7 @@ defmodule Serum do
       date: "#{day} #{elem @monabbr, month} #{year}",
       raw_date: [year, month, day],
       tags: tags,
-      url: url
+      url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
     }])
   end
 
