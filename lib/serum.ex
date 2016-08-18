@@ -60,7 +60,7 @@ defmodule Serum do
       IO.puts "Make sure you point at a valid Serum project directory."
     else
       IO.puts "Rebuilding Website..."
-      :ets.new :build, [:set, :protected, :named_table]
+      {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
 
       IO.puts "Reading project metadata `#{dir}serum.json`..."
       proj = File.read!("#{dir}serum.json")
@@ -71,7 +71,7 @@ defmodule Serum do
       ["base", "list", "page", "post", "nav"]
       |> Enum.each(fn x ->
         tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
-        putglobal "template_#{x}", tree
+        Agent.update Global, &(Map.put &1, "template_#{x}", tree)
       end)
 
       File.mkdir_p! "#{dir}site/"
@@ -87,19 +87,18 @@ defmodule Serum do
       IO.puts "Your website is now ready to be served!"
       IO.puts "Copy(move) the contents of `#{dir}site/` directory"
       IO.puts "into your public webpages directory."
-      :ets.delete :build
     end
   end
 
   def compile_nav(proj, meta) do
     IO.puts "Compiling main navigation HTML stub..."
-    template = getglobal "template_nav"
+    template = Agent.get Global, &(Map.get &1, "template_nav")
     html = render template, proj ++ [pages: Enum.filter(meta, &(&1.menu))]
-    putglobal :navstub, html
+    Agent.update Global, &(Map.put &1, :navstub, html)
   end
 
   def build_pages(dir, proj, meta) do
-    template = getglobal "template_page"
+    template = Agent.get Global, &(Map.get &1, "template_page")
 
     IO.puts "Cleaning pages..."
     File.ls!("#{dir}site/")
@@ -124,8 +123,8 @@ defmodule Serum do
   def build_posts(dir, proj) do
     srcdir = "#{dir}posts/"
     dstdir = "#{dir}site/posts/"
-    template_post = getglobal "template_post"
-    template_list = getglobal "template_list"
+    template_post = Agent.get Global, &(Map.get &1, "template_post")
+    template_list = Agent.get Global, &(Map.get &1, "template_list")
 
     files = File.ls!(srcdir)
             |> Enum.filter(&(String.ends_with? &1, ".md"))
@@ -190,9 +189,9 @@ defmodule Serum do
   end
 
   defp genpage(contents, ctx) do
-    template = getglobal "template_base"
+    template = Agent.get Global, &(Map.get &1, "template_base")
     contents = process_links contents, ctx
-    render template, ctx ++ [contents: contents, navigation: getglobal :navstub]
+    render template, ctx ++ [contents: contents, navigation: Agent.get(Global, &(Map.get &1, :navstub))]
   end
 
   defp render(template, assigns) do
@@ -235,11 +234,4 @@ defmodule Serum do
   end
 
   defp mkmeta(_, _, [], l), do: l
-
-  defp putglobal(k, v), do: true = :ets.insert :build, {k, v}
-
-  defp getglobal(k) do
-    [{_, v}|_] = :ets.lookup :build, k
-    v
-  end
 end
