@@ -20,19 +20,19 @@ defmodule Serum do
       IO.puts "Created directory `#{dir}#{x}`."
     end)
 
-    projmeta =
+    projinfo =
       %{site_name: "New Website",
         site_description: "Welcome to my website!",
         author: "Somebody",
         author_email: "somebody@example.com",
         base_url: "/"}
       |> Poison.encode!(pretty: true, indent: 2)
-    File.open! "#{dir}serum.json", [:write, :utf8], fn f -> IO.write f, projmeta end
+    File.open! "#{dir}serum.json", [:write, :utf8], fn f -> IO.write f, projinfo end
     IO.puts "Generated `#{dir}serum.json`."
     File.open! "#{dir}pages/index.md", [:write, :utf8], fn f -> IO.write f, "*Hello, world!*\n" end
     File.open! "#{dir}pages/pages.json", [:write, :utf8], fn f ->
       tmp = Poison.encode! [
-        %Serum.Pagemeta{name: "index", type: "md", title: "Welcome!", menu: true, menu_text: "Home", menu_icon: ""}
+        %Serum.Pageinfo{name: "index", type: "md", title: "Welcome!", menu: true, menu_text: "Home", menu_icon: ""}
       ], pretty: true, indent: 2
       IO.write f, tmp
     end
@@ -62,7 +62,7 @@ defmodule Serum do
       IO.puts "Rebuilding Website..."
       :ets.new :build, [:set, :protected, :named_table]
 
-      IO.puts "Reading project metadata `#{dir}serum.json`..."
+      IO.puts "Reading project infodata `#{dir}serum.json`..."
       proj = File.read!("#{dir}serum.json")
              |> Poison.decode!(keys: :atoms!)
              |> Map.to_list
@@ -76,10 +76,10 @@ defmodule Serum do
 
       File.mkdir_p! "#{dir}site/"
       IO.puts "Created directory `#{dir}site/`."
-      pagemeta = File.read!("#{dir}pages/pages.json")
-                 |> Poison.decode!(as: [%Serum.Pagemeta{}])
-      compile_nav proj, pagemeta
-      build_pages dir, proj, pagemeta
+      pageinfo = File.read!("#{dir}pages/pages.json")
+                 |> Poison.decode!(as: [%Serum.Pageinfo{}])
+      compile_nav proj, pageinfo
+      build_pages dir, proj, pageinfo
       build_posts dir, proj
       copy_assets dir
 
@@ -91,14 +91,14 @@ defmodule Serum do
     end
   end
 
-  def compile_nav(proj, meta) do
+  def compile_nav(proj, info) do
     IO.puts "Compiling main navigation HTML stub..."
     template = getglobal "template_nav"
-    html = render template, proj ++ [pages: Enum.filter(meta, &(&1.menu))]
+    html = render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
     putglobal :navstub, html
   end
 
-  def build_pages(dir, proj, meta) do
+  def build_pages(dir, proj, info) do
     template = getglobal "template_page"
 
     IO.puts "Cleaning pages..."
@@ -106,7 +106,7 @@ defmodule Serum do
     |> Enum.filter(&(String.ends_with? &1, ".html"))
     |> Enum.each(&(File.rm_rf! "#{dir}site/#{&1}"))
 
-    Enum.each meta, fn x ->
+    Enum.each info, fn x ->
       txt = File.read!("#{dir}pages/#{x.name}.#{x.type}")
       html = case x.type do
         "md" -> Earmark.to_html txt
@@ -135,30 +135,30 @@ defmodule Serum do
     File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
-    metalist = mkmeta(dir, proj, files, [])
-    Enum.each metalist, fn meta ->
-      [y, m, d] = meta.raw_date
+    infolist = mkinfo(dir, proj, files, [])
+    Enum.each infolist, fn info ->
+      [y, m, d] = info.raw_date
       dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
-      datestr = "#{dow}, #{meta.date}"
+      datestr = "#{dow}, #{info.date}"
 
-      [_, _|lines] = File.read!("#{srcdir}#{meta.file}.md") |> String.split("\n")
+      [_, _|lines] = File.read!("#{srcdir}#{info.file}.md") |> String.split("\n")
       stub = lines |> Earmark.to_html
-      html = render(template_post, proj ++ [title: meta.title, date: datestr, tags: meta.tags, contents: stub])
-             |> genpage(proj ++ [page_title: meta.title])
+      html = render(template_post, proj ++ [title: info.title, date: datestr, tags: info.tags, contents: stub])
+             |> genpage(proj ++ [page_title: info.title])
 
-      File.open! "#{dstdir}#{meta.file}.html", [:write, :utf8], &(IO.write &1, html)
-      IO.puts "  GEN  #{srcdir}#{meta.file}.md -> #{dstdir}#{meta.file}.html"
+      File.open! "#{dstdir}#{info.file}.html", [:write, :utf8], &(IO.write &1, html)
+      IO.puts "  GEN  #{srcdir}#{info.file}.md -> #{dstdir}#{info.file}.html"
     end
 
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
-      html = render(template_list, proj ++ [header: "All Posts", posts: Enum.reverse metalist])
+      html = render(template_list, proj ++ [header: "All Posts", posts: Enum.reverse infolist])
              |> genpage(proj ++ [page_title: "All Posts"])
       IO.write device, html
     end
 
     File.rm_rf! "#{dir}site/tags/"
-    tagmap = Enum.reduce metalist, %{}, fn m, a ->
+    tagmap = Enum.reduce infolist, %{}, fn m, a ->
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
@@ -208,7 +208,7 @@ defmodule Serum do
     contents
   end
 
-  defp mkmeta(dir, proj, [h|t], l) do
+  defp mkinfo(dir, proj, [h|t], l) do
     [year, month, day|_] = String.split(h, "-") |> Enum.map(fn x ->
       case Integer.parse(x) do
         {x, _} -> x
@@ -224,7 +224,7 @@ defmodule Serum do
                   tag = String.trim x
                   %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
                 end)
-    mkmeta(dir, proj, t, l ++ [%Serum.Postmeta{
+    mkinfo(dir, proj, t, l ++ [%Serum.Postinfo{
       file: h,
       title: title,
       date: "#{day} #{elem @monabbr, month} #{year}",
@@ -234,7 +234,7 @@ defmodule Serum do
     }])
   end
 
-  defp mkmeta(_, _, [], l), do: l
+  defp mkinfo(_, _, [], l), do: l
 
   defp putglobal(k, v), do: true = :ets.insert :build, {k, v}
 
