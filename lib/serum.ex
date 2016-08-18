@@ -78,9 +78,12 @@ defmodule Serum do
       IO.puts "Created directory `#{dir}site/`."
       pagemeta = File.read!("#{dir}pages/pages.json")
                  |> Poison.decode!(as: [%Serum.Pagemeta{}])
-      compile_nav proj, pagemeta
-      build_pages dir, proj, pagemeta
-      build_posts dir, proj
+      {time, _} = :timer.tc(fn ->
+        compile_nav proj, pagemeta
+        build_pages dir, proj, pagemeta
+        build_posts dir, proj
+      end)
+      IO.puts "Build process took #{time}us."
       copy_assets dir
 
       IO.puts ""
