@@ -123,23 +123,30 @@ defmodule Serum.Build do
         :error -> nil
       end
     end)
-    ["# " <> title, "#" <> tags] =
-      File.open!("#{dir}posts/#{h}.md", [:read, :utf8], &([IO.gets(&1, ""), IO.gets(&1, "")]))
-    title = title |> String.trim
-    tags = tags |> String.split(~r/, ?/)
-                |> Enum.filter(&(String.trim(&1) != ""))
-                |> Enum.map(fn x ->
-                  tag = String.trim x
-                  %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
-                end)
-    mkinfo(dir, proj, t, l ++ [%Serum.Postinfo{
-      file: h,
-      title: title,
-      date: "#{day} #{elem @monabbr, month} #{year}",
-      raw_date: [year, month, day],
-      tags: tags,
-      url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
-    }])
+    try do
+      ["# " <> title, "#" <> tags] =
+        File.open!("#{dir}posts/#{h}.md", [:read, :utf8], &([IO.gets(&1, ""), IO.gets(&1, "")]))
+      title = title |> String.trim
+      tags = tags |> String.split(~r/, ?/)
+                  |> Enum.filter(&(String.trim(&1) != ""))
+                  |> Enum.map(fn x ->
+                    tag = String.trim x
+                    %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
+                  end)
+      mkinfo(dir, proj, t, l ++ [%Serum.Postinfo{
+        file: h,
+        title: title,
+        date: "#{day} #{elem @monabbr, month} #{year}",
+        raw_date: [year, month, day],
+        tags: tags,
+        url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
+      }])
+    rescue
+      _ in MatchError -> (fn ->
+        IO.puts "\e[31mError while parsing `#{dir}posts/#{h}.md`: invalid markdown format\e[0m"
+        exit "error while building blog posts"
+      end).()
+    end
   end
 
   defp mkinfo(_, _, [], l), do: l
