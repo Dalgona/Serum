@@ -20,22 +20,22 @@ defmodule Serum.Build do
     |> Enum.filter(&(String.ends_with? &1, ".html"))
     |> Enum.each(&(File.rm_rf! "#{dir}site/#{&1}"))
 
-    Enum.map(info, fn x ->
-      Task.async fn ->
-        txt = File.read!("#{dir}pages/#{x.name}.#{x.type}")
-        html = case x.type do
-          "md" -> Earmark.to_html txt
-          "html" -> txt
-        end
-        html = render(template, proj ++ [contents: html])
-               |> genpage(proj ++ [page_title: x.title])
-        File.open! "#{dir}site/#{x.name}.html", [:write, :utf8], fn device ->
-          IO.write device, html
-        end
-        IO.puts "  GEN  #{dir}pages/#{x.name}.#{x.type} -> #{dir}site/#{x.name}.html"
-      end
-    end)
+    Enum.map(info, &(Task.async Serum.Build, :page_task, [dir, proj, &1, template]))
     |> Enum.each(&(Task.await &1))
+  end
+
+  def page_task(dir, proj, info, template) do
+    txt = File.read!("#{dir}pages/#{info.name}.#{info.type}")
+    html = case info.type do
+      "md" -> Earmark.to_html txt
+      "html" -> txt
+    end
+    html = render(template, proj ++ [contents: html])
+           |> genpage(proj ++ [page_title: info.title])
+    File.open! "#{dir}site/#{info.name}.html", [:write, :utf8], fn device ->
+      IO.write device, html
+    end
+    IO.puts "  GEN  #{dir}pages/#{info.name}.#{info.type} -> #{dir}site/#{info.name}.html"
   end
 
   def build_posts(dir, proj) do
@@ -53,21 +53,7 @@ defmodule Serum.Build do
     File.mkdir_p! dstdir
 
     infolist = mkinfo(dir, proj, files, [])
-    tasks_post = Enum.map infolist, fn info ->
-      Task.async fn ->
-        [y, m, d] = info.raw_date
-        dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
-        datestr = "#{dow}, #{info.date}"
-
-        [_, _|lines] = File.read!("#{srcdir}#{info.file}.md") |> String.split("\n")
-        stub = lines |> Earmark.to_html
-        html = render(template_post, proj ++ [title: info.title, date: datestr, tags: info.tags, contents: stub])
-               |> genpage(proj ++ [page_title: info.title])
-
-        File.open! "#{dstdir}#{info.file}.html", [:write, :utf8], &(IO.write &1, html)
-        IO.puts "  GEN  #{srcdir}#{info.file}.md -> #{dstdir}#{info.file}.html"
-      end
-    end
+    tasks_post = Enum.map infolist, &(Task.async Serum.Build, :post_task, [srcdir, dstdir, proj, &1, template_post])
 
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
@@ -81,20 +67,34 @@ defmodule Serum.Build do
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
-    tasks_tag = Enum.map tagmap, fn {k, v} ->
-      Task.async fn ->
-        tagdir = "#{dir}site/tags/#{k.name}/"
-        pt = "Posts Tagged \"#{k.name}\""
-        File.mkdir_p! tagdir
-        File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
-          html = render(template_list, proj ++ [header: pt, posts: Enum.reverse(v)])
-                 |> genpage(proj ++ [page_title: pt])
-          IO.write device, html
-        end
-      end
-    end
+    tasks_tag = Enum.map tagmap, &(Task.async Serum.Build, :tag_task, [dir, proj, &1, template_list])
 
     Enum.each tasks_post ++ tasks_tag, &(Task.await &1)
+  end
+
+  def post_task(srcdir, dstdir, proj, info, template) do
+    [y, m, d] = info.raw_date
+    dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
+    datestr = "#{dow}, #{info.date}"
+
+    [_, _|lines] = File.read!("#{srcdir}#{info.file}.md") |> String.split("\n")
+    stub = lines |> Earmark.to_html
+    html = render(template, proj ++ [title: info.title, date: datestr, tags: info.tags, contents: stub])
+           |> genpage(proj ++ [page_title: info.title])
+
+    File.open! "#{dstdir}#{info.file}.html", [:write, :utf8], &(IO.write &1, html)
+    IO.puts "  GEN  #{srcdir}#{info.file}.md -> #{dstdir}#{info.file}.html"
+  end
+
+  def tag_task(dir, proj, {k, v}, template) do
+    tagdir = "#{dir}site/tags/#{k.name}/"
+    pt = "Posts Tagged \"#{k.name}\""
+    File.mkdir_p! tagdir
+    File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
+      html = render(template, proj ++ [header: pt, posts: Enum.reverse(v)])
+             |> genpage(proj ++ [page_title: pt])
+      IO.write device, html
+    end
   end
 
   defp process_links(contents, proj) do
