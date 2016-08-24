@@ -1,4 +1,9 @@
 defmodule Serum.Cmdline do
+  @moduledoc """
+  This module contains the entry point for the command line program
+  (`Serum.Cmdline.main/1`).
+  """
+
   def main(args) do
     info
     case args do

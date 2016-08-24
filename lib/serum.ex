@@ -1,11 +1,16 @@
 defmodule Serum do
+  @moduledoc """
+  This module contains entry points for various serum tasks.
+  """
+
   import Serum.Init
   import Serum.Build
 
   def init(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
     if File.exists? dir do
-      IO.puts "Warning: The directory `#{dir}` already exists and might not be empty."
+      IO.puts "Warning: The directory `#{dir}` " <>
+              "already exists and might not be empty."
     end
 
     init :dir, dir
@@ -13,7 +18,9 @@ defmodule Serum do
     init :page, dir
     init :templates, dir
 
-    File.open! "#{dir}.gitignore", [:write, :utf8], fn f -> IO.write f, "site\n" end
+    File.open! "#{dir}.gitignore", [:write, :utf8], fn f ->
+      IO.write f, "site\n"
+    end
     IO.puts "Generated `#{dir}.gitignore`."
 
     IO.puts "\nSuccessfully initialized a new Serum project!"
@@ -32,7 +39,7 @@ defmodule Serum do
       IO.puts "Reading project infodata `#{dir}serum.json`..."
       proj = "#{dir}serum.json"
              |> File.read!
-             |> Poison.decode!(keys: :atoms!)
+             |> Poison.decode!(keys: :atoms)
              |> Map.to_list
       Agent.update Global, &(Map.put &1, :proj, proj)
 
@@ -65,7 +72,7 @@ defmodule Serum do
     end
   end
 
-  def copy_assets(dir) do
+  defp copy_assets(dir) do
     IO.puts "Cleaning assets and media directories..."
     File.rm_rf! "#{dir}site/assets/"
     File.rm_rf! "#{dir}site/media/"

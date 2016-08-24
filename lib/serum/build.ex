@@ -1,4 +1,8 @@
 defmodule Serum.Build do
+  @moduledoc """
+  This module contains functions for generating pages of your website.
+  """
+
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
   @re_media ~r/(?<type>href|src)="%25media:(?<url>[^"]*)"/
