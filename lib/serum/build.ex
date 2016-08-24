@@ -15,28 +15,28 @@ defmodule Serum.Build do
 
   def build_pages(dir, info) do
     template = Agent.get Global, &(Map.get &1, "template_page")
-    proj = Agent.get Global, &(Map.get &1, :proj)
 
     IO.puts "Cleaning pages..."
+
     "#{dir}site/"
     |> File.ls!
     |> Enum.filter(&(String.ends_with? &1, ".html"))
     |> Enum.each(&(File.rm_rf! "#{dir}site/#{&1}"))
 
     info
-    |> Enum.map(&(Task.async Serum.Build, :page_task, [dir, proj, &1, template]))
+    |> Enum.map(&(Task.async Serum.Build, :page_task, [dir, &1, template]))
     |> Enum.each(&(Task.await &1))
   end
 
-  def page_task(dir, proj, info, template) do
+  def page_task(dir, info, template) do
     txt = File.read!("#{dir}pages/#{info.name}.#{info.type}")
     html = case info.type do
       "md" -> Earmark.to_html txt
       "html" -> txt
     end
     html = template
-           |> render(proj ++ [contents: html])
-           |> genpage(proj ++ [page_title: info.title])
+           |> render([contents: html])
+           |> genpage([page_title: info.title])
     File.open! "#{dir}site/#{info.name}.html", [:write, :utf8], fn device ->
       IO.write device, html
     end
@@ -59,8 +59,8 @@ defmodule Serum.Build do
     File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
-    infolist = mkinfo(dir, proj, files, [])
-    tasks_post = Enum.map infolist, &(Task.async Serum.Build, :post_task, [srcdir, dstdir, proj, &1, template_post])
+    infolist = mkinfo(dir, files, [])
+    tasks_post = Enum.map infolist, &(Task.async Serum.Build, :post_task, [srcdir, dstdir, &1, template_post])
 
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
@@ -75,34 +75,34 @@ defmodule Serum.Build do
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
-    tasks_tag = Enum.map tagmap, &(Task.async Serum.Build, :tag_task, [dir, proj, &1, template_list])
+    tasks_tag = Enum.map tagmap, &(Task.async Serum.Build, :tag_task, [dir, &1, template_list])
 
     Enum.each tasks_post ++ tasks_tag, &(Task.await &1)
   end
 
-  def post_task(srcdir, dstdir, proj, info, template) do
+  def post_task(srcdir, dstdir, info, template) do
     [y, m, d] = info.raw_date
     dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
     datestr = "#{dow}, #{info.date}"
 
-    [_, _|lines] = "#{srcdir}#{info.file}.md" |> File.read!  |> String.split("\n")
+    [_, _|lines] = "#{srcdir}#{info.file}.md" |> File.read! |> String.split("\n")
     stub = lines |> Earmark.to_html
     html = template
-           |> render(proj ++ [title: info.title, date: datestr, tags: info.tags, contents: stub])
-           |> genpage(proj ++ [page_title: info.title])
+           |> render([title: info.title, date: datestr, tags: info.tags, contents: stub])
+           |> genpage([page_title: info.title])
 
     File.open! "#{dstdir}#{info.file}.html", [:write, :utf8], &(IO.write &1, html)
     IO.puts "  GEN  #{srcdir}#{info.file}.md -> #{dstdir}#{info.file}.html"
   end
 
-  def tag_task(dir, proj, {k, v}, template) do
+  def tag_task(dir, {k, v}, template) do
     tagdir = "#{dir}site/tags/#{k.name}/"
     pt = "Posts Tagged \"#{k.name}\""
     File.mkdir_p! tagdir
     File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
       html = template
-             |> render(proj ++ [header: pt, posts: Enum.reverse(v)])
-             |> genpage(proj ++ [page_title: pt])
+             |> render([header: pt, posts: Enum.reverse(v)])
+             |> genpage([page_title: pt])
       IO.write device, html
     end
   end
@@ -116,17 +116,20 @@ defmodule Serum.Build do
   end
 
   defp genpage(contents, ctx) do
-    template = Agent.get Global, &(Map.get &1, "template_base")
-    contents = process_links contents, ctx
-    render template, ctx ++ [contents: contents, navigation: Agent.get(Global, &(Map.get &1, :navstub))]
+    proj = Agent.get Global, &(Map.get &1, :proj)
+    base = Agent.get Global, &(Map.get &1, "template_base")
+    contents = process_links contents, proj
+    render base, proj ++ ctx ++ [contents: contents, navigation: Agent.get(Global, &(Map.get &1, :navstub))]
   end
 
   defp render(template, assigns) do
-    {html, _} = Code.eval_quoted template, [assigns: assigns]
+    proj = Agent.get Global, &(Map.get &1, :proj)
+    {html, _} = Code.eval_quoted template, [assigns: proj ++ assigns]
     html
   end
 
-  defp mkinfo(dir, proj, [h|t], l) do
+  defp mkinfo(dir, [h|t], l) do
+    proj = Agent.get Global, &(Map.get &1, :proj)
     [year, month, day|_] = h |> String.split("-") |> Enum.map(fn x ->
       case Integer.parse(x) do
         {x, _} -> x
@@ -143,7 +146,7 @@ defmodule Serum.Build do
                     tag = String.trim x
                     %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
                   end)
-      mkinfo(dir, proj, t, l ++ [%Serum.Postinfo{
+      mkinfo(dir, t, l ++ [%Serum.Postinfo{
         file: h,
         title: title,
         date: "#{day} #{elem @monabbr, month} #{year}",
@@ -159,5 +162,5 @@ defmodule Serum.Build do
     end
   end
 
-  defp mkinfo(_, _, [], l), do: l
+  defp mkinfo(_, [], l), do: l
 end
