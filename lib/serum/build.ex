@@ -98,10 +98,11 @@ defmodule Serum.Build do
   def tag_task(dir, {k, v}, template) do
     tagdir = "#{dir}site/tags/#{k.name}/"
     pt = "Posts Tagged \"#{k.name}\""
+    posts = v |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir
     File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
       html = template
-             |> render([header: pt, posts: Enum.reverse(v)])
+             |> render([header: pt, posts: posts])
              |> genpage([page_title: pt])
       IO.write device, html
     end
