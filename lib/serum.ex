@@ -1,5 +1,5 @@
 defmodule Serum do
-  import Serum.Payload
+  import Serum.Init
   import Serum.Build
 
   def init(dir) do
@@ -8,37 +8,10 @@ defmodule Serum do
       IO.puts "Warning: The directory `#{dir}` already exists and might not be empty."
     end
 
-    ["posts", "pages", "media", "templates", "assets/css", "assets/js", "assets/images"]
-    |> Enum.each(fn x ->
-      File.mkdir_p! "#{dir}#{x}"
-      IO.puts "Created directory `#{dir}#{x}`."
-    end)
-
-    projinfo =
-      %{site_name: "New Website",
-        site_description: "Welcome to my website!",
-        author: "Somebody",
-        author_email: "somebody@example.com",
-        base_url: "/"}
-      |> Poison.encode!(pretty: true, indent: 2)
-    File.open! "#{dir}serum.json", [:write, :utf8], fn f -> IO.write f, projinfo end
-    IO.puts "Generated `#{dir}serum.json`."
-    File.open! "#{dir}pages/index.md", [:write, :utf8], fn f -> IO.write f, "*Hello, world!*\n" end
-    File.open! "#{dir}pages/pages.json", [:write, :utf8], fn f ->
-      tmp = Poison.encode! [
-        %Serum.Pageinfo{name: "index", type: "md", title: "Welcome!", menu: true, menu_text: "Home", menu_icon: ""}
-      ], pretty: true, indent: 2
-      IO.write f, tmp
-    end
-    IO.puts "Generated `#{dir}pages/pages.json`."
-
-    %{base: template_base,
-      nav:  template_nav,
-      list: template_list,
-      page: template_page,
-      post: template_post}
-    |> Enum.each(fn {n, t} -> File.open! "#{dir}templates/#{n}.html.eex", [:write, :utf8], &(IO.write &1, t) end)
-    IO.puts "Generated essential templates into `#{dir}templates/`."
+    init :dir, dir
+    init :infofile, dir
+    init :page, dir
+    init :templates, dir
 
     File.open! "#{dir}.gitignore", [:write, :utf8], fn f -> IO.write f, "site\n" end
     IO.puts "Generated `#{dir}.gitignore`."
