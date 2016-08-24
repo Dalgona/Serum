@@ -29,6 +29,7 @@ defmodule Serum.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [{:earmark, "~> 1.0.1"},
-     {:poison, "~> 2.2"}]
+     {:poison, "~> 2.2"},
+     {:credo, "~> 0.4.9", only: [:dev, :test]}]
   end
 end

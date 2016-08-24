@@ -3,7 +3,7 @@ defmodule Serum do
   import Serum.Build
 
   def init(dir) do
-    dir = if String.ends_with?(dir, "/"), do: dir, else: dir<>"/"
+    dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
     if File.exists? dir do
       IO.puts "Warning: The directory `#{dir}` already exists and might not be empty."
     end
@@ -48,7 +48,7 @@ defmodule Serum do
   end
 
   def build(dir) do
-    dir = if String.ends_with?(dir, "/"), do: dir, else: dir<>"/"
+    dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
     if not File.exists?("#{dir}serum.json") do
       IO.puts "Error: `#{dir}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory."
@@ -57,9 +57,11 @@ defmodule Serum do
       {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
 
       IO.puts "Reading project infodata `#{dir}serum.json`..."
-      proj = File.read!("#{dir}serum.json")
+      proj = "#{dir}serum.json"
+             |> File.read!
              |> Poison.decode!(keys: :atoms!)
              |> Map.to_list
+      Agent.update Global, &(Map.put &1, :proj, proj)
 
       IO.puts "Loading templates..."
       ["base", "list", "page", "post", "nav"]
@@ -70,12 +72,13 @@ defmodule Serum do
 
       File.mkdir_p! "#{dir}site/"
       IO.puts "Created directory `#{dir}site/`."
-      pageinfo = File.read!("#{dir}pages/pages.json")
+      pageinfo = "#{dir}pages/pages.json"
+                 |> File.read!
                  |> Poison.decode!(as: [%Serum.Pageinfo{}])
       {time, _} = :timer.tc(fn ->
-        compile_nav proj, pageinfo
-        t1 = Task.async fn -> build_pages dir, proj, pageinfo end
-        t2 = Task.async fn -> build_posts dir, proj end
+        compile_nav pageinfo
+        t1 = Task.async fn -> build_pages dir, pageinfo end
+        t2 = Task.async fn -> build_posts dir end
         Task.await t1
         Task.await t2
       end)

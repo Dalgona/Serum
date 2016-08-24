@@ -5,22 +5,26 @@ defmodule Serum.Build do
   @re_posts ~r/(?<type>href|src)="%25posts:(?<url>[^"]*)"/
   @re_pages ~r/(?<type>href|src)="%25pages:(?<url>[^"]*)"/
 
-  def compile_nav(proj, info) do
+  def compile_nav(info) do
+    proj = Agent.get Global, &(Map.get &1, :proj)
     IO.puts "Compiling main navigation HTML stub..."
     template = Agent.get Global, &(Map.get &1, "template_nav")
     html = render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
     Agent.update Global, &(Map.put &1, :navstub, html)
   end
 
-  def build_pages(dir, proj, info) do
+  def build_pages(dir, info) do
     template = Agent.get Global, &(Map.get &1, "template_page")
+    proj = Agent.get Global, &(Map.get &1, :proj)
 
     IO.puts "Cleaning pages..."
-    File.ls!("#{dir}site/")
+    "#{dir}site/"
+    |> File.ls!
     |> Enum.filter(&(String.ends_with? &1, ".html"))
     |> Enum.each(&(File.rm_rf! "#{dir}site/#{&1}"))
 
-    Enum.map(info, &(Task.async Serum.Build, :page_task, [dir, proj, &1, template]))
+    info
+    |> Enum.map(&(Task.async Serum.Build, :page_task, [dir, proj, &1, template]))
     |> Enum.each(&(Task.await &1))
   end
 
@@ -30,7 +34,8 @@ defmodule Serum.Build do
       "md" -> Earmark.to_html txt
       "html" -> txt
     end
-    html = render(template, proj ++ [contents: html])
+    html = template
+           |> render(proj ++ [contents: html])
            |> genpage(proj ++ [page_title: info.title])
     File.open! "#{dir}site/#{info.name}.html", [:write, :utf8], fn device ->
       IO.write device, html
@@ -38,13 +43,15 @@ defmodule Serum.Build do
     IO.puts "  GEN  #{dir}pages/#{info.name}.#{info.type} -> #{dir}site/#{info.name}.html"
   end
 
-  def build_posts(dir, proj) do
+  def build_posts(dir) do
     srcdir = "#{dir}posts/"
     dstdir = "#{dir}site/posts/"
     template_post = Agent.get Global, &(Map.get &1, "template_post")
     template_list = Agent.get Global, &(Map.get &1, "template_list")
+    proj = Agent.get Global, &(Map.get &1, :proj)
 
-    files = File.ls!(srcdir)
+    files = srcdir
+            |> File.ls!
             |> Enum.filter(&(String.ends_with? &1, ".md"))
             |> Enum.map(&(String.replace &1, ~r/\.md$/, ""))
             |> Enum.sort
@@ -57,7 +64,8 @@ defmodule Serum.Build do
 
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
-      html = render(template_list, proj ++ [header: "All Posts", posts: Enum.reverse infolist])
+      html = template_list
+             |> render(proj ++ [header: "All Posts", posts: Enum.reverse infolist])
              |> genpage(proj ++ [page_title: "All Posts"])
       IO.write device, html
     end
@@ -77,9 +85,10 @@ defmodule Serum.Build do
     dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
     datestr = "#{dow}, #{info.date}"
 
-    [_, _|lines] = File.read!("#{srcdir}#{info.file}.md") |> String.split("\n")
+    [_, _|lines] = "#{srcdir}#{info.file}.md" |> File.read!  |> String.split("\n")
     stub = lines |> Earmark.to_html
-    html = render(template, proj ++ [title: info.title, date: datestr, tags: info.tags, contents: stub])
+    html = template
+           |> render(proj ++ [title: info.title, date: datestr, tags: info.tags, contents: stub])
            |> genpage(proj ++ [page_title: info.title])
 
     File.open! "#{dstdir}#{info.file}.html", [:write, :utf8], &(IO.write &1, html)
@@ -91,7 +100,8 @@ defmodule Serum.Build do
     pt = "Posts Tagged \"#{k.name}\""
     File.mkdir_p! tagdir
     File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
-      html = render(template, proj ++ [header: pt, posts: Enum.reverse(v)])
+      html = template
+             |> render(proj ++ [header: pt, posts: Enum.reverse(v)])
              |> genpage(proj ++ [page_title: pt])
       IO.write device, html
     end
@@ -117,7 +127,7 @@ defmodule Serum.Build do
   end
 
   defp mkinfo(dir, proj, [h|t], l) do
-    [year, month, day|_] = String.split(h, "-") |> Enum.map(fn x ->
+    [year, month, day|_] = h |> String.split("-") |> Enum.map(fn x ->
       case Integer.parse(x) do
         {x, _} -> x
         :error -> nil
