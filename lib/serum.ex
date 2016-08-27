@@ -3,29 +3,7 @@ defmodule Serum do
   This module contains entry points for various serum tasks.
   """
 
-  import Serum.Init
   import Serum.Build
-
-  def init(dir) do
-    dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
-    if File.exists? dir do
-      IO.puts "Warning: The directory `#{dir}` " <>
-              "already exists and might not be empty."
-    end
-
-    init :dir, dir
-    init :infofile, dir
-    init :page, dir
-    init :templates, dir
-
-    File.open! "#{dir}.gitignore", [:write, :utf8], fn f ->
-      IO.write f, "site\n"
-    end
-    IO.puts "Generated `#{dir}.gitignore`."
-
-    IO.puts "\nSuccessfully initialized a new Serum project!"
-    IO.puts "try `serum build #{dir}` to build the site."
-  end
 
   def build(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"

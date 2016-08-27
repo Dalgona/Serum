@@ -6,7 +6,28 @@ defmodule Serum.Init do
 
   import Serum.Payload
 
-  def init(:dir, dir) do
+  def init(dir) do
+    dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
+    if File.exists? dir do
+      IO.puts "Warning: The directory `#{dir}` " <>
+              "already exists and might not be empty."
+    end
+
+    init :dir, dir
+    init :infofile, dir
+    init :page, dir
+    init :templates, dir
+
+    File.open! "#{dir}.gitignore", [:write, :utf8], fn f ->
+      IO.write f, "site\n"
+    end
+    IO.puts "Generated `#{dir}.gitignore`."
+
+    IO.puts "\nSuccessfully initialized a new Serum project!"
+    IO.puts "try `serum build #{dir}` to build the site."
+  end
+
+  defp init(:dir, dir) do
     ["posts", "pages", "media", "templates",
      "assets/css", "assets/js", "assets/images"]
     |> Enum.each(fn x ->
@@ -15,7 +36,7 @@ defmodule Serum.Init do
     end)
   end
 
-  def init(:infofile, dir) do
+  defp init(:infofile, dir) do
     projinfo =
       %{site_name: "New Website",
         site_description: "Welcome to my website!",
@@ -29,7 +50,7 @@ defmodule Serum.Init do
     IO.puts "Generated `#{dir}serum.json`."
   end
 
-  def init(:page, dir) do
+  defp init(:page, dir) do
     File.open! "#{dir}pages/index.md", [:write, :utf8], fn f ->
       IO.write f, "*Hello, world!*\n"
     end
@@ -48,7 +69,7 @@ defmodule Serum.Init do
     IO.puts "Generated `#{dir}pages/pages.json`."
   end
 
-  def init(:templates, dir) do
+  defp init(:templates, dir) do
     %{base: template_base,
       nav:  template_nav,
       list: template_list,
