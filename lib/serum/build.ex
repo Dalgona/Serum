@@ -6,10 +6,6 @@ defmodule Serum.Build do
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 
-  ##
-  ## Build
-  ##
-
   def build(dir, mode) do
     dir = String.ends_with?(dir, "/") && dir || dir <> "/"
     if not File.exists?("#{dir}serum.json") do
@@ -27,7 +23,7 @@ defmodule Serum.Build do
 
       {time, _} = :timer.tc(fn ->
         compile_nav
-        build_ :launch_tasks, dir, mode
+        build_ :launch_tasks, mode, dir
       end)
       IO.puts "Build process took #{time}us."
       copy_assets dir
@@ -61,7 +57,7 @@ defmodule Serum.Build do
     end)
   end
 
-  defp build_(:launch_tasks, dir, :parallel) do
+  defp build_(:launch_tasks, :parallel, dir) do
     IO.puts "⚡️  [97mStarting parallel build...[0m"
     t1 = Task.async fn -> build_pages dir, :parallel end
     t2 = Task.async fn -> build_posts dir, :parallel end
@@ -69,15 +65,11 @@ defmodule Serum.Build do
     Task.await t2
   end
 
-  defp build_(:launch_tasks, dir, :sequential) do
+  defp build_(:launch_tasks, :sequential, dir) do
     IO.puts "⌛️  [97mStarting sequential build...[0m"
     build_pages dir, :sequential
     build_posts dir, :sequential
   end
-
-  ##
-  ## Compile Nav.
-  ##
 
   defp compile_nav do
     proj = Agent.get Global, &(Map.get &1, :proj)
@@ -87,10 +79,6 @@ defmodule Serum.Build do
     html = render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
     Agent.update Global, &(Map.put &1, :navstub, html)
   end
-
-  ##
-  ## Build Pages
-  ##
 
   defp build_pages(dir, mode) do
     template = Agent.get Global, &(Map.get &1, "template_page")
@@ -131,10 +119,6 @@ defmodule Serum.Build do
     IO.puts "  GEN  #{dir}pages/#{info.name}.#{info.type} -> #{dir}site/#{info.name}.html"
   end
 
-  ##
-  ## Build Posts
-  ##
-
   defp build_posts(dir, mode) do
     srcdir = "#{dir}posts/"
     dstdir = "#{dir}site/posts/"
@@ -152,17 +136,7 @@ defmodule Serum.Build do
     File.mkdir_p! dstdir
 
     infolist = mkinfo(dir, files, [])
-    tasks_post =
-      case mode do
-        :parallel ->
-          infolist
-          |> Enum.map(&(Task.async Serum.Build, :post_task, [srcdir, dstdir, &1, template_post]))
-        _ -> (fn ->
-          infolist
-          |> Enum.each(&(post_task srcdir, dstdir, &1, template_post))
-          []
-        end).()
-      end
+    tasks_post = launch_post mode, infolist, srcdir, dstdir, template_post
 
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
@@ -177,19 +151,31 @@ defmodule Serum.Build do
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
-    tasks_tag =
-      case mode do
-        :parallel ->
-          tagmap
-          |> Enum.map(&(Task.async Serum.Build, :tag_task, [dir, &1, template_list]))
-        _ -> (fn ->
-          tagmap
-          |> Enum.each(&(tag_task dir, &1, template_list))
-          []
-        end).()
-      end
+    tasks_tag = launch_tag mode, tagmap, dir, template_list
 
     Enum.each tasks_post ++ tasks_tag, &(Task.await &1)
+  end
+
+  defp launch_post(:parallel, info, srcdir, dstdir, template) do
+    info
+    |> Enum.map(&(Task.async Serum.Build, :post_task, [srcdir, dstdir, &1, template]))
+  end
+
+  defp launch_post(:sequential, info, srcdir, dstdir, template) do
+    info
+    |> Enum.each(&(post_task srcdir, dstdir, &1, template))
+    []
+  end
+
+  defp launch_tag(:parallel, tagmap, dir, template) do
+    tagmap
+    |> Enum.map(&(Task.async Serum.Build, :tag_task, [dir, &1, template]))
+  end
+
+  defp launch_tag(:sequential, tagmap, dir, template) do
+    tagmap
+    |> Enum.each(&(tag_task dir, &1, template))
+    []
   end
 
   def post_task(srcdir, dstdir, info, template) do
@@ -269,7 +255,7 @@ defmodule Serum.Build do
       }])
     rescue
       _ in MatchError -> (fn ->
-        IO.puts "\e[31mError while parsing `#{dir}posts/#{h}.md`: invalid markdown format\e[0m"
+        IO.puts "[31mError while parsing `#{dir}posts/#{h}.md`: invalid markdown format[0m"
         exit "error while building blog posts"
       end).()
     end
@@ -283,11 +269,11 @@ defmodule Serum.Build do
     File.rm_rf! "#{dir}site/media/"
     IO.puts "Copying assets and media..."
     case File.cp_r("#{dir}assets/", "#{dir}site/assets/") do
-      {:error, :enoent, _} -> IO.puts "Assets directory not found. Skipping..."
+      {:error, :enoent, _} -> IO.puts "[93mAssets directory not found. Skipping...[0m"
       {:ok, _} -> nil
     end
     case File.cp_r("#{dir}media/", "#{dir}site/media/") do
-      {:error, :enoent, _} -> IO.puts "Media directory not found. Skipping..."
+      {:error, :enoent, _} -> IO.puts "[93mMedia directory not found. Skipping...[0m"
       {:ok, _} -> nil
     end
   end
