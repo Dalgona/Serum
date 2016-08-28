@@ -4,16 +4,35 @@ defmodule Serum.Cmdline do
   (`Serum.Cmdline.main/1`).
   """
 
-  def main(args) do
+  def main([]) do
+    info
+    usage
+  end
+
+  def main(["init"|args]) do
     info
     case args do
-      ["init"] -> Serum.init "."
-      ["init", dir] -> Serum.init dir
-      ["build"] -> Serum.build "."
-      ["build", dir] -> Serum.build dir
-      ["version"|_] -> nil
-      _ -> usage
+      [] -> Serum.Init.init "."
+      [dir|_] -> Serum.Init.init dir
     end
+  end
+
+  def main(["build"|args]) do
+    info
+    {opts, args, _errors} =
+      OptionParser.parse args, strict: [parallel: :boolean, to: :string], aliases: [p: :parallel, t: :to]
+    mode = Keyword.get(opts, :parallel) && :parallel || :sequential
+    case args do
+      [] -> Serum.Build.build ".", mode
+      [dir|_] -> Serum.Build.build dir, mode
+    end
+  end
+
+  def main(["version"|_]), do: info
+
+  def main(_args) do
+    info
+    usage
   end
 
   defp info() do
@@ -22,9 +41,17 @@ defmodule Serum.Cmdline do
   end
 
   defp usage() do
-    IO.puts "Error: Invalid argument."
-    IO.puts "Usage: serum init [<dir>]"
-    IO.puts "       serum build [<dir>]"
-    IO.puts "       serum version"
+    IO.puts """
+    Usage: serum <task>
+
+      Available Tasks:
+      init [dir]             Initializes a new Serum project
+
+      build [options] [dir]  Builds an existing Serum project
+        -p, --parallel       Parallel build
+                             (Sequential build if this option is not specified)
+
+      version                Shows the version information
+    """
   end
 end
