@@ -6,50 +6,28 @@ defmodule Serum.Build do
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 
+  ##
+  ## Build
+  ##
+
   def build(dir, mode) do
-    dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
+    dir = String.ends_with?(dir, "/") && dir || dir <> "/"
     if not File.exists?("#{dir}serum.json") do
-      IO.puts "Error: `#{dir}serum.json` not found."
-      IO.puts "Make sure you point at a valid Serum project directory."
+      IO.puts "[31mError: `#{dir}serum.json` not found."
+      IO.puts "Make sure you point at a valid Serum project directory.[0m"
     else
       IO.puts "Rebuilding Website..."
       {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
 
-      IO.puts "Reading project infodata `#{dir}serum.json`..."
-      proj = "#{dir}serum.json"
-             |> File.read!
-             |> Poison.decode!(keys: :atoms)
-             |> Map.to_list
-      Agent.update Global, &(Map.put &1, :proj, proj)
-
-      IO.puts "Loading templates..."
-      ["base", "list", "page", "post", "nav"]
-      |> Enum.each(fn x ->
-        tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
-        Agent.update Global, &(Map.put &1, "template_#{x}", tree)
-      end)
+      build_ :load_info, dir
+      build_ :load_templates, dir
 
       File.mkdir_p! "#{dir}site/"
       IO.puts "Created directory `#{dir}site/`."
-      pageinfo = "#{dir}pages/pages.json"
-                 |> File.read!
-                 |> Poison.decode!(as: [%Serum.Pageinfo{}])
+
       {time, _} = :timer.tc(fn ->
-        compile_nav pageinfo
-        case mode do
-          :parallel -> (fn ->
-            IO.puts "⚡️  [97mStarting parallel build...[0m"
-            t1 = Task.async fn -> build_pages dir, pageinfo, mode end
-            t2 = Task.async fn -> build_posts dir, mode end
-            Task.await t1
-            Task.await t2
-          end).()
-          _ -> (fn ->
-            IO.puts "⌛️  [97mStarting sequential build...[0m"
-            build_pages dir, pageinfo, mode
-            build_posts dir, mode
-          end).()
-        end
+        compile_nav
+        build_ :launch_tasks, dir, mode
       end)
       IO.puts "Build process took #{time}us."
       copy_assets dir
@@ -61,16 +39,62 @@ defmodule Serum.Build do
     end
   end
 
-  defp compile_nav(info) do
+  defp build_(:load_info, dir) do
+    IO.puts "Reading project metadata `#{dir}serum.json`..."
+    proj = "#{dir}serum.json"
+           |> File.read!
+           |> Poison.decode!(keys: :atoms)
+           |> Map.to_list
+    pageinfo = "#{dir}pages/pages.json"
+               |> File.read!
+               |> Poison.decode!(as: [%Serum.Pageinfo{}])
+    Agent.update Global, &(Map.put &1, :proj, proj)
+    Agent.update Global, &(Map.put &1, :pageinfo, pageinfo)
+  end
+
+  defp build_(:load_templates, dir) do
+    IO.puts "Loading templates..."
+    ["base", "list", "page", "post", "nav"]
+    |> Enum.each(fn x ->
+      tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
+      Agent.update Global, &(Map.put &1, "template_#{x}", tree)
+    end)
+  end
+
+  defp build_(:launch_tasks, dir, :parallel) do
+    IO.puts "⚡️  [97mStarting parallel build...[0m"
+    t1 = Task.async fn -> build_pages dir, :parallel end
+    t2 = Task.async fn -> build_posts dir, :parallel end
+    Task.await t1
+    Task.await t2
+  end
+
+  defp build_(:launch_tasks, dir, :sequential) do
+    IO.puts "⌛️  [97mStarting sequential build...[0m"
+    build_pages dir, :sequential
+    build_posts dir, :sequential
+  end
+
+  ##
+  ## Compile Nav.
+  ##
+
+  defp compile_nav do
     proj = Agent.get Global, &(Map.get &1, :proj)
+    info = Agent.get Global, &(Map.get &1, :pageinfo)
     IO.puts "Compiling main navigation HTML stub..."
     template = Agent.get Global, &(Map.get &1, "template_nav")
     html = render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
     Agent.update Global, &(Map.put &1, :navstub, html)
   end
 
-  defp build_pages(dir, info, mode) do
+  ##
+  ## Build Pages
+  ##
+
+  defp build_pages(dir, mode) do
     template = Agent.get Global, &(Map.get &1, "template_page")
+    info = Agent.get Global, &(Map.get &1, :pageinfo)
 
     IO.puts "Cleaning pages..."
 
@@ -106,6 +130,10 @@ defmodule Serum.Build do
     end
     IO.puts "  GEN  #{dir}pages/#{info.name}.#{info.type} -> #{dir}site/#{info.name}.html"
   end
+
+  ##
+  ## Build Posts
+  ##
 
   defp build_posts(dir, mode) do
     srcdir = "#{dir}posts/"
