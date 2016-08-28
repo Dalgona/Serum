@@ -6,31 +6,34 @@ defmodule Serum.Build do
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 
-  def build(dir, mode) do
-    dir = String.ends_with?(dir, "/") && dir || dir <> "/"
-    if not File.exists?("#{dir}serum.json") do
-      IO.puts "[31mError: `#{dir}serum.json` not found."
+  def build(src, dest, mode) do
+    src = String.ends_with?(src, "/") && src || src <> "/"
+    dest = dest || src <> "site/"
+    dest = String.ends_with?(dest, "/") && dest || dest <> "/"
+
+    if not File.exists?("#{src}serum.json") do
+      IO.puts "[31mError: `#{src}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.[0m"
     else
       IO.puts "Rebuilding Website..."
       {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
 
-      build_ :load_info, dir
-      build_ :load_templates, dir
+      build_ :load_info, src
+      build_ :load_templates, src
 
-      File.mkdir_p! "#{dir}site/"
-      IO.puts "Created directory `#{dir}site/`."
+      File.mkdir_p! "#{dest}"
+      IO.puts "Created directory `#{dest}`."
 
       {time, _} = :timer.tc(fn ->
         compile_nav
-        build_ :launch_tasks, mode, dir
+        build_ :launch_tasks, mode, src, dest
       end)
       IO.puts "Build process took #{time}us."
-      copy_assets dir
+      copy_assets src, dest
 
       IO.puts ""
       IO.puts "[97mYour website is now ready to be served!"
-      IO.puts "Copy(move) the contents of `#{dir}site/` directory"
+      IO.puts "Copy(move) the contents of `#{dest}` directory"
       IO.puts "into your public webpages directory.[0m\n"
     end
   end
@@ -57,18 +60,18 @@ defmodule Serum.Build do
     end)
   end
 
-  defp build_(:launch_tasks, :parallel, dir) do
+  defp build_(:launch_tasks, :parallel, src, dest) do
     IO.puts "⚡️  [97mStarting parallel build...[0m"
-    t1 = Task.async fn -> build_pages dir, :parallel end
-    t2 = Task.async fn -> build_posts dir, :parallel end
+    t1 = Task.async fn -> build_pages src, dest, :parallel end
+    t2 = Task.async fn -> build_posts src, dest, :parallel end
     Task.await t1
     Task.await t2
   end
 
-  defp build_(:launch_tasks, :sequential, dir) do
+  defp build_(:launch_tasks, :sequential, src, dest) do
     IO.puts "⌛️  [97mStarting sequential build...[0m"
-    build_pages dir, :sequential
-    build_posts dir, :sequential
+    build_pages src, dest, :sequential
+    build_posts src, dest, :sequential
   end
 
   defp compile_nav do
@@ -80,32 +83,32 @@ defmodule Serum.Build do
     Agent.update Global, &(Map.put &1, :navstub, html)
   end
 
-  defp build_pages(dir, mode) do
+  defp build_pages(src, dest, mode) do
     template = Agent.get Global, &(Map.get &1, "template_page")
     info = Agent.get Global, &(Map.get &1, :pageinfo)
 
     IO.puts "Cleaning pages..."
 
-    "#{dir}site/"
+    dest
     |> File.ls!
     |> Enum.filter(&(String.ends_with? &1, ".html"))
-    |> Enum.each(&(File.rm_rf! "#{dir}site/#{&1}"))
+    |> Enum.each(&(File.rm_rf! "#{dest}#{&1}"))
 
     case mode do
       :parallel -> (fn ->
         info
-        |> Enum.map(&(Task.async Serum.Build, :page_task, [dir, &1, template]))
+        |> Enum.map(&(Task.async Serum.Build, :page_task, [src, dest, &1, template]))
         |> Enum.each(&(Task.await &1))
       end).()
       _ -> (fn ->
         info
-        |> Enum.each(&(page_task dir, &1, template))
+        |> Enum.each(&(page_task src, dest, &1, template))
       end).()
     end
   end
 
-  def page_task(dir, info, template) do
-    txt = File.read!("#{dir}pages/#{info.name}.#{info.type}")
+  def page_task(src, dest, info, template) do
+    txt = File.read!("#{src}pages/#{info.name}.#{info.type}")
     html = case info.type do
       "md" -> Earmark.to_html txt
       "html" -> txt
@@ -113,15 +116,15 @@ defmodule Serum.Build do
     html = template
            |> render([contents: html])
            |> genpage([page_title: info.title])
-    File.open! "#{dir}site/#{info.name}.html", [:write, :utf8], fn device ->
+    File.open! "#{dest}#{info.name}.html", [:write, :utf8], fn device ->
       IO.write device, html
     end
-    IO.puts "  GEN  #{dir}pages/#{info.name}.#{info.type} -> #{dir}site/#{info.name}.html"
+    IO.puts "  GEN  #{src}pages/#{info.name}.#{info.type} -> #{dest}#{info.name}.html"
   end
 
-  defp build_posts(dir, mode) do
-    srcdir = "#{dir}posts/"
-    dstdir = "#{dir}site/posts/"
+  defp build_posts(src, dest, mode) do
+    srcdir = "#{src}posts/"
+    dstdir = "#{dest}posts/"
     template_post = Agent.get Global, &(Map.get &1, "template_post")
     template_list = Agent.get Global, &(Map.get &1, "template_list")
     proj = Agent.get Global, &(Map.get &1, :proj)
@@ -135,7 +138,7 @@ defmodule Serum.Build do
     File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
-    infolist = mkinfo(dir, files, [])
+    infolist = mkinfo(src, files, [])
     tasks_post = launch_post mode, infolist, srcdir, dstdir, template_post
 
     IO.puts "Generating posts index..."
@@ -146,12 +149,12 @@ defmodule Serum.Build do
       IO.write device, html
     end
 
-    File.rm_rf! "#{dir}site/tags/"
+    File.rm_rf! "#{dest}tags/"
     tagmap = Enum.reduce infolist, %{}, fn m, a ->
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
-    tasks_tag = launch_tag mode, tagmap, dir, template_list
+    tasks_tag = launch_tag mode, tagmap, src, template_list
 
     Enum.each tasks_post ++ tasks_tag, &(Task.await &1)
   end
@@ -263,18 +266,18 @@ defmodule Serum.Build do
 
   defp mkinfo(_, [], l), do: l
 
-  defp copy_assets(dir) do
+  defp copy_assets(src, dest) do
     IO.puts "Cleaning assets and media directories..."
-    File.rm_rf! "#{dir}site/assets/"
-    File.rm_rf! "#{dir}site/media/"
+    File.rm_rf! "#{dest}assets/"
+    File.rm_rf! "#{dest}media/"
     IO.puts "Copying assets and media..."
-    case File.cp_r("#{dir}assets/", "#{dir}site/assets/") do
+    case File.cp_r("#{src}assets/", "#{dest}assets/") do
       {:error, :enoent, _} -> IO.puts "[93mAssets directory not found. Skipping...[0m"
-      {:ok, _} -> nil
+      {:ok, _} -> :ok
     end
-    case File.cp_r("#{dir}media/", "#{dir}site/media/") do
+    case File.cp_r("#{src}media/", "#{dest}media/") do
       {:error, :enoent, _} -> IO.puts "[93mMedia directory not found. Skipping...[0m"
-      {:ok, _} -> nil
+      {:ok, _} -> :ok
     end
   end
 end

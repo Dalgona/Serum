@@ -20,11 +20,12 @@ defmodule Serum.Cmdline do
   def main(["build"|args]) do
     info
     {opts, args, _errors} =
-      OptionParser.parse args, strict: [parallel: :boolean, to: :string], aliases: [p: :parallel, t: :to]
+      OptionParser.parse args, strict: [parallel: :boolean, output: :string], aliases: [p: :parallel, o: :output]
     mode = Keyword.get(opts, :parallel) && :parallel || :sequential
+    out = Keyword.get(opts, :output)
     case args do
-      [] -> Serum.Build.build ".", mode
-      [dir|_] -> Serum.Build.build dir, mode
+      [] -> Serum.Build.build ".", out, mode
+      [dir|_] -> Serum.Build.build dir, out, mode
     end
   end
 
