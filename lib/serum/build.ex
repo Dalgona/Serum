@@ -32,7 +32,7 @@ defmodule Serum.Build do
       copy_assets src, dest
 
       IO.puts ""
-      IO.puts "[97mYour website is now ready to be served!"
+      IO.puts "[1mYour website is now ready to be served!"
       IO.puts "Copy(move) the contents of `#{dest}` directory"
       IO.puts "into your public webpages directory.[0m\n"
     end
@@ -61,7 +61,7 @@ defmodule Serum.Build do
   end
 
   defp build_(:launch_tasks, :parallel, src, dest) do
-    IO.puts "⚡️  [97mStarting parallel build...[0m"
+    IO.puts "⚡️  [1mStarting parallel build...[0m"
     t1 = Task.async fn -> build_pages src, dest, :parallel end
     t2 = Task.async fn -> build_posts src, dest, :parallel end
     Task.await t1
@@ -69,7 +69,7 @@ defmodule Serum.Build do
   end
 
   defp build_(:launch_tasks, :sequential, src, dest) do
-    IO.puts "⌛️  [97mStarting sequential build...[0m"
+    IO.puts "⌛️  [1mStarting sequential build...[0m"
     build_pages src, dest, :sequential
     build_posts src, dest, :sequential
   end
@@ -154,7 +154,7 @@ defmodule Serum.Build do
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
-    tasks_tag = launch_tag mode, tagmap, src, template_list
+    tasks_tag = launch_tag mode, tagmap, dest, template_list
 
     Enum.each tasks_post ++ tasks_tag, &(Task.await &1)
   end
@@ -196,8 +196,8 @@ defmodule Serum.Build do
     IO.puts "  GEN  #{srcdir}#{info.file}.md -> #{dstdir}#{info.file}.html"
   end
 
-  def tag_task(dir, {k, v}, template) do
-    tagdir = "#{dir}site/tags/#{k.name}/"
+  def tag_task(dest, {k, v}, template) do
+    tagdir = "#{dest}tags/#{k.name}/"
     pt = "Posts Tagged \"#{k.name}\""
     posts = v |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir
@@ -207,6 +207,7 @@ defmodule Serum.Build do
              |> genpage([page_title: pt])
       IO.write device, html
     end
+    IO.puts "  GEN  #{tagdir}index.html"
   end
 
   defp process_links(text, proj) do

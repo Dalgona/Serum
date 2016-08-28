@@ -19,13 +19,14 @@ defmodule Serum.Cmdline do
 
   def main(["build"|args]) do
     info
-    {opts, args, _errors} =
+    {opts, args, errors} =
       OptionParser.parse args, strict: [parallel: :boolean, output: :string], aliases: [p: :parallel, o: :output]
     mode = Keyword.get(opts, :parallel) && :parallel || :sequential
     out = Keyword.get(opts, :output)
-    case args do
-      [] -> Serum.Build.build ".", out, mode
-      [dir|_] -> Serum.Build.build dir, out, mode
+    case {args, errors} do
+      {[], []} -> Serum.Build.build ".", out, mode
+      {[dir|_], []} -> Serum.Build.build dir, out, mode
+      {_, _} -> usage
     end
   end
 
@@ -37,8 +38,8 @@ defmodule Serum.Cmdline do
   end
 
   defp info() do
-    IO.puts "Serum -- Yet another simple static website generator"
-    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\n"
+    IO.puts "[1mSerum -- Yet another simple static website generator"
+    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>[0m\n"
   end
 
   defp usage() do
@@ -46,13 +47,13 @@ defmodule Serum.Cmdline do
     Usage: serum <task>
 
       Available Tasks:
-      init [dir]             Initializes a new Serum project
+      [96minit[0m [dir]               Initializes a new Serum project
 
-      build [options] [dir]  Builds an existing Serum project
-        -p, --parallel       Parallel build
-                             (Sequential build if this option is not specified)
+      [96mbuild[0m [options] [dir]    Builds an existing Serum project
+        -p, --parallel         Parallel build. Sequential build if not specified
+        -o, --output <outdir>  Specifies the output directory
 
-      version                Shows the version information
+      [96mversion[0m                  Shows the version information
     """
   end
 end

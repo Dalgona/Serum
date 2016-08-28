@@ -9,8 +9,8 @@ defmodule Serum.Init do
   def init(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
     if File.exists? dir do
-      IO.puts "Warning: The directory `#{dir}` " <>
-              "already exists and might not be empty."
+      IO.puts "[93mWarning: The directory `#{dir}` " <>
+              "already exists and might not be empty.[0m"
     end
 
     init :dir, dir
@@ -23,8 +23,8 @@ defmodule Serum.Init do
     end
     IO.puts "Generated `#{dir}.gitignore`."
 
-    IO.puts "\nSuccessfully initialized a new Serum project!"
-    IO.puts "try `serum build #{dir}` to build the site."
+    IO.puts "\n[1mSuccessfully initialized a new Serum project!"
+    IO.puts "try `serum build #{dir}` to build the site.[0m\n"
   end
 
   defp init(:dir, dir) do
