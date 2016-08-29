@@ -12,9 +12,7 @@ Or take a look at [the developer's personal website](https://dalgona.github.io),
 
 ### Requirement
 
-* Elixir 1.3 or newer
-
-    Determined by current development environment. Could support lower versions after tests.
+* Elixir 1.2 or newer
 
 ### Initializing and Building the Project
 
