@@ -30,6 +30,11 @@ defmodule Serum.Cmdline do
     end
   end
 
+  def main(["help"|_]) do
+    info
+    usage
+  end
+
   def main(["version"|_]), do: info
 
   def main(_args) do
@@ -50,8 +55,10 @@ defmodule Serum.Cmdline do
       [96minit[0m [dir]               Initializes a new Serum project
 
       [96mbuild[0m [options] [dir]    Builds an existing Serum project
-        -p, --parallel         Parallel build. Sequential build if not specified
+        -p, --parallel         Builds the pages parallelly
         -o, --output <outdir>  Specifies the output directory
+
+      [96mhelp[0m                     Shows this help message
 
       [96mversion[0m                  Shows the version information
     """

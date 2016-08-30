@@ -6,13 +6,15 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 
 [샘플 프로젝트](https://github.com/Dalgona/serum-sample)와 [웹사이트](http://include.iostream.kr/serum-sample)를 확인해보세요!
 
-[개발자의 개인 웹사이트](https://dalgona.github.io)도 최근 Serum을 이용하여 다시 만들어졌습니다!
+[개발자의 개인 웹사이트](https://dalgona.github.io)도 Serum을 이용하여 만들어졌습니다!
 
 ## 시작하기
 
 ### 요구사항
 
 * Elixir 1.2 이상
+
+    Elixir 설치 방법은 [Elixir 웹사이트](http://elixir-lang.org)를 참조하세요.
 
 ### 프로젝트 생성 및 빌드
 
@@ -22,26 +24,20 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
     % git clone https://github.com/Dalgona/Serum.git
     ```
 
-2. 복제된 저장소에 들어가서 아래 명령을 입력하여 의존하는 모듈을 내려받고 Serum을 빌드하면 현재 디렉토리에 `serum` 실행 파일이 생성됩니다.
-
-    ```sh
-    % cd Serum
-    % mix deps.get
-    % mix escript.build
-    ```
+2. `make && sudo make install` 명령을 입력하여 Serum을 빌드하고 설치하세요. 프로그램은 `/usr/local/bin` 디렉토리에 복사됩니다.
 
 3. `serum init [directory]` 명령을 실행하면 현재 디렉토리 또는 지정한 디렉토리에 새로운 Serum 프로젝트를 생성할 수 있습니다.
 
     > *Serum 저장소가 위치한 디렉토리에 프로젝트를 생성하는 것은 권장되지 않습니다.*
 
     ```sh
-    % ./serum init /path/to/project
+    % serum init /path/to/project
     ```
 
 4. `serum build [directory]`명령으로 생성된 프로젝트를 빌드합니다.
 
     ```sh
-    % ./serum build /path/to/project
+    % serum build /path/to/project
     ```
 
     빌드가 완료되면 `/path/to/project/site` 디렉토리에 웹사이트의 루트가 생성됩니다. 이 디렉토리의 내용물을 여러분이 사용하고 있는 웹 서버의 www 디렉토리로 복사하거나 외부 호스팅 서비스에 업로드하세요.
@@ -163,11 +159,7 @@ Serum은 네 개의 템플릿(`base.html.eex`, `list.html.eex`, `post.html.eex` 
 
 > **참고**: 구현상의 제약에 의해, `%media:` 참조를 사용하는 경우에는 이미지의 원본 URL에 `"` 문자를 사용하면 예기치 않은 결과가 발생할 수도 있습니다.
 
-## TODO
-
-* TODO 생각해내기
-
 ## 개발자 연락처
 
 * Email: <dalgona@hontou.moe>
-* Twitter: [@d57_kr](https://twitter.com/d57_kr)
+* Twitter: [@d57pub_](https://twitter.com/d57pub_)

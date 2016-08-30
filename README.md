@@ -6,13 +6,15 @@ Like some of other static website generators, Serum focuses on blogging. And if 
 
 Check out the [sample project](https://github.com/Dalgona/serum-sample) and the [website](http://include.iostream.kr/serum-sample)!
 
-Or take a look at [the developer's personal website](https://dalgona.github.io), it's recently rebuilt with Serum!
+Or take a look at [the developer's personal website](https://dalgona.github.io), which is built with Serum!
 
 ## Getting Started
 
 ### Requirement
 
 * Elixir 1.2 or newer
+
+    Visit the [Elixir website](http://elixir-lang.org) for installation instructions.
 
 ### Initializing and Building the Project
 
@@ -22,26 +24,20 @@ Or take a look at [the developer's personal website](https://dalgona.github.io),
     % git clone https://github.com/Dalgona/Serum.git
     ```
 
-2. Type the commands below to fetch the dependencies and build Serum. The `serum` executable will be created under your PWD.
-
-    ```sh
-    % cd Serum
-    % mix deps.get
-    % mix escript.build
-    ```
+2. Build and install Serum by typing `make && sudo make install`. The program will be copied to `/usr/local/bin` directory.
 
 3. Execute `serum init [directory]` to create a new Serum project at current or specified directory.
 
     > *It is NOT recommended to initialize a new project to where Serum repository is located.*
 
     ```sh
-    % ./serum init /path/to/project
+    % serum init /path/to/project
     ```
 
 4. Type `serum build [directory]` to build the generated project.
 
     ```sh
-    % ./serum build /path/to/project
+    % serum build /path/to/project
     ```
 
     When the build completes, the root of your website will be created under `/path/to/project/site` directory. Copy the contents of this directory to your own www directory, or upload them to the external web hosting service.
@@ -163,11 +159,13 @@ All pictures referenced by blog posts should be saved under `media/` directory. 
 
 > **NOTE**: Due to the limitations caused by the implementation, using `"` character in the source URL of the image may result in unexpected behavior.
 
-## TODO
+## Changelog
 
-* Finding what to do next
+* 0.9.0 (2016/08/30)
+
+    Initial beta release
 
 ## Contact the Developer
 
 * Email: <dalgona@hontou.moe>
-* Twitter: [@d57_kr](https://twitter.com/d57_kr)
+* Twitter: [@d57pub_](https://twitter.com/d57pub_)
