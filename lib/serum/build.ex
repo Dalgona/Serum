@@ -6,7 +6,7 @@ defmodule Serum.Build do
   @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
   @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
 
-  def build(src, dest, mode) do
+  def build(src, dest, mode, display_done \\ false) do
     src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
     dest = String.ends_with?(dest, "/") && dest || dest <> "/"
@@ -31,10 +31,12 @@ defmodule Serum.Build do
       IO.puts "Build process took #{time}us."
       copy_assets src, dest
 
-      IO.puts ""
-      IO.puts "[1mYour website is now ready to be served!"
-      IO.puts "Copy(move) the contents of `#{dest}` directory"
-      IO.puts "into your public webpages directory.[0m\n"
+      if display_done do
+        IO.puts ""
+        IO.puts "[1mYour website is now ready to be served!"
+        IO.puts "Copy(move) the contents of `#{dest}` directory"
+        IO.puts "into your public webpages directory.[0m\n"
+      end
     end
   end
 

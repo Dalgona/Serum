@@ -15,7 +15,7 @@ defmodule Serum.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :eex]]
+    [applications: [:logger, :eex, :cowboy]]
   end
 
   # Dependencies can be Hex packages:
@@ -30,6 +30,8 @@ defmodule Serum.Mixfile do
   defp deps do
     [{:earmark, "~> 1.0.1"},
      {:poison, "~> 2.2"},
+     {:cowboy, "~> 1.0.4"},
+     {:mime, "~> 1.0.1"},
      {:credo, "~> 0.4.9", only: [:dev, :test]}]
   end
 end

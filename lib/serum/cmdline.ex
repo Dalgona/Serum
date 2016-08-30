@@ -24,8 +24,20 @@ defmodule Serum.Cmdline do
     mode = Keyword.get(opts, :parallel) && :parallel || :sequential
     out = Keyword.get(opts, :output)
     case {args, errors} do
-      {[], []} -> Serum.Build.build ".", out, mode
-      {[dir|_], []} -> Serum.Build.build dir, out, mode
+      {[], []} -> Serum.Build.build ".", out, mode, true
+      {[dir|_], []} -> Serum.Build.build dir, out, mode, true
+      {_, _} -> usage
+    end
+  end
+
+  def main(["server"|args]) do
+    info
+    {opts, args, errors} =
+      OptionParser.parse args, strict: [port: :integer], aliases: [p: :port]
+    port = Keyword.get(opts, :port) || 8080
+    case {args, errors} do
+      {[], []} -> Serum.DevServer.run ".", port
+      {[dir|_], []} -> Serum.DevServer.run dir, port
       {_, _} -> usage
     end
   end
