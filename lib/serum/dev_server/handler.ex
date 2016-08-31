@@ -1,6 +1,6 @@
 defmodule Serum.DevServer.Handler do
   def init({:tcp, :http}, req, opts) do
-    req_path = elem req, 11
+    req_path = r req, :path
     base = String.replace_suffix Keyword.get(opts, :base), "/", ""
 
     if not String.starts_with? req_path, base do
@@ -35,12 +35,23 @@ defmodule Serum.DevServer.Handler do
     ext = Enum.reduce String.split(path, "."), fn x, _ -> x end
     mime = MIME.type ext
     contents = File.read! path
-    IO.puts "[32m[200][0m #{elem req, 5} [1m#{elem req, 11}[0m (#{mime})"
+    log 200, "32m", req
     :cowboy_req.reply 200, [{"Content-Type", mime}], contents, req
   end
 
   defp respond_404(req) do
-    IO.puts "[31m[404][0m #{elem req, 5} [1m#{elem req, 11}[0m"
+    log 404, "31m", req
     :cowboy_req.reply 404, [{"Content-Type", "text/plain"}], "Not Found", req
+  end
+
+  defp log(code, ansi, req) do
+    {{i1, i2, i3, i4}, _} = r req, :peer
+    ip_str = Enum.join [i1, i2, i3, i4], "."
+    IO.puts "[#{ansi}[#{code}][0m #{ip_str} #{r req, :method} [1m#{r req, :path}[0m"
+  end
+
+  defp r(req, field) do
+    {x, _} = apply :cowboy_req, field, [req]
+    x
   end
 end
