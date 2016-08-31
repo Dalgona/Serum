@@ -30,6 +30,7 @@ defmodule Serum.Build do
       end)
       IO.puts "Build process took #{time}us."
       copy_assets src, dest
+      Agent.stop Global
 
       if display_done do
         IO.puts ""
