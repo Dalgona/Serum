@@ -98,15 +98,13 @@ defmodule Serum.Build do
     |> Enum.each(&(File.rm_rf! "#{dest}#{&1}"))
 
     case mode do
-      :parallel -> (fn ->
+      :parallel ->
         info
         |> Enum.map(&(Task.async Serum.Build, :page_task, [src, dest, &1, template]))
         |> Enum.each(&(Task.await &1))
-      end).()
-      _ -> (fn ->
+      _ ->
         info
         |> Enum.each(&(page_task src, dest, &1, template))
-      end).()
     end
   end
 
