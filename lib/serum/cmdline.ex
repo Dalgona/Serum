@@ -67,8 +67,14 @@ defmodule Serum.Cmdline do
       [96minit[0m [dir]               Initializes a new Serum project
 
       [96mbuild[0m [options] [dir]    Builds an existing Serum project
+        dir                    (optional) Path to a Serum project
         -p, --parallel         Builds the pages parallelly
         -o, --output <outdir>  Specifies the output directory
+
+      [96mserver[0m [options] [dir]   Starts a web server
+        dir                    (optional) Path to a Serum project
+        -p, --port             Specifies HTTP port the server listens on
+                               (Default is 8080)
 
       [96mhelp[0m                     Shows this help message
 
