@@ -32,6 +32,7 @@ defmodule Serum.Mixfile do
      {:poison, "~> 2.2"},
      {:cowboy, "~> 1.0.4"},
      {:mime, "~> 1.0.1"},
+     {:fs, github: "synrc/fs"},
      {:credo, "~> 0.4.9", only: [:dev, :test]}]
   end
 end
