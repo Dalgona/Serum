@@ -1,13 +1,22 @@
 defmodule Serum.DevServer.Handler do
+  alias Serum.DevServer.DirStatus
+
   def init({:tcp, :http}, req, opts) do
     req_path = r req, :path
     base = String.replace_suffix Keyword.get(opts, :base), "/", ""
+
+    if GenServer.whereis(DirStatus) != nil and DirStatus.is_dirty do
+      IO.puts "[33mChanges detected in the source directory.[0m"
+      with dir <- Keyword.get(opts, :dir),
+           site <- Keyword.get(opts, :site),
+           do: Serum.Build.build dir, site, :parallel
+    end
 
     if not String.starts_with? req_path, base do
       {:ok, resp} = respond_404 req
       {:ok, resp, opts}
     else
-      path = Keyword.get(opts, :dir) <> String.replace_prefix req_path, base, ""
+      path = Keyword.get(opts, :site) <> String.replace_prefix req_path, base, ""
       {:ok, resp} =
         case File.stat path do
           {:ok, %File.Stat{type: :regular}} -> serve_file path, req

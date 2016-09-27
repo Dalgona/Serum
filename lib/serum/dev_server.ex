@@ -20,7 +20,7 @@ defmodule Serum.DevServer do
       Serum.Build.build dir, site, :parallel
 
       children = [
-        worker(__MODULE__, [site, base, port], function: :start_server, id: "devserver_http"),
+        worker(__MODULE__, [dir, site, base, port], function: :start_server, id: "devserver_http"),
         worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs")
       ]
 
@@ -31,9 +31,9 @@ defmodule Serum.DevServer do
     end
   end
 
-  def start_server(dir, base, port) do
+  def start_server(dir, site, base, port) do
     routes = [
-      {"/[...]", Serum.DevServer.Handler, [dir: dir, base: base]}
+      {"/[...]", Serum.DevServer.Handler, [dir: dir, site: site, base: base]}
     ]
     dispatch = :cowboy_router.compile [{:_, routes}]
     opts = [port: port]
@@ -56,7 +56,7 @@ defmodule Serum.DevServer do
 
   defp watcher_looper() do
     receive do
-      {_pid, {:fs, :file_event}, {path, events}} ->
+      {_pid, {:fs, :file_event}, {_path, _events}} ->
         DirStatus.set_dirty
         watcher_looper
       _ ->
@@ -66,8 +66,7 @@ defmodule Serum.DevServer do
 
   defp looper(state) do
     {port, src, site} = state
-    cmd = IO.gets("#{port}> [96m") |> String.trim
-    IO.write "[0m"
+    cmd = IO.gets("#{port}> ") |> String.trim
     case cmd do
       "help"  -> cmd :help, state
       "build" -> cmd :build, src, site, state
