@@ -1,4 +1,6 @@
 defmodule Serum.DevServer do
+  alias Serum.DevServer.DirStatus
+
   def run(dir, port) do
     import Supervisor.Spec
 
@@ -10,6 +12,7 @@ defmodule Serum.DevServer do
       IO.puts "[31mError: `#{dir}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.[0m"
     else
+      DirStatus.start_link
       %{base_url: base} = "#{dir}serum.json"
                           |> File.read!
                           |> Poison.decode!(keys: :atoms)
@@ -17,7 +20,8 @@ defmodule Serum.DevServer do
       Serum.Build.build dir, site, :parallel
 
       children = [
-        worker(__MODULE__, [site, base, port], function: :start_server)
+        worker(__MODULE__, [site, base, port], function: :start_server, id: "devserver_http"),
+        worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs")
       ]
 
       opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
@@ -39,6 +43,25 @@ defmodule Serum.DevServer do
     IO.puts "Server started listening on port #{port}."
     IO.puts "Type [1mhelp[0m for the list of available commands.\n"
     ret
+  end
+
+  def start_watcher(dir) do
+    pid = spawn_link fn ->
+      :fs.start_link :watcher, dir
+      :fs.subscribe :watcher
+      watcher_looper
+    end
+    {:ok, pid}
+  end
+
+  defp watcher_looper() do
+    receive do
+      {_pid, {:fs, :file_event}, {path, events}} ->
+        DirStatus.set_dirty
+        watcher_looper
+      _ ->
+        watcher_looper
+    end
   end
 
   defp looper(state) do
