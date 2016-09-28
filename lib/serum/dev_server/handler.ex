@@ -47,7 +47,7 @@ defmodule Serum.DevServer.Handler do
   defp log(code, ansi, req) do
     {{i1, i2, i3, i4}, _} = r req, :peer
     ip_str = Enum.join [i1, i2, i3, i4], "."
-    IO.puts "[#{ansi}[#{code}][0m #{ip_str} #{r req, :method} [1m#{r req, :path}[0m"
+    IO.puts "\x1b[#{ansi}[#{code}]\x1b[0m #{ip_str} #{r req, :method} \x1b[1m#{r req, :path}\x1b[0m"
   end
 
   defp r(req, field) do

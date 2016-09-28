@@ -7,8 +7,8 @@ defmodule Serum.DevServer do
     site = "/tmp/serum_" <> uniq
 
     if not File.exists? "#{dir}serum.json" do
-      IO.puts "[31mError: `#{dir}serum.json` not found."
-      IO.puts "Make sure you point at a valid Serum project directory.[0m"
+      IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
+      IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
     else
       %{base_url: base} = "#{dir}serum.json"
                           |> File.read!
@@ -37,14 +37,14 @@ defmodule Serum.DevServer do
     ret = {:ok, _pid} = :cowboy.start_http Serum.DevServer.Http, 100, opts, env: env
 
     IO.puts "Server started listening on port #{port}."
-    IO.puts "Type [1mhelp[0m for the list of available commands.\n"
+    IO.puts "Type \x1b[1mhelp\x1b[0m for the list of available commands.\n"
     ret
   end
 
   defp looper(state) do
     {port, src, site} = state
-    cmd = IO.gets("#{port}> [96m") |> String.trim
-    IO.write "[0m"
+    cmd = IO.gets("#{port}> \x1b[96m") |> String.trim
+    IO.write "\x1b[0m"
     case cmd do
       "help"  -> cmd :help, state
       "build" -> cmd :build, src, site, state
