@@ -12,8 +12,9 @@ defmodule Serum.Build do
     dest = String.ends_with?(dest, "/") && dest || dest <> "/"
 
     if not File.exists?("#{src}serum.json") do
-      IO.puts "[31mError: `#{src}serum.json` not found."
-      IO.puts "Make sure you point at a valid Serum project directory.[0m"
+      IO.puts "\x1b[31mError: `#{src}serum.json` not found."
+      IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
+      {:error, :no_project}
     else
       IO.puts "Rebuilding Website..."
       {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
@@ -34,10 +35,12 @@ defmodule Serum.Build do
 
       if display_done do
         IO.puts ""
-        IO.puts "[1mYour website is now ready to be served!"
+        IO.puts "\x1b[1mYour website is now ready to be served!"
         IO.puts "Copy(move) the contents of `#{dest}` directory"
-        IO.puts "into your public webpages directory.[0m\n"
+        IO.puts "into your public webpages directory.\x1b[0m\n"
       end
+
+      {:ok, dest}
     end
   end
 
@@ -64,7 +67,7 @@ defmodule Serum.Build do
   end
 
   defp build_(:launch_tasks, :parallel, src, dest) do
-    IO.puts "⚡️  [1mStarting parallel build...[0m"
+    IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> build_pages src, dest, :parallel end
     t2 = Task.async fn -> build_posts src, dest, :parallel end
     Task.await t1
@@ -72,7 +75,7 @@ defmodule Serum.Build do
   end
 
   defp build_(:launch_tasks, :sequential, src, dest) do
-    IO.puts "⌛️  [1mStarting sequential build...[0m"
+    IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
     build_pages src, dest, :sequential
     build_posts src, dest, :sequential
   end
@@ -260,7 +263,7 @@ defmodule Serum.Build do
       }])
     rescue
       _ in MatchError -> (fn ->
-        IO.puts "[31mError while parsing `#{dir}posts/#{h}.md`: invalid markdown format[0m"
+        IO.puts "\x1b[31mError while parsing `#{dir}posts/#{h}.md`: invalid markdown format\x1b[0m"
         exit "error while building blog posts"
       end).()
     end
@@ -274,11 +277,11 @@ defmodule Serum.Build do
     File.rm_rf! "#{dest}media/"
     IO.puts "Copying assets and media..."
     case File.cp_r("#{src}assets/", "#{dest}assets/") do
-      {:error, :enoent, _} -> IO.puts "[93mAssets directory not found. Skipping...[0m"
+      {:error, :enoent, _} -> IO.puts "\x1b[93mAssets directory not found. Skipping...\x1b[0m"
       {:ok, _} -> :ok
     end
     case File.cp_r("#{src}media/", "#{dest}media/") do
-      {:error, :enoent, _} -> IO.puts "[93mMedia directory not found. Skipping...[0m"
+      {:error, :enoent, _} -> IO.puts "\x1b[93mMedia directory not found. Skipping...\x1b[0m"
       {:ok, _} -> :ok
     end
   end

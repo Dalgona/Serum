@@ -55,8 +55,8 @@ defmodule Serum.Cmdline do
   end
 
   defp info() do
-    IO.puts "[1mSerum -- Yet another simple static website generator"
-    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>[0m\n"
+    IO.puts "\x1b[1mSerum -- Yet another simple static website generator"
+    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m\n"
   end
 
   defp usage() do
@@ -64,21 +64,21 @@ defmodule Serum.Cmdline do
     Usage: serum <task>
 
       Available Tasks:
-      [96minit[0m [dir]               Initializes a new Serum project
+      \x1b[96minit\x1b[0m [dir]               Initializes a new Serum project
 
-      [96mbuild[0m [options] [dir]    Builds an existing Serum project
+      \x1b[96mbuild\x1b[0m [options] [dir]    Builds an existing Serum project
         dir                    (optional) Path to a Serum project
         -p, --parallel         Builds the pages parallelly
         -o, --output <outdir>  Specifies the output directory
 
-      [96mserver[0m [options] [dir]   Starts a web server
+      \x1b[96mserver\x1b[0m [options] [dir]   Starts a web server
         dir                    (optional) Path to a Serum project
         -p, --port             Specifies HTTP port the server listens on
                                (Default is 8080)
 
-      [96mhelp[0m                     Shows this help message
+      \x1b[96mhelp\x1b[0m                     Shows this help message
 
-      [96mversion[0m                  Shows the version information
+      \x1b[96mversion\x1b[0m                  Shows the version information
     """
   end
 end
