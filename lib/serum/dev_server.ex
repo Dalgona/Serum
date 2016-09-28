@@ -9,8 +9,8 @@ defmodule Serum.DevServer do
     site = "/tmp/serum_" <> uniq
 
     if not File.exists? "#{dir}serum.json" do
-      IO.puts "[31mError: `#{dir}serum.json` not found."
-      IO.puts "Make sure you point at a valid Serum project directory.[0m"
+      IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
+      IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
     else
       %{base_url: base} = "#{dir}serum.json"
                           |> File.read!
