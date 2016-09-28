@@ -14,6 +14,7 @@ defmodule Serum.Build do
     if not File.exists?("#{src}serum.json") do
       IO.puts "[31mError: `#{src}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.[0m"
+      {:error, :no_project}
     else
       IO.puts "Rebuilding Website..."
       {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
@@ -38,6 +39,8 @@ defmodule Serum.Build do
         IO.puts "Copy(move) the contents of `#{dest}` directory"
         IO.puts "into your public webpages directory.[0m\n"
       end
+
+      {:ok, dest}
     end
   end
 

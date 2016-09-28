@@ -1,9 +1,12 @@
 defmodule Serum.DevServer.Handler do
+  alias Serum.DevServer.Service
+
   def init({:tcp, :http}, req, opts) do
     req_path = r req, :path
     base = String.replace_suffix Keyword.get(opts, :base), "/", ""
 
     if not String.starts_with? req_path, base do
+      # outside the base directory
       {:ok, resp} = respond_404 req
       {:ok, resp, opts}
     else
@@ -35,19 +38,19 @@ defmodule Serum.DevServer.Handler do
     ext = Enum.reduce String.split(path, "."), fn x, _ -> x end
     mime = MIME.type ext
     contents = File.read! path
-    log 200, "32m", req
+    log 200, req
     :cowboy_req.reply 200, [{"Content-Type", mime}], contents, req
   end
 
   defp respond_404(req) do
-    log 404, "31m", req
+    log 404, req
     :cowboy_req.reply 404, [{"Content-Type", "text/plain"}], "Not Found", req
   end
 
-  defp log(code, ansi, req) do
+  defp log(code, req) do
     {{i1, i2, i3, i4}, _} = r req, :peer
     ip_str = Enum.join [i1, i2, i3, i4], "."
-    IO.puts "[#{ansi}[#{code}][0m #{ip_str} #{r req, :method} [1m#{r req, :path}[0m"
+    Service.log code, ip_str, r(req, :method), r(req, :path)
   end
 
   defp r(req, field) do
