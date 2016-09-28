@@ -21,16 +21,17 @@ defmodule Serum.DevServer do
       children = [
         worker(__MODULE__, [site, base, port], function: :start_server, id: "devserver_http"),
         worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs"),
-        worker(Serum.DevServer.Service, [dir, site, port])
+        worker(Serum.DevServer.Service, [dir, site, port]),
+        worker(Serum.DevServer.Looper, [])
       ]
 
       opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
       Supervisor.start_link children, opts
 
-      ensure_service_started
+      Service.ensure_started
       Service.rebuild
 
-      looper {port, site}
+      looper
     end
   end
 
@@ -43,13 +44,6 @@ defmodule Serum.DevServer do
     env = [dispatch: dispatch]
     {:ok, pid} = :cowboy.start_http Serum.DevServer.Http, 100, opts, env: env
     {:ok, pid}
-  end
-
-  defp ensure_service_started() do
-    case GenServer.whereis Service do
-      nil -> ensure_service_started
-      _   -> :ok
-    end
   end
 
   def start_watcher(dir) do
@@ -71,39 +65,5 @@ defmodule Serum.DevServer do
     end
   end
 
-  defp looper(state) do
-    {port, site} = state
-    cmd = IO.gets("#{port}> ") |> String.trim
-    case cmd do
-      "help"  -> cmd :help, state
-      "build" -> cmd :build, state
-      "quit"  -> cmd :quit, site
-      ""      -> looper state
-      _       ->
-        IO.puts "Type `help` for the list of available commands."
-        looper state
-    end
-  end
-
-  defp cmd(:help, state) do
-    IO.puts "Available commands are:"
-    IO.puts "  help   Displays this help message"
-    IO.puts "  build  Rebuilds the project"
-    IO.puts "  quit   Stops the server and quit"
-    looper state
-  end
-
-  defp cmd(:quit, site) do
-    IO.puts "Stopping server..."
-    :ok = :cowboy.stop_listener Serum.DevServer.Http
-    :ok = Supervisor.stop Serum.DevServer.Supervisor
-    IO.puts "Removing temporary directory `#{site}`..."
-    File.rm_rf! site
-    :quit
-  end
-
-  defp cmd(:build, state) do
-    Service.rebuild
-    looper state
-  end
+  defp looper, do: looper
 end
