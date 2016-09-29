@@ -50,7 +50,7 @@ defmodule Serum.DevServer.Service do
   end
 
   def handle_cast({:log, 404, from, method, path}, state) do
-    IO.puts "\x1b[32m[404]\x1b[0m #{from} #{method} \x1b[1m#{path}\x1b[0m"
+    IO.puts "\x1b[31m[404]\x1b[0m #{from} #{method} \x1b[1m#{path}\x1b[0m"
     {:noreply, state}
   end
 
