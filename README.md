@@ -82,7 +82,8 @@ When you initialize a new project, Serum will create directory/file structure de
   "site_description": "Welcome to my website!",
   "author": "Dalgona.",
   "author_email": "dalgona@hontou.moe",
-  "base_url": "/site/"
+  "base_url": "/site/",
+  "date_format": "{WDfull}, {D} {Mshort} {YYYY}"
 }
 ```
 
@@ -91,6 +92,7 @@ When you initialize a new project, Serum will create directory/file structure de
 * `author_name` &mdash; The name of author of blog posts.
 * `author_email` &mdash; The email address of the author.
 * `base_url` &mdash; The base path of your web site. I recommend you to put a trailing `/`.
+* `date_format` &mdash; The format string for the date of blog posts. See [this documentation](https://hexdocs.pm/timex/Timex.Format.DateTime.Formatters.Default.html) for formatting instructions.
 
 > These attributes can be referenced by using template tags like `<%= @site_name %>`.
 

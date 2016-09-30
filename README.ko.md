@@ -82,7 +82,8 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
   "site_description": "Welcome to my website!",
   "author": "Dalgona.",
   "author_email": "dalgona@hontou.moe",
-  "base_url": "/site/"
+  "base_url": "/site/",
+  "date_format": "{WDfull}, {D} {Mshort} {YYYY}"
 }
 ```
 
@@ -91,6 +92,7 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 * `author_name` &mdash; 포스트 작성자의 이름입니다.
 * `author_email` &mdash; 포스트 작성자의 이메일 주소입니다.
 * `base_url` &mdash; 웹 사이트의 기준 경로입니다. 경로의 끝에 `/`를 붙이는 것을 권장합니다.
+* `date_format` &mdash; 블로그 게시물 작성일자의 형식 문자열입니다. 자세한 사용법은 [이 문서](https://hexdocs.pm/timex/Timex.Format.DateTime.Formatters.Default.html)를 참고하십시오.
 
 > 위 속성들은 템플릿에서 `<%= @site_name %>`과 같은 방법으로 접근할 수 있습니다.
 
