@@ -42,6 +42,15 @@ Or take a look at [the developer's personal website](https://dalgona.github.io),
 
     When the build completes, the root of your website will be created under `/path/to/project/site` directory. Copy the contents of this directory to your own www directory, or upload them to the external web hosting service.
 
+5. Alternatively, you can run the development server to check your website before publishing.
+
+    ```sh
+    # The default port is 8080.
+    % serum server /path/to/project --port <port>
+    ```
+
+    > For right now, you need to type `build` command in the development server prompt to manually rebuild your project after making some changes. The automatic rebuild function will be added soon.
+
 ### Configuration
 
 When you initialize a new project, Serum will create directory/file structure described below:
