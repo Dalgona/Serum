@@ -232,23 +232,65 @@ defmodule Serum.Build do
 
   defp mkinfo(dir, [h|t], l) do
     proj = Agent.get Global, &(Map.get &1, :proj)
+
+    {year, month, day, hour, minute} =
+      case extract_date h do
+        {:ok, result} -> result
+        {:error, reason} -> mkinfo_fail dir, h, reason
+      end
+    {title, tags} =
+      case extract_title_tags "#{dir}posts/#{h}.md", proj do
+        {:ok, result} -> result
+        {:error, reason} -> mkinfo_fail dir, h, reason
+      end
+
+    datetime = Timex.to_datetime {{year, month, day}, {hour, minute, 0}}, :local
+
+    mkinfo(dir, t, l ++ [%Serum.Postinfo{
+      file: h,
+      title: title,
+      date: Timex.format!(datetime, Keyword.get(proj, :date_format) || @default_date_format),
+      raw_date: [year, month, day, hour, minute],
+      tags: tags,
+      url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
+    }])
+  end
+
+  defp mkinfo(_, [], l), do: l
+
+  defp mkinfo_fail(dir, file, reason) do
+    IO.puts "\x1b[31mError while parsing `#{dir}posts/#{file}.md`: #{reason}\x1b[0m"
+    exit "error while building blog posts"
+  end
+
+  defp extract_date(filename) do
     try do
-      [year, month, day, hhmm|_] = h |> String.split("-") |> Enum.map(fn x ->
+      [y, m, d, hhmm|_] = filename |> String.split("-") |> Enum.map(fn x ->
         case Integer.parse(x) do
           {x, _} -> x
-          :error -> nil
+          :error -> :nil
         end
       end)
-      {hour, minute} =
-        with h <- div(hhmm, 100), m <- rem(hhmm, 100) do
+      if Enum.find_index([y, m, d, hhmm], &(&1 == nil)) != nil do
+        raise MatchError
+      end
+      {h, i} =
+        with h <- div(hhmm, 100), i <- rem(hhmm, 100) do
           h = if h > 23, do: 23, else: h
-          m = if m > 59, do: 59, else: m
-          {h, m}
+          i = if i > 59, do: 59, else: i
+          {h, i}
         end
-      datetime = Timex.to_datetime {{year, month, day}, {hour, minute, 0}}, :local
+      {:ok, {y, m, d, h, i}}
+    rescue
+      _ in MatchError ->
+        {:error, :invalid_filename}
+    end
+  end
 
+  defp extract_title_tags(file, proj) do
+    try do
       ["# " <> title, "#" <> tags] =
-        File.open!("#{dir}posts/#{h}.md", [:read, :utf8], &([IO.gets(&1, ""), IO.gets(&1, "")]))
+        File.open! file, [:read, :utf8], &([IO.gets(&1, ""), IO.gets(&1, "")])
       title = title |> String.trim
       tags = tags |> String.split(~r/, ?/)
                   |> Enum.filter(&(String.trim(&1) != ""))
@@ -256,23 +298,12 @@ defmodule Serum.Build do
                     tag = String.trim x
                     %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
                   end)
-      mkinfo(dir, t, l ++ [%Serum.Postinfo{
-        file: h,
-        title: title,
-        date: Timex.format!(datetime, Keyword.get(proj, :date_format) || @default_date_format),
-        raw_date: [year, month, day, hour, minute],
-        tags: tags,
-        url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
-      }])
+      {:ok, {title, tags}}
     rescue
-      _ in MatchError -> (fn ->
-        IO.puts "\x1b[31mError while parsing `#{dir}posts/#{h}.md`: invalid markdown format\x1b[0m"
-        exit "error while building blog posts"
-      end).()
+      _ in MatchError ->
+        {:error, :invalid_header}
     end
   end
-
-  defp mkinfo(_, [], l), do: l
 
   defp copy_assets(src, dest) do
     IO.puts "Cleaning assets and media directories..."
