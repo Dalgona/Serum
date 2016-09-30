@@ -42,6 +42,15 @@ Or take a look at [the developer's personal website](https://dalgona.github.io),
 
     When the build completes, the root of your website will be created under `/path/to/project/site` directory. Copy the contents of this directory to your own www directory, or upload them to the external web hosting service.
 
+5. Alternatively, you can run the development server to check your website before publishing.
+
+    ```sh
+    # The default port is 8080.
+    % serum server /path/to/project --port <port>
+    ```
+
+    > For right now, you need to type `build` command in the development server prompt to manually rebuild your project after making some changes. The automatic rebuild function will be added soon.
+
 ### Configuration
 
 When you initialize a new project, Serum will create directory/file structure described below:
@@ -73,7 +82,8 @@ When you initialize a new project, Serum will create directory/file structure de
   "site_description": "Welcome to my website!",
   "author": "Dalgona.",
   "author_email": "dalgona@hontou.moe",
-  "base_url": "/site/"
+  "base_url": "/site/",
+  "date_format": "{WDfull}, {D} {Mshort} {YYYY}"
 }
 ```
 
@@ -82,6 +92,7 @@ When you initialize a new project, Serum will create directory/file structure de
 * `author_name` &mdash; The name of author of blog posts.
 * `author_email` &mdash; The email address of the author.
 * `base_url` &mdash; The base path of your web site. I recommend you to put a trailing `/`.
+* `date_format` &mdash; The format string for the date of blog posts. See [this documentation](https://hexdocs.pm/timex/Timex.Format.DateTime.Formatters.Default.html) for formatting instructions.
 
 > These attributes can be referenced by using template tags like `<%= @site_name %>`.
 

@@ -33,6 +33,8 @@ defmodule Serum.Mixfile do
      {:cowboy, "~> 1.0.4"},
      {:mime, "~> 1.0.1"},
      {:fs, github: "synrc/fs"},
+     {:timex, "~> 3.0"},
+     {:tzdata, "~> 0.1.8", override: true},
      {:credo, "~> 0.4.9", only: [:dev, :test]}]
   end
 end
