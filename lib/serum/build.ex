@@ -3,8 +3,7 @@ defmodule Serum.Build do
   This module contains functions for generating pages of your website.
   """
 
-  @dowstr {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"}
-  @monabbr {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"}
+  @default_date_format "{YYYY}-{0M}-{0D}"
 
   def build(src, dest, mode, display_done \\ false) do
     src = String.ends_with?(src, "/") && src || src <> "/"
@@ -186,14 +185,10 @@ defmodule Serum.Build do
   end
 
   def post_task(srcdir, dstdir, info, template) do
-    [y, m, d] = info.raw_date
-    dow = elem @dowstr, :calendar.day_of_the_week(y, m, d)
-    datestr = "#{dow}, #{info.date}"
-
     [_, _|lines] = "#{srcdir}#{info.file}.md" |> File.read! |> String.split("\n")
     stub = lines |> Earmark.to_html
     html = template
-           |> render([title: info.title, date: datestr, tags: info.tags, contents: stub])
+           |> render([title: info.title, date: info.date, tags: info.tags, contents: stub])
            |> genpage([page_title: info.title])
 
     File.open! "#{dstdir}#{info.file}.html", [:write, :utf8], &(IO.write &1, html)
@@ -237,13 +232,21 @@ defmodule Serum.Build do
 
   defp mkinfo(dir, [h|t], l) do
     proj = Agent.get Global, &(Map.get &1, :proj)
-    [year, month, day|_] = h |> String.split("-") |> Enum.map(fn x ->
-      case Integer.parse(x) do
-        {x, _} -> x
-        :error -> nil
-      end
-    end)
     try do
+      [year, month, day, hhmm|_] = h |> String.split("-") |> Enum.map(fn x ->
+        case Integer.parse(x) do
+          {x, _} -> x
+          :error -> nil
+        end
+      end)
+      {hour, minute} =
+        with h <- div(hhmm, 100), m <- rem(hhmm, 100) do
+          h = if h > 23, do: 23, else: h
+          m = if m > 59, do: 59, else: m
+          {h, m}
+        end
+      datetime = Timex.to_datetime {{year, month, day}, {hour, minute, 0}}, :local
+
       ["# " <> title, "#" <> tags] =
         File.open!("#{dir}posts/#{h}.md", [:read, :utf8], &([IO.gets(&1, ""), IO.gets(&1, "")]))
       title = title |> String.trim
@@ -256,8 +259,8 @@ defmodule Serum.Build do
       mkinfo(dir, t, l ++ [%Serum.Postinfo{
         file: h,
         title: title,
-        date: "#{day} #{elem @monabbr, month} #{year}",
-        raw_date: [year, month, day],
+        date: Timex.format!(datetime, Keyword.get(proj, :date_format) || @default_date_format),
+        raw_date: [year, month, day, hour, minute],
         tags: tags,
         url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
       }])
