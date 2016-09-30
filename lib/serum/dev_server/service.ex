@@ -36,7 +36,7 @@ defmodule Serum.DevServer.Service do
 
   def handle_call(:rebuild, _from, state) do
     {dir, site, _} = state
-    spawn_link fn -> {:ok, _} = Serum.Build.build dir, site, :parallel end
+    {:ok, _} = Serum.Build.build dir, site, :parallel
     {:reply, :ok, state}
   end
 

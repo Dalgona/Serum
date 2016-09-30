@@ -8,7 +8,8 @@ defmodule Serum.DevServer.Looper do
   end
 
   defp looper() do
-    cmd = IO.gets("#{Service.port}> ") |> String.trim
+    IO.write "#{Service.port}> "
+    cmd = IO.gets("") |> String.trim
     case cmd do
       "help"  -> cmd :help
       "build" -> cmd :build
