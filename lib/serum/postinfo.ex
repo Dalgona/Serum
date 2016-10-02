@@ -3,5 +3,5 @@ defmodule Serum.Postinfo do
   This module defines Postinfo struct.
   """
 
-  defstruct [:file, :title, :date, :raw_date, :tags, :url]
+  defstruct [:file, :title, :date, :raw_date, :tags, :url, :preview_text]
 end
