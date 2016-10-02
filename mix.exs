@@ -34,6 +34,7 @@ defmodule Serum.Mixfile do
      {:mime, "~> 1.0.1"},
      {:timex, "~> 3.0"},
      {:tzdata, "~> 0.1.8", override: true},
+     {:floki, "~> 0.10.1"},
      {:credo, "~> 0.4.9", only: [:dev, :test]}]
   end
 end
