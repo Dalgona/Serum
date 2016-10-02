@@ -16,7 +16,7 @@ defmodule Serum.Build do
       {:error, :no_project}
     else
       IO.puts "Rebuilding Website..."
-      {:ok, pid} = Agent.start_link fn -> %{} end, name: Global
+      {:ok, _pid} = Agent.start_link fn -> %{} end, name: Global
 
       build_ :load_info, src
       build_ :load_templates, src
@@ -126,6 +126,8 @@ defmodule Serum.Build do
   end
 
   defp build_posts(src, dest, mode) do
+    {:ok, _pid} = Agent.start_link fn -> [] end, name: Serum.Build.PostInfoStorage
+
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
     template_post = Agent.get Global, &(Map.get &1, "template_post")
@@ -141,8 +143,10 @@ defmodule Serum.Build do
     File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
-    infolist = mkinfo(src, files, [])
-    tasks_post = launch_post mode, infolist, srcdir, dstdir, template_post
+    Enum.each launch_post1(mode, files, srcdir, dstdir, template_post), &Task.await&1
+    infolist = Serum.Build.PostInfoStorage
+           |> Agent.get(&(&1))
+           |> Enum.sort_by(&(&1.file))
 
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
@@ -157,9 +161,20 @@ defmodule Serum.Build do
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
-    tasks_tag = launch_tag mode, tagmap, dest, template_list
+    Enum.each launch_tag(mode, tagmap, dest, template_list), &Task.await&1
 
-    Enum.each tasks_post ++ tasks_tag, &(Task.await &1)
+    Agent.stop Serum.Build.PostInfoStorage
+  end
+
+  defp launch_post1(:parallel, files, srcdir, dstdir, template) do
+    files
+    |> Enum.map(&(Task.async Serum.Build, :post_task1, [srcdir, dstdir, &1, template]))
+  end
+
+  defp launch_post1(:sequential, files, srcdir, dstdir, template) do
+    files
+    |> Enum.each(&(post_task1 srcdir, dstdir, &1, template))
+    []
   end
 
   defp launch_post(:parallel, info, srcdir, dstdir, template) do
@@ -184,9 +199,59 @@ defmodule Serum.Build do
     []
   end
 
+  def post_task1(srcdir, dstdir, file, template) do
+    proj = Agent.get Global, &(Map.get &1, :proj)
+
+    [l1, l2|lines] = "#{srcdir}#{file}.md" |> File.read! |> String.split("\n")
+    stub = lines |> Earmark.to_html
+    preview = stub
+              |> Floki.parse
+              |> Enum.filter(&(elem(&1, 0) == "p"))
+              |> Enum.map(&(elem(&1, 2) |> Floki.text))
+              |> Enum.join(" ")
+              |> String.slice(0..200)
+    {year, month, day, hour, minute} =
+      case extract_date file do
+        {:ok, result} -> result
+        {:error, reason} -> mkinfo_fail srcdir, file, reason
+      end
+    {title, tags} =
+      case extract_title_tags l1, l2, proj do
+        {:ok, result} -> result
+        {:error, reason} -> mkinfo_fail srcdir, file, reason
+      end
+    datetime = {{year, month, day}, {hour, minute, 0}}
+               |> Timex.to_datetime(:local)
+               |> Timex.format!(Keyword.get(proj, :date_format) || @default_date_format)
+    html = template
+           |> render([title: title, date: datetime, tags: tags, contents: stub])
+           |> genpage([page_title: title])
+
+    File.open! "#{dstdir}#{file}.html", [:write, :utf8], &(IO.write &1, html)
+    IO.puts "  GEN  #{srcdir}#{file}.md -> #{dstdir}#{file}.html"
+
+    info = %Serum.Postinfo{
+      file: file,
+      title: title,
+      date: datetime,
+      raw_date: [year, month, day, hour, minute],
+      tags: tags,
+      url: "#{Keyword.get proj, :base_url}posts/#{file}.html",
+      preview_text: preview
+    }
+    Agent.update Serum.Build.PostInfoStorage, &([info|&1])
+  end
+
   def post_task(srcdir, dstdir, info, template) do
     [_, _|lines] = "#{srcdir}#{info.file}.md" |> File.read! |> String.split("\n")
     stub = lines |> Earmark.to_html
+    preview = stub
+              |> Floki.parse
+              |> Enum.filter(fn x -> elem(x, 0) == "p" end)
+              |> Enum.map(fn x -> elem(x, 2) |> Floki.text end)
+              |> Enum.join(" ")
+              |> String.slice(0..200)
+    Agent.update PreviewStorage, &[{info.file, preview}|&1]
     html = template
            |> render([title: info.title, date: info.date, tags: info.tags, contents: stub])
            |> genpage([page_title: info.title])
@@ -230,6 +295,32 @@ defmodule Serum.Build do
     html
   end
 
+  defp mkinfo1(file, dir) do
+    proj = Agent.get Global, &(Map.get &1, :proj)
+
+    {year, month, day, hour, minute} =
+      case extract_date file do
+        {:ok, result} -> result
+        {:error, reason} -> mkinfo_fail dir, file, reason
+      end
+    {title, tags} =
+      case extract_title_tags "#{dir}posts/#{file}.md", proj do
+        {:ok, result} -> result
+        {:error, reason} -> mkinfo_fail dir, file, reason
+      end
+
+    datetime = Timex.to_datetime {{year, month, day}, {hour, minute, 0}}, :local
+
+    %Serum.Postinfo{
+      file: h,
+      title: title,
+      date: Timex.format!(datetime, Keyword.get(proj, :date_format) || @default_date_format),
+      raw_date: [year, month, day, hour, minute],
+      tags: tags,
+      url: "#{Keyword.get proj, :base_url}posts/#{h}.html"
+    }
+  end
+
   defp mkinfo(dir, [h|t], l) do
     proj = Agent.get Global, &(Map.get &1, :proj)
 
@@ -258,8 +349,8 @@ defmodule Serum.Build do
 
   defp mkinfo(_, [], l), do: l
 
-  defp mkinfo_fail(dir, file, reason) do
-    IO.puts "\x1b[31mError while parsing `#{dir}posts/#{file}.md`: #{reason}\x1b[0m"
+  defp mkinfo_fail(srcdir, file, reason) do
+    IO.puts "\x1b[31mError while parsing `#{srcdir}#{file}.md`: #{reason}\x1b[0m"
     exit "error while building blog posts"
   end
 
@@ -284,6 +375,23 @@ defmodule Serum.Build do
     rescue
       _ in MatchError ->
         {:error, :invalid_filename}
+    end
+  end
+
+  defp extract_title_tags(title, tags, proj) do
+    try do
+      {"# " <> title, "#" <> tags} = {title, tags}
+      title = title |> String.trim
+      tags = tags |> String.split(~r/, ?/)
+                  |> Enum.filter(&(String.trim(&1) != ""))
+                  |> Enum.map(fn x ->
+                    tag = String.trim x
+                    %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
+                  end)
+      {:ok, {title, tags}}
+    rescue
+      _ in MatchError ->
+        {:error, :invalid_header}
     end
   end
 
