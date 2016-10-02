@@ -195,22 +195,9 @@ defmodule Serum.Build do
     [l1, l2|lines] = "#{srcdir}#{file}.md" |> File.read! |> String.split("\n")
     stub = lines |> Earmark.to_html
     plen = Keyword.get(proj, :preview_length) || @default_preview_length
-    preview = stub
-              |> Floki.parse
-              |> Enum.filter(&(elem(&1, 0) == "p"))
-              |> Enum.map(&(elem(&1, 2) |> Floki.text))
-              |> Enum.join(" ")
-              |> String.slice(0, plen)
-    {year, month, day, hour, minute} =
-      case extract_date file do
-        {:ok, result} -> result
-        {:error, reason} -> mkinfo_fail srcdir, file, reason
-      end
-    {title, tags} =
-      case extract_title_tags l1, l2, proj do
-        {:ok, result} -> result
-        {:error, reason} -> mkinfo_fail srcdir, file, reason
-      end
+    preview = make_preview stub, plen
+    {year, month, day, hour, minute} = extract_date srcdir, file
+    {title, tags} = extract_title_tags srcdir, file, l1, l2, proj
     datetime = {{year, month, day}, {hour, minute, 0}}
                |> Timex.to_datetime(:local)
                |> Timex.format!(Keyword.get(proj, :date_format) || @default_date_format)
@@ -231,6 +218,19 @@ defmodule Serum.Build do
       preview_text: preview
     }
     Agent.update Serum.Build.PostInfoStorage, &([info|&1])
+  end
+
+  defp make_preview(_html, 0) do
+    ""
+  end
+
+  defp make_preview(html, maxlen) do
+    html
+    |> Floki.parse
+    |> Enum.filter(&(elem(&1, 0) == "p"))
+    |> Enum.map(&(Floki.text elem(&1, 2)))
+    |> Enum.join(" ")
+    |> String.slice(0, maxlen)
   end
 
   def tag_task(dest, {k, v}, template) do
@@ -273,7 +273,7 @@ defmodule Serum.Build do
     exit "error while building blog posts"
   end
 
-  defp extract_date(filename) do
+  defp extract_date(srcdir, filename) do
     try do
       [y, m, d, hhmm|_] = filename |> String.split("-") |> Enum.map(fn x ->
         case Integer.parse(x) do
@@ -290,14 +290,14 @@ defmodule Serum.Build do
           i = if i > 59, do: 59, else: i
           {h, i}
         end
-      {:ok, {y, m, d, h, i}}
+      {y, m, d, h, i}
     rescue
       _ in MatchError ->
-        {:error, :invalid_filename}
+        mkinfo_fail srcdir, filename, :invalid_filename
     end
   end
 
-  defp extract_title_tags(title, tags, proj) do
+  defp extract_title_tags(srcdir, filename, title, tags, proj) do
     try do
       {"# " <> title, "#" <> tags} = {title, tags}
       title = title |> String.trim
@@ -307,10 +307,10 @@ defmodule Serum.Build do
                     tag = String.trim x
                     %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
                   end)
-      {:ok, {title, tags}}
+      {title, tags}
     rescue
       _ in MatchError ->
-        {:error, :invalid_header}
+        mkinfo_fail srcdir, filename, :invalid_header
     end
   end
 
