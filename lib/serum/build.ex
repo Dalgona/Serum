@@ -25,6 +25,10 @@ defmodule Serum.Build do
       File.mkdir_p! "#{dest}"
       IO.puts "Created directory `#{dest}`."
 
+      dest |> File.ls!
+           |> Enum.map(&("#{dest}#{&1}"))
+           |> Enum.each(&(File.rm_rf! &1))
+
       {time, _} = :timer.tc(fn ->
         compile_nav
         build_ :launch_tasks, mode, src, dest
@@ -93,13 +97,6 @@ defmodule Serum.Build do
     template = Agent.get Global, &(Map.get &1, "template_page")
     info = Agent.get Global, &(Map.get &1, :pageinfo)
 
-    IO.puts "Cleaning pages..."
-
-    dest
-    |> File.ls!
-    |> Enum.filter(&(String.ends_with? &1, ".html"))
-    |> Enum.each(&(File.rm_rf! "#{dest}#{&1}"))
-
     case mode do
       :parallel ->
         info
@@ -120,6 +117,13 @@ defmodule Serum.Build do
     html = template
            |> render([contents: html])
            |> genpage([page_title: info.title])
+    [_|subdir] = info.name |> String.split("/") |> Enum.reverse
+    subdir = case subdir do
+      [] -> ""
+      [x] -> x <> "/"
+      [_|_] -> (subdir |> Enum.reverse |> Enum.join("/")) <> "/"
+    end
+    if subdir != "", do: File.mkdir_p! "#{dest}#{subdir}"
     File.open! "#{dest}#{info.name}.html", [:write, :utf8], fn device ->
       IO.write device, html
     end
@@ -140,8 +144,6 @@ defmodule Serum.Build do
             |> Enum.filter(&(String.ends_with? &1, ".md"))
             |> Enum.map(&(String.replace &1, ~r/\.md$/, ""))
             |> Enum.sort
-    IO.puts "Cleaning directory `#{dstdir}`..."
-    File.rm_rf! dstdir
     File.mkdir_p! dstdir
 
     Enum.each launch_post(mode, files, srcdir, dstdir, template_post), &Task.await&1
