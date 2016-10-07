@@ -20,19 +20,13 @@ defmodule Serum.Build do
       IO.puts "Rebuilding Website..."
       {:ok, _pid} = Agent.start_link fn -> %{} end, name: Global
 
-      build_ :load_info, src
-      build_ :load_templates, src
-
-      File.mkdir_p! "#{dest}"
-      IO.puts "Created directory `#{dest}`."
-
-      dest |> File.ls!
-           |> Enum.map(&("#{dest}#{&1}"))
-           |> Enum.each(&(File.rm_rf! &1))
+      load_info src
+      load_templates src
+      clean_dest dest
 
       {time, _} = :timer.tc(fn ->
         compile_nav
-        build_ :launch_tasks, mode, src, dest
+        launch_tasks mode, src, dest
       end)
       IO.puts "Build process took #{time}us."
       copy_assets src, dest
@@ -49,7 +43,7 @@ defmodule Serum.Build do
     end
   end
 
-  defp build_(:load_info, dir) do
+  defp load_info(dir) do
     IO.puts "Reading project metadata `#{dir}serum.json`..."
     proj = "#{dir}serum.json"
            |> File.read!
@@ -62,7 +56,7 @@ defmodule Serum.Build do
     Agent.update Global, &(Map.put &1, :pageinfo, pageinfo)
   end
 
-  defp build_(:load_templates, dir) do
+  defp load_templates(dir) do
     IO.puts "Loading templates..."
     ["base", "list", "page", "post", "nav"]
     |> Enum.each(fn x ->
@@ -71,7 +65,16 @@ defmodule Serum.Build do
     end)
   end
 
-  defp build_(:launch_tasks, :parallel, src, dest) do
+  defp clean_dest(dest) do
+    File.mkdir_p! "#{dest}"
+    IO.puts "Created directory `#{dest}`."
+
+    dest |> File.ls!
+         |> Enum.map(&("#{dest}#{&1}"))
+         |> Enum.each(&(File.rm_rf! &1))
+  end
+
+  defp launch_tasks(:parallel, src, dest) do
     IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
     t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
@@ -79,7 +82,7 @@ defmodule Serum.Build do
     Task.await t2
   end
 
-  defp build_(:launch_tasks, :sequential, src, dest) do
+  defp launch_tasks(:sequential, src, dest) do
     IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
     PageBuilder.run src, dest, :sequential
     PostBuilder.run src, dest, :sequential

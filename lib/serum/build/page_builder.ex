@@ -17,24 +17,37 @@ defmodule Serum.Build.PageBuilder do
   end
 
   def page_task(src, dest, info, template) do
-    txt = File.read!("#{src}pages/#{info.name}.#{info.type}")
+    srcname = "#{src}pages/#{info.name}.#{info.type}"
+    dstname = "#{dest}#{info.name}.html"
+
+    txt = File.read! srcname
+    html = render(txt, info, template)
+
+    subdir = get_subdir info.name
+    if get_subdir(info.name) != "", do: File.mkdir_p! "#{dest}#{subdir}"
+    File.open! dstname, [:write, :utf8], fn device ->
+      IO.write device, html
+    end
+
+    IO.puts "  GEN  #{srcname} -> #{dstname}"
+  end
+
+  defp render(txt, info, template) do
     html = case info.type do
       "md" -> Earmark.to_html txt
       "html" -> txt
     end
-    html = template
-           |> Renderer.render([contents: html])
-           |> Renderer.genpage([page_title: info.title])
-    [_|subdir] = info.name |> String.split("/") |> Enum.reverse
-    subdir = case subdir do
+    template
+    |> Renderer.render([contents: html])
+    |> Renderer.genpage([page_title: info.title])
+  end
+
+  defp get_subdir(path) do
+    [_|subdir] = path |> String.split("/") |> Enum.reverse
+    case subdir do
       [] -> ""
       [x] -> x <> "/"
-      [_|_] -> (subdir |> Enum.reverse |> Enum.join("/")) <> "/"
+      x when is_list x -> (x |> Enum.reverse |> Enum.join("/")) <> "/"
     end
-    if subdir != "", do: File.mkdir_p! "#{dest}#{subdir}"
-    File.open! "#{dest}#{info.name}.html", [:write, :utf8], fn device ->
-      IO.write device, html
-    end
-    IO.puts "  GEN  #{src}pages/#{info.name}.#{info.type} -> #{dest}#{info.name}.html"
   end
 end
