@@ -139,7 +139,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   defp mkinfo_fail(srcname, reason) do
-    IO.puts "\x1b[31mError while parsing `#{srcname}.md`: #{reason}\x1b[0m"
+    IO.puts "\x1b[31mError while parsing `#{srcname}`: #{reason}\x1b[0m"
     exit "error while building blog posts"
   end
 
