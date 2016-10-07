@@ -3,6 +3,10 @@ defmodule Serum.Build do
   This module contains functions for generating pages of your website.
   """
 
+  alias Serum.Build.PageBuilder
+  alias Serum.Build.PostBuilder
+  alias Serum.Build.Renderer
+
   @default_date_format    "{YYYY}-{0M}-{0D}"
   @default_preview_length 200
 
@@ -89,7 +93,7 @@ defmodule Serum.Build do
     info = Agent.get Global, &(Map.get &1, :pageinfo)
     IO.puts "Compiling main navigation HTML stub..."
     template = Agent.get Global, &(Map.get &1, "template_nav")
-    html = render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
+    html = Renderer.render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
     Agent.update Global, &(Map.put &1, :navstub, html)
   end
 
@@ -115,8 +119,8 @@ defmodule Serum.Build do
       "html" -> txt
     end
     html = template
-           |> render([contents: html])
-           |> genpage([page_title: info.title])
+           |> Renderer.render([contents: html])
+           |> Renderer.genpage([page_title: info.title])
     [_|subdir] = info.name |> String.split("/") |> Enum.reverse
     subdir = case subdir do
       [] -> ""
@@ -154,8 +158,8 @@ defmodule Serum.Build do
     IO.puts "Generating posts index..."
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
       html = template_list
-             |> render(proj ++ [header: "All Posts", posts: Enum.reverse infolist])
-             |> genpage(proj ++ [page_title: "All Posts"])
+             |> Renderer.render(proj ++ [header: "All Posts", posts: Enum.reverse infolist])
+             |> Renderer.genpage(proj ++ [page_title: "All Posts"])
       IO.write device, html
     end
 
@@ -204,8 +208,8 @@ defmodule Serum.Build do
                |> Timex.to_datetime(:local)
                |> Timex.format!(Keyword.get(proj, :date_format) || @default_date_format)
     html = template
-           |> render([title: title, date: datetime, tags: tags, contents: stub])
-           |> genpage([page_title: title])
+           |> Renderer.render([title: title, date: datetime, tags: tags, contents: stub])
+           |> Renderer.genpage([page_title: title])
 
     File.open! "#{dstdir}#{file}.html", [:write, :utf8], &(IO.write &1, html)
     IO.puts "  GEN  #{srcdir}#{file}.md -> #{dstdir}#{file}.html"
@@ -242,32 +246,11 @@ defmodule Serum.Build do
     File.mkdir_p! tagdir
     File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
       html = template
-             |> render([header: pt, posts: posts])
-             |> genpage([page_title: pt])
+             |> Renderer.render([header: pt, posts: posts])
+             |> Renderer.genpage([page_title: pt])
       IO.write device, html
     end
     IO.puts "  GEN  #{tagdir}index.html"
-  end
-
-  defp process_links(text, proj) do
-    base = Keyword.get proj, :base_url
-    text = Regex.replace ~r/(?<type>href|src)="%25media:(?<url>[^"]*)"/, text, ~s(\\1="#{base}media/\\2")
-    text = Regex.replace ~r/(?<type>href|src)="%25posts:(?<url>[^"]*)"/, text, ~s(\\1="#{base}posts/\\2.html")
-    text = Regex.replace ~r/(?<type>href|src)="%25pages:(?<url>[^"]*)"/, text, ~s(\\1="#{base}\\2.html")
-    text
-  end
-
-  defp genpage(contents, ctx) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
-    base = Agent.get Global, &(Map.get &1, "template_base")
-    contents = process_links contents, proj
-    render base, proj ++ ctx ++ [contents: contents, navigation: Agent.get(Global, &(Map.get &1, :navstub))]
-  end
-
-  defp render(template, assigns) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
-    {html, _} = Code.eval_quoted template, [assigns: proj ++ assigns]
-    html
   end
 
   defp mkinfo_fail(srcdir, file, reason) do
