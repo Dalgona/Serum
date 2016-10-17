@@ -15,7 +15,8 @@ defmodule Serum.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :eex, :cowboy]]
+    [applications: [:logger, :eex, :cowboy],
+     mod: {Serum, []}]
   end
 
   # Dependencies can be Hex packages:

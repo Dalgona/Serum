@@ -2,8 +2,8 @@ defmodule Serum.Build.PageBuilder do
   alias Serum.Build.Renderer
 
   def run(src, dest, mode) do
-    template = Agent.get Global, &(Map.get &1, "template_page")
-    info = Agent.get Global, &(Map.get &1, :pageinfo)
+    template = Serum.get_data "template_page"
+    info = Serum.get_data :pageinfo
 
     case mode do
       :parallel ->

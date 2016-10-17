@@ -9,7 +9,7 @@ defmodule Serum.Build.PostBuilder do
 
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-    proj = Agent.get Global, &(Map.get &1, :proj)
+    proj = Serum.get_data :proj
 
     files = load_file_list srcdir
     File.mkdir_p! dstdir
@@ -20,7 +20,7 @@ defmodule Serum.Build.PostBuilder do
            |> Enum.sort_by(&(&1.file))
 
     IO.puts "Generating posts index..."
-    template_list = Agent.get Global, &(Map.get &1, "template_list")
+    template_list = Serum.get_data "template_list"
     File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
       html = template_list
              |> Renderer.render(proj ++ [header: "All Posts", posts: Enum.reverse infolist])
@@ -72,7 +72,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   def post_task(srcdir, dstdir, file) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
+    proj = Serum.get_data :proj
 
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
@@ -99,7 +99,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   defp make_preview(html) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
+    proj = Serum.get_data :proj
     maxlen = Keyword.get(proj, :preview_length) || @default_preview_length
     case maxlen do
       0 -> ""
@@ -116,7 +116,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   defp render_post(contents, info) do
-    template = Agent.get Global, &(Map.get &1, "template_post")
+    template = Serum.get_data "template_post"
     template
     |> Renderer.render([title: info.title, date: info.date,
       tags: info.tags, contents: contents])
@@ -124,7 +124,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   def tag_task(dest, {k, v}) do
-    template = Agent.get Global, &(Map.get &1, "template_list")
+    template = Serum.get_data "template_list"
     tagdir = "#{dest}tags/#{k.name}/"
     pt = "Posts Tagged \"#{k.name}\""
     posts = v |> Enum.sort(&(&1.file > &2.file))
@@ -144,7 +144,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   defp extract_date(filename) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
+    proj = Serum.get_data :proj
     try do
       [filename|_] = filename |> String.split("/") |> Enum.reverse
       [y, m, d, hhmm|_] = filename |> String.split("-") |> Enum.map(fn x ->
@@ -172,7 +172,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   defp extract_header(filename, header) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
+    proj = Serum.get_data :proj
     try do
       {"# " <> title, "#" <> tags} = header
       title = title |> String.trim

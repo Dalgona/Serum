@@ -8,14 +8,14 @@ defmodule Serum.Build.Renderer do
   end
 
   def genpage(contents, ctx) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
-    base = Agent.get Global, &(Map.get &1, "template_base")
+    proj = Serum.get_data :proj
+    base = Serum.get_data "template_base"
     contents = process_links contents, proj
-    render base, proj ++ ctx ++ [contents: contents, navigation: Agent.get(Global, &(Map.get &1, :navstub))]
+    render base, proj ++ ctx ++ [contents: contents, navigation: Serum.get_data(:navstub)]
   end
 
   def render(template, assigns) do
-    proj = Agent.get Global, &(Map.get &1, :proj)
+    proj = Serum.get_data :proj
     {html, _} = Code.eval_quoted template, [assigns: proj ++ assigns]
     html
   end
