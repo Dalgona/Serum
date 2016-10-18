@@ -5,6 +5,7 @@ defmodule Serum.Build do
 
   alias Serum.Build.PageBuilder
   alias Serum.Build.PostBuilder
+  alias Serum.Build.IndexBuilder
   alias Serum.Build.Renderer
 
   def build(src, dest, mode, display_done \\ false) do
@@ -18,7 +19,7 @@ defmodule Serum.Build do
       {:error, :no_project}
     else
       IO.puts "Rebuilding Website..."
-      {:ok, _pid} = Agent.start_link fn -> %{} end, name: Global
+      Serum.init_data
 
       load_info src
       load_templates src
@@ -30,7 +31,6 @@ defmodule Serum.Build do
       end)
       IO.puts "Build process took #{time}us."
       copy_assets src, dest
-      Agent.stop Global
 
       if display_done do
         IO.puts ""
@@ -52,8 +52,8 @@ defmodule Serum.Build do
     pageinfo = "#{dir}pages/pages.json"
                |> File.read!
                |> Poison.decode!(as: [%Serum.Pageinfo{}])
-    Agent.update Global, &(Map.put &1, :proj, proj)
-    Agent.update Global, &(Map.put &1, :pageinfo, pageinfo)
+    Serum.put_data :proj, proj
+    Serum.put_data :pageinfo, pageinfo
   end
 
   defp load_templates(dir) do
@@ -61,7 +61,7 @@ defmodule Serum.Build do
     ["base", "list", "page", "post", "nav"]
     |> Enum.each(fn x ->
       tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
-      Agent.update Global, &(Map.put &1, "template_#{x}", tree)
+      Serum.put_data "template_#{x}", tree
     end)
   end
 
@@ -80,21 +80,25 @@ defmodule Serum.Build do
     t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
     Task.await t1
     Task.await t2
+    # IndexBuilder must be run after PostBuilder has finished
+    t3 = Task.async fn -> IndexBuilder.run src, dest, :parallel end
+    Task.await t3
   end
 
   defp launch_tasks(:sequential, src, dest) do
     IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
     PageBuilder.run src, dest, :sequential
     PostBuilder.run src, dest, :sequential
+    IndexBuilder.run src, dest, :sequential
   end
 
   defp compile_nav do
-    proj = Agent.get Global, &(Map.get &1, :proj)
-    info = Agent.get Global, &(Map.get &1, :pageinfo)
+    proj = Serum.get_data :proj
+    info = Serum.get_data :pageinfo
     IO.puts "Compiling main navigation HTML stub..."
-    template = Agent.get Global, &(Map.get &1, "template_nav")
+    template = Serum.get_data "template_nav"
     html = Renderer.render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
-    Agent.update Global, &(Map.put &1, :navstub, html)
+    Serum.put_data :navstub, html
   end
 
   defp copy_assets(src, dest) do

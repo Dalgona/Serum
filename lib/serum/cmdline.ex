@@ -4,41 +4,41 @@ defmodule Serum.Cmdline do
   (`Serum.Cmdline.main/1`).
   """
 
-  def main([]) do
-    info
-    usage
-  end
+  @opt_build    [parallel: :boolean, output: :string]
+  @opt_server   [port: :integer]
+  @alias_build  [p: :parallel, o: :output]
+  @alias_server [p: :port]
 
   def main(["init"|args]) do
     info
     case args do
-      [] -> Serum.Init.init "."
-      [dir|_] -> Serum.Init.init dir
+      [] -> Serum.Init.init(".")
+      [dir|_] -> Serum.Init.init(dir)
     end
   end
 
   def main(["build"|args]) do
     info
     {opts, args, errors} =
-      OptionParser.parse args, strict: [parallel: :boolean, output: :string], aliases: [p: :parallel, o: :output]
+      OptionParser.parse(args, strict: @opt_build, aliases: @alias_build)
     mode = Keyword.get(opts, :parallel) && :parallel || :sequential
     out = Keyword.get(opts, :output)
     case {args, errors} do
-      {[], []} -> Serum.Build.build ".", out, mode, true
-      {[dir|_], []} -> Serum.Build.build dir, out, mode, true
-      {_, _} -> usage
+      {[], []}      -> Serum.Build.build(".", out, mode, true)
+      {[dir|_], []} -> Serum.Build.build(dir, out, mode, true)
+      {_, _error}   -> usage
     end
   end
 
   def main(["server"|args]) do
     info
     {opts, args, errors} =
-      OptionParser.parse args, strict: [port: :integer], aliases: [p: :port]
+      OptionParser.parse(args, strict: @opt_server, aliases: @alias_server)
     port = Keyword.get(opts, :port) || 8080
     case {args, errors} do
-      {[], []} -> Serum.DevServer.run ".", port
-      {[dir|_], []} -> Serum.DevServer.run dir, port
-      {_, _} -> usage
+      {[], []}      -> Serum.DevServer.run(".", port)
+      {[dir|_], []} -> Serum.DevServer.run(dir, port)
+      {_, _error}   -> usage
     end
   end
 
@@ -47,7 +47,9 @@ defmodule Serum.Cmdline do
     usage
   end
 
-  def main(["version"|_]), do: info
+  def main(["version"|_]) do
+    info
+  end
 
   def main(_args) do
     info
