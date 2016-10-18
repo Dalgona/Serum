@@ -51,7 +51,7 @@ defmodule Serum.DevServer do
 
   defp looper(state) do
     {port, site} = state
-    cmd = IO.gets("#{port}> ") |> String.trim
+    cmd = "#{port}> " |> IO.gets |> String.trim
     case cmd do
       "help"  -> cmd :help, state
       "build" -> cmd :build, state
