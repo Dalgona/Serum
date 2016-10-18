@@ -7,11 +7,10 @@ defmodule Serum.Build.PostBuilder do
   def run(src, dest, mode) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-
     Agent.update(Serum.PostInfoStorage, fn _ -> [] end)
 
-    files = load_file_list srcdir
-    File.mkdir_p! dstdir
+    files = load_file_list(srcdir)
+    File.mkdir_p!(dstdir)
 
     Enum.each launch_post(mode, files, srcdir, dstdir), &Task.await&1
   end
@@ -41,13 +40,11 @@ defmodule Serum.Build.PostBuilder do
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
 
-    [l1, l2|lines] = srcname |> File.read! |> String.split("\n")
-    {title, tags} = extract_header srcname, {l1, l2}
+    {title, tags, lines} = extract_header(srcname)
+    datetime = extract_date(srcname)
 
-    stub = lines |> Earmark.to_html
-    preview = make_preview stub
-
-    datetime = extract_date srcname
+    stub = Earmark.to_html(lines)
+    preview = make_preview(stub)
 
     info = %Serum.Postinfo{
       file: file, title: title, date: datetime, tags: tags,
@@ -56,8 +53,7 @@ defmodule Serum.Build.PostBuilder do
     }
     Agent.update Serum.PostInfoStorage, &([info|&1])
 
-    html = stub |> render_post(info)
-
+    html = render_post(stub, info)
     File.open! dstname, [:write, :utf8], &(IO.write &1, html)
     IO.puts "  GEN  #{srcname} -> #{dstname}"
   end
@@ -67,7 +63,7 @@ defmodule Serum.Build.PostBuilder do
     maxlen = Keyword.get(proj, :preview_length) || @default_preview_length
     case maxlen do
       0 -> ""
-      x when is_integer x ->
+      x when is_integer(x) ->
         html
         |> Floki.parse
         |> Enum.filter(&(elem(&1, 0) == "p"))
@@ -120,18 +116,19 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  defp extract_header(filename, header) do
+  defp extract_header(filename) do
     proj = Serum.get_data :proj
     try do
-      {"# " <> title, "#" <> tags} = header
-      title = title |> String.trim
+      [l1, l2|rest] = filename |> File.read! |> String.split("\n")
+      {"# " <> title, "#" <> tags} = {l1, l2}
+      title = String.trim(title)
       tags = tags |> String.split(~r/, ?/)
                   |> Enum.filter(&(String.trim(&1) != ""))
                   |> Enum.map(fn x ->
                     tag = String.trim x
                     %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
                   end)
-      {title, tags}
+      {title, tags, rest}
     rescue
       _ in MatchError ->
         mkinfo_fail filename, :invalid_header
