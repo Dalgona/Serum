@@ -20,15 +20,13 @@ defmodule Serum.Build.PageBuilder do
     srcname = "#{src}pages/#{info.name}.#{info.type}"
     dstname = "#{dest}#{info.name}.html"
 
+    subdir = get_subdir(info.name)
+    if subdir != "", do: File.mkdir_p!("#{dest}#{subdir}")
+
     html = srcname
            |> File.read!
            |> render(info.type, info.title, template)
-
-    subdir = get_subdir(info.name)
-    if subdir != "", do: File.mkdir_p!("#{dest}#{subdir}")
-    File.open!(dstname, [:write, :utf8], fn device ->
-      IO.write(device, html)
-    end)
+    File.open!(dstname, [:write, :utf8], &(IO.write(&1, html)))
 
     IO.puts "  GEN  #{srcname} -> #{dstname}"
   end

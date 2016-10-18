@@ -5,33 +5,15 @@ defmodule Serum.Build.PostBuilder do
   @default_preview_length 200
 
   def run(src, dest, mode) do
-    {:ok, _pid} = Agent.start_link fn -> [] end, name: Serum.Build.PostInfoStorage
-
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-    proj = Serum.get_data :proj
+
+    Agent.update(Serum.PostInfoStorage, fn _ -> [] end)
 
     files = load_file_list srcdir
     File.mkdir_p! dstdir
 
     Enum.each launch_post(mode, files, srcdir, dstdir), &Task.await&1
-    infolist = Serum.Build.PostInfoStorage
-           |> Agent.get(&(&1))
-           |> Enum.sort_by(&(&1.file))
-
-    IO.puts "Generating posts index..."
-    template_list = Serum.get_data "template_list"
-    File.open! "#{dstdir}index.html", [:write, :utf8], fn device ->
-      html = template_list
-             |> Renderer.render(proj ++ [header: "All Posts", posts: Enum.reverse infolist])
-             |> Renderer.genpage(proj ++ [page_title: "All Posts"])
-      IO.write device, html
-    end
-
-    tagmap = generate_tagmap infolist
-    Enum.each launch_tag(mode, tagmap, dest), &Task.await&1
-
-    Agent.stop Serum.Build.PostInfoStorage
   end
 
   defp load_file_list(srcdir) do
@@ -42,13 +24,6 @@ defmodule Serum.Build.PostBuilder do
     Enum.sort ls
   end
 
-  defp generate_tagmap(infolist) do
-    Enum.reduce infolist, %{}, fn m, a ->
-      tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
-      Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
-    end
-  end
-
   defp launch_post(:parallel, files, srcdir, dstdir) do
     files
     |> Enum.map(&(Task.async __MODULE__, :post_task, [srcdir, dstdir, &1]))
@@ -57,17 +32,6 @@ defmodule Serum.Build.PostBuilder do
   defp launch_post(:sequential, files, srcdir, dstdir) do
     files
     |> Enum.each(&(post_task srcdir, dstdir, &1))
-    []
-  end
-
-  defp launch_tag(:parallel, tagmap, dir) do
-    tagmap
-    |> Enum.map(&(Task.async __MODULE__, :tag_task, [dir, &1]))
-  end
-
-  defp launch_tag(:sequential, tagmap, dir) do
-    tagmap
-    |> Enum.each(&(tag_task dir, &1))
     []
   end
 
@@ -90,7 +54,7 @@ defmodule Serum.Build.PostBuilder do
       url: "#{Keyword.get proj, :base_url}posts/#{file}.html",
       preview_text: preview
     }
-    Agent.update Serum.Build.PostInfoStorage, &([info|&1])
+    Agent.update Serum.PostInfoStorage, &([info|&1])
 
     html = stub |> render_post(info)
 
@@ -121,21 +85,6 @@ defmodule Serum.Build.PostBuilder do
     |> Renderer.render([title: info.title, date: info.date,
       tags: info.tags, contents: contents])
     |> Renderer.genpage([page_title: info.title])
-  end
-
-  def tag_task(dest, {k, v}) do
-    template = Serum.get_data "template_list"
-    tagdir = "#{dest}tags/#{k.name}/"
-    pt = "Posts Tagged \"#{k.name}\""
-    posts = v |> Enum.sort(&(&1.file > &2.file))
-    File.mkdir_p! tagdir
-    File.open! "#{tagdir}index.html", [:write, :utf8], fn device ->
-      html = template
-             |> Renderer.render([header: pt, posts: posts])
-             |> Renderer.genpage([page_title: pt])
-      IO.write device, html
-    end
-    IO.puts "  GEN  #{tagdir}index.html"
   end
 
   defp mkinfo_fail(srcname, reason) do

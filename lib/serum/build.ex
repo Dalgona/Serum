@@ -5,6 +5,7 @@ defmodule Serum.Build do
 
   alias Serum.Build.PageBuilder
   alias Serum.Build.PostBuilder
+  alias Serum.Build.IndexBuilder
   alias Serum.Build.Renderer
 
   def build(src, dest, mode, display_done \\ false) do
@@ -79,12 +80,16 @@ defmodule Serum.Build do
     t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
     Task.await t1
     Task.await t2
+    # IndexBuilder must be run after PostBuilder has finished
+    t3 = Task.async fn -> IndexBuilder.run src, dest, :parallel end
+    Task.await t3
   end
 
   defp launch_tasks(:sequential, src, dest) do
     IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
     PageBuilder.run src, dest, :sequential
     PostBuilder.run src, dest, :sequential
+    IndexBuilder.run src, dest, :sequential
   end
 
   defp compile_nav do
