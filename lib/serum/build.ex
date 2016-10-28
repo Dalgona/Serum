@@ -8,6 +8,10 @@ defmodule Serum.Build do
   alias Serum.Build.IndexBuilder
   alias Serum.Build.Renderer
 
+  @type build_mode :: :parallel | :sequential
+  @type compiled_template :: tuple
+
+  @spec build(String.t, String.t, build_mode, boolean) :: any
   def build(src, dest, mode, display_done \\ false) do
     src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
@@ -43,6 +47,7 @@ defmodule Serum.Build do
     end
   end
 
+  @spec load_info(String.t) :: any
   defp load_info(dir) do
     IO.puts "Reading project metadata `#{dir}serum.json`..."
     proj = "#{dir}serum.json"
@@ -56,6 +61,7 @@ defmodule Serum.Build do
     Serum.put_data :pageinfo, pageinfo
   end
 
+  @spec load_templates(String.t) :: any
   defp load_templates(dir) do
     IO.puts "Loading templates..."
     ["base", "list", "page", "post", "nav"]
@@ -65,6 +71,7 @@ defmodule Serum.Build do
     end)
   end
 
+  @spec clean_dest(String.t) :: any
   defp clean_dest(dest) do
     File.mkdir_p! "#{dest}"
     IO.puts "Created directory `#{dest}`."
@@ -74,6 +81,7 @@ defmodule Serum.Build do
          |> Enum.each(&(File.rm_rf! &1))
   end
 
+  @spec launch_tasks(build_mode, String.t, String.t) :: any
   defp launch_tasks(:parallel, src, dest) do
     IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
@@ -92,6 +100,7 @@ defmodule Serum.Build do
     IndexBuilder.run src, dest, :sequential
   end
 
+  @spec compile_nav() :: any
   defp compile_nav do
     proj = Serum.get_data :proj
     info = Serum.get_data :pageinfo
@@ -101,6 +110,7 @@ defmodule Serum.Build do
     Serum.put_data :navstub, html
   end
 
+  @spec copy_assets(String.t, String.t) :: any
   defp copy_assets(src, dest) do
     IO.puts "Cleaning assets and media directories..."
     File.rm_rf! "#{dest}assets/"

@@ -9,6 +9,8 @@ defmodule Serum.Cmdline do
   @alias_build  [p: :parallel, o: :output]
   @alias_server [p: :port]
 
+  @spec main(args :: [String.t]) :: any
+
   def main(["init"|args]) do
     info
     case args do

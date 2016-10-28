@@ -1,9 +1,16 @@
 defmodule Serum.Build.PostBuilder do
+  @moduledoc """
+  This module contains functions for building blog posts
+  sequantially for parallelly.
+  """
+
+  alias Serum.Build
   alias Serum.Build.Renderer
 
   @default_date_format    "{YYYY}-{0M}-{0D}"
   @default_preview_length 200
 
+  @spec run(String.t, String.t, Build.build_mode) :: any
   def run(src, dest, mode) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
@@ -15,6 +22,7 @@ defmodule Serum.Build.PostBuilder do
     Enum.each launch_post(mode, files, srcdir, dstdir), &Task.await&1
   end
 
+  @spec load_file_list(String.t) :: [String.t]
   defp load_file_list(srcdir) do
     ls =
       for x <- File.ls!(srcdir), String.ends_with?(x, ".md") do
@@ -23,6 +31,10 @@ defmodule Serum.Build.PostBuilder do
     Enum.sort ls
   end
 
+  # FIXME: Inconsistent argument order (with Serum.PageBuilder.launch_page/4)
+  # FIXME: Inconsistent behavior (with Serum.PageBuilder.launch_page/4)
+  @spec launch_post(Build.build_mode, [String.t], String.t, String.t) ::
+    [Task.t]
   defp launch_post(:parallel, files, srcdir, dstdir) do
     files
     |> Enum.map(&(Task.async __MODULE__, :post_task, [srcdir, dstdir, &1]))
@@ -34,6 +46,7 @@ defmodule Serum.Build.PostBuilder do
     []
   end
 
+  @spec post_task(String.t, String.t, String.t) :: any
   def post_task(srcdir, dstdir, file) do
     proj = Serum.get_data :proj
 
@@ -58,6 +71,7 @@ defmodule Serum.Build.PostBuilder do
     IO.puts "  GEN  #{srcname} -> #{dstname}"
   end
 
+  @spec make_preview(String.t) :: String.t
   defp make_preview(html) do
     proj = Serum.get_data :proj
     maxlen = Keyword.get(proj, :preview_length) || @default_preview_length
@@ -75,6 +89,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
+  @spec render_post(String.t, %Serum.Postinfo{}) :: String.t
   defp render_post(contents, info) do
     template = Serum.get_data "template_post"
     template
@@ -88,6 +103,7 @@ defmodule Serum.Build.PostBuilder do
     exit "error while building blog posts"
   end
 
+  @spec extract_date(String.t) :: String.t
   defp extract_date(filename) do
     proj = Serum.get_data :proj
     try do
@@ -116,6 +132,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
+  @spec extract_header(String.t) :: {String.t, String.t, String.t}
   defp extract_header(filename) do
     proj = Serum.get_data :proj
     try do

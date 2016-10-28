@@ -1,16 +1,26 @@
 defmodule Serum.DevServer.Service do
+  @moduledoc """
+  A GenServer that provides some utility functions while the Serum development
+  server is running.
+  """
+
   use GenServer
 
   ## Client
 
+  @spec start_link(String.t, String.t, pos_integer) ::
+    {:ok, pid}
+    | {:error, atom}
   def start_link(dir, site, port) do
     GenServer.start_link __MODULE__, [dir, site, port], name: __MODULE__
   end
 
+  @spec rebuild() :: :ok
   def rebuild() do
     GenServer.call __MODULE__, :rebuild
   end
 
+  @spec log(integer, String.t, String.t, String.t) :: any
   def log(code, from, method, path) do
     GenServer.cast __MODULE__, {:log, code, from, method, path}
   end
