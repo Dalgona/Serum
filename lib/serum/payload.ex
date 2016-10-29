@@ -58,7 +58,7 @@ defmodule Serum.Payload do
   <%= unless Enum.empty? @tags do %>
     <p>Tags:</p>
     <ul>
-      <% for t <- @tags do %>
+      <%= for t <- @tags do %>
         <li><a href=\"<%= t.list_url %>\"><%= t.name %></a></li>
       <% end %>
     </ul>

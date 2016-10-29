@@ -75,8 +75,12 @@ defmodule Serum.Build.PostBuilder do
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
-        html
-        |> Floki.parse
+        parsed =
+          case Floki.parse(html) do
+            t when is_tuple(t) -> [t]
+            l when is_list(l)  -> l
+          end
+        parsed
         |> Enum.filter(&(elem(&1, 0) == "p"))
         |> Enum.map(&(Floki.text elem(&1, 2)))
         |> Enum.join(" ")
