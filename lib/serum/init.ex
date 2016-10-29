@@ -48,7 +48,7 @@ defmodule Serum.Init do
         author: "Somebody",
         author_email: "somebody@example.com",
         base_url: "/",
-        date_format: "{WDFull}, {D} {Mshort} {YYYY}",
+        date_format: "{WDfull}, {D} {Mshort} {YYYY}",
         preview_length: 200}
       |> Poison.encode!(pretty: true, indent: 2)
     File.open!("#{dir}serum.json", [:write, :utf8], fn f ->
