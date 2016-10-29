@@ -6,7 +6,7 @@ defmodule Serum.Build.IndexBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
 
-  @spec run(String.t, String.t, Build.build_mode) :: any
+  @spec run(String.t, String.t, Build.build_mode) :: :ok
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
 
@@ -60,5 +60,6 @@ defmodule Serum.Build.IndexBuilder do
       IO.write device, html
     end)
     IO.puts "  GEN  #{path}"
+    :ok
   end
 end

@@ -14,10 +14,7 @@ defmodule Serum.Build.PageBuilder do
     template = Serum.get_data("template_page")
     info = Serum.get_data(:pageinfo)
     result = launch(mode, src, dest, info, template)
-    case Enum.filter(result, &(&1 != :ok)) do
-      [] -> :ok
-      errors when is_list(errors) -> {:error, :child_tasks, errors}
-    end
+    Error.filter_results(result, :page_builder)
   end
 
   @spec launch(Build.build_mode, String.t, String.t, pageinfo, Build.compiled_template)

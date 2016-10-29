@@ -22,10 +22,7 @@ defmodule Serum.Build.PostBuilder do
       File.mkdir_p!(dstdir)
 
       result = launch(mode, files, srcdir, dstdir)
-      case Enum.filter(result, &(&1 != :ok)) do
-        [] -> :ok
-        errors when is_list(errors) -> {:error, :child_tasks, errors}
-      end
+      Error.filter_results(result, :post_builder)
     rescue
       e in File.Error ->
         {:error, :file_error, {Exception.message(e), e.path, 0}}
@@ -118,6 +115,7 @@ defmodule Serum.Build.PostBuilder do
     |> Renderer.genpage([page_title: info.title])
   end
 
+  # TODO: handle malformed datetime format string
   @spec extract_date(String.t) :: String.t
   @raises [Serum.PostError]
   defp extract_date(filename) do
