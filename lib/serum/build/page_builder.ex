@@ -58,7 +58,7 @@ defmodule Serum.Build.PageBuilder do
   end
 
   @spec render(String.t, String.t, String.t, Build.compiled_template) :: String.t
-  @raises Serum.PageTypeError
+  @raises [Serum.PageTypeError]
   defp render(md, "md", title, template), do:
     template
     |> Renderer.render([contents: Earmark.to_html(md)])
