@@ -86,7 +86,7 @@ defmodule Serum.Build do
     IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
     t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
-    Task.await t1
+    IO.inspect(Task.await t1)
     Task.await t2
     # IndexBuilder must be run after PostBuilder has finished
     t3 = Task.async fn -> IndexBuilder.run src, dest, :parallel end
@@ -95,7 +95,7 @@ defmodule Serum.Build do
 
   defp launch_tasks(:sequential, src, dest) do
     IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
-    PageBuilder.run src, dest, :sequential
+    IO.inspect(PageBuilder.run src, dest, :sequential)
     PostBuilder.run src, dest, :sequential
     IndexBuilder.run src, dest, :sequential
   end

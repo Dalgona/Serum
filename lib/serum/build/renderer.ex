@@ -9,15 +9,6 @@ defmodule Serum.Build.Renderer do
   @re_posts ~r/(?<type>href|src)="%25posts:(?<url>[^"]*)"/
   @re_pages ~r/(?<type>href|src)="%25pages:(?<url>[^"]*)"/
 
-  @spec process_links(String.t, keyword) :: String.t
-  def process_links(text, proj) do
-    base = Keyword.get(proj, :base_url)
-    text = Regex.replace(@re_media, text, ~s(\\1="#{base}media/\\2"))
-    text = Regex.replace(@re_posts, text, ~s(\\1="#{base}posts/\\2.html"))
-    text = Regex.replace(@re_pages, text, ~s(\\1="#{base}\\2.html"))
-    text
-  end
-
   @spec genpage(String.t, keyword) :: String.t
   def genpage(contents, ctx) do
     proj = Serum.get_data(:proj)
@@ -31,5 +22,14 @@ defmodule Serum.Build.Renderer do
     proj = Serum.get_data(:proj)
     {html, _} = Code.eval_quoted(template, [assigns: proj ++ assigns])
     html
+  end
+
+  @spec process_links(String.t, keyword) :: String.t
+  defp process_links(text, proj) do
+    base = Keyword.get(proj, :base_url)
+    text = Regex.replace(@re_media, text, ~s(\\1="#{base}media/\\2"))
+    text = Regex.replace(@re_posts, text, ~s(\\1="#{base}posts/\\2.html"))
+    text = Regex.replace(@re_pages, text, ~s(\\1="#{base}\\2.html"))
+    text
   end
 end

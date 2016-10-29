@@ -19,7 +19,7 @@ defmodule Serum.Build.PostBuilder do
     files = load_file_list(srcdir)
     File.mkdir_p!(dstdir)
 
-    Enum.each launch_post(mode, files, srcdir, dstdir), &Task.await&1
+    Enum.each launch(mode, files, srcdir, dstdir), &Task.await&1
   end
 
   @spec load_file_list(String.t) :: [String.t]
@@ -31,16 +31,13 @@ defmodule Serum.Build.PostBuilder do
     Enum.sort ls
   end
 
-  # FIXME: Inconsistent argument order (with Serum.PageBuilder.launch_page/4)
-  # FIXME: Inconsistent behavior (with Serum.PageBuilder.launch_page/4)
-  @spec launch_post(Build.build_mode, [String.t], String.t, String.t) ::
-    [Task.t]
-  defp launch_post(:parallel, files, srcdir, dstdir) do
+  @spec launch(Build.build_mode, [String.t], String.t, String.t) :: [Task.t]
+  defp launch(:parallel, files, srcdir, dstdir) do
     files
     |> Enum.map(&(Task.async __MODULE__, :post_task, [srcdir, dstdir, &1]))
   end
 
-  defp launch_post(:sequential, files, srcdir, dstdir) do
+  defp launch(:sequential, files, srcdir, dstdir) do
     files
     |> Enum.each(&(post_task srcdir, dstdir, &1))
     []
