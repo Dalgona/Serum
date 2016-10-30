@@ -1,6 +1,11 @@
 defmodule Serum.DevServer do
+  @moduledoc """
+  This module provides functions for starting the Serum development server.
+  """
+
   alias Serum.DevServer.Service
 
+  @spec run(dir :: String.t, port :: pos_integer) :: any
   def run(dir, port) do
     import Supervisor.Spec
 
@@ -31,6 +36,8 @@ defmodule Serum.DevServer do
     end
   end
 
+  @spec start_server(dir :: String.t, base :: String.t, port :: pos_integer) ::
+    {:ok, pid}
   def start_server(dir, base, port) do
     routes = [
       {"/[...]", Serum.DevServer.Handler, [dir: dir, base: base]}
@@ -42,6 +49,8 @@ defmodule Serum.DevServer do
     {:ok, pid}
   end
 
+  # TODO: I could separate this module into a new OTP application
+  #       to remove this spin-waiting.
   defp ensure_service_started() do
     case GenServer.whereis Service do
       nil -> ensure_service_started

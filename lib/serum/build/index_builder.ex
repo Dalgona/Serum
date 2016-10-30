@@ -1,6 +1,12 @@
 defmodule Serum.Build.IndexBuilder do
+  @moduledoc """
+  This module contains functions for generating index pages of blog posts.
+  """
+
+  alias Serum.Build
   alias Serum.Build.Renderer
 
+  @spec run(String.t, String.t, Build.build_mode) :: :ok
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
 
@@ -15,6 +21,7 @@ defmodule Serum.Build.IndexBuilder do
     Enum.each launch_tag(mode, tagmap, dest), &Task.await&1
   end
 
+  @spec generate_tagmap([%Serum.Postinfo{}]) :: map
   defp generate_tagmap(infolist) do
     Enum.reduce infolist, %{}, fn m, a ->
       tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
@@ -22,6 +29,7 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
+  @spec launch_tag(Build.build_mode, map, String.t) :: [Task.t]
   defp launch_tag(:parallel, tagmap, dir) do
     tagmap
     |> Enum.map(&(Task.async __MODULE__, :tag_task, [dir, &1]))
@@ -33,6 +41,7 @@ defmodule Serum.Build.IndexBuilder do
     []
   end
 
+  @spec tag_task(String.t, {map, [%Serum.Postinfo{}]}) :: :ok
   def tag_task(dest, {k, v}) do
     tagdir = "#{dest}tags/#{k.name}/"
     pt = "Posts Tagged \"#{k.name}\""
@@ -41,6 +50,7 @@ defmodule Serum.Build.IndexBuilder do
     save_list("#{tagdir}index.html", pt, posts)
   end
 
+  @spec save_list(String.t, String.t, [%Serum.Postinfo{}]) :: :ok
   defp save_list(path, title, posts) do
     File.open!(path, [:write, :utf8], fn device ->
       template = Serum.get_data("template_list")
@@ -50,5 +60,6 @@ defmodule Serum.Build.IndexBuilder do
       IO.write device, html
     end)
     IO.puts "  GEN  #{path}"
+    :ok
   end
 end
