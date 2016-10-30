@@ -1,8 +1,9 @@
 defmodule Serum.Payload do
   @moduledoc """
-  This module contains string data used to initialize a new Serum project.
+  This module contains static data used to initialize a new Serum project.
   """
 
+  @spec template_base() :: String.t
   def template_base(), do: """
   <!doctype html>
   <html>
@@ -19,6 +20,7 @@ defmodule Serum.Payload do
   </html>
   """
 
+  @spec template_nav() :: String.t
   def template_nav(), do: """
   <ul>
     <%= for x <- @pages do %>
@@ -30,6 +32,7 @@ defmodule Serum.Payload do
   </ul>
   """
 
+  @spec template_list() :: String.t
   def template_list(), do: """
   <h2><%= @header %></h2>
   <ul>
@@ -43,10 +46,12 @@ defmodule Serum.Payload do
   </ul>
   """
 
+  @spec template_page() :: String.t
   def template_page(), do: """
   <%= @contents %>
   """
 
+  @spec template_post() :: String.t
   def template_post(), do: """
   <h1><%= @title %></h1>
   <p>Posted on <%= @date %> by <%= @author %></p>

@@ -1,20 +1,36 @@
 defmodule Serum.Build.PostBuilder do
+  @moduledoc """
+  This module contains functions for building blog posts
+  sequantially for parallelly.
+  """
+
+  alias Serum.Error
+  alias Serum.Build
   alias Serum.Build.Renderer
 
   @default_date_format    "{YYYY}-{0M}-{0D}"
   @default_preview_length 200
 
+  @spec run(String.t, String.t, Build.build_mode) :: Error.result
   def run(src, dest, mode) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
     Agent.update(Serum.PostInfoStorage, fn _ -> [] end)
 
-    files = load_file_list(srcdir)
-    File.mkdir_p!(dstdir)
+    try do
+      files = load_file_list(srcdir)
+      File.mkdir_p!(dstdir)
 
-    Enum.each launch_post(mode, files, srcdir, dstdir), &Task.await&1
+      result = launch(mode, files, srcdir, dstdir)
+      Error.filter_results(result, :post_builder)
+    rescue
+      e in File.Error ->
+        {:error, :file_error, {Exception.message(e), e.path, 0}}
+    end
   end
 
+  @spec load_file_list(String.t) :: [String.t]
+  @raises [File.Error]
   defp load_file_list(srcdir) do
     ls =
       for x <- File.ls!(srcdir), String.ends_with?(x, ".md") do
@@ -23,41 +39,54 @@ defmodule Serum.Build.PostBuilder do
     Enum.sort ls
   end
 
-  defp launch_post(:parallel, files, srcdir, dstdir) do
+  @spec launch(Build.build_mode, [String.t], String.t, String.t) :: [Error.result]
+  defp launch(:parallel, files, srcdir, dstdir) do
     files
     |> Enum.map(&(Task.async __MODULE__, :post_task, [srcdir, dstdir, &1]))
+    |> Enum.map(&Task.await&1)
   end
 
-  defp launch_post(:sequential, files, srcdir, dstdir) do
+  defp launch(:sequential, files, srcdir, dstdir) do
     files
-    |> Enum.each(&(post_task srcdir, dstdir, &1))
-    []
+    |> Enum.map(&(post_task srcdir, dstdir, &1))
   end
 
+  @spec post_task(String.t, String.t, String.t) :: Error.result
   def post_task(srcdir, dstdir, file) do
     proj = Serum.get_data :proj
 
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
 
-    {title, tags, lines} = extract_header(srcname)
-    datetime = extract_date(srcname)
+    try do
+      {title, tags, lines} = extract_header(srcname)
+      datetime = extract_date(srcname)
 
-    stub = Earmark.to_html(lines)
-    preview = make_preview(stub)
+      stub = Earmark.to_html(lines)
+      preview = make_preview(stub)
 
-    info = %Serum.Postinfo{
-      file: file, title: title, date: datetime, tags: tags,
-      url: "#{Keyword.get proj, :base_url}posts/#{file}.html",
-      preview_text: preview
-    }
-    Agent.update Serum.PostInfoStorage, &([info|&1])
+      info = %Serum.Postinfo{
+        file: file, title: title, date: datetime, tags: tags,
+        url: "#{Keyword.get proj, :base_url}posts/#{file}.html",
+        preview_text: preview
+      }
+      Agent.update Serum.PostInfoStorage, &([info|&1])
 
-    html = render_post(stub, info)
-    File.open! dstname, [:write, :utf8], &(IO.write &1, html)
-    IO.puts "  GEN  #{srcname} -> #{dstname}"
+      html = render_post(stub, info)
+      File.open! dstname, [:write, :utf8], &(IO.write &1, html)
+      IO.puts "  GEN  #{srcname} -> #{dstname}"
+      :ok
+    rescue
+      e in File.Error ->
+        {:error, :file_error, {Exception.message(e), e.path, 0}}
+      e in Serum.PostError ->
+        {:error, :post_error, {Exception.message(e), e.path, 0}}
+    end
   end
 
+  # TODO: preview_length should be validated before this function is run.
+  #       (this must be an integer value)
+  @spec make_preview(String.t) :: String.t
   defp make_preview(html) do
     proj = Serum.get_data :proj
     maxlen = Keyword.get(proj, :preview_length) || @default_preview_length
@@ -74,11 +103,10 @@ defmodule Serum.Build.PostBuilder do
         |> Enum.map(&(Floki.text elem(&1, 2)))
         |> Enum.join(" ")
         |> String.slice(0, x)
-      _ ->
-        raise MatchError, message: "preview_length must be an integer"
     end
   end
 
+  @spec render_post(String.t, %Serum.Postinfo{}) :: String.t
   defp render_post(contents, info) do
     template = Serum.get_data "template_post"
     template
@@ -87,11 +115,9 @@ defmodule Serum.Build.PostBuilder do
     |> Renderer.genpage([page_title: info.title])
   end
 
-  defp mkinfo_fail(srcname, reason) do
-    IO.puts "\x1b[31mError while parsing `#{srcname}`: #{reason}\x1b[0m"
-    exit "error while building blog posts"
-  end
-
+  # TODO: handle malformed datetime format string
+  @spec extract_date(String.t) :: String.t
+  @raises [Serum.PostError]
   defp extract_date(filename) do
     proj = Serum.get_data :proj
     try do
@@ -116,10 +142,12 @@ defmodule Serum.Build.PostBuilder do
       |> Timex.format!(Keyword.get(proj, :date_format) || @default_date_format)
     rescue
       _ in MatchError ->
-        mkinfo_fail filename, :invalid_filename
+        raise Serum.PostError, reason: :filename, path: filename
     end
   end
 
+  @spec extract_header(String.t) :: {String.t, String.t, String.t}
+  @raises [File.Error, Serum.PostError]
   defp extract_header(filename) do
     proj = Serum.get_data :proj
     try do
@@ -135,7 +163,7 @@ defmodule Serum.Build.PostBuilder do
       {title, tags, rest}
     rescue
       _ in MatchError ->
-        mkinfo_fail filename, :invalid_header
+        raise Serum.PostError, reason: :header, path: filename
     end
   end
 end

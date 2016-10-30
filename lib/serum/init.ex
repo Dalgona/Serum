@@ -1,11 +1,20 @@
 defmodule Serum.Init do
   @moduledoc """
-  This module contains functions which are required to initialize a new Serum
-  project. These functions should be called by `Serum.init/1`.
+  This module contains functions required to initialize a new Serum project.
   """
 
   import Serum.Payload
 
+  @doc """
+  Initializes a new Serum project into the given directory `dir`.
+
+  This function will create a minimal required directory structure, and
+  generate metadata files and templates.
+
+  **NOTE:** If the directory `dir` is not empty, some contents in that
+  directory may be overwritten *without a question*.
+  """
+  @spec init(dir :: String.t) :: any
   def init(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
 
