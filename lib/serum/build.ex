@@ -14,8 +14,8 @@ defmodule Serum.Build do
 
   # TODO: check the destination dir for write permission before doing
   #       any build subtasks
-  @spec build(String.t, String.t, build_mode, boolean) :: any
-  def build(src, dest, mode, display_done \\ false) do
+  @spec build(String.t, String.t, build_mode) :: Error.result
+  def build(src, dest, mode) do
     src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
     dest = String.ends_with?(dest, "/") && dest || dest <> "/"
@@ -28,30 +28,26 @@ defmodule Serum.Build do
       load_templates src
       clean_dest dest
 
-      {time, _} = :timer.tc(fn ->
+      {time, result} = :timer.tc(fn ->
         compile_nav
-        Error.show(launch_tasks mode, src, dest)
+        launch_tasks mode, src, dest
       end)
-      IO.puts "Build process took #{time}us."
-      copy_assets src, dest
 
-      if display_done, do: finish(dest)
-      {:ok, dest}
+      case result do
+        :ok ->
+          IO.puts "Build process took #{time/1000}ms."
+          copy_assets src, dest
+          {:ok, dest}
+        error = {:error, _, _} -> error
+      end
     rescue
       e in File.Error ->
-        Error.show {:error, :file_error, {Exception.message(e), e.path, 0}}
+        {:error, :file_error, {Exception.message(e), e.path, 0}}
       e in Serum.JsonError ->
-        Error.show {:error, :invalid_json, {e.message, e.file, 0}}
+        {:error, :invalid_json, {e.message, e.file, 0}}
       e in Serum.TemplateError ->
-        Error.show {:error, :invalid_template, {e.message, e.file, e.line}}
+        {:error, :invalid_template, {e.message, e.file, e.line}}
     end
-  end
-
-  defp finish(dest) do
-    IO.puts ""
-    IO.puts "\x1b[1mYour website is now ready to be served!"
-    IO.puts "Copy(move) the contents of `#{dest}` directory"
-    IO.puts "into your public webpages directory.\x1b[0m\n"
   end
 
   @spec load_info(String.t) :: :ok

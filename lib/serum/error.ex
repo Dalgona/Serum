@@ -4,12 +4,12 @@ defmodule Serum.Error do
   functions in this project.
   """
 
-  @type result :: :ok | error
+  @type result :: positive | error
 
-  @type error :: {:error, reason, err_details}
+  @type positive :: :ok | {:ok, term}
+  @type error    :: {:error, reason, err_details}
 
-  @type reason :: atom
-
+  @type reason      :: atom
   @type err_details :: no_detail | msg_detail | full_detail | nest_detail
 
   @type no_detail   :: nil
@@ -36,6 +36,10 @@ defmodule Serum.Error do
   def show(:ok, indent) do
     IO.write String.duplicate("  ", indent)
     IO.puts "No errors detected."
+  end
+
+  def show({:ok, _}, indent) do
+    show(:ok, indent)
   end
 
   def show({:error, reason, nil}, indent) do
