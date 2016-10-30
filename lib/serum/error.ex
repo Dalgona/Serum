@@ -108,3 +108,11 @@ defmodule Serum.TemplateError do
     e.message
   end
 end
+
+defmodule Serum.ValidationError do
+  defexception [message: nil, file: nil]
+
+  def message(e) do
+    e.message
+  end
+end

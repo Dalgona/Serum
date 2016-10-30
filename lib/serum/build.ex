@@ -47,6 +47,8 @@ defmodule Serum.Build do
         {:error, :invalid_json, {e.message, e.file, 0}}
       e in Serum.TemplateError ->
         {:error, :invalid_template, {e.message, e.file, e.line}}
+      e in Serum.ValidationError ->
+        {:error, :invalid_json, {e.message, e.file, 0}}
     end
   end
 
@@ -60,10 +62,22 @@ defmodule Serum.Build do
              |> File.read!
              |> Poison.decode!(keys: :atoms)
              |> Map.to_list
+      # validate preview_length
+      case Keyword.get(proj, :preview_length) do
+        i when is_integer(i) -> nil
+        _ ->
+          raise Serum.ValidationError, message: "`preview_length` must be an integer value", file: "#{dir}serum.json"
+      end
+      # validate date_format
+      if Keyword.get(proj, :date_format) != nil do
+        Timex.format!(Timex.now, Keyword.get(proj, :date_format))
+      end
       Serum.put_data :proj, proj
     rescue
       e in Poison.SyntaxError ->
         raise Serum.JsonError, message: e.message, file: "#{dir}serum.json"
+      Timex.Format.FormatError ->
+        raise Serum.ValidationError, message: "`date_format` is invalid", file: "#{dir}serum.json"
     end
 
     try do
