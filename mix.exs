@@ -15,7 +15,7 @@ defmodule Serum.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :eex, :cowboy],
+    [applications: [:logger, :eex, :cowboy, :fs],
      mod: {Serum, []}]
   end
 
@@ -33,7 +33,7 @@ defmodule Serum.Mixfile do
      {:poison, "~> 2.2"},
      {:cowboy, "~> 1.0.4"},
      {:mime, "~> 1.0.1"},
-     {:fs, github: "synrc/fs"},
+     {:fs, github: "Dalgona/fs"},
      {:timex, "~> 3.0"},
      {:tzdata, "~> 0.1.8", override: true},
      {:floki, "~> 0.10.1"},
