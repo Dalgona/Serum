@@ -73,14 +73,6 @@ defmodule Serum.Error do
   end
 end
 
-defmodule Serum.PageTypeError do
-  defexception [type: nil]
-
-  def message(e) do
-    "page filetype must be either `md` or `html`, got `#{e.type}`"
-  end
-end
-
 defmodule Serum.PostError do
   defexception [reason: nil, path: nil]
 
@@ -89,6 +81,17 @@ defmodule Serum.PostError do
       :filename -> "invalid post filename"
       :header   -> "invalid post header"
       _         -> "unspecified post error"
+    end
+  end
+end
+
+defmodule Serum.PageError do
+  defexception [reason: nil, path: nil]
+
+  def message(e) do
+    case e.reason do
+      :header -> "invalid page header"
+      _       -> "unspecified page error"
     end
   end
 end

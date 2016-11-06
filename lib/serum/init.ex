@@ -5,6 +5,14 @@ defmodule Serum.Init do
 
   import Serum.Payload
 
+  defmacro write(fname, do: str) do
+    quote do
+      File.open!(unquote(fname), [:write, :utf8], fn f ->
+        IO.write(f, unquote(str))
+      end)
+    end
+  end
+
   @doc """
   Initializes a new Serum project into the given directory `dir`.
 
@@ -68,22 +76,7 @@ defmodule Serum.Init do
   end
 
   defp init(dir, :page) do
-    File.open!("#{dir}pages/index.md", [:write, :utf8], fn f ->
-      IO.write(f, "*Hello, world!*\n")
-    end)
-    File.open!("#{dir}pages/pages.json", [:write, :utf8], fn f ->
-      tmp = Poison.encode!([
-        %Serum.Pageinfo{
-          name: "index",
-          type: "md",
-          title: "Welcome!",
-          menu: true,
-          menu_text: "Home",
-          menu_icon: ""}
-      ], pretty: true, indent: 2)
-      IO.write(f, tmp)
-    end)
-    IO.puts "Generated `#{dir}pages/pages.json`."
+    write "#{dir}pages/index.md", do: "*Hello, world!*\n"
     dir
   end
 
@@ -94,18 +87,14 @@ defmodule Serum.Init do
       page: template_page,
       post: template_post}
     |> Enum.each(fn {k, v} ->
-      File.open! "#{dir}templates/#{k}.html.eex", [:write, :utf8], fn f ->
-        IO.write(f, v)
-      end
+      write "#{dir}templates/#{k}.html.eex", do: v
     end)
     IO.puts "Generated essential templates into `#{dir}templates/`."
     dir
   end
 
   defp init(dir, :gitignore) do
-    File.open!("#{dir}.gitignore", [:write, :utf8], fn f ->
-      IO.write(f, "site\n")
-    end)
+    write "#{dir}.gitignore", do: "site\n"
     IO.puts "Generated `#{dir}.gitignore`."
     dir
   end
