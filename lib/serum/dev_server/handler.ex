@@ -1,4 +1,7 @@
 defmodule Serum.DevServer.Handler do
+  @moduledoc """
+  This module contains functions for handling dev server.
+  """
   alias Serum.DevServer.Service
 
   def init({:tcp, :http}, req, opts) do
