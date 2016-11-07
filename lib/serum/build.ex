@@ -22,11 +22,13 @@ defmodule Serum.Build do
 
     IO.puts "Rebuilding Website..."
     Serum.init_data
+    Serum.put_data("pages_file", [])
 
     try do
-      load_info src
-      load_templates src
-      clean_dest dest
+      clean_dest(dest)
+      load_info(src)
+      load_templates(src)
+      scan_pages(src, dest)
 
       {time, result} = :timer.tc(fn ->
         compile_nav
@@ -78,16 +80,6 @@ defmodule Serum.Build do
       Timex.Format.FormatError ->
         raise Serum.ValidationError, message: "`date_format` is invalid", file: "#{dir}serum.json"
     end
-
-    try do
-      pageinfo = "#{dir}pages/pages.json"
-                 |> File.read!
-                 |> Poison.decode!(as: [%Serum.Pageinfo{}])
-      Serum.put_data :pageinfo, pageinfo
-    rescue
-      e in Poison.SyntaxError ->
-        raise Serum.JsonError, message: e.message, file: "#{dir}pages/pages.json"
-    end
   end
 
   @spec load_templates(String.t) :: :ok
@@ -97,7 +89,10 @@ defmodule Serum.Build do
     try do
       ["base", "list", "page", "post", "nav"]
       |> Enum.each(fn x ->
-        tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
+        tstr =
+          "<% import Serum.TemplateHelper %>"
+          <> File.read!("#{dir}templates/#{x}.html.eex")
+        tree = EEx.compile_string(tstr)
         Serum.put_data "template_#{x}", tree
       end)
     rescue
@@ -106,6 +101,32 @@ defmodule Serum.Build do
       e in SyntaxError ->
         raise Serum.TemplateError, file: e.file, line: e.line, message: e.description
     end
+  end
+
+  @spec scan_pages(String.t, String.t) :: :ok
+  @raises [File.Error]
+  defp scan_pages(src, dest) do
+    IO.puts "Scanning `#{src}pages` directory..."
+    do_scan_pages("#{src}pages/", src, dest)
+  end
+
+  @spec do_scan_pages(String.t, String.t, String.t) :: :ok
+  @raises [File.Error]
+  defp do_scan_pages(path, src, dest) do
+    path
+    |> File.ls!
+    |> Enum.each(fn x ->
+      f = Regex.replace(~r(/+), "#{path}/#{x}", "/")
+      cond do
+        File.dir?(f) ->
+          f |> String.replace_prefix("#{src}pages/", dest)
+            |> File.mkdir_p!
+          do_scan_pages(f, src, dest)
+        String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
+          Serum.put_data("pages_file", [f|Serum.get_data("pages_file")])
+        true -> :skip
+      end
+    end)
   end
 
   @spec clean_dest(String.t) :: :ok
@@ -142,10 +163,9 @@ defmodule Serum.Build do
   @spec compile_nav() :: :ok
   defp compile_nav do
     proj = Serum.get_data :proj
-    info = Serum.get_data :pageinfo
     IO.puts "Compiling main navigation HTML stub..."
     template = Serum.get_data "template_nav"
-    html = Renderer.render template, proj ++ [pages: Enum.filter(info, &(&1.menu))]
+    html = Renderer.render template, proj
     Serum.put_data(:navstub, html)
   end
 
@@ -163,3 +183,4 @@ defmodule Serum.Build do
     :ok
   end
 end
+
