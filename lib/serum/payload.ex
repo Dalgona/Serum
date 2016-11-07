@@ -9,10 +9,10 @@ defmodule Serum.Payload do
   <html>
     <head>
       <meta charset="utf-8">
-      <title><%= @site_name %> - <%= @page_title %></title>
+      <title><%= @page_title %> - <%= @site_name %></title>
     </head>
     <body>
-      <h1><a href="<%= @base_url %>"><%= @site_name %></a></h1>
+      <h1><a href="<%= base %>"><%= @site_name %></a></h1>
       <p><%= @site_description %></p>
       <%= @navigation %>
       <%= @contents %>
@@ -23,12 +23,8 @@ defmodule Serum.Payload do
   @spec template_nav() :: String.t
   def template_nav(), do: """
   <ul>
-    <%= for x <- @pages do %>
-      <li>
-        <a href="<%= @base_url %><%= x.name %>.html"><%= x.menu_text %></a>
-      </li>
-    <% end %>
-    <li><a href="<%= @base_url %>posts/">Posts</a></li>
+    <li><a href="<%= page "index" %>">Home</a></li>
+    <li><a href="<%= base "posts" %>">Posts</a></li>
   </ul>
   """
 
@@ -38,9 +34,10 @@ defmodule Serum.Payload do
   <ul>
     <%= for x <- @posts do %>
       <li>
-        <a href="<%= x.url %>"><%= x.title %></a>
+        <p><a href="<%= x.url %>"><%= x.title %></a>
         &mdash;
-        <span class="date"><%= x.date %></span>
+        <span class="date"><%= x.date %></span></p>
+        <p><%= x.preview_text %></p>
       </li>
     <% end %>
   </ul>

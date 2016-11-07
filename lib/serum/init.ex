@@ -76,7 +76,7 @@ defmodule Serum.Init do
   end
 
   defp init(dir, :page) do
-    write "#{dir}pages/index.md", do: "*Hello, world!*\n"
+    write "#{dir}pages/index.md", do: "# Welcome\n\n*Hello, world!*\n"
     dir
   end
 

@@ -89,7 +89,10 @@ defmodule Serum.Build do
     try do
       ["base", "list", "page", "post", "nav"]
       |> Enum.each(fn x ->
-        tree = EEx.compile_file("#{dir}templates/#{x}.html.eex")
+        tstr =
+          "<% import Serum.TemplateHelper %>"
+          <> File.read!("#{dir}templates/#{x}.html.eex")
+        tree = EEx.compile_string(tstr)
         Serum.put_data "template_#{x}", tree
       end)
     rescue
@@ -180,3 +183,4 @@ defmodule Serum.Build do
     :ok
   end
 end
+
