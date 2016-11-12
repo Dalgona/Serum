@@ -146,7 +146,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec extract_header(String.t) :: {String.t, String.t, String.t}
+  @spec extract_header(String.t) :: {String.t, [String.t], [String.t]}
   @raises [File.Error, Serum.PostError]
   defp extract_header(filename) do
     proj = Serum.get_data :proj
@@ -154,12 +154,14 @@ defmodule Serum.Build.PostBuilder do
       [l1, l2|rest] = filename |> File.read! |> String.split("\n")
       {"# " <> title, "#" <> tags} = {l1, l2}
       title = String.trim(title)
-      tags = tags |> String.split(~r/, ?/)
-                  |> Enum.filter(&(String.trim(&1) != ""))
-                  |> Enum.map(fn x ->
-                    tag = String.trim x
-                    %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
-                  end)
+      tags =
+        tags
+        |> String.split(~r/, ?/)
+        |> Enum.filter(&(String.trim(&1) != ""))
+        |> Enum.map(fn x ->
+          tag = String.trim x
+          %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
+        end)
       {title, tags, rest}
     rescue
       _ in MatchError ->
