@@ -12,7 +12,7 @@ Or take a look at [the developer's personal website](https://dalgona.github.io),
 
 ### Requirement
 
-* Elixir 1.2 or newer
+* Elixir 1.2 or newer (1.3.3 or newer is required when running [Dialyxir](https://github.com/jeremyjh/dialyxir))
 
     Visit the [Elixir website](http://elixir-lang.org) for installation instructions.
 
