@@ -5,6 +5,9 @@ defmodule Serum.Init do
 
   import Serum.Payload
 
+  @type dirname   :: String.t
+  @type ok_result :: {:ok, dirname}
+
   @doc """
   Initializes a new Serum project into the given directory `dir`.
 
@@ -14,43 +17,62 @@ defmodule Serum.Init do
   **NOTE:** If the directory `dir` is not empty, some contents in that
   directory may be overwritten *without a question*.
   """
-  @spec init(dir :: String.t) :: any
+  @spec init(dirname) :: :ok
   def init(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
 
-    dir |> check_dir
-        |> init(:dir)
-        |> init(:infofile)
-        |> init(:page)
-        |> init(:templates)
-        |> init(:gitignore)
+    :ok =
+      dir
+        |> check_dir
+        |> init_dir
+        |> init_info
+        |> init_index
+        |> init_templates
+        |> init_gitignore
         |> finish
   end
 
+  @docp """
+  Checks if the specified directory already exists. Prints a warning message
+  if so.
+  """
+  @spec check_dir(dirname) :: ok_result
   defp check_dir(dir) do
     if File.exists? dir do
       IO.puts "\x1b[93mWarning: The directory `#{dir}` " <>
               "already exists and might not be empty.\x1b[0m"
     end
-    dir
+    {:ok, dir}
   end
 
-  defp finish(dir) do
+  @docp """
+  Prints an information message after successfully initializing a new project.
+  """
+  @spec finish(ok_result) :: :ok
+  defp finish({:ok, dir}) do
     IO.puts "\n\x1b[1mSuccessfully initialized a new Serum project!"
     IO.puts "try `serum build #{dir}` to build the site.\x1b[0m\n"
   end
 
-  defp init(dir, :dir) do
+  @docp """
+  Creates necessary directory structure under the specified directory.
+  """
+  @spec init_dir(ok_result) :: ok_result
+  defp init_dir({:ok, dir}) do
     ["posts", "pages", "media", "templates",
      "assets/css", "assets/js", "assets/images"]
     |> Enum.each(fn x ->
       File.mkdir_p!("#{dir}#{x}")
       IO.puts "Created directory `#{dir}#{x}`."
     end)
-    dir
+    {:ok, dir}
   end
 
-  defp init(dir, :infofile) do
+  @docp """
+  Generates default project metadata files.
+  """
+  @spec init_info(ok_result) :: ok_result
+  defp init_info({:ok, dir}) do
     projinfo =
       %{site_name: "New Website",
         site_description: "Welcome to my website!",
@@ -64,10 +86,14 @@ defmodule Serum.Init do
       IO.write(f, projinfo)
     end)
     IO.puts "Generated `#{dir}serum.json`."
-    dir
+    {:ok, dir}
   end
 
-  defp init(dir, :page) do
+  @docp """
+  Generates a minimal index page for the new project.
+  """
+  @spec init_index(ok_result) :: ok_result
+  defp init_index({:ok, dir}) do
     File.open!("#{dir}pages/index.md", [:write, :utf8], fn f ->
       IO.write(f, "*Hello, world!*\n")
     end)
@@ -84,10 +110,14 @@ defmodule Serum.Init do
       IO.write(f, tmp)
     end)
     IO.puts "Generated `#{dir}pages/pages.json`."
-    dir
+    {:ok, dir}
   end
 
-  defp init(dir, :templates) do
+  @docp """
+  Generates default template files.
+  """
+  @spec init_templates(ok_result) :: ok_result
+  defp init_templates({:ok, dir}) do
     %{base: template_base,
       nav:  template_nav,
       list: template_list,
@@ -99,14 +129,18 @@ defmodule Serum.Init do
       end
     end)
     IO.puts "Generated essential templates into `#{dir}templates/`."
-    dir
+    {:ok, dir}
   end
 
-  defp init(dir, :gitignore) do
+  @docp """
+  Generates the initial `.gitignore` file.
+  """
+  @spec init_gitignore(ok_result) :: ok_result
+  defp init_gitignore({:ok, dir}) do
     File.open!("#{dir}.gitignore", [:write, :utf8], fn f ->
       IO.write(f, "site\n")
     end)
     IO.puts "Generated `#{dir}.gitignore`."
-    dir
+    {:ok, dir}
   end
 end
