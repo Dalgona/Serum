@@ -14,20 +14,37 @@ defmodule Serum.Cmdline do
   @alias_build  [p: :parallel, o: :output]
   @alias_server [p: :port]
 
+  @doc """
+  The entry point for Serum command-line program.
+  """
   @spec main(args :: [String.t]) :: any
-
-  def main(["init"|args]) do
+  def main(args) do
     info
-    case args do
-      [] -> Init.init(".")
-      [dir|_] -> Init.init(dir)
+    [task|opts] = args
+    case task do
+      "version" -> :nop
+      "init"    -> cmd_init(opts)
+      "build"   -> cmd_build(opts)
+      "server"  -> cmd_server(opts)
+      "help"    -> usage
+      _         -> usage
     end
   end
 
-  def main(["build"|args]) do
-    info
+  @spec info() :: :ok
+  defp info() do
+    IO.puts "\x1b[1mSerum -- Yet another simple static website generator"
+    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m\n"
+  end
+
+  @spec cmd_init([String.t]) :: :ok
+  defp cmd_init([]),      do: Init.init(".")
+  defp cmd_init([dir|_]), do: Init.init(dir)
+
+  @spec cmd_build([String.t]) :: Serum.Error.result
+  defp cmd_build(cmd) do
     {opts, args, errors} =
-      OptionParser.parse(args, strict: @opt_build, aliases: @alias_build)
+      OptionParser.parse(cmd, strict: @opt_build, aliases: @alias_build)
     mode = Keyword.get(opts, :parallel) && :parallel || :sequential
     out = Keyword.get(opts, :output)
     case {args, errors} do
@@ -36,36 +53,16 @@ defmodule Serum.Cmdline do
     end
   end
 
-  def main(["server"|args]) do
-    info
+  @spec cmd_server([String.t]) :: any
+  defp cmd_server(cmd) do
     {opts, args, errors} =
-      OptionParser.parse(args, strict: @opt_server, aliases: @alias_server)
+      OptionParser.parse(cmd, strict: @opt_server, aliases: @alias_server)
     port = Keyword.get(opts, :port) || 8080
     case {args, errors} do
       {[], []}      -> DevServer.run(".", port)
       {[dir|_], []} -> DevServer.run(dir, port)
       {_, _error}   -> usage
     end
-  end
-
-  def main(["help"|_]) do
-    info
-    usage
-  end
-
-  def main(["version"|_]) do
-    info
-  end
-
-  def main(_args) do
-    info
-    usage
-  end
-
-  @spec info() :: :ok
-  defp info() do
-    IO.puts "\x1b[1mSerum -- Yet another simple static website generator"
-    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m\n"
   end
 
   @spec launch_build([String.t], String.t, Build.build_mode) :: any
