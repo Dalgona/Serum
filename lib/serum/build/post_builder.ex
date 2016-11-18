@@ -53,8 +53,7 @@ defmodule Serum.Build.PostBuilder do
 
   @spec post_task(String.t, String.t, String.t) :: Error.result
   def post_task(srcdir, dstdir, file) do
-    proj = Serum.get_data :proj
-
+    base = Serum.get_data("proj", "base_url")
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
 
@@ -67,7 +66,7 @@ defmodule Serum.Build.PostBuilder do
 
       info = %Serum.Postinfo{
         file: file, title: title, date: datetime, tags: tags,
-        url: "#{Keyword.get proj, :base_url}posts/#{file}.html",
+        url: "#{base}posts/#{file}.html",
         preview_text: preview
       }
       Agent.update Serum.PostInfoStorage, &([info|&1])
@@ -88,8 +87,9 @@ defmodule Serum.Build.PostBuilder do
   #       (this must be an integer value)
   @spec make_preview(String.t) :: String.t
   defp make_preview(html) do
-    proj = Serum.get_data :proj
-    maxlen = Keyword.get(proj, :preview_length) || @default_preview_length
+    maxlen =
+      Serum.get_data("proj", "preview_length")
+      || @default_preview_length
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
@@ -108,7 +108,7 @@ defmodule Serum.Build.PostBuilder do
 
   @spec render_post(String.t, %Serum.Postinfo{}) :: String.t
   defp render_post(contents, info) do
-    template = Serum.get_data "template_post"
+    template = Serum.get_data "template", "post"
     template
     |> Renderer.render([title: info.title, date: info.date,
       tags: info.tags, contents: contents])
@@ -119,7 +119,6 @@ defmodule Serum.Build.PostBuilder do
   @spec extract_date(String.t) :: String.t
   @raises [Serum.PostError]
   defp extract_date(filename) do
-    proj = Serum.get_data :proj
     try do
       [filename|_] = filename |> String.split("/") |> Enum.reverse
       [y, m, d, hhmm|_] = filename |> String.split("-") |> Enum.map(fn x ->
@@ -131,6 +130,9 @@ defmodule Serum.Build.PostBuilder do
       if Enum.find_index([y, m, d, hhmm], &(&1 == nil)) != nil do
         raise MatchError
       end
+      datefmt =
+        Serum.get_data("proj", "date_format")
+        || @default_date_format
       {h, i} =
         with h <- div(hhmm, 100), i <- rem(hhmm, 100) do
           h = if h > 23, do: 23, else: h
@@ -139,7 +141,7 @@ defmodule Serum.Build.PostBuilder do
         end
       {{y, m, d}, {h, i, 0}}
       |> Timex.to_datetime(:local)
-      |> Timex.format!(Keyword.get(proj, :date_format) || @default_date_format)
+      |> Timex.format!(datefmt)
     rescue
       _ in MatchError ->
         raise Serum.PostError, reason: :filename, path: filename
@@ -149,8 +151,8 @@ defmodule Serum.Build.PostBuilder do
   @spec extract_header(String.t) :: {String.t, [String.t], [String.t]}
   @raises [File.Error, Serum.PostError]
   defp extract_header(filename) do
-    proj = Serum.get_data :proj
     try do
+      base = Serum.get_data("proj", "base_url")
       [l1, l2|rest] = filename |> File.read! |> String.split("\n")
       {"# " <> title, "#" <> tags} = {l1, l2}
       title = String.trim(title)
@@ -160,7 +162,7 @@ defmodule Serum.Build.PostBuilder do
         |> Enum.filter(&(String.trim(&1) != ""))
         |> Enum.map(fn x ->
           tag = String.trim x
-          %{name: tag, list_url: "#{Keyword.get proj, :base_url}tags/#{tag}/"}
+          %{name: tag, list_url: "#{base}tags/#{tag}/"}
         end)
       {title, tags, rest}
     rescue

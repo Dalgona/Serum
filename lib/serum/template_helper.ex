@@ -1,8 +1,20 @@
+defmodule Serum.TemplateHelper.Macros do
+  @moduledoc false
+  defmacro export_proj(prop) do
+    quote do
+      def unquote(:"#{prop}")(), do: Serum.get_data("proj", unquote(prop))
+    end
+  end
+end
+
 defmodule Serum.TemplateHelper do
   @moduledoc """
   This module provides shortcut functions for accessing various kind of files
   or pages in EEx templates.
   """
+
+  require Serum.TemplateHelper.Macros
+  import Serum.TemplateHelper.Macros
 
   @doc """
   Prepends the base URL (followed by a slash) in front of `path`.
@@ -15,10 +27,7 @@ defmodule Serum.TemplateHelper do
   ```
   """
   @spec base(String.t) :: String.t
-  def base(path \\ "") do
-    base = Keyword.get(Serum.get_data(:proj), :base_url)
-    base <> path
-  end
+  def base(path \\ ""), do: Serum.get_data("proj", "base_url") <> path
 
   @doc """
   Provides shortcut for accessing pages.
@@ -60,5 +69,10 @@ defmodule Serum.TemplateHelper do
   """
   @spec asset(String.t) :: String.t
   def asset(path), do: base("assets/" <> path)
+
+  export_proj "site_name"
+  export_proj "site_description"
+  export_proj "author"
+  export_proj "author_email"
 end
 

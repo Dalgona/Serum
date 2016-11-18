@@ -45,7 +45,7 @@ defmodule Serum.Build.PageBuilder do
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
-    template = Serum.get_data("template_page")
+    template = Serum.get_data("template", "page")
 
     try do
       html =

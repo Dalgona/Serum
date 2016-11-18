@@ -53,7 +53,7 @@ defmodule Serum.Build.IndexBuilder do
   @spec save_list(String.t, String.t, [%Serum.Postinfo{}]) :: :ok
   defp save_list(path, title, posts) do
     File.open!(path, [:write, :utf8], fn device ->
-      template = Serum.get_data("template_list")
+      template = Serum.get_data("template", "list")
       html = template
              |> Renderer.render([header: title, posts: posts])
              |> Renderer.genpage([page_title: title])

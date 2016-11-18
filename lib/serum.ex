@@ -43,10 +43,19 @@ defmodule Serum do
   def put_data(key, value), do:
     Agent.update Serum.BuildData, &(Map.put &1, key, value)
 
+  @spec put_data(path :: String.t, key :: String.t, value :: any) :: :ok
+  def put_data(path, key, value) do
+    Agent.update Serum.BuildData, &(Map.put &1, "#{path}__#{key}", value)
+  end
+
   @doc """
   Trys to get a value with key `key` from `Serum.BuildData` agent.
   """
   @spec get_data(key :: any) :: any | nil
   def get_data(key), do:
     Agent.get Serum.BuildData, &(Map.get &1, key)
+
+  @spec get_data(path :: String.t, key :: String.t) :: any | nil
+  def get_data(path, key), do:
+    Agent.get Serum.BuildData, &(Map.get &1, "#{path}__#{key}")
 end

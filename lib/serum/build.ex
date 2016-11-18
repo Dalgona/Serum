@@ -38,7 +38,7 @@ defmodule Serum.Build do
       case result do
         :ok ->
           IO.puts "Build process took #{time/1000}ms."
-          copy_assets src, dest
+         copy_assets src, dest
           {:ok, dest}
         error = {:error, _, _} -> error
       end
@@ -54,6 +54,7 @@ defmodule Serum.Build do
     end
   end
 
+  # TODO: Split validation codes
   @spec load_info(String.t) :: :ok
   @raises [Serum.JsonError, File.Error]
   defp load_info(dir) do
@@ -62,18 +63,17 @@ defmodule Serum.Build do
     try do
       proj = "#{dir}serum.json"
              |> File.read!
-             |> Poison.decode!(keys: :atoms)
-             |> Map.to_list
+             |> Poison.decode!
       # validate preview_length
-      if (x = Keyword.get(proj, :preview_length)) != nil do
+      if (x = Map.get(proj, "preview_length")) != nil do
         if not is_integer(x),
           do: raise Serum.ValidationError, message: "`preview_length` must be an integer value", file: "#{dir}serum.json"
       end
       # validate date_format
-      if Keyword.get(proj, :date_format) != nil do
-        Timex.format!(Timex.now, Keyword.get(proj, :date_format))
+      if Map.get(proj, "date_format") != nil do
+        Timex.format!(Timex.now, Map.get(proj, :date_format))
       end
-      Serum.put_data :proj, proj
+      Enum.each(proj, fn {k, v} -> Serum.put_data("proj", k, v) end)
     rescue
       e in Poison.SyntaxError ->
         raise Serum.JsonError, message: e.message, file: "#{dir}serum.json"
@@ -93,7 +93,7 @@ defmodule Serum.Build do
           "<% import Serum.TemplateHelper %>"
           <> File.read!("#{dir}templates/#{x}.html.eex")
         tree = EEx.compile_string(tstr)
-        Serum.put_data "template_#{x}", tree
+        Serum.put_data("template", x, tree)
       end)
     rescue
       e in EEx.SyntaxError ->
@@ -162,10 +162,9 @@ defmodule Serum.Build do
 
   @spec compile_nav() :: :ok
   defp compile_nav do
-    proj = Serum.get_data :proj
     IO.puts "Compiling main navigation HTML stub..."
-    template = Serum.get_data "template_nav"
-    html = Renderer.render template, proj
+    template = Serum.get_data("template", "nav")
+    html = Renderer.render(template, [])
     Serum.put_data(:navstub, html)
   end
 
