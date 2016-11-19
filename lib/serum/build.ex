@@ -4,6 +4,7 @@ defmodule Serum.Build do
   """
 
   alias Serum.Error
+  alias Serum.Validation
   alias Serum.Build.PageBuilder
   alias Serum.Build.PostBuilder
   alias Serum.Build.IndexBuilder
@@ -23,6 +24,7 @@ defmodule Serum.Build do
     IO.puts "Rebuilding Website..."
     Serum.init_data
     Serum.put_data("pages_file", [])
+    Validation.load_schema
 
     try do
       clean_dest(dest)
@@ -46,39 +48,45 @@ defmodule Serum.Build do
       e in File.Error ->
         {:error, :file_error, {Exception.message(e), e.path, 0}}
       e in Serum.JsonError ->
-        {:error, :invalid_json, {e.message, e.file, 0}}
+        {:error, :invalid_json, {Exception.message(e), e.file, 0}}
       e in Serum.TemplateError ->
-        {:error, :invalid_template, {e.message, e.file, e.line}}
+        {:error, :invalid_template, {Exception.message(e), e.file, e.line}}
       e in Serum.ValidationError ->
-        {:error, :invalid_json, {e.message, e.file, 0}}
+        {:error, :invalid_json, Exception.message(e)}
     end
   end
 
-  # TODO: Split validation codes
   @spec load_info(String.t) :: :ok
-  @raises [Serum.JsonError, File.Error]
+  @raises [Serum.JsonError, Serum.ValidationError, File.Error]
   defp load_info(dir) do
     IO.puts "Reading project metadata `#{dir}serum.json`..."
 
     try do
-      proj = "#{dir}serum.json"
-             |> File.read!
-             |> Poison.decode!
-      # validate preview_length
-      if (x = Map.get(proj, "preview_length")) != nil do
-        if not is_integer(x),
-          do: raise Serum.ValidationError, message: "`preview_length` must be an integer value", file: "#{dir}serum.json"
-      end
-      # validate date_format
-      if Map.get(proj, "date_format") != nil do
-        Timex.format!(Timex.now, Map.get(proj, :date_format))
-      end
+      proj =
+        "#{dir}serum.json"
+        |> File.read!
+        |> Poison.decode!
+      Validation.validate!("serum.json", proj)
       Enum.each(proj, fn {k, v} -> Serum.put_data("proj", k, v) end)
+      check_date_format
     rescue
       e in Poison.SyntaxError ->
-        raise Serum.JsonError, message: e.message, file: "#{dir}serum.json"
-      Timex.Format.FormatError ->
-        raise Serum.ValidationError, message: "`date_format` is invalid", file: "#{dir}serum.json"
+        raise Serum.JsonError,
+          message: e.message, file: "#{dir}serum.json"
+    end
+  end
+
+  @spec check_date_format() :: :ok
+  def check_date_format do
+    fmt = Serum.get_data("proj", "date_format")
+    if fmt != nil do
+      case Timex.format(Timex.now, fmt) do
+        {:ok, _} -> :ok
+        {:error, _} ->
+          IO.puts("\x1b[33m * Invalid date format string `date_format`.")
+          IO.puts(" * The default format string will be used instead.\x1b[0m")
+          Serum.del_data("proj", "date_format")
+      end
     end
   end
 
@@ -171,15 +179,17 @@ defmodule Serum.Build do
   @spec copy_assets(String.t, String.t) :: :ok
   defp copy_assets(src, dest) do
     IO.puts "Copying assets and media..."
-    case File.cp_r("#{src}assets/", "#{dest}assets/") do
-      {:error, :enoent, _} -> IO.puts "\x1b[93mAssets directory not found. Skipping...\x1b[0m"
+    try_copy("#{src}assets/", "#{dest}assets/")
+    try_copy("#{src}media/", "#{dest}media/")
+  end
+
+  @spec try_copy(String.t, String.t) :: :ok
+  defp try_copy(src, dest) do
+    case File.cp_r(src, dest) do
+      {:error, :enoent, _} ->
+        IO.puts "\x1b[33m * `#{src}` does not exist. Skipping.\x1b[0m"
       {:ok, _} -> :ok
     end
-    case File.cp_r("#{src}media/", "#{dest}media/") do
-      {:error, :enoent, _} -> IO.puts "\x1b[93mMedia directory not found. Skipping...\x1b[0m"
-      {:ok, _} -> :ok
-    end
-    :ok
   end
 end
 

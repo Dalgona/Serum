@@ -69,7 +69,7 @@ defmodule Serum.Build.PageBuilder do
   @docp """
   Extracts the title and contents from a given page source file.
   """
-  @spec extract_header(String.t) :: {String.t, String.t}
+  @spec extract_header(String.t) :: {String.t, [String.t]}
   @raises [File.Error, Serum.PageError]
 
   defp extract_header(fname) do

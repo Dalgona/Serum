@@ -40,22 +40,48 @@ defmodule Serum do
   Adds a key-value pair into `Serum.BuildData` agent.
   """
   @spec put_data(key :: any, value :: any) :: :ok
-  def put_data(key, value), do:
-    Agent.update Serum.BuildData, &(Map.put &1, key, value)
+  def put_data(key, value) do
+    Agent.update(Serum.BuildData, &(Map.put &1, key, value))
+  end
 
+  @doc """
+  This function is identical to `put_data(path <> "__" <> key, value)`.
+  """
   @spec put_data(path :: String.t, key :: String.t, value :: any) :: :ok
   def put_data(path, key, value) do
-    Agent.update Serum.BuildData, &(Map.put &1, "#{path}__#{key}", value)
+    Agent.update(Serum.BuildData, &(Map.put &1, "#{path}__#{key}", value))
   end
 
   @doc """
   Trys to get a value with key `key` from `Serum.BuildData` agent.
   """
   @spec get_data(key :: any) :: any | nil
-  def get_data(key), do:
-    Agent.get Serum.BuildData, &(Map.get &1, key)
+  def get_data(key) do
+    Agent.get(Serum.BuildData, &(Map.get &1, key))
+  end
 
+  @doc """
+  This function is identical to `get_data(path <> "__" <> key)`.
+  """
   @spec get_data(path :: String.t, key :: String.t) :: any | nil
-  def get_data(path, key), do:
-    Agent.get Serum.BuildData, &(Map.get &1, "#{path}__#{key}")
+  def get_data(path, key) do
+    Agent.get(Serum.BuildData, &(Map.get &1, "#{path}__#{key}"))
+  end
+
+  @doc """
+  Trys to remove a value with key `key` from `Serum.BuildData` agent.
+  """
+  @spec del_data(key :: any) :: :ok
+  def del_data(key) do
+    Agent.update(Serum.BuildData, &(Map.delete &1, key))
+  end
+
+  @doc """
+  This function is identical to `del_data(path <> "__" <> key)`.
+  """
+  @spec del_data(path :: String.t, key :: String.t) :: :ok
+  def del_data(path, key) do
+    Agent.update(Serum.BuildData, &(Map.delete &1, "#{path}__#{key}"))
+  end
 end
+
