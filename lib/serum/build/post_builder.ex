@@ -4,6 +4,7 @@ defmodule Serum.Build.PostBuilder do
   sequantially for parallelly.
   """
 
+  import Serum.Util
   alias Serum.Error
   alias Serum.Build
   alias Serum.Build.Renderer
@@ -72,7 +73,7 @@ defmodule Serum.Build.PostBuilder do
       Agent.update Serum.PostInfoStorage, &([info|&1])
 
       html = render_post(stub, info)
-      File.open! dstname, [:write, :utf8], &(IO.write &1, html)
+      fwrite(dstname, html)
       IO.puts "  GEN  #{srcname} -> #{dstname}"
       :ok
     rescue
@@ -83,8 +84,6 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  # TODO: preview_length should be validated before this function is run.
-  #       (this must be an integer value)
   @spec make_preview(String.t) :: String.t
   defp make_preview(html) do
     maxlen =

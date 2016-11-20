@@ -3,6 +3,7 @@ defmodule Serum.DevServer do
   This module provides functions for starting the Serum development server.
   """
 
+  import Serum.Util
   alias Serum.DevServer.Service
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
@@ -67,7 +68,7 @@ defmodule Serum.DevServer do
       "quit"  -> cmd :quit, site
       ""      -> looper state
       _       ->
-        IO.puts "Type `help` for the list of available commands."
+        warn("Type `help` for the list of available commands.")
         looper state
     end
   end

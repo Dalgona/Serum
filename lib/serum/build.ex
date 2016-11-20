@@ -3,12 +3,10 @@ defmodule Serum.Build do
   This module contains functions for generating pages of your website.
   """
 
+  import Serum.Util
   alias Serum.Error
   alias Serum.Validation
-  alias Serum.Build.PageBuilder
-  alias Serum.Build.PostBuilder
-  alias Serum.Build.IndexBuilder
-  alias Serum.Build.Renderer
+  alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
   @type compiled_template :: tuple
@@ -83,8 +81,8 @@ defmodule Serum.Build do
       case Timex.format(Timex.now, fmt) do
         {:ok, _} -> :ok
         {:error, _} ->
-          IO.puts("\x1b[33m * Invalid date format string `date_format`.")
-          IO.puts(" * The default format string will be used instead.\x1b[0m")
+          warn("Invalid date format string `date_format`.")
+          warn("The default format string will be used instead.")
           Serum.del_data("proj", "date_format")
       end
     end
@@ -186,8 +184,8 @@ defmodule Serum.Build do
   @spec try_copy(String.t, String.t) :: :ok
   defp try_copy(src, dest) do
     case File.cp_r(src, dest) do
-      {:error, :enoent, _} ->
-        IO.puts "\x1b[33m * `#{src}` does not exist. Skipping.\x1b[0m"
+      {:error, reason, _} ->
+        warn("Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
       {:ok, _} -> :ok
     end
   end

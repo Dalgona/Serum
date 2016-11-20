@@ -4,17 +4,10 @@ defmodule Serum.Init do
   """
 
   import Serum.Payload
+  import Serum.Util
 
   @type dirname   :: String.t
   @type ok_result :: {:ok, dirname}
-
-  defmacro write(fname, do: str) do
-    quote do
-      File.open!(unquote(fname), [:write, :utf8], fn f ->
-        IO.write(f, unquote(str))
-      end)
-    end
-  end
 
   @doc """
   Initializes a new Serum project into the given directory `dir`.
@@ -47,8 +40,7 @@ defmodule Serum.Init do
   @spec check_dir(dirname) :: ok_result
   defp check_dir(dir) do
     if File.exists? dir do
-      IO.puts "\x1b[93mWarning: The directory `#{dir}` " <>
-              "already exists and might not be empty.\x1b[0m"
+      warn "The directory `#{dir}` already exists and might not be empty."
     end
     {:ok, dir}
   end
@@ -90,9 +82,7 @@ defmodule Serum.Init do
         date_format: "{WDfull}, {D} {Mshort} {YYYY}",
         preview_length: 200}
       |> Poison.encode!(pretty: true, indent: 2)
-    File.open!("#{dir}serum.json", [:write, :utf8], fn f ->
-      IO.write(f, projinfo)
-    end)
+    fwrite("#{dir}serum.json", projinfo)
     IO.puts "Generated `#{dir}serum.json`."
     {:ok, dir}
   end
@@ -102,7 +92,7 @@ defmodule Serum.Init do
   """
   @spec init_index(ok_result) :: ok_result
   defp init_index({:ok, dir}) do
-    write "#{dir}pages/index.md", do: "# Welcome\n\n*Hello, world!*\n"
+    fwrite("#{dir}pages/index.md", "# Welcome\n\n*Hello, world!*\n")
     IO.puts "Generated `#{dir}pages/pages.json`."
     {:ok, dir}
   end
@@ -112,13 +102,13 @@ defmodule Serum.Init do
   """
   @spec init_templates(ok_result) :: ok_result
   defp init_templates({:ok, dir}) do
-    %{base: template_base,
-      nav:  template_nav,
-      list: template_list,
-      page: template_page,
-      post: template_post}
+    [base: template_base,
+     nav:  template_nav,
+     list: template_list,
+     page: template_page,
+     post: template_post]
     |> Enum.each(fn {k, v} ->
-      write "#{dir}templates/#{k}.html.eex", do: v
+      fwrite("#{dir}templates/#{k}.html.eex", v)
     end)
     IO.puts "Generated essential templates into `#{dir}templates/`."
     {:ok, dir}
@@ -129,7 +119,7 @@ defmodule Serum.Init do
   """
   @spec init_gitignore(ok_result) :: ok_result
   defp init_gitignore({:ok, dir}) do
-    write "#{dir}.gitignore", do: "site\n"
+    fwrite("#{dir}.gitignore", "site\n")
     IO.puts "Generated `#{dir}.gitignore`."
     {:ok, dir}
   end

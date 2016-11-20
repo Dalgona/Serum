@@ -3,6 +3,7 @@ defmodule Serum.Build.PageBuilder do
   This module contains functions for building pages sequentially or parallelly.
   """
 
+  import Serum.Util
   alias Serum.Error
   alias Serum.Build
   alias Serum.Build.Renderer
@@ -53,7 +54,7 @@ defmodule Serum.Build.PageBuilder do
           raw = lines |> Enum.join("\n")
           render(type, raw, title, template)
         end
-      File.open!(destname, [:write, :utf8], &IO.write(&1, html))
+      fwrite(destname, html)
       IO.puts "  GEN  #{fname} -> #{destname}"
       :ok
     rescue

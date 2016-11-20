@@ -3,6 +3,7 @@ defmodule Serum.Build.IndexBuilder do
   This module contains functions for generating index pages of blog posts.
   """
 
+  import Serum.Util
   alias Serum.Build
   alias Serum.Build.Renderer
 
@@ -52,13 +53,12 @@ defmodule Serum.Build.IndexBuilder do
 
   @spec save_list(String.t, String.t, [%Serum.Postinfo{}]) :: :ok
   defp save_list(path, title, posts) do
-    File.open!(path, [:write, :utf8], fn device ->
-      template = Serum.get_data("template", "list")
-      html = template
-             |> Renderer.render([header: title, posts: posts])
-             |> Renderer.genpage([page_title: title])
-      IO.write device, html
-    end)
+    template = Serum.get_data("template", "list")
+    html =
+      template
+      |> Renderer.render([header: title, posts: posts])
+      |> Renderer.genpage([page_title: title])
+    fwrite(path, html)
     IO.puts "  GEN  #{path}"
     :ok
   end
