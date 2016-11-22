@@ -63,10 +63,9 @@ defmodule Serum.Build do
              |> Poison.decode!(keys: :atoms)
              |> Map.to_list
       # validate preview_length
-      if (x = Keyword.get(proj, :preview_length)) != nil do
-        if not is_integer(x),
-          do: raise Serum.ValidationError, message: "`preview_length` must be an integer value", file: "#{dir}serum.json"
-      end
+      p = Keyword.get(proj, :preview_length)
+      unless is_nil(p) || is_integer(p),
+        do: raise Serum.ValidationError, message: "`preview_length` must be an integer value", file: "#{dir}serum.json"
       # validate date_format
       if Keyword.get(proj, :date_format) != nil do
         Timex.format!(Timex.now, Keyword.get(proj, :date_format))
