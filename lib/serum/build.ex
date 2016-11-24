@@ -67,6 +67,7 @@ defmodule Serum.Build do
       Validation.validate!("serum.json", proj)
       Enum.each(proj, fn {k, v} -> Serum.put_data("proj", k, v) end)
       check_date_format
+      check_list_title_format
     rescue
       e in Poison.SyntaxError ->
         raise Serum.JsonError,
@@ -85,6 +86,22 @@ defmodule Serum.Build do
           warn("The default format string will be used instead.")
           Serum.del_data("proj", "date_format")
       end
+    end
+  end
+
+  @spec check_list_title_format() :: :ok
+  def check_list_title_format do
+    fmt = Serum.get_data("proj", "list_title_tag")
+    try do
+      if fmt != nil do
+        fmt |> :io_lib.format(["test"]) |> IO.iodata_to_binary
+        :ok
+      end
+    rescue
+      _e in ArgumentError ->
+        warn("Invalid post list title format string `list_title_tag`.")
+        warn("The default format string will be used instead.")
+        Serum.del_data("proj", "list_title_tag")
     end
   end
 

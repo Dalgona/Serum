@@ -114,7 +114,6 @@ defmodule Serum.Build.PostBuilder do
     |> Renderer.genpage([page_title: info.title])
   end
 
-  # TODO: handle malformed datetime format string
   @spec extract_date(String.t) :: String.t
   @raises [Serum.PostError]
   defp extract_date(filename) do

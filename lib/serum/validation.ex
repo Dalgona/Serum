@@ -17,15 +17,11 @@ defmodule Serum.Validation do
         "site_description": { "type": "string" },
         "author": { "type": "string" },
         "author_email": { "type": "string" },
-        "base_url": {
-          "type": "string",
-          "pattern": ".*/$"
-        },
+        "base_url": { "type": "string", "pattern": ".*/$" },
         "date_format": { "type": "string" },
-        "preview_length": {
-          "type": "integer",
-          "minimum": 0
-        }
+        "preview_length": { "type": "integer", "minimum": 0 },
+        "list_title_all": { "type": "string" },
+        "list_title_tag": { "type": "string" }
       },
       "additionalProperties": false,
       "required": [

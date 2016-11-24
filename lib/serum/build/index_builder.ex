@@ -7,6 +7,9 @@ defmodule Serum.Build.IndexBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
 
+  @default_title_all "All Posts"
+  @default_title_tag "Posts Tagged ~s"
+
   @spec run(String.t, String.t, Build.build_mode) :: :ok
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
@@ -14,9 +17,10 @@ defmodule Serum.Build.IndexBuilder do
     infolist = Serum.PostInfoStorage
            |> Agent.get(&(&1))
            |> Enum.sort_by(&(&1.file))
+    title = Serum.get_data("proj", "list_title_all") || @default_title_all
 
     IO.puts "Generating posts index..."
-    save_list("#{dstdir}index.html", "All Posts", Enum.reverse(infolist))
+    save_list("#{dstdir}index.html", title, Enum.reverse(infolist))
 
     tagmap = generate_tagmap infolist
     Enum.each launch_tag(mode, tagmap, dest), &Task.await&1
@@ -45,10 +49,11 @@ defmodule Serum.Build.IndexBuilder do
   @spec tag_task(String.t, {map, [%Serum.Postinfo{}]}) :: :ok
   def tag_task(dest, {k, v}) do
     tagdir = "#{dest}tags/#{k.name}/"
-    pt = "Posts Tagged \"#{k.name}\""
+    fmt = Serum.get_data("proj", "list_title_tag") || @default_title_tag
+    title = fmt |> :io_lib.format([k.name]) |> IO.iodata_to_binary
     posts = v |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir
-    save_list("#{tagdir}index.html", pt, posts)
+    save_list("#{tagdir}index.html", title, posts)
   end
 
   @spec save_list(String.t, String.t, [%Serum.Postinfo{}]) :: :ok
