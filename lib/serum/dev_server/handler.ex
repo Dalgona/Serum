@@ -1,4 +1,5 @@
 defmodule Serum.DevServer.Handler do
+  import Serum.Util
   alias Serum.DevServer.DirStatus
   alias Serum.DevServer.Service
 
@@ -7,7 +8,7 @@ defmodule Serum.DevServer.Handler do
     base = String.replace_suffix Keyword.get(opts, :base), "/", ""
 
     if GenServer.whereis(DirStatus) != nil and DirStatus.is_dirty do
-      IO.puts "\x1b[33mChanges detected in the source directory.\x1b[0m"
+      warn("Changes detected in the source directory.")
       Service.rebuild
     end
 

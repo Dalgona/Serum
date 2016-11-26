@@ -37,6 +37,8 @@ defmodule Serum.Mixfile do
      {:timex, "~> 3.0"},
      {:tzdata, "~> 0.1.8", override: true},
      {:floki, "~> 0.10.1"},
-     {:credo, "~> 0.5", only: [:dev, :test]}]
+     {:ex_json_schema, "~> 0.5.2"},
+     {:credo, "~> 0.5", only: [:dev, :test]},
+     {:dialyxir, "~> 0.4.0", only: [:dev, :test]}]
   end
 end

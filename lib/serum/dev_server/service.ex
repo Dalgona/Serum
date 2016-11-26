@@ -18,8 +18,8 @@ defmodule Serum.DevServer.Service do
   @spec start_link(String.t, String.t, pos_integer)
     :: {:ok, pid}
     |  {:error, atom}
-  def start_link(dir, site, port) do
-    GenServer.start_link __MODULE__, [dir, site, port], name: __MODULE__
+  def start_link(dir, site, portnum) do
+    GenServer.start_link __MODULE__, [dir, site, portnum], name: __MODULE__
   end
 
   @spec rebuild() :: :ok
@@ -46,8 +46,8 @@ defmodule Serum.DevServer.Service do
 
   ## Server
 
-  def init([dir, site, port]) do
-    {:ok, {dir, site, port}}
+  def init([dir, site, portnum]) do
+    {:ok, {dir, site, portnum}}
   end
 
   def handle_call(:rebuild, _from, state) do

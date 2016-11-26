@@ -12,7 +12,7 @@ Serum은 몇몇 다른 정적 사이트 생성기와 마찬가지로 블로그 �
 
 ### 요구사항
 
-* Elixir 1.2 이상
+* Elixir 1.2 이상 ([Dialyxir](https://github.com/jeremyjh/dialyxir)를 실행하기 위해서는 1.3.3 이상 필요)
 
     Elixir 설치 방법은 [Elixir 웹사이트](http://elixir-lang.org)를 참조하세요.
 

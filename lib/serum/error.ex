@@ -99,23 +99,22 @@ end
 defmodule Serum.JsonError do
   defexception [message: nil, file: nil]
 
-  def message(e) do
-    e.message
-  end
+  def message(e), do: e.message
 end
 
 defmodule Serum.TemplateError do
   defexception [message: nil, file: nil, line: nil]
 
-  def message(e) do
-    e.message
-  end
+  def message(e), do: e.message
 end
 
 defmodule Serum.ValidationError do
-  defexception [message: nil, file: nil]
+  defexception [schema: nil, errors: []]
 
   def message(e) do
-    e.message
+    msg = "failed to validate JSON with `#{e.schema}` schema\n"
+    errmsgs = for {msg, prop} <- e.errors, do: "\"#{prop}\": #{msg}"
+    msg <> Enum.join(errmsgs, "\n")
   end
 end
+

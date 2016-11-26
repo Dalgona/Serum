@@ -53,6 +53,7 @@ defmodule Serum.DevServer do
     {:ok, pid}
   end
 
+  @spec start_watcher(String.t) :: {:ok, pid}
   def start_watcher(dir) do
     pid = spawn_link fn ->
       :fs.start_link :watcher, dir

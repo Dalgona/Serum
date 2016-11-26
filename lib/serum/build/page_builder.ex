@@ -3,6 +3,7 @@ defmodule Serum.Build.PageBuilder do
   This module contains functions for building pages sequentially or parallelly.
   """
 
+  import Serum.Util
   alias Serum.Error
   alias Serum.Build
   alias Serum.Build.Renderer
@@ -45,7 +46,7 @@ defmodule Serum.Build.PageBuilder do
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
-    template = Serum.get_data("template_page")
+    template = Serum.get_data("template", "page")
 
     try do
       html =
@@ -53,7 +54,7 @@ defmodule Serum.Build.PageBuilder do
           raw = lines |> Enum.join("\n")
           render(type, raw, title, template)
         end
-      File.open!(destname, [:write, :utf8], &IO.write(&1, html))
+      fwrite(destname, html)
       IO.puts "  GEN  #{fname} -> #{destname}"
       :ok
     rescue
@@ -69,7 +70,7 @@ defmodule Serum.Build.PageBuilder do
   @docp """
   Extracts the title and contents from a given page source file.
   """
-  @spec extract_header(String.t) :: {String.t, String.t}
+  @spec extract_header(String.t) :: {String.t, [String.t]}
   @raises [File.Error, Serum.PageError]
 
   defp extract_header(fname) do

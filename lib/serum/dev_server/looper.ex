@@ -1,4 +1,5 @@
 defmodule Serum.DevServer.Looper do
+  import Serum.Util
   alias Serum.DevServer.Service
 
   def start_link() do
@@ -9,14 +10,14 @@ defmodule Serum.DevServer.Looper do
 
   defp looper() do
     IO.write "#{Service.port}> "
-    cmd = IO.gets("") |> String.trim
+    cmd = "" |> IO.gets |> String.trim
     case cmd do
       "help"  -> cmd :help
       "build" -> cmd :build
       "quit"  -> cmd :quit, Service.site_dir
       ""      -> looper
       _       ->
-        IO.puts "Type `help` for the list of available commands."
+        warn("Type `help` for the list of available commands.")
         looper
     end
   end
