@@ -3,7 +3,6 @@ defmodule Serum.DevServer.Looper do
   alias Serum.DevServer.Service
 
   def start_link() do
-    Service.ensure_started
     pid = spawn_link fn -> looper end
     {:ok, pid}
   end

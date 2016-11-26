@@ -6,13 +6,6 @@ defmodule Serum.DevServer.Service do
 
   use GenServer
 
-  def ensure_started() do
-    case GenServer.whereis __MODULE__ do
-      nil -> ensure_started
-      _   -> :ok
-    end
-  end
-
   ## Client
 
   @spec start_link(String.t, String.t, pos_integer)

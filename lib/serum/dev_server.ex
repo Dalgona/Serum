@@ -33,7 +33,6 @@ defmodule Serum.DevServer do
       opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
       Supervisor.start_link children, opts
 
-      Service.ensure_started
       Service.rebuild
 
       looper
