@@ -157,7 +157,9 @@ defmodule Serum.Build do
     File.mkdir_p! "#{dest}"
     IO.puts "Created directory `#{dest}`."
 
+    # exclude dotfiles so that git repository is not blown away
     dest |> File.ls!
+         |> Enum.filter(&(not String.starts_with?(&1, ".")))
          |> Enum.map(&("#{dest}#{&1}"))
          |> Enum.each(&(File.rm_rf! &1))
   end
