@@ -39,7 +39,7 @@ defmodule Serum do
   @doc """
   Adds a key-value pair into `Serum.BuildData` agent.
   """
-  @spec put_data(key :: any, value :: any) :: :ok
+  @spec put_data(key :: String.t, value :: any) :: :ok
   def put_data(key, value) do
     Agent.update(Serum.BuildData, &(Map.put &1, key, value))
   end
@@ -55,7 +55,7 @@ defmodule Serum do
   @doc """
   Trys to get a value with key `key` from `Serum.BuildData` agent.
   """
-  @spec get_data(key :: any) :: any | nil
+  @spec get_data(key :: String.t) :: any | nil
   def get_data(key) do
     Agent.get(Serum.BuildData, &(Map.get &1, key))
   end
@@ -71,7 +71,7 @@ defmodule Serum do
   @doc """
   Trys to remove a value with key `key` from `Serum.BuildData` agent.
   """
-  @spec del_data(key :: any) :: :ok
+  @spec del_data(key :: String.t) :: :ok
   def del_data(key) do
     Agent.update(Serum.BuildData, &(Map.delete &1, key))
   end

@@ -13,7 +13,7 @@ defmodule Serum.Build.Renderer do
   def genpage(contents, ctx) do
     base = Serum.get_data("template", "base")
     contents = process_links(contents)
-    render(base, ctx ++ [contents: contents, navigation: Serum.get_data(:navstub)])
+    render(base, ctx ++ [contents: contents, navigation: Serum.get_data("navstub")])
   end
 
   @spec render(Build.compiled_template, keyword) :: String.t

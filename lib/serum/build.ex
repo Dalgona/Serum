@@ -190,7 +190,7 @@ defmodule Serum.Build do
     IO.puts "Compiling main navigation HTML stub..."
     template = Serum.get_data("template", "nav")
     html = Renderer.render(template, [])
-    Serum.put_data(:navstub, html)
+    Serum.put_data("navstub", html)
   end
 
   @spec copy_assets(String.t, String.t) :: :ok
