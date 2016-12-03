@@ -157,7 +157,9 @@ defmodule Serum.Build do
     File.mkdir_p! "#{dest}"
     IO.puts "Created directory `#{dest}`."
 
+    # exclude dotfiles so that git repository is not blown away
     dest |> File.ls!
+         |> Enum.filter(&(not String.starts_with?(&1, ".")))
          |> Enum.map(&("#{dest}#{&1}"))
          |> Enum.each(&(File.rm_rf! &1))
   end
@@ -188,7 +190,7 @@ defmodule Serum.Build do
     IO.puts "Compiling main navigation HTML stub..."
     template = Serum.get_data("template", "nav")
     html = Renderer.render(template, [])
-    Serum.put_data(:navstub, html)
+    Serum.put_data("navstub", html)
   end
 
   @spec copy_assets(String.t, String.t) :: :ok

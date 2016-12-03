@@ -18,6 +18,11 @@ defmodule Serum.Cmdline do
   The entry point for Serum command-line program.
   """
   @spec main(args :: [String.t]) :: any
+  def main([]) do
+    info
+    usage
+  end
+
   def main(args) do
     info
     [task|opts] = args
