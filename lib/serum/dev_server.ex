@@ -23,7 +23,7 @@ defmodule Serum.DevServer do
                           |> Poison.decode!(keys: :atoms)
 
       children = [
-        worker(Microscope, [site, base, port]),
+        worker(Microscope, [site, base, port, [Microscope.Logger]]),
         worker(Serum.DevServer.Service, [dir, site, port])
       ]
 
