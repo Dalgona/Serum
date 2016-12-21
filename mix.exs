@@ -31,8 +31,7 @@ defmodule Serum.Mixfile do
   defp deps do
     [{:earmark, "~> 1.0.1"},
      {:poison, "~> 2.2"},
-     {:cowboy, "~> 1.0.4"},
-     {:mime, "~> 1.0.1"},
+     {:microscope, "~> 0.2"},
      {:timex, "~> 3.0"},
      {:tzdata, "~> 0.1.8", override: true},
      {:floki, "~> 0.10.1"},

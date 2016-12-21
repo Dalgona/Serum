@@ -23,39 +23,16 @@ defmodule Serum.DevServer do
                           |> Poison.decode!(keys: :atoms)
 
       children = [
-        worker(__MODULE__, [site, base, port], function: :start_server),
+        worker(Microscope, [site, base, port]),
         worker(Serum.DevServer.Service, [dir, site, port])
       ]
 
       opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
       Supervisor.start_link children, opts
 
-      ensure_service_started
       Service.rebuild
 
       looper {port, site}
-    end
-  end
-
-  @spec start_server(dir :: String.t, base :: String.t, port :: pos_integer) ::
-    {:ok, pid}
-  def start_server(dir, base, port) do
-    routes = [
-      {"/[...]", Serum.DevServer.Handler, [dir: dir, base: base]}
-    ]
-    dispatch = :cowboy_router.compile [{:_, routes}]
-    opts = [port: port]
-    env = [dispatch: dispatch]
-    {:ok, pid} = :cowboy.start_http Serum.DevServer.Http, 100, opts, env: env
-    {:ok, pid}
-  end
-
-  # TODO: I could separate this module into a new OTP application
-  #       to remove this spin-waiting.
-  defp ensure_service_started() do
-    case GenServer.whereis Service do
-      nil -> ensure_service_started
-      _   -> :ok
     end
   end
 
@@ -82,11 +59,9 @@ defmodule Serum.DevServer do
   end
 
   defp cmd(:quit, site) do
-    IO.puts "Stopping server..."
-    :ok = :cowboy.stop_listener Serum.DevServer.Http
-    :ok = Supervisor.stop Serum.DevServer.Supervisor
     IO.puts "Removing temporary directory `#{site}`..."
     File.rm_rf! site
+    IO.puts "Stopping server..."
     :quit
   end
 

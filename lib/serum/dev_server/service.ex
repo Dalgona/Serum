@@ -20,11 +20,6 @@ defmodule Serum.DevServer.Service do
     GenServer.call __MODULE__, :rebuild
   end
 
-  @spec log(integer, String.t, String.t, String.t) :: any
-  def log(code, from, method, path) do
-    GenServer.cast __MODULE__, {:log, code, from, method, path}
-  end
-
   ## Server
 
   def init([dir, site, port]) do
@@ -41,20 +36,5 @@ defmodule Serum.DevServer.Service do
         IO.puts "The website may not be displayed correctly.\x1b[0m"
     end
     {:reply, :ok, state}
-  end
-
-  def handle_cast({:log, 200, from, method, path}, state) do
-    IO.puts "\x1b[32m[200]\x1b[0m #{from} #{method} \x1b[1m#{path}\x1b[0m"
-    {:noreply, state}
-  end
-
-  def handle_cast({:log, 404, from, method, path}, state) do
-    IO.puts "\x1b[32m[404]\x1b[0m #{from} #{method} \x1b[1m#{path}\x1b[0m"
-    {:noreply, state}
-  end
-
-  def handle_cast({:log, code, from, method, path}, state) do
-    IO.puts "[#{code}] #{from} #{method} \x1b[1m#{path}\x1b[0m"
-    {:noreply, state}
   end
 end

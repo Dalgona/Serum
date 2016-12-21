@@ -8,6 +8,7 @@
   "ex_json_schema": {:hex, :ex_json_schema, "0.5.2", "dc43c18139daf483db7ced34cb0face8d7b25088356362c4e4384cdff9523551", [:mix], []},
   "floki": {:hex, :floki, "0.10.1", "1e36c04264396699f02640e4f88ee92c3459a9286795f54c860aec9204bfcbf2", [:mix], [{:mochiweb_html, "~> 2.15", [hex: :mochiweb_html, optional: false]}]},
   "gettext": {:hex, :gettext, "0.11.0", "80c1dd42d270482418fa158ec5ba073d2980e3718bacad86f3d4ad71d5667679", [:mix], []},
+  "microscope": {:hex, :microscope, "0.2.0", "23f727c12292e85753f1945d5019c41734e52965cef70ad90493700c8b109de1", [:mix], [{:cowboy, "~> 1.0", [hex: :cowboy, optional: false]}, {:mime, "~> 1.0", [hex: :mime, optional: false]}]},
   "mime": {:hex, :mime, "1.0.1", "05c393850524767d13a53627df71beeebb016205eb43bfbd92d14d24ec7a1b51", [:mix], []},
   "mochiweb_html": {:hex, :mochiweb_html, "2.15.0", "d7402e967d7f9f2912f8befa813c37be62d5eeeddbbcb6fe986c44e01460d497", [:rebar3], []},
   "poison": {:hex, :poison, "2.2.0", "4763b69a8a77bd77d26f477d196428b741261a761257ff1cf92753a0d4d24a63", [:mix], []},
