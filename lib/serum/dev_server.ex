@@ -1,10 +1,11 @@
 defmodule Serum.DevServer do
-  alias Serum.DevServer.DirStatus
   @moduledoc """
   This module provides functions for starting the Serum development server.
   """
 
+  alias Serum.DevServer.DirStatus
   alias Serum.DevServer.Service
+  alias Serum.DevServer.AutoBuilder
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
   def run(dir, port) do
@@ -18,14 +19,14 @@ defmodule Serum.DevServer do
       IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
     else
-      DirStatus.start_link
       %{base_url: base} = "#{dir}serum.json"
                           |> File.read!
                           |> Poison.decode!(keys: :atoms)
 
       children = [
+        worker(DirStatus, []),
         worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs"),
-        worker(Microscope, [site, base, port, [Microscope.Logger]]),
+        worker(Microscope, [site, base, port, [Microscope.Logger, AutoBuilder]]),
         worker(Serum.DevServer.Service, [dir, site, port]),
         worker(Serum.DevServer.Looper, [])
       ]
