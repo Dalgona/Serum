@@ -4,6 +4,7 @@ defmodule Serum.Validation do
   """
 
   alias ExJsonSchema.Validator
+  alias ExJsonSchema.Schema
 
   defp schema("*") do
     "{}"
@@ -40,11 +41,7 @@ defmodule Serum.Validation do
     ["*", "serum.json"]
     |> Enum.filter(fn x -> Serum.get_data("schema", x) == nil end)
     |> Enum.each(fn x ->
-      sch =
-        x
-        |> schema
-        |> Poison.decode!
-        |> ExJsonSchema.Schema.resolve
+      sch = x |> schema |> Poison.decode! |> Schema.resolve
       Serum.put_data("schema", x, sch)
     end)
   end

@@ -5,6 +5,8 @@ defmodule Serum.DevServer.Service do
   """
 
   use GenServer
+  alias Serum.Build
+  alias Serum.Error
 
   ## Client
 
@@ -45,10 +47,10 @@ defmodule Serum.DevServer.Service do
 
   def handle_call(:rebuild, _from, state) do
     {dir, site, _} = state
-    case Serum.Build.build(dir, site, :parallel) do
+    case Build.build(dir, site, :parallel) do
       {:ok, _} -> :ok
       error = {:error, _, _} ->
-        Serum.Error.show(error)
+        Error.show(error)
         IO.puts "\x1b[33mError occurred while building the website."
         IO.puts "The website may not be displayed correctly.\x1b[0m"
     end
