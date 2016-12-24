@@ -23,10 +23,11 @@ defmodule Serum.DevServer do
                           |> File.read!
                           |> Poison.decode!(keys: :atoms)
 
+      ms_callbacks = [Microscope.Logger, AutoBuilder]
       children = [
         worker(DirStatus, []),
         worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs"),
-        worker(Microscope, [site, base, port, [Microscope.Logger, AutoBuilder]]),
+        worker(Microscope, [site, base, port, ms_callbacks]),
         worker(Serum.DevServer.Service, [dir, site, port]),
         worker(Serum.DevServer.Looper, [])
       ]

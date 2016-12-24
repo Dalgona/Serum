@@ -40,7 +40,8 @@ defmodule Serum.Build.PostBuilder do
     Enum.sort ls
   end
 
-  @spec launch(Build.build_mode, [String.t], String.t, String.t) :: [Error.result]
+  @spec launch(Build.build_mode, [String.t], String.t, String.t)
+    :: [Error.result]
   defp launch(:parallel, files, srcdir, dstdir) do
     files
     |> Enum.map(&(Task.async __MODULE__, :post_task, [srcdir, dstdir, &1]))

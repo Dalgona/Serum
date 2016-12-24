@@ -38,8 +38,10 @@ defmodule Serum.Cmdline do
 
   @spec info() :: :ok
   defp info() do
-    IO.puts "\x1b[1mSerum -- Yet another simple static website generator"
-    IO.puts "Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m\n"
+    IO.puts """
+    \x1b[1mSerum -- Yet another simple static website generator
+    Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m
+    """
   end
 
   @spec cmd_init([String.t]) :: :ok

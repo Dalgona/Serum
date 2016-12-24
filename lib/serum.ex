@@ -19,9 +19,12 @@ defmodule Serum do
   def start(_type, _args) do
     import Supervisor.Spec
 
+    bd_args  = [fn -> %{} end, [name: Serum.BuildData]]
+    pis_args = [fn -> [] end,  [name: Serum.PostInfoStorage]]
+
     children = [
-      worker(Agent, [fn -> %{} end, [name: Serum.BuildData]], id: "serum_bd"),
-      worker(Agent, [fn -> [] end, [name: Serum.PostInfoStorage]], id: "serum_pis")
+      worker(Agent, bd_args, id: "serum_bd"),
+      worker(Agent, pis_args, id: "serum_pis")
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]

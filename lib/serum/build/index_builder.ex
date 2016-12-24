@@ -29,7 +29,8 @@ defmodule Serum.Build.IndexBuilder do
   @spec generate_tagmap([%Serum.Postinfo{}]) :: map
   defp generate_tagmap(infolist) do
     Enum.reduce infolist, %{}, fn m, a ->
-      tmp = Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
+      tmp =
+        Enum.reduce m.tags, %{}, &(Map.put &2, &1, (Map.get &2, &1, []) ++ [m])
       Map.merge a, tmp, fn _, u, v -> MapSet.to_list(MapSet.new u ++ v) end
     end
   end

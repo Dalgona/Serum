@@ -120,9 +120,11 @@ defmodule Serum.Build do
       end)
     rescue
       e in EEx.SyntaxError ->
-        raise Serum.TemplateError, file: e.file, line: e.line, message: e.message
+        raise Serum.TemplateError,
+          file: e.file, line: e.line, message: e.message
       e in SyntaxError ->
-        raise Serum.TemplateError, file: e.file, line: e.line, message: e.description
+        raise Serum.TemplateError,
+          file: e.file, line: e.line, message: e.description
     end
   end
 
