@@ -42,6 +42,7 @@ defmodule Serum.DevServer do
 
   @spec start_watcher(String.t) :: {:ok, pid}
   def start_watcher(dir) do
+    dir = :filename.absname dir
     pid = spawn_link fn ->
       :fs.start_link :watcher, dir
       :fs.subscribe :watcher
