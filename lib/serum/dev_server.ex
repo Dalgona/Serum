@@ -24,8 +24,8 @@ defmodule Serum.DevServer do
                           |> Poison.decode!(keys: :atoms)
 
       children = [
-        worker(__MODULE__, [site, base, port], function: :start_server, id: "devserver_http"),
         worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs"),
+        worker(Microscope, [site, base, port, [Microscope.Logger]]),
         worker(Serum.DevServer.Service, [dir, site, port]),
         worker(Serum.DevServer.Looper, [])
       ]
@@ -37,19 +37,6 @@ defmodule Serum.DevServer do
 
       looper
     end
-  end
-
-  @spec start_server(dir :: String.t, base :: String.t, port :: pos_integer) ::
-    {:ok, pid}
-  def start_server(dir, base, port) do
-    routes = [
-      {"/[...]", Serum.DevServer.Handler, [dir: dir, base: base]}
-    ]
-    dispatch = :cowboy_router.compile [{:_, routes}]
-    opts = [port: port]
-    env = [dispatch: dispatch]
-    {:ok, pid} = :cowboy.start_http Serum.DevServer.Http, 100, opts, env: env
-    {:ok, pid}
   end
 
   @spec start_watcher(String.t) :: {:ok, pid}
