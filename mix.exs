@@ -20,7 +20,7 @@ defmodule Serum.Mixfile do
     [{:earmark, "~> 1.0.1"},
      {:poison, "~> 2.2"},
      {:fs, github: "Dalgona/fs"},
-     {:microscope, "~> 0.3"},
+     {:microscope, "~> 0.4.2"},
      {:timex, "~> 3.0"},
      {:tzdata, "~> 0.1.8", override: true},
      {:floki, "~> 0.10.1"},

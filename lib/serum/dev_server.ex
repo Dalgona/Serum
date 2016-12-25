@@ -6,6 +6,7 @@ defmodule Serum.DevServer do
   alias Serum.DevServer.DirStatus
   alias Serum.DevServer.Service
   alias Serum.DevServer.AutoBuilder
+  alias Serum.DevServer.Looper
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
   def run(dir, port) do
@@ -24,18 +25,18 @@ defmodule Serum.DevServer do
                           |> Poison.decode!(keys: :atoms)
 
       ms_callbacks = [Microscope.Logger, AutoBuilder]
+      ms_options   = [port: port, base: base, callbacks: ms_callbacks]
+
       children = [
+        worker(Service, [dir, site, port]),
         worker(DirStatus, []),
         worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs"),
-        worker(Microscope, [site, base, port, ms_callbacks]),
-        worker(Serum.DevServer.Service, [dir, site, port]),
-        worker(Serum.DevServer.Looper, [])
+        worker(Microscope, [site, ms_options]),
+        worker(Looper, [])
       ]
 
       opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
       Supervisor.start_link children, opts
-
-      Service.rebuild
 
       looper
     end
