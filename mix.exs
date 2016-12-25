@@ -12,7 +12,7 @@ defmodule Serum.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :eex, :cowboy, :fs],
+    [applications: [:logger, :eex, :cowboy],
      mod: {Serum, []}]
   end
 
