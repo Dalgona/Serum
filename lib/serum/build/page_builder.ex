@@ -8,9 +8,9 @@ defmodule Serum.Build.PageBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
 
-  @doc """
-  Starts building pages in the `/path/to/project/pages` directory.
-  """
+  @typep header :: {String.t, [String.t]}
+
+  @doc "Starts building pages in the `/path/to/project/pages` directory."
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
   def run(src, dest, mode) do
@@ -37,9 +37,7 @@ defmodule Serum.Build.PageBuilder do
     |> Enum.map(&page_task(src, dest, &1))
   end
 
-  @doc """
-  Defines the individual page build task.
-  """
+  @doc "Defines the individual page build task."
   @spec page_task(String.t, String.t, String.t) :: Error.result
 
   def page_task(src, dest, fname) do
@@ -48,48 +46,50 @@ defmodule Serum.Build.PageBuilder do
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
     template = Serum.get_data("template", "page")
 
-    try do
-      html =
-        with {title, lines} <- extract_header(fname) do
-          raw = lines |> Enum.join("\n")
-          render(type, raw, title, template)
-        end
-      fwrite(destname, html)
-      IO.puts "  GEN  #{fname} -> #{destname}"
-      :ok
-    rescue
-      e in File.Error ->
-        {:error, :file_error, {Exception.message(e), fname, 0}}
-      e in Serum.PageTypeError ->
-        {:error, :invalid_page_type, {Exception.message(e), fname, 0}}
-      e in Serum.PageError ->
-        {:error, :post_error, {Exception.message(e), fname, 0}}
+    if type != "md" and type != "html" do
+      {:error, :page_error, {:unsupported_type, fname, 0}}
+    else
+      case extract_header fname do
+        {:ok, {title, rest}} ->
+          raw = rest |> Enum.join("\n")
+          html = render type, raw, title, template
+          fwrite destname, html
+          IO.puts "  GEN  #{fname} -> #{destname}"
+          :ok
+        error = {:error, _, _} ->
+          error
+      end
     end
   end
 
   @docp """
   Extracts the title and contents from a given page source file.
   """
-  @spec extract_header(String.t) :: {String.t, [String.t]}
-  @raises [File.Error, Serum.PageError]
+  @spec extract_header(String.t) :: Error.result(header)
 
   defp extract_header(fname) do
-    try do
-      ["# " <> title|lines] =
-        fname |> File.read!  |> String.split("\n")
-      {title, lines}
-    rescue
-      _ in MatchError ->
-        raise Serum.PageError, reason: :header, path: fname
+    case File.read fname do
+      {:ok, data} ->
+        do_extract_header fname, data
+      {:error, reason} ->
+        {:error, :file_error, {reason, fname, 0}}
     end
   end
 
-  @docp """
-  Renders a page into an complete HTML format.
-  """
+  @spec do_extract_header(String.t, String.t) :: Error.result(header)
+  defp do_extract_header fname, data do
+    [title|rest] = data |> String.split("\n")
+    if String.starts_with?(title, "# ") do
+      "# " <> title = title
+      {:ok, {title, rest}}
+    else
+      {:error, :page_error, {:invalid_header, fname, 0}}
+    end
+  end
+
+  @docp "Renders a page into an complete HTML format."
   @spec render(String.t, String.t, String.t, Build.compiled_template)
     :: String.t
-  @raises [Serum.PageTypeError]
 
   defp render("md", md, title, template) do
     template
@@ -103,4 +103,3 @@ defmodule Serum.Build.PageBuilder do
     |> Renderer.genpage([page_title: title])
   end
 end
-
