@@ -63,8 +63,8 @@ defmodule Serum.Build.PostBuilder do
   def post_task(srcdir, dstdir, file) do
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
-    case {extract_header(srcname), extract_date(srcname)} do
-      {{:ok, header}, {:ok, datestr}} ->
+    case {extract_date(srcname), extract_header(srcname)} do
+      {{:ok, datestr}, {:ok, header}} ->
         do_post_task file, srcname, dstname, header, datestr
       {error = {:error, _, _}, _} -> error
       {_, error = {:error, _, _}} -> error

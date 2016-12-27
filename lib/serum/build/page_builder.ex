@@ -46,18 +46,14 @@ defmodule Serum.Build.PageBuilder do
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
     template = Serum.get_data("template", "page")
 
-    if type != "md" and type != "html" do
-      {:error, :page_error, {:unsupported_type, fname, 0}}
-    else
-      case extract_header fname do
-        {:ok, {title, rest}} ->
-          raw = rest |> Enum.join("\n")
-          html = render type, raw, title, template
-          fwrite destname, html
-          IO.puts "  GEN  #{fname} -> #{destname}"
-          :ok
-        error -> error
-      end
+    case extract_header fname do
+      {:ok, {title, rest}} ->
+        raw = rest |> Enum.join("\n")
+        html = render type, raw, title, template
+        fwrite destname, html
+        IO.puts "  GEN  #{fname} -> #{destname}"
+        :ok
+      error -> error
     end
   end
 

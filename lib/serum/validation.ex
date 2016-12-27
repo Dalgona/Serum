@@ -71,4 +71,3 @@ defmodule Serum.Validation do
     end
   end
 end
-
