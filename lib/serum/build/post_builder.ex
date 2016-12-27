@@ -9,8 +9,11 @@ defmodule Serum.Build.PostBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
 
+  @typep header :: {String.t, [String.t], [String.t]}
+
   @default_date_format    "{YYYY}-{0M}-{0D}"
   @default_preview_length 200
+  @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
 
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
   def run(src, dest, mode) do
@@ -18,26 +21,29 @@ defmodule Serum.Build.PostBuilder do
     dstdir = "#{dest}posts/"
     Agent.update(Serum.PostInfoStorage, fn _ -> [] end)
 
-    try do
-      files = load_file_list(srcdir)
-      File.mkdir_p!(dstdir)
-
-      result = launch(mode, files, srcdir, dstdir)
-      Error.filter_results(result, :post_builder)
-    rescue
-      e in File.Error ->
-        {:error, :file_error, {Exception.message(e), e.path, 0}}
+    case load_file_list srcdir do
+      {:ok, list} ->
+        File.mkdir_p! dstdir
+        result = launch mode, list, srcdir, dstdir
+        Error.filter_results result, :post_builder
+      error -> error
     end
   end
 
-  @spec load_file_list(String.t) :: [String.t]
-  @raises [File.Error]
+  @spec load_file_list(String.t) :: Error.result([String.t])
   defp load_file_list(srcdir) do
-    ls =
-      for x <- File.ls!(srcdir), String.ends_with?(x, ".md") do
-        String.replace x, ~r/\.md$/, ""
-      end
-    Enum.sort ls
+    case File.ls srcdir do
+      {:ok, list} ->
+        list =
+          list
+          |> Enum.filter_map(&String.ends_with?(&1, ".md"), fn x ->
+            String.replace x, ~r/\.md$/, ""
+          end)
+          |> Enum.sort
+        {:ok, list}
+      {:error, reason} ->
+        {:error, :file_error, {reason, srcdir, 0}}
+    end
   end
 
   @spec launch(Build.build_mode, [String.t], String.t, String.t)
@@ -55,41 +61,37 @@ defmodule Serum.Build.PostBuilder do
 
   @spec post_task(String.t, String.t, String.t) :: Error.result
   def post_task(srcdir, dstdir, file) do
-    base = Serum.get_data("proj", "base_url")
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
-
-    try do
-      {title, tags, lines} = extract_header(srcname)
-      datetime = extract_date(srcname)
-
-      stub = Earmark.to_html(lines)
-      preview = make_preview(stub)
-
-      info = %Serum.Postinfo{
-        file: file, title: title, date: datetime, tags: tags,
-        url: "#{base}posts/#{file}.html",
-        preview_text: preview
-      }
-      Agent.update Serum.PostInfoStorage, &([info|&1])
-
-      html = render_post(stub, info)
-      fwrite(dstname, html)
-      IO.puts "  GEN  #{srcname} -> #{dstname}"
-      :ok
-    rescue
-      e in File.Error ->
-        {:error, :file_error, {Exception.message(e), e.path, 0}}
-      e in Serum.PostError ->
-        {:error, :post_error, {Exception.message(e), e.path, 0}}
+    case {extract_header(srcname), extract_date(srcname)} do
+      {{:ok, header}, {:ok, datestr}} ->
+        do_post_task file, srcname, dstname, header, datestr
+      {error = {:error, _, _}, _} -> error
+      {_, error = {:error, _, _}} -> error
     end
+  end
+
+  @spec do_post_task(String.t, String.t, String.t, header, String.t) :: :ok
+  defp do_post_task(file, srcname, dstname, header, datestr) do
+    base = Serum.get_data("proj", "base_url")
+    {title, tags, lines} = header
+    stub = Earmark.to_html lines
+    preview = make_preview stub
+    info = %Serum.Postinfo{
+      file: file, title: title, date: datestr, tags: tags,
+      url: "#{base}posts/#{file}.html",
+      preview_text: preview
+    }
+    Agent.update Serum.PostInfoStorage, &([info|&1])
+    html = render_post stub, info
+    fwrite dstname, html
+    IO.puts "  GEN  #{srcname} -> #{dstname}"
+    :ok
   end
 
   @spec make_preview(String.t) :: String.t
   defp make_preview(html) do
-    maxlen =
-      Serum.get_data("proj", "preview_length")
-      || @default_preview_length
+    maxlen = Serum.get_data("proj", "preview_length") || @default_preview_length
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
@@ -115,58 +117,61 @@ defmodule Serum.Build.PostBuilder do
     |> Renderer.genpage([page_title: info.title])
   end
 
-  @spec extract_date(String.t) :: String.t
-  @raises [Serum.PostError]
-  defp extract_date(filename) do
-    try do
-      [filename|_] = filename |> String.split("/") |> Enum.reverse
-      [y, m, d, hhmm|_] = filename |> String.split("-") |> Enum.map(fn x ->
-        case Integer.parse(x) do
-          {x, _} -> x
-          :error -> :nil
-        end
-      end)
-      if Enum.find_index([y, m, d, hhmm], &(&1 == nil)) != nil do
-        raise MatchError
-      end
+  @spec extract_date(String.t) :: Error.result(String.t)
+  defp extract_date(path) do
+    fname = :filename.basename path, ".md"
+    if fname =~ @re_fname do
+      [y, m, d, hhmm|_] =
+        fname
+        |> String.split("-")
+        |> Enum.take(4)
+        |> Enum.map(&(&1 |> Integer.parse |> elem(0)))
       datefmt =
-        Serum.get_data("proj", "date_format")
-        || @default_date_format
+        Serum.get_data("proj", "date_format") || @default_date_format
       {h, i} =
         with h <- div(hhmm, 100), i <- rem(hhmm, 100) do
-          h = if h > 23, do: 23, else: h
-          i = if i > 59, do: 59, else: i
+          h = h > 23 && 23 || h
+          i = i > 59 && 59 || i
           {h, i}
         end
-      {{y, m, d}, {h, i, 0}}
-      |> Timex.to_datetime(:local)
-      |> Timex.format!(datefmt)
-    rescue
-      _ in MatchError ->
-        raise Serum.PostError, reason: :filename, path: filename
+      datestr =
+        {{y, m, d}, {h, i, 0}}
+        |> Timex.to_datetime(:local)
+        |> Timex.format!(datefmt)
+      {:ok, datestr}
+    else
+      {:error, :post_error, {:invalid_filename, path, 0}}
     end
   end
 
-  @spec extract_header(String.t) :: {String.t, [String.t], [String.t]}
-  @raises [File.Error, Serum.PostError]
-  defp extract_header(filename) do
+  @spec extract_header(String.t) :: Error.result(header)
+  defp extract_header(fname) do
+    base = Serum.get_data "proj", "base_url"
+    case File.read fname do
+      {:ok, data} ->
+        do_extract_header fname, base, data
+      {:error, reason} ->
+        {:error, :file_error, {reason, fname, 0}}
+    end
+  end
+
+  @spec do_extract_header(String.t, String.t, String.t) :: Error.result(header)
+  defp do_extract_header(fname, base, data) do
     try do
-      base = Serum.get_data("proj", "base_url")
-      [l1, l2|rest] = filename |> File.read! |> String.split("\n")
+      [l1, l2|rest] = data |> String.split("\n")
       {"# " <> title, "#" <> tags} = {l1, l2}
-      title = String.trim(title)
+      title = String.trim title
       tags =
         tags
         |> String.split(~r/, ?/)
-        |> Enum.filter(&(String.trim(&1) != ""))
-        |> Enum.map(fn x ->
+        |> Enum.filter_map(&(String.trim(&1) != ""), fn x ->
           tag = String.trim x
-          %{name: tag, list_url: "#{base}tags/#{tag}/"}
+          %{name: tag, list_url: "#{base}tags/#{tag}"}
         end)
-      {title, tags, rest}
+      {:ok, {title, tags, rest}}
     rescue
       _ in MatchError ->
-        raise Serum.PostError, reason: :header, path: filename
+        {:error, :post_error, {:invalid_header, fname, 0}}
     end
   end
 end

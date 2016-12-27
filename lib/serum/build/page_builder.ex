@@ -56,8 +56,7 @@ defmodule Serum.Build.PageBuilder do
           fwrite destname, html
           IO.puts "  GEN  #{fname} -> #{destname}"
           :ok
-        error = {:error, _, _} ->
-          error
+        error -> error
       end
     end
   end
