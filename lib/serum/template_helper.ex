@@ -1,5 +1,6 @@
 defmodule Serum.TemplateHelper.Macros do
   @moduledoc false
+
   defmacro export_proj(prop) do
     quote do
       def unquote(:"#{prop}")(), do: Serum.get_data("proj", unquote(prop))
@@ -75,4 +76,3 @@ defmodule Serum.TemplateHelper do
   export_proj "author"
   export_proj "author_email"
 end
-

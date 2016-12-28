@@ -14,9 +14,7 @@ defmodule Serum.Cmdline do
   @alias_build  [p: :parallel, o: :output]
   @alias_server [p: :port]
 
-  @doc """
-  The entry point for Serum command-line program.
-  """
+  @doc "The entry point for Serum command-line program."
   @spec main(args :: [String.t]) :: any
   def main([]) do
     info

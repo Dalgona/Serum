@@ -1,4 +1,8 @@
 defmodule Serum.DevServer.Looper do
+  @moduledoc """
+  A looper which accepts user inputs as server commands and processes them.
+  """
+
   import Serum.Util
   alias Serum.DevServer.Service
 

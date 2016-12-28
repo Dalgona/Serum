@@ -1,4 +1,9 @@
 defmodule Serum.DevServer.AutoBuilder do
+  @moduledoc """
+  A callback module for Microscope which automatically rebuilds the website
+  when changes are detected in the source directory.
+  """
+
   @behaviour Microscope.Callback
 
   import Serum.Util
@@ -7,7 +12,7 @@ defmodule Serum.DevServer.AutoBuilder do
 
   @spec on_request() :: no_return
   def on_request() do
-    if DirStatus.is_dirty do
+    if DirStatus.dirty? do
       warn "Changes were detected in the source directory."
       Service.rebuild
     end
