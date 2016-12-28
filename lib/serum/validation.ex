@@ -49,25 +49,18 @@ defmodule Serum.Validation do
   @doc """
   Validates the given `data` according to `schema_name` schema.
   """
-  @spec validate(String.t, map) :: :ok | {:error, Validator.errors}
+  @spec validate(String.t, map) :: Error.result
   def validate(schema_name, data) do
     schema =
-      Serum.get_data("schema", schema_name)
-      || Serum.get_data("schema", "*")
-    Validator.validate(schema, data)
-  end
-
-  @doc """
-  Same as `validate/2`, but a `Serum.ValidationError` exception will be raised
-  when `data` as invalid.
-  """
-  @spec validate!(String.t, map) :: :ok
-  @raises [Serum.ValidationError]
-  def validate!(schema_name, data) do
-    case validate(schema_name, data) do
+      Serum.get_data("schema", schema_name) || Serum.get_data("schema", "*")
+    case Validator.validate schema, data do
       :ok -> :ok
-      {:error, e} ->
-        raise Serum.ValidationError, schema: schema_name, errors: e
+      {:error, errors} ->
+        errors =
+          for {message, _} <- errors do
+            {:error, :validation_error, {message, schema_name, 0}}
+          end
+        {:error, :child_task, {:validate_json, errors}}
     end
   end
 end

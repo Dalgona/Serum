@@ -13,7 +13,7 @@ defmodule Serum.Build do
 
   # TODO: check the destination dir for write permission before doing
   #       any build subtasks
-  @spec build(String.t, String.t, build_mode) :: Error.result
+  @spec build(String.t, String.t, build_mode) :: Error.result(String.t)
   def build(src, dest, mode) do
     src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
@@ -24,54 +24,64 @@ defmodule Serum.Build do
     Serum.put_data("pages_file", [])
     Validation.load_schema
 
-    try do
-      clean_dest(dest)
-      load_info(src)
-      load_templates(src)
-      scan_pages(src, dest)
-
-      {time, result} = :timer.tc(fn ->
-        compile_nav
-        launch_tasks mode, src, dest
-      end)
-
-      case result do
-        :ok ->
-          IO.puts "Build process took #{time/1000}ms."
-         copy_assets src, dest
-          {:ok, dest}
-        error = {:error, _, _} -> error
-      end
-    rescue
-      e in File.Error ->
-        {:error, :file_error, {Exception.message(e), e.path, 0}}
-      e in Serum.JsonError ->
-        {:error, :invalid_json, {Exception.message(e), e.file, 0}}
-      e in Serum.TemplateError ->
-        {:error, :invalid_template, {Exception.message(e), e.file, e.line}}
-      e in Serum.ValidationError ->
-        {:error, :invalid_json, Exception.message(e)}
+    clean_dest dest
+    prep_results =
+      [load_info(src), load_templates(src), scan_pages(src, dest)]
+      |> Error.filter_results(:build_preparation)
+    case prep_results do
+      :ok -> do_build src, dest, mode
+      error -> error
     end
   end
 
-  @spec load_info(String.t) :: :ok
-  @raises [Serum.JsonError, Serum.ValidationError, File.Error]
-  defp load_info(dir) do
-    IO.puts "Reading project metadata `#{dir}serum.json`..."
+  defp do_build(src, dest, mode) do
+    {time, result} =
+      :timer.tc fn ->
+        compile_nav
+        launch_tasks mode, src, dest
+      end
+    case result do
+      :ok ->
+        IO.puts "Build process took #{time/1000}ms."
+        copy_assets src, dest
+        {:ok, dest}
+      error -> error
+    end
+  end
 
-    try do
-      proj =
-        "#{dir}serum.json"
-        |> File.read!
-        |> Poison.decode!
-      Validation.validate!("serum.json", proj)
-      Enum.each(proj, fn {k, v} -> Serum.put_data("proj", k, v) end)
-      check_date_format
-      check_list_title_format
-    rescue
-      e in Poison.SyntaxError ->
-        raise Serum.JsonError,
-          message: e.message, file: "#{dir}serum.json"
+  @spec load_info(String.t) :: Error.result
+  def load_info(dir) do
+    path = dir <> "serum.json"
+    IO.puts "Reading project metadata `#{path}`..."
+    case File.read path do
+      {:ok, data} ->
+        do_load_info path, data
+      {:error, reason} ->
+        {:error, :file_error, {reason, "#{dir}serum.json", 0}}
+    end
+  end
+
+  @spec do_load_info(String.t, String.t) :: Error.result
+  defp do_load_info(path, data) do
+    case Poison.decode data do
+      {:ok, proj} ->
+        do_validate proj
+      {:error, :invalid} ->
+        {:error, :json_error, {:invalid_json, path, 0}}
+      {:error, {:invalid, token}} ->
+        {:error, :json_error, {"parse error near `#{token}`", path, 0}}
+    end
+  end
+
+  @spec do_validate(map) :: Error.result
+  defp do_validate(proj) do
+    case Validation.validate "serum.json", proj do
+      :ok ->
+        Enum.each proj, fn {k, v} -> Serum.put_data "proj", k, v end
+        check_date_format
+        check_list_title_format
+        :ok
+      error -> error
     end
   end
 
@@ -95,7 +105,6 @@ defmodule Serum.Build do
     try do
       if fmt != nil do
         fmt |> :io_lib.format(["test"]) |> IO.iodata_to_binary
-        :ok
       end
     rescue
       _e in ArgumentError ->
@@ -105,38 +114,47 @@ defmodule Serum.Build do
     end
   end
 
-  @spec load_templates(String.t) :: :ok
-  @raises [Serum.TemplateError, File.Error]
+  @spec load_templates(String.t) :: Error.result
   defp load_templates(dir) do
     IO.puts "Loading templates..."
-    try do
-      ["base", "list", "page", "post", "nav"]
-      |> Enum.each(fn x ->
-        tstr =
-          "<% import Serum.TemplateHelper %>"
-          <> File.read!("#{dir}templates/#{x}.html.eex")
-        tree = EEx.compile_string(tstr)
-        Serum.put_data("template", x, tree)
-      end)
-    rescue
-      e in EEx.SyntaxError ->
-        raise Serum.TemplateError,
-          file: e.file, line: e.line, message: e.message
-      e in SyntaxError ->
-        raise Serum.TemplateError,
-          file: e.file, line: e.line, message: e.description
+    ["base", "list", "page", "post", "nav"]
+    |> Enum.map(&do_load_templates(dir, &1))
+    |> Error.filter_results(:load_templates)
+  end
+
+  @spec do_load_templates(String.t, String.t) :: Error.result
+  defp do_load_templates(dir, name) do
+    path = "#{dir}templates/#{name}.html.eex"
+    case File.read path do
+      {:ok, data} ->
+        try do
+          template_str = "<% import Serum.TemplateHelper %>" <> data
+          ast = EEx.compile_string template_str
+          Serum.put_data "template", name, ast
+          :ok
+        rescue
+          e in EEx.SyntaxError ->
+            {:error, :invalid_template, {e.message, path, e.line}}
+          e in SyntaxError ->
+            {:error, :invalid_template, {e.description, path, e.line}}
+        end
+      {:error, reason} ->
+        {:error, :file_error, {reason, path, 0}}
     end
   end
 
-  @spec scan_pages(String.t, String.t) :: :ok
-  @raises [File.Error]
+  @spec scan_pages(String.t, String.t) :: Error.result
   defp scan_pages(src, dest) do
-    IO.puts "Scanning `#{src}pages` directory..."
-    do_scan_pages("#{src}pages/", src, dest)
+    dir = src <> "pages/"
+    IO.puts "Scanning `#{dir}` directory..."
+    if File.exists? dir do
+      do_scan_pages dir, src, dest
+    else
+      {:error, :file_error, {:enoent, dir, 0}}
+    end
   end
 
   @spec do_scan_pages(String.t, String.t, String.t) :: :ok
-  @raises [File.Error]
   defp do_scan_pages(path, src, dest) do
     path
     |> File.ls!
@@ -144,12 +162,11 @@ defmodule Serum.Build do
       f = Regex.replace(~r(/+), "#{path}/#{x}", "/")
       cond do
         File.dir?(f) ->
-          f |> String.replace_prefix("#{src}pages/", dest)
-            |> File.mkdir_p!
+          f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!
           do_scan_pages(f, src, dest)
         String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
           Serum.put_data("pages_file", [f|Serum.get_data("pages_file")])
-        true -> :skip
+        :otherwise -> :skip
       end
     end)
   end
@@ -166,7 +183,7 @@ defmodule Serum.Build do
          |> Enum.each(&(File.rm_rf! &1))
   end
 
-  @spec launch_tasks(build_mode, String.t, String.t) :: any
+  @spec launch_tasks(build_mode, String.t, String.t) :: Error.result
   defp launch_tasks(:parallel, src, dest) do
     IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
@@ -211,4 +228,3 @@ defmodule Serum.Build do
     end
   end
 end
-

@@ -3,6 +3,8 @@ defmodule Serum.DevServer do
   This module provides functions for starting the Serum development server.
   """
 
+  alias Serum.Error
+  alias Serum.Build
   alias Serum.DevServer.DirStatus
   alias Serum.DevServer.Service
   alias Serum.DevServer.AutoBuilder
@@ -20,25 +22,24 @@ defmodule Serum.DevServer do
       IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
     else
-      %{base_url: base} = "#{dir}serum.json"
-                          |> File.read!
-                          |> Poison.decode!(keys: :atoms)
-
-      ms_callbacks = [Microscope.Logger, AutoBuilder]
-      ms_options   = [port: port, base: base, callbacks: ms_callbacks]
-
-      children = [
-        worker(Service, [dir, site, port]),
-        worker(DirStatus, []),
-        worker(__MODULE__, [dir], function: :start_watcher, id: "devserver_fs"),
-        worker(Microscope, [site, ms_options]),
-        worker(Looper, [])
-      ]
-
-      opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
-      Supervisor.start_link children, opts
-
-      looper
+      case Build.load_info dir do
+        :ok ->
+          base = Serum.get_data "proj", "base_url"
+          ms_callbacks = [Microscope.Logger, AutoBuilder]
+          ms_options   = [port: port, base: base, callbacks: ms_callbacks]
+          children = [
+            worker(Service, [dir, site, port]),
+            worker(DirStatus, []),
+            worker(__MODULE__, [dir], function: :start_watcher, id: "serum_fs"),
+            worker(Microscope, [site, ms_options]),
+            worker(Looper, [])
+          ]
+          opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
+          Supervisor.start_link children, opts
+          looper
+        error ->
+          Error.show error
+      end
     end
   end
 
