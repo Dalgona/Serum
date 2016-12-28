@@ -4,26 +4,30 @@ defmodule Serum.Build.IndexBuilder do
   """
 
   import Serum.Util
+  alias Serum.Error
   alias Serum.Build
   alias Serum.Build.Renderer
 
   @default_title_all "All Posts"
   @default_title_tag "Posts Tagged ~s"
 
-  @spec run(String.t, String.t, Build.build_mode) :: :ok
+  @spec run(String.t, String.t, Build.build_mode) :: Error.result
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
+    if File.exists? dstdir do
+      infolist = Serum.PostInfoStorage
+            |> Agent.get(&(&1))
+            |> Enum.sort_by(&(&1.file))
+      title = Serum.get_data("proj", "list_title_all") || @default_title_all
 
-    infolist = Serum.PostInfoStorage
-           |> Agent.get(&(&1))
-           |> Enum.sort_by(&(&1.file))
-    title = Serum.get_data("proj", "list_title_all") || @default_title_all
+      IO.puts "Generating posts index..."
+      save_list("#{dstdir}index.html", title, Enum.reverse(infolist))
 
-    IO.puts "Generating posts index..."
-    save_list("#{dstdir}index.html", title, Enum.reverse(infolist))
-
-    tagmap = generate_tagmap infolist
-    Enum.each launch_tag(mode, tagmap, dest), &Task.await&1
+      tagmap = generate_tagmap infolist
+      Enum.each launch_tag(mode, tagmap, dest), &Task.await&1
+    else
+      {:error, :file_error, {:enoent, dstdir, 0}}
+    end
   end
 
   @spec generate_tagmap([%Serum.Postinfo{}]) :: map
