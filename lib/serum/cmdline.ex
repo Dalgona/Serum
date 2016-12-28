@@ -28,9 +28,9 @@ defmodule Serum.Cmdline do
     [task|opts] = args
     case task do
       "version" -> :nop
-      "init"    -> cmd_init(opts)
-      "build"   -> cmd_build(opts)
-      "server"  -> cmd_server(opts)
+      "init"    -> cmd_init opts
+      "build"   -> cmd_build opts
+      "server"  -> cmd_server opts
       "help"    -> usage
       _         -> usage
     end
@@ -45,17 +45,17 @@ defmodule Serum.Cmdline do
   end
 
   @spec cmd_init([String.t]) :: :ok
-  defp cmd_init([]),      do: Init.init(".")
-  defp cmd_init([dir|_]), do: Init.init(dir)
+  defp cmd_init([]),      do: Init.init "."
+  defp cmd_init([dir|_]), do: Init.init dir
 
   @spec cmd_build([String.t]) :: Serum.Error.result
   defp cmd_build(cmd) do
     {opts, args, errors} =
-      OptionParser.parse(cmd, strict: @opt_build, aliases: @alias_build)
+      OptionParser.parse cmd, strict: @opt_build, aliases: @alias_build
     mode = Keyword.get(opts, :parallel) && :parallel || :sequential
-    out = Keyword.get(opts, :output)
+    out = Keyword.get opts, :output
     case {args, errors} do
-      {args, []}  -> launch_build(args, out, mode)
+      {args, []}  -> launch_build args, out, mode
       {_, _error} -> usage
     end
   end
@@ -63,11 +63,11 @@ defmodule Serum.Cmdline do
   @spec cmd_server([String.t]) :: any
   defp cmd_server(cmd) do
     {opts, args, errors} =
-      OptionParser.parse(cmd, strict: @opt_server, aliases: @alias_server)
+      OptionParser.parse cmd, strict: @opt_server, aliases: @alias_server
     port = Keyword.get(opts, :port) || 8080
     case {args, errors} do
-      {[], []}      -> DevServer.run(".", port)
-      {[dir|_], []} -> DevServer.run(dir, port)
+      {[], []}      -> DevServer.run ".", port
+      {[dir|_], []} -> DevServer.run dir, port
       {_, _error}   -> usage
     end
   end
@@ -81,9 +81,9 @@ defmodule Serum.Cmdline do
       end
     case Build.build(dir, out, mode) do
       {:ok, dest} ->
-        finish_build(dest)
+        finish_build dest
       error = {:error, _, _} ->
-        error_build(error)
+        error_build error
     end
   end
 

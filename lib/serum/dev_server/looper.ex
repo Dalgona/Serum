@@ -2,11 +2,13 @@ defmodule Serum.DevServer.Looper do
   import Serum.Util
   alias Serum.DevServer.Service
 
+  @spec start_link() :: {:ok, pid}
   def start_link() do
     pid = spawn_link fn -> looper end
     {:ok, pid}
   end
 
+  @spec looper() :: no_return
   defp looper() do
     IO.write "#{Service.port}> "
     cmd = "" |> IO.gets |> String.trim
@@ -16,11 +18,13 @@ defmodule Serum.DevServer.Looper do
       "quit"  -> cmd :quit, Service.site_dir
       ""      -> looper
       _       ->
-        warn("Type `help` for the list of available commands.")
+        warn "Type `help` for the list of available commands."
         looper
     end
   end
 
+  @spec cmd(atom) :: no_return
+  @spec cmd(:quit, String.t) :: no_return
   defp cmd(:help) do
     IO.puts "Available commands are:"
     IO.puts "  help   Displays this help message"

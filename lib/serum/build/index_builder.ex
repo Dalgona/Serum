@@ -21,10 +21,10 @@ defmodule Serum.Build.IndexBuilder do
       title = Serum.get_data("proj", "list_title_all") || @default_title_all
 
       IO.puts "Generating posts index..."
-      save_list("#{dstdir}index.html", title, Enum.reverse(infolist))
+      save_list "#{dstdir}index.html", title, Enum.reverse(infolist)
 
       tagmap = generate_tagmap infolist
-      Enum.each launch_tag(mode, tagmap, dest), &Task.await&1
+      Enum.each launch_tag(mode, tagmap, dest), &Task.await(&1)
     else
       {:error, :file_error, {:enoent, dstdir, 0}}
     end
@@ -42,12 +42,12 @@ defmodule Serum.Build.IndexBuilder do
   @spec launch_tag(Build.build_mode, map, String.t) :: [Task.t]
   defp launch_tag(:parallel, tagmap, dir) do
     tagmap
-    |> Enum.map(&(Task.async __MODULE__, :tag_task, [dir, &1]))
+    |> Enum.map(&Task.async(__MODULE__, :tag_task, [dir, &1]))
   end
 
   defp launch_tag(:sequential, tagmap, dir) do
     tagmap
-    |> Enum.each(&(tag_task dir, &1))
+    |> Enum.each(&tag_task(dir, &1))
     []
   end
 
@@ -58,17 +58,17 @@ defmodule Serum.Build.IndexBuilder do
     title = fmt |> :io_lib.format([k.name]) |> IO.iodata_to_binary
     posts = v |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir
-    save_list("#{tagdir}index.html", title, posts)
+    save_list "#{tagdir}index.html", title, posts
   end
 
   @spec save_list(String.t, String.t, [%Serum.Postinfo{}]) :: :ok
   defp save_list(path, title, posts) do
-    template = Serum.get_data("template", "list")
+    template = Serum.get_data "template", "list"
     html =
       template
       |> Renderer.render([header: title, posts: posts])
       |> Renderer.genpage([page_title: title])
-    fwrite(path, html)
+    fwrite path, html
     IO.puts "  GEN  #{path}"
     :ok
   end

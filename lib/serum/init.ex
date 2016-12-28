@@ -24,13 +24,13 @@ defmodule Serum.Init do
 
     :ok =
       dir
-        |> check_dir
-        |> init_dir
-        |> init_info
-        |> init_index
-        |> init_templates
-        |> init_gitignore
-        |> finish
+      |> check_dir
+      |> init_dir
+      |> init_info
+      |> init_index
+      |> init_templates
+      |> init_gitignore
+      |> finish
   end
 
   @docp """
@@ -62,7 +62,7 @@ defmodule Serum.Init do
     ["posts", "pages", "media", "templates",
      "assets/css", "assets/js", "assets/images"]
     |> Enum.each(fn x ->
-      File.mkdir_p!("#{dir}#{x}")
+      File.mkdir_p! "#{dir}#{x}"
       IO.puts "Created directory `#{dir}#{x}`."
     end)
     {:ok, dir}
@@ -82,7 +82,7 @@ defmodule Serum.Init do
         date_format: "{WDfull}, {D} {Mshort} {YYYY}",
         preview_length: 200}
       |> Poison.encode!(pretty: true, indent: 2)
-    fwrite("#{dir}serum.json", projinfo)
+    fwrite "#{dir}serum.json", projinfo
     IO.puts "Generated `#{dir}serum.json`."
     {:ok, dir}
   end
@@ -92,7 +92,7 @@ defmodule Serum.Init do
   """
   @spec init_index(ok_result) :: ok_result
   defp init_index({:ok, dir}) do
-    fwrite("#{dir}pages/index.md", "# Welcome\n\n*Hello, world!*\n")
+    fwrite "#{dir}pages/index.md", "# Welcome\n\n*Hello, world!*\n"
     IO.puts "Generated `#{dir}pages/pages.json`."
     {:ok, dir}
   end
@@ -108,7 +108,7 @@ defmodule Serum.Init do
      page: template_page,
      post: template_post]
     |> Enum.each(fn {k, v} ->
-      fwrite("#{dir}templates/#{k}.html.eex", v)
+      fwrite "#{dir}templates/#{k}.html.eex", v
     end)
     IO.puts "Generated essential templates into `#{dir}templates/`."
     {:ok, dir}
@@ -119,7 +119,7 @@ defmodule Serum.Init do
   """
   @spec init_gitignore(ok_result) :: ok_result
   defp init_gitignore({:ok, dir}) do
-    fwrite("#{dir}.gitignore", "site\n")
+    fwrite "#{dir}.gitignore", "site\n"
     IO.puts "Generated `#{dir}.gitignore`."
     {:ok, dir}
   end

@@ -61,7 +61,7 @@ defmodule Serum.Error do
   def show({:error, :child_tasks, {from, errors}}, indent) do
     IO.write String.duplicate("  ", indent)
     IO.puts "\x1b[1;31mSeveral errors occurred from #{from}:\x1b[0m"
-    Enum.each(errors, &show(&1, indent + 1))
+    Enum.each errors, &show(&1, indent + 1)
   end
 
   defp perr(str) do

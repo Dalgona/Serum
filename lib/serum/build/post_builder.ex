@@ -19,7 +19,7 @@ defmodule Serum.Build.PostBuilder do
   def run(src, dest, mode) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-    Agent.update(Serum.PostInfoStorage, fn _ -> [] end)
+    Agent.update Serum.PostInfoStorage, fn _ -> [] end
 
     case load_file_list srcdir do
       {:ok, list} ->
@@ -50,13 +50,13 @@ defmodule Serum.Build.PostBuilder do
     :: [Error.result]
   defp launch(:parallel, files, srcdir, dstdir) do
     files
-    |> Enum.map(&(Task.async __MODULE__, :post_task, [srcdir, dstdir, &1]))
-    |> Enum.map(&Task.await&1)
+    |> Enum.map(&Task.async(__MODULE__, :post_task, [srcdir, dstdir, &1]))
+    |> Enum.map(&Task.await/1)
   end
 
   defp launch(:sequential, files, srcdir, dstdir) do
     files
-    |> Enum.map(&(post_task srcdir, dstdir, &1))
+    |> Enum.map(&post_task(srcdir, dstdir, &1))
   end
 
   @spec post_task(String.t, String.t, String.t) :: Error.result
@@ -73,7 +73,7 @@ defmodule Serum.Build.PostBuilder do
 
   @spec do_post_task(String.t, String.t, String.t, header, String.t) :: :ok
   defp do_post_task(file, srcname, dstname, header, datestr) do
-    base = Serum.get_data("proj", "base_url")
+    base = Serum.get_data "proj", "base_url"
     {title, tags, lines} = header
     stub = Earmark.to_html lines
     preview = make_preview stub
@@ -96,13 +96,13 @@ defmodule Serum.Build.PostBuilder do
       0 -> ""
       x when is_integer(x) ->
         parsed =
-          case Floki.parse(html) do
+          case Floki.parse html do
             t when is_tuple(t) -> [t]
             l when is_list(l)  -> l
           end
         parsed
         |> Enum.filter(&(elem(&1, 0) == "p"))
-        |> Enum.map(&(Floki.text elem(&1, 2)))
+        |> Enum.map(&Floki.text(elem &1, 2))
         |> Enum.join(" ")
         |> String.slice(0, x)
     end

@@ -52,10 +52,10 @@ defmodule Serum.DevServer.Service do
 
   @spec do_rebuild(String.t, String.t) :: Error.result
   defp do_rebuild(dir, site) do
-    case Build.build(dir, site, :parallel) do
+    case Build.build dir, site, :parallel do
       {:ok, _} -> :ok
       error = {:error, _, _} ->
-        Error.show(error)
+        Error.show error
         IO.puts "\x1b[33mError occurred while building the website."
         IO.puts "The website may not be displayed correctly.\x1b[0m"
     end

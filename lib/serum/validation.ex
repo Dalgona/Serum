@@ -42,7 +42,7 @@ defmodule Serum.Validation do
     |> Enum.filter(fn x -> Serum.get_data("schema", x) == nil end)
     |> Enum.each(fn x ->
       sch = x |> schema |> Poison.decode! |> Schema.resolve
-      Serum.put_data("schema", x, sch)
+      Serum.put_data "schema", x, sch
     end)
   end
 

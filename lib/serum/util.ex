@@ -10,14 +10,14 @@ defmodule Serum.Util do
   @spec fwrite(String.t, String.t) :: :ok
   @compile {:inline, fwrite: 2}
   def fwrite(fname, str),
-    do: File.open!(fname, [:write, :utf8], &IO.write(&1, str))
+    do: File.open! fname, [:write, :utf8], &IO.write(&1, str)
 
   @doc """
   Prints a warning message to stderr.
   """
   @spec warn(String.t) :: :ok
-  @compile {:inline, fwrite: 2}
+  @compile {:inline, warn: 1}
   def warn(str),
-    do: IO.puts(:stderr, "\x1b[33m * #{str}\x1b[0m")
+    do: IO.puts :stderr, "\x1b[33m * #{str}\x1b[0m"
 end
 
