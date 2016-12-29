@@ -48,6 +48,11 @@ defmodule Serum.Error do
     perr "#{message}"
   end
 
+  def show({:error, :file_error, {r, file, 0}}, indent) when is_atom(r) do
+    message = r |> :file.format_error |> IO.iodata_to_binary
+    show {:error, :file_error, {message, file, 0}}, indent
+  end
+
   def show({:error, _r, {message, file, 0}}, indent) do
     IO.write String.duplicate("  ", indent)
     perr "\x1b[97m#{file}:\x1b[0m #{message}"

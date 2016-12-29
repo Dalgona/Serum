@@ -11,14 +11,32 @@ defmodule Serum.Build do
   @type build_mode :: :parallel | :sequential
   @type compiled_template :: tuple
 
-  # TODO: check the destination dir for write permission before doing
-  #       any build subtasks
   @spec build(String.t, String.t, build_mode) :: Error.result(String.t)
   def build(src, dest, mode) do
     src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
     dest = String.ends_with?(dest, "/") && dest || dest <> "/"
 
+    case check_access dest do
+      :ok -> do_build_stage1 src, dest, mode
+      err -> {:error, :file_error, {err, dest, 0}}
+    end
+  end
+
+  @spec check_access(String.t) :: :ok | File.posix
+  defp check_access(dest) do
+    parent = dest |> String.replace_suffix("/", "") |> :filename.dirname
+    case File.stat parent do
+      {:error, reason} -> reason
+      {:ok, %File.Stat{access: :none}} -> :eacces
+      {:ok, %File.Stat{access: :read}} -> :eacces
+      {:ok, _} -> :ok
+    end
+  end
+
+  @spec do_build_stage1(String.t, String.t, build_mode)
+    :: Error.result(String.t)
+  defp do_build_stage1(src, dest, mode) do
     IO.puts "Rebuilding Website..."
     Serum.init_data
     Serum.put_data "pages_file", []
@@ -28,12 +46,13 @@ defmodule Serum.Build do
       [load_info(src), load_templates(src), scan_pages(src, dest)]
       |> Error.filter_results(:build_preparation)
     case prep_results do
-      :ok -> do_build src, dest, mode
+      :ok -> do_build_stage2 src, dest, mode
       error -> error
     end
   end
 
-  defp do_build(src, dest, mode) do
+  @spec do_build_stage2(String.t, String.t, build_mode) :: Error.result(String.t)
+  defp do_build_stage2(src, dest, mode) do
     {time, result} =
       :timer.tc fn ->
         compile_nav
