@@ -51,7 +51,8 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build_stage2(String.t, String.t, build_mode) :: Error.result(String.t)
+  @spec do_build_stage2(String.t, String.t, build_mode)
+    :: Error.result(String.t)
   defp do_build_stage2(src, dest, mode) do
     {time, result} =
       :timer.tc fn ->

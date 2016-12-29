@@ -38,6 +38,10 @@ defmodule Serum.Error do
     IO.puts "No errors detected."
   end
 
+  def show({:ok, _result}, indent) do
+    show :ok, indent
+  end
+
   def show({:error, reason, nil}, indent) do
     IO.write String.duplicate("  ", indent)
     perr "#{reason}"
