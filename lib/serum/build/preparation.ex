@@ -103,6 +103,8 @@ defmodule Serum.Build.Preparation do
             {:error, :invalid_template, {e.message, path, e.line}}
           e in SyntaxError ->
             {:error, :invalid_template, {e.description, path, e.line}}
+          e in TokenMissingError ->
+            {:error, :invalid_template, {e.description, path, e.line}}
         end
       {:error, reason} ->
         {:error, :file_error, {reason, path, 0}}
