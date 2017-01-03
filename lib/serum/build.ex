@@ -43,7 +43,7 @@ defmodule Serum.Build do
 
     clean_dest dest
     prep_results =
-      [load_info(src), load_templates(src), scan_pages(src, dest)]
+      [check_tz, load_info(src), load_templates(src), scan_pages(src, dest)]
       |> Error.filter_results(:build_preparation)
     case prep_results do
       :ok -> do_build_stage2 src, dest, mode
@@ -68,6 +68,16 @@ defmodule Serum.Build do
     end
   end
 
+  @spec check_tz() :: Error.result
+  def check_tz do
+    try do
+      Timex.local
+      :ok
+    rescue
+      _ -> {:error, :system_error, "system timezone is not set"}
+    end
+  end
+
   @spec load_info(String.t) :: Error.result
   def load_info(dir) do
     path = dir <> "serum.json"
@@ -84,7 +94,7 @@ defmodule Serum.Build do
   defp do_load_info(path, data) do
     case Poison.decode data do
       {:ok, proj} ->
-        do_validate proj
+        validate proj
       {:error, :invalid} ->
         {:error, :json_error, {:invalid_json, path, 0}}
       {:error, {:invalid, token}} ->
@@ -92,8 +102,8 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_validate(map) :: Error.result
-  defp do_validate(proj) do
+  @spec validate(map) :: Error.result
+  defp validate(proj) do
     Validation.load_schema
     case Validation.validate "serum.json", proj do
       :ok ->
@@ -109,10 +119,11 @@ defmodule Serum.Build do
   def check_date_format do
     fmt = Serum.get_data "proj", "date_format"
     if fmt != nil do
-      case Timex.format Timex.now, fmt do
-        {:ok, _} -> :ok
-        {:error, _} ->
-          warn "Invalid date format string `date_format`."
+      case Timex.validate_format fmt do
+        :ok -> :ok
+        {:error, message} ->
+          warn "Invalid date format string `date_format`:"
+          warn "  " <> message
           warn "The default format string will be used instead."
           Serum.del_data "proj", "date_format"
       end
