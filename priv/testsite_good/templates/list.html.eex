@@ -1,0 +1,11 @@
+<h2><%= header %></h2>
+<ul>
+  <%= for x <- posts do %>
+    <li>
+      <p><a href="<%= x.url %>"><%= x.title %></a>
+      &mdash;
+      <span class="date"><%= x.date %></span></p>
+      <p><%= x.preview_text %></p>
+    </li>
+  <% end %>
+</ul>
