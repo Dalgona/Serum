@@ -51,7 +51,7 @@ defmodule Serum.Build.Preparation do
   end
 
   @spec check_date_format() :: :ok
-  def check_date_format do
+  defp check_date_format do
     fmt = Serum.get_data "proj", "date_format"
     if fmt != nil do
       case Timex.validate_format fmt do
@@ -66,7 +66,7 @@ defmodule Serum.Build.Preparation do
   end
 
   @spec check_list_title_format() :: :ok
-  def check_list_title_format do
+  defp check_list_title_format do
     fmt = Serum.get_data "proj", "list_title_tag"
     try do
       if fmt != nil do

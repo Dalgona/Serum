@@ -4,11 +4,8 @@ defmodule Serum.DevServer do
   """
 
   alias Serum.Error
-  alias Serum.Build
-  alias Serum.DevServer.DirStatus
-  alias Serum.DevServer.Service
-  alias Serum.DevServer.AutoBuilder
-  alias Serum.DevServer.Looper
+  alias Serum.Build.Preparation
+  alias Serum.DevServer.{DirStatus, Service, AutoBuilder, Looper}
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
   def run(dir, port) do
@@ -22,7 +19,7 @@ defmodule Serum.DevServer do
       IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
     else
-      case Build.load_info dir do
+      case Preparation.load_info dir do
         :ok ->
           base = Serum.get_data "proj", "base_url"
           ms_callbacks = [Microscope.Logger, AutoBuilder]

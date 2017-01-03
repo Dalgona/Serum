@@ -5,7 +5,6 @@ defmodule Serum.Build do
 
   import Serum.Util
   alias Serum.Error
-  #alias Serum.Validation
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
@@ -43,8 +42,10 @@ defmodule Serum.Build do
 
     clean_dest dest
     prep_results =
-      #[check_tz, load_info(src), load_templates(src), scan_pages(src, dest)]
-      [check_tz: [], load_info: [src], load_templates: [src], scan_pages: [src, dest]]
+      [check_tz: [],
+       load_info: [src],
+       load_templates: [src],
+       scan_pages: [src, dest]]
       |> Enum.map(fn {fun, args} ->
         apply Serum.Build.Preparation, fun, args
       end)
