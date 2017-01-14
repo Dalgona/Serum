@@ -50,17 +50,17 @@ defmodule Serum.Build.PostBuilder do
     :: [Error.result]
   defp launch(:parallel, files, srcdir, dstdir) do
     files
-    |> Enum.map(&Task.async(__MODULE__, :post_task, [srcdir, dstdir, &1]))
-    |> Enum.map(&Task.await/1)
+    |> Task.async_stream(__MODULE__, :post_task, [srcdir, dstdir])
+    |> Enum.map(&(elem &1, 1))
   end
 
   defp launch(:sequential, files, srcdir, dstdir) do
     files
-    |> Enum.map(&post_task(srcdir, dstdir, &1))
+    |> Enum.map(&post_task(&1, srcdir, dstdir))
   end
 
   @spec post_task(String.t, String.t, String.t) :: Error.result
-  def post_task(srcdir, dstdir, file) do
+  def post_task(file, srcdir, dstdir) do
     srcname = "#{srcdir}#{file}.md"
     dstname = "#{dstdir}#{file}.html"
     case {extract_date(srcname), extract_header(srcname)} do

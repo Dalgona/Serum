@@ -24,7 +24,7 @@ defmodule Serum.Build.IndexBuilder do
       save_list "#{dstdir}index.html", title, Enum.reverse(infolist)
 
       tagmap = generate_tagmap infolist
-      Enum.each launch_tag(mode, tagmap, dest), &Task.await(&1)
+      launch mode, tagmap, dest
     else
       {:error, :file_error, {:enoent, dstdir, 0}}
     end
@@ -39,20 +39,19 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec launch_tag(Build.build_mode, map, String.t) :: [Task.t]
-  defp launch_tag(:parallel, tagmap, dir) do
+  @spec launch(Build.build_mode, map, String.t) :: :ok
+  defp launch(:parallel, tagmap, dir) do
     tagmap
-    |> Enum.map(&Task.async(__MODULE__, :tag_task, [dir, &1]))
+    |> Task.async_stream(__MODULE__, :tag_task, [dir])
+    |> Enum.each(fn _ -> :ok end)
   end
 
-  defp launch_tag(:sequential, tagmap, dir) do
-    tagmap
-    |> Enum.each(&tag_task(dir, &1))
-    []
+  defp launch(:sequential, tagmap, dir) do
+    tagmap |> Enum.each(&tag_task(dir, &1))
   end
 
-  @spec tag_task(String.t, {map, [%Serum.Postinfo{}]}) :: :ok
-  def tag_task(dest, {k, v}) do
+  @spec tag_task({map, [%Serum.Postinfo{}]}, String.t) :: :ok
+  def tag_task({k, v}, dest) do
     tagdir = "#{dest}tags/#{k.name}/"
     fmt = Serum.get_data("proj", "list_title_tag") || @default_title_tag
     title = fmt |> :io_lib.format([k.name]) |> IO.iodata_to_binary
