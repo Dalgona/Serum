@@ -10,7 +10,7 @@ defmodule Serum.TemplateHelperTest do
 
   describe "base/1" do
     test "without argument" do
-      assert "/test_base/" == base
+      assert "/test_base/" == base()
     end
 
     test "with argument" do

@@ -33,10 +33,8 @@ defmodule Serum.Init do
       |> finish
   end
 
-  @docp """
-  Checks if the specified directory already exists. Prints a warning message
-  if so.
-  """
+  # Checks if the specified directory already exists.
+  # Prints a warning message if so.
   @spec check_dir(dirname) :: ok_result
   defp check_dir(dir) do
     if File.exists? dir do
@@ -45,18 +43,14 @@ defmodule Serum.Init do
     {:ok, dir}
   end
 
-  @docp """
-  Prints an information message after successfully initializing a new project.
-  """
+  # Prints an information message after successfully initializing a new project.
   @spec finish(ok_result) :: :ok
   defp finish({:ok, dir}) do
     IO.puts "\n\x1b[1mSuccessfully initialized a new Serum project!"
     IO.puts "try `serum build #{dir}` to build the site.\x1b[0m\n"
   end
 
-  @docp """
-  Creates necessary directory structure under the specified directory.
-  """
+  # Creates necessary directory structure under the specified directory.
   @spec init_dir(ok_result) :: ok_result
   defp init_dir({:ok, dir}) do
     ["posts", "pages", "media", "templates",
@@ -68,9 +62,7 @@ defmodule Serum.Init do
     {:ok, dir}
   end
 
-  @docp """
-  Generates default project metadata files.
-  """
+  # Generates default project metadata files.
   @spec init_info(ok_result) :: ok_result
   defp init_info({:ok, dir}) do
     projinfo =
@@ -87,9 +79,7 @@ defmodule Serum.Init do
     {:ok, dir}
   end
 
-  @docp """
-  Generates a minimal index page for the new project.
-  """
+  # Generates a minimal index page for the new project.
   @spec init_index(ok_result) :: ok_result
   defp init_index({:ok, dir}) do
     fwrite "#{dir}pages/index.md", "# Welcome\n\n*Hello, world!*\n"
@@ -97,16 +87,14 @@ defmodule Serum.Init do
     {:ok, dir}
   end
 
-  @docp """
-  Generates default template files.
-  """
+  # Generates default template files.
   @spec init_templates(ok_result) :: ok_result
   defp init_templates({:ok, dir}) do
-    [base: template_base,
-     nav:  template_nav,
-     list: template_list,
-     page: template_page,
-     post: template_post]
+    [base: template_base(),
+     nav:  template_nav(),
+     list: template_list(),
+     page: template_page(),
+     post: template_post()]
     |> Enum.each(fn {k, v} ->
       fwrite "#{dir}templates/#{k}.html.eex", v
     end)
@@ -114,9 +102,7 @@ defmodule Serum.Init do
     {:ok, dir}
   end
 
-  @docp """
-  Generates the initial `.gitignore` file.
-  """
+  # Generates the initial `.gitignore` file.
   @spec init_gitignore(ok_result) :: ok_result
   defp init_gitignore({:ok, dir}) do
     fwrite "#{dir}.gitignore", "site\n"

@@ -19,10 +19,8 @@ defmodule Serum.Build.PageBuilder do
     Error.filter_results result, :page_builder
   end
 
-  @docp """
-  Launches individual page build tasks if the program is running in `parallel`
-  mode, otherwise performs the tasks one by one.
-  """
+  # Launches individual page build tasks if the program is running in `parallel`
+  # mode, otherwise performs the tasks one by one.
   @spec launch(Build.build_mode, String.t, String.t, String.t)
     :: [Error.result]
 
@@ -57,9 +55,7 @@ defmodule Serum.Build.PageBuilder do
     end
   end
 
-  @docp """
-  Extracts the title and contents from a given page source file.
-  """
+  # Extracts the title and contents from a given page source file.
   @spec extract_header(String.t) :: Error.result(header)
 
   defp extract_header(fname) do
@@ -82,7 +78,7 @@ defmodule Serum.Build.PageBuilder do
     end
   end
 
-  @docp "Renders a page into an complete HTML format."
+  # Renders a page into an complete HTML format.
   @spec render(String.t, String.t, String.t, Build.compiled_template)
     :: String.t
 

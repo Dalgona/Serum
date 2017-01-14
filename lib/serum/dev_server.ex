@@ -33,7 +33,7 @@ defmodule Serum.DevServer do
           ]
           opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
           Supervisor.start_link children, opts
-          looper
+          looper()
         error ->
           Error.show error
       end
@@ -46,7 +46,7 @@ defmodule Serum.DevServer do
     pid = spawn_link fn ->
       :fs.start_link :watcher, dir
       :fs.subscribe :watcher
-      watcher_looper
+      watcher_looper()
     end
     {:ok, pid}
   end
@@ -55,11 +55,11 @@ defmodule Serum.DevServer do
     receive do
       {_pid, {:fs, :file_event}, {_path, _events}} ->
         DirStatus.set_dirty
-        watcher_looper
+        watcher_looper()
       _ ->
-        watcher_looper
+        watcher_looper()
     end
   end
 
-  defp looper, do: looper
+  defp looper, do: looper()
 end

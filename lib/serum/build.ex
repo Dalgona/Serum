@@ -61,7 +61,7 @@ defmodule Serum.Build do
   defp do_build_stage2(src, dest, mode) do
     {time, result} =
       :timer.tc fn ->
-        compile_nav
+        compile_nav()
         launch_tasks mode, src, dest
       end
     case result do

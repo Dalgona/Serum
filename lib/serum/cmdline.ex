@@ -17,20 +17,20 @@ defmodule Serum.Cmdline do
   @doc "The entry point for Serum command-line program."
   @spec main(args :: [String.t]) :: any
   def main([]) do
-    info
-    usage
+    info()
+    usage()
   end
 
   def main(args) do
-    info
+    info()
     [task|opts] = args
     case task do
       "version" -> :nop
       "init"    -> cmd_init opts
       "build"   -> cmd_build opts
       "server"  -> cmd_server opts
-      "help"    -> usage
-      _         -> usage
+      "help"    -> usage()
+      _         -> usage()
     end
   end
 
@@ -54,7 +54,7 @@ defmodule Serum.Cmdline do
     out = Keyword.get opts, :output
     case {args, errors} do
       {args, []}  -> launch_build args, out, mode
-      {_, _error} -> usage
+      {_, _error} -> usage()
     end
   end
 
@@ -66,7 +66,7 @@ defmodule Serum.Cmdline do
     case {args, errors} do
       {[], []}      -> DevServer.run ".", port
       {[dir|_], []} -> DevServer.run dir, port
-      {_, _error}   -> usage
+      {_, _error}   -> usage()
     end
   end
 

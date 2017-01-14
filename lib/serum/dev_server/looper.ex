@@ -8,7 +8,7 @@ defmodule Serum.DevServer.Looper do
 
   @spec start_link() :: {:ok, pid}
   def start_link() do
-    pid = spawn_link fn -> looper end
+    pid = spawn_link fn -> looper() end
     {:ok, pid}
   end
 
@@ -20,10 +20,10 @@ defmodule Serum.DevServer.Looper do
       "help"  -> cmd :help
       "build" -> cmd :build
       "quit"  -> cmd :quit, Service.site_dir
-      ""      -> looper
+      ""      -> looper()
       _       ->
         warn "Type `help` for the list of available commands."
-        looper
+        looper()
     end
   end
 
@@ -34,12 +34,12 @@ defmodule Serum.DevServer.Looper do
     IO.puts "  help   Displays this help message"
     IO.puts "  build  Rebuilds the project"
     IO.puts "  quit   Stops the server and quit"
-    looper
+    looper()
   end
 
   defp cmd(:build) do
     Service.rebuild
-    looper
+    looper()
   end
 
   defp cmd(:quit, site) do

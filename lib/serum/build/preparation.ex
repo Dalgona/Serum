@@ -43,8 +43,8 @@ defmodule Serum.Build.Preparation do
     case Validation.validate "serum.json", proj do
       :ok ->
         Enum.each proj, fn {k, v} -> Serum.put_data "proj", k, v end
-        check_date_format
-        check_list_title_format
+        check_date_format()
+        check_list_title_format()
         :ok
       error -> error
     end
