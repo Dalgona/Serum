@@ -36,9 +36,10 @@ defmodule Serum.Cmdline do
 
   @spec info() :: :ok
   defp info() do
+    {:ok, vsn} = :application.get_key :serum, :vsn
     IO.puts """
     \x1b[1mSerum -- Yet another simple static website generator
-    Version 0.9.0. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m
+    Version #{vsn}. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m
     """
   end
 
@@ -50,8 +51,8 @@ defmodule Serum.Cmdline do
   defp cmd_build(cmd) do
     {opts, args, errors} =
       OptionParser.parse cmd, strict: @opt_build, aliases: @alias_build
-    mode = Keyword.get(opts, :parallel) && :parallel || :sequential
-    out = Keyword.get opts, :output
+    mode = opts[:parallel] && :parallel || :sequential
+    out = opts[:output]
     case {args, errors} do
       {args, []}  -> launch_build args, out, mode
       {_, _error} -> usage()
@@ -62,7 +63,7 @@ defmodule Serum.Cmdline do
   defp cmd_server(cmd) do
     {opts, args, errors} =
       OptionParser.parse cmd, strict: @opt_server, aliases: @alias_server
-    port = Keyword.get(opts, :port) || 8080
+    port = opts[:port] || 8080
     case {args, errors} do
       {[], []}      -> DevServer.run ".", port
       {[dir|_], []} -> DevServer.run dir, port
