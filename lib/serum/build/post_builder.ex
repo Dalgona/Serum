@@ -9,7 +9,7 @@ defmodule Serum.Build.PostBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
 
-  @typep header :: {String.t, [String.t], [String.t]}
+  @typep header :: {String.t, [Serum.Tag.t], [String.t]}
 
   @default_date_format    "{YYYY}-{0M}-{0D}"
   @default_preview_length 200
@@ -108,7 +108,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec render_post(String.t, %Serum.Postinfo{}) :: String.t
+  @spec render_post(String.t, Serum.Postinfo.t) :: String.t
   defp render_post(contents, info) do
     template = Serum.get_data "template", "post"
     template
@@ -166,7 +166,7 @@ defmodule Serum.Build.PostBuilder do
         |> String.split(~r/, ?/)
         |> Enum.filter_map(&(String.trim(&1) != ""), fn x ->
           tag = String.trim x
-          %{name: tag, list_url: "#{base}tags/#{tag}"}
+          %Serum.Tag{name: tag, list_url: "#{base}tags/#{tag}"}
         end)
       {:ok, {title, tags, rest}}
     rescue

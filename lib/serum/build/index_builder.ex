@@ -30,7 +30,7 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec generate_tagmap([%Serum.Postinfo{}]) :: map
+  @spec generate_tagmap([Serum.Postinfo.t]) :: map
   defp generate_tagmap(infolist) do
     Enum.reduce infolist, %{}, fn m, a ->
       tmp =
@@ -51,7 +51,7 @@ defmodule Serum.Build.IndexBuilder do
     []
   end
 
-  @spec tag_task(String.t, {map, [%Serum.Postinfo{}]}) :: :ok
+  @spec tag_task(String.t, {map, [Serum.Postinfo.t]}) :: :ok
   def tag_task(dest, {k, v}) do
     tagdir = "#{dest}tags/#{k.name}/"
     fmt = Serum.get_data("proj", "list_title_tag") || @default_title_tag
@@ -61,7 +61,7 @@ defmodule Serum.Build.IndexBuilder do
     save_list "#{tagdir}index.html", title, posts
   end
 
-  @spec save_list(String.t, String.t, [%Serum.Postinfo{}]) :: :ok
+  @spec save_list(String.t, String.t, [Serum.Postinfo.t]) :: :ok
   defp save_list(path, title, posts) do
     template = Serum.get_data "template", "list"
     html =
