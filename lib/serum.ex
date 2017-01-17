@@ -21,10 +21,12 @@ defmodule Serum do
 
     bd_args  = [fn -> %{} end, [name: Serum.BuildData]]
     pis_args = [fn -> [] end,  [name: Serum.PostInfoStorage]]
+    ts_args  = [fn -> %{} end, [name: Serum.TagStorage]]
 
     children = [
-      worker(Agent, bd_args, id: "serum_bd"),
-      worker(Agent, pis_args, id: "serum_pis")
+      worker(Agent, bd_args,  id: "serum_bd"),
+      worker(Agent, pis_args, id: "serum_pis"),
+      worker(Agent, ts_args,  id: "serum_ts")
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
