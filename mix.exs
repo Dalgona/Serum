@@ -20,12 +20,12 @@ defmodule Serum.Mixfile do
     [{:earmark, "~> 1.0.1"},
      {:poison, "~> 2.2"},
      {:fs, github: "Dalgona/fs"},
-     {:microscope, "~> 0.4.2"},
+     {:microscope, "~> 1.0"},
      {:timex, "~> 3.0"},
      {:tzdata, "~> 0.1.8", override: true},
-     {:floki, "~> 0.10.1"},
+     {:floki, "~> 0.12"},
      {:ex_json_schema, "~> 0.5.2"},
      {:credo, "~> 0.5", only: [:dev, :test]},
-     {:dialyxir, "~> 0.4.0", only: [:dev, :test]}]
+     {:dialyxir, "~> 0.4", only: [:dev, :test]}]
   end
 end
