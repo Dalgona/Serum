@@ -15,30 +15,30 @@ defmodule Serum.Build.PageBuilder do
 
   def run(src, dest, mode) do
     files = Serum.get_data "pages_file"
-    result = launch mode, src, dest, files
+    result = launch mode, files, src, dest
     Error.filter_results result, :page_builder
   end
 
   # Launches individual page build tasks if the program is running in `parallel`
   # mode, otherwise performs the tasks one by one.
-  @spec launch(Build.build_mode, String.t, String.t, String.t)
+  @spec launch(Build.build_mode, [String.t], String.t, String.t)
     :: [Error.result]
 
-  defp launch(:parallel, src, dest, files) do
+  defp launch(:parallel, files, src, dest) do
     files
-    |> Enum.map(&Task.async(__MODULE__, :page_task, [src, dest, &1]))
-    |> Enum.map(&Task.await/1)
+    |> Task.async_stream(__MODULE__, :page_task, [src, dest])
+    |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, src, dest, files) do
+  defp launch(:sequential, files, src, dest) do
     files
-    |> Enum.map(&page_task(src, dest, &1))
+    |> Enum.map(&page_task(&1, src, dest))
   end
 
   @doc "Defines the individual page build task."
   @spec page_task(String.t, String.t, String.t) :: Error.result
 
-  def page_task(src, dest, fname) do
+  def page_task(fname, src, dest) do
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
