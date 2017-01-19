@@ -163,11 +163,11 @@ defmodule Serum.Build.PostBuilder do
       title = String.trim title
       tags =
         tags
-        |> String.split(~r/, ?/)
-        |> Enum.filter_map(&(String.trim(&1) != ""), fn x ->
-          tag = String.trim x
-          %Serum.Tag{name: tag, list_url: "#{base}tags/#{tag}"}
-        end)
+        |> String.split(~r/, */)
+        |> Stream.map(&String.trim/1)
+        |> Stream.reject(&(&1 == ""))
+        |> Enum.sort
+        |> Enum.map(&(%Serum.Tag{name: &1, list_url: "#{base}tags/#{&1}"}))
       {:ok, {title, tags, rest}}
     rescue
       _ in MatchError ->
