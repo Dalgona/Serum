@@ -32,7 +32,7 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec update_tags([Serum.Postinfo.t]) :: :ok
+  @spec update_tags([Serum.PostInfo.t]) :: :ok
 
   defp update_tags(infolist) do
     Agent.update Serum.TagStorage, fn _ -> %{} end
@@ -71,7 +71,7 @@ defmodule Serum.Build.IndexBuilder do
     save_list "#{tagdir}index.html", title, posts
   end
 
-  @spec save_list(String.t, String.t, [Serum.Postinfo.t]) :: :ok
+  @spec save_list(String.t, String.t, [Serum.PostInfo.t]) :: :ok
 
   defp save_list(path, title, posts) do
     template = Serum.get_data "template", "list"
