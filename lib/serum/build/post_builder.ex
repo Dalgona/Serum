@@ -18,6 +18,7 @@ defmodule Serum.Build.PostBuilder do
 
   @default_preview_length 200
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
+  @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
@@ -57,7 +58,7 @@ defmodule Serum.Build.PostBuilder do
 
   defp launch(:parallel, files, srcdir, dstdir) do
     files
-    |> Task.async_stream(__MODULE__, :post_task, [srcdir, dstdir])
+    |> Task.async_stream(__MODULE__, :post_task, [srcdir, dstdir], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 

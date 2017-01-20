@@ -10,6 +10,8 @@ defmodule Serum.Build.PageBuilder do
 
   @typep header :: {String.t, [String.t]}
 
+  @async_opt [max_concurrency: System.schedulers_online * 10]
+
   @doc "Starts building pages in the `/path/to/project/pages` directory."
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
@@ -26,7 +28,7 @@ defmodule Serum.Build.PageBuilder do
 
   defp launch(:parallel, files, src, dest) do
     files
-    |> Task.async_stream(__MODULE__, :page_task, [src, dest])
+    |> Task.async_stream(__MODULE__, :page_task, [src, dest], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 

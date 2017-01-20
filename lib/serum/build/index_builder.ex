@@ -10,6 +10,7 @@ defmodule Serum.Build.IndexBuilder do
 
   @default_title_all "All Posts"
   @default_title_tag "Posts Tagged ~s"
+  @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
@@ -51,13 +52,13 @@ defmodule Serum.Build.IndexBuilder do
 
   defp launch_tag(:parallel, tagmap, dir) do
     tagmap
-    |> Task.async_stream(__MODULE__, :tag_task, [dir])
+    |> Task.async_stream(__MODULE__, :tag_task, [dir], @async_opt)
     |> Enum.map(&elem(&1, 1))
   end
 
   defp launch_tag(:sequential, tagmap, dir) do
     tagmap
-    |> Enum.map(&tag_task(dir, &1))
+    |> Enum.map(&tag_task(&1, dir))
   end
 
   @spec tag_task({Serum.Tag.t, MapSet.t}, String.t) :: :ok
