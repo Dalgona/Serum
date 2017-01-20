@@ -17,7 +17,10 @@ defmodule Serum.PostInfo do
     base = Serum.get_data "proj", "base_url"
     date_fmt = Serum.get_data("proj", "date_format") || @default_date_format
     {title, tags, _lines} = header
-    date_str = raw_date |> Timex.to_datetime(:local) |> Timex.format!(date_fmt)
+    date_str =
+      raw_date
+      |> Timex.to_datetime(:local)
+      |> Timex.format!(date_fmt)
     %Serum.PostInfo{
       file: filename,
       title: title,
