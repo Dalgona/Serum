@@ -2,7 +2,7 @@ defmodule Serum.PostBuilderTest do
   use ExUnit.Case, async: true
   import Serum.Build.PostBuilder
 
-  setup_all do
+  setup do
     Serum.put_data "proj", "base_url", "/test/"
   end
 
