@@ -3,7 +3,7 @@ defmodule Serum.Mixfile do
 
   def project do
     [app: :serum,
-     version: "0.9.0+201701200921",
+     version: "0.9.0+201701212002",
      elixir: "~> 1.4",
      escript: [main_module: Serum.Cmdline],
      build_embedded: Mix.env == :prod,

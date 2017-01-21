@@ -120,7 +120,7 @@ defmodule Serum.Build.PostBuilder do
     template = Serum.get_data "template", "post"
     template
     |> Renderer.render([title: info.title, date: info.date,
-      tags: info.tags, contents: contents])
+      raw_date: info.raw_date, tags: info.tags, contents: contents])
     |> Renderer.genpage([page_title: info.title])
   end
 

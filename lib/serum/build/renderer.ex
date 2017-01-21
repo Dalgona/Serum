@@ -5,9 +5,9 @@ defmodule Serum.Build.Renderer do
 
   alias Serum.Build
 
-  @re_media ~r/(?<type>href|src)="%25media:(?<url>[^"]*)"/
-  @re_posts ~r/(?<type>href|src)="%25posts:(?<url>[^"]*)"/
-  @re_pages ~r/(?<type>href|src)="%25pages:(?<url>[^"]*)"/
+  @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
+  @re_posts ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
+  @re_pages ~r/(?<type>href|src)="(?:%|%25)pages:(?<url>[^"]*)"/
 
   @spec genpage(String.t, keyword) :: String.t
 
