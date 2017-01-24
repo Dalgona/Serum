@@ -1,5 +1,5 @@
 defmodule Serum.TemplateHelperTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import Serum.TemplateHelper
   alias Serum.Build.Preparation
 

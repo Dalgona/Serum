@@ -1,6 +1,10 @@
 defmodule Serum.PreparationTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import Serum.Build.Preparation
+
+  setup_all do
+    on_exit :remove_data, fn -> Serum.init_data end
+  end
 
   describe "load_info/1" do
     test "all ok" do

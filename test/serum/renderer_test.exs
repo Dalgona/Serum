@@ -1,5 +1,5 @@
 defmodule Serum.RendererTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import Serum.Build.Renderer
 
   setup_all do

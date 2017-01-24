@@ -1,9 +1,10 @@
 defmodule Serum.PostBuilderTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   import Serum.Build.PostBuilder
 
-  setup do
+  setup_all do
     Serum.put_data "proj", "base_url", "/test/"
+    on_exit :remove_data, fn -> Serum.init_data end
   end
 
   describe "extract_header/1" do
