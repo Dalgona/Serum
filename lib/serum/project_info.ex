@@ -1,4 +1,12 @@
 defmodule Serum.ProjectInfo do
+  @moduledoc """
+  This module defines a struct for storing Serum project metadata.
+
+  This module also implements a GenServer which keeps a ProjectInfo struct
+  as its state and provides access to the project metadata during build
+  processes.
+  """
+
   use GenServer
   import Serum.Util
 
