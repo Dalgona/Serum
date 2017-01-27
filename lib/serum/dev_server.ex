@@ -20,6 +20,7 @@ defmodule Serum.DevServer do
       IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
       IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
     else
+      {:ok, _pid} = ProjectInfo.start_link
       case Preparation.load_info dir do
         :ok ->
           base = ProjectInfo.get :base_url

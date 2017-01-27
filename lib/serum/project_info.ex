@@ -81,7 +81,12 @@ defmodule Serum.ProjectInfo do
   @spec start_link() :: {:ok, pid}
 
   def start_link do
-    GenServer.start_link __MODULE__, [], name: __MODULE__
+    case Process.whereis __MODULE__ do
+      nil ->
+        GenServer.start_link __MODULE__, [], name: __MODULE__
+      running when is_pid(running) ->
+        {:ok, running}
+    end
   end
 
   @spec load(t) :: :ok
