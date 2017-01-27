@@ -30,7 +30,7 @@ defmodule Serum.Build.Preparation do
     case Poison.decode data do
       {:ok, proj} ->
         validate proj
-      {:error, {:invalid, pos}} ->
+      {:error, :invalid, pos} ->
         {:error, :json_error,
          {"parse error at position #{pos}", path, 0}}
       {:error, {:invalid, token, pos}} ->

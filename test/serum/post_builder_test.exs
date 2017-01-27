@@ -1,10 +1,13 @@
 defmodule Serum.PostBuilderTest do
   use ExUnit.Case
   import Serum.Build.PostBuilder
+  alias Serum.ProjectInfo
 
   setup_all do
-    Serum.put_data "proj", "base_url", "/test/"
-    on_exit :remove_data, fn -> Serum.init_data end
+    ProjectInfo.start_link
+    %{"base_url" => "/test/"}
+    |> ProjectInfo.new()
+    |> ProjectInfo.load()
   end
 
   describe "extract_header/1" do

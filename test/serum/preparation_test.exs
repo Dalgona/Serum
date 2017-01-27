@@ -1,9 +1,11 @@
 defmodule Serum.PreparationTest do
   use ExUnit.Case
   import Serum.Build.Preparation
+  alias Serum.ProjectInfo
 
   setup_all do
-    on_exit :remove_data, fn -> Serum.init_data end
+    ProjectInfo.start_link
+    :ok
   end
 
   describe "load_info/1" do
@@ -19,7 +21,7 @@ defmodule Serum.PreparationTest do
     test "malformed json type 1" do
       path = priv_dir "test_projinfo/badjson"
       expected = {:error, :json_error,
-        {:invalid_json, path <> "serum.json", 0}
+        {"parse error at position 0", path <> "serum.json", 0}
       }
       assert expected == load_info path
     end
@@ -27,7 +29,7 @@ defmodule Serum.PreparationTest do
     test "malformed json type 2" do
       path = priv_dir "test_projinfo/badjson_info"
       expected = {:error, :json_error,
-        {"parse error near `}`", path <> "serum.json", 0}
+        {"parse error near `}' at position 25", path <> "serum.json", 0}
       }
       assert expected == load_info path
     end

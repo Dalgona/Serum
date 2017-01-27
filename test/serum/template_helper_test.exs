@@ -2,9 +2,11 @@ defmodule Serum.TemplateHelperTest do
   use ExUnit.Case
   import Serum.TemplateHelper
   alias Serum.Build.Preparation
+  alias Serum.ProjectInfo
 
   setup_all do
     priv = :serum |> :code.priv_dir |> IO.iodata_to_binary
+    ProjectInfo.start_link
     Preparation.load_info "#{priv}/testsite_good/"
   end
 
