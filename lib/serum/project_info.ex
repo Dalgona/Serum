@@ -1,5 +1,10 @@
 defmodule Serum.ProjectInfo do
+  use GenServer
   import Serum.Util
+
+  #
+  # Struct and its Helper Functions
+  #
 
   @enforce_keys [
     :site_name, :site_description, :base_url, :author, :author_email
@@ -67,5 +72,46 @@ defmodule Serum.ProjectInfo do
         warn "The default format string will be used instead."
         Map.delete map, "list_title_tag"
     end
+  end
+
+  #
+  # GenServer Implementation - Client
+  #
+
+  @spec start_link() :: {:ok, pid}
+
+  def start_link do
+    GenServer.start_link __MODULE__, [], name: __MODULE__
+  end
+
+  @spec load(t) :: :ok
+
+  def load(proj) do
+    GenServer.cast __MODULE__, {:load, proj}
+  end
+
+  @spec get(atom) :: term
+
+  def get(key) do
+    GenServer.call __MODULE__, {:get, key}
+  end
+
+  #
+  # GenServer Implementation - Server
+  #
+
+  def init(_state), do: {:ok, nil}
+
+  def handle_cast({:load, proj}, _state) do
+    {:noreply, proj}
+  end
+
+  def handle_call({:get, _key}, _from, nil) do
+    warn "project info is not loaded yet"
+    {:reply, nil, nil}
+  end
+
+  def handle_call({:get, key}, _from, proj) do
+    {:reply, Map.get(proj, key), proj}
   end
 end

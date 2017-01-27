@@ -5,11 +5,10 @@ defmodule Serum.Build.IndexBuilder do
 
   import Serum.Util
   alias Serum.Error
+  alias Serum.ProjectInfo
   alias Serum.Build
   alias Serum.Build.Renderer
 
-  @default_title_all "All Posts"
-  @default_title_tag "Posts Tagged ~s"
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
@@ -20,7 +19,7 @@ defmodule Serum.Build.IndexBuilder do
       infolist = Serum.PostInfoStorage
             |> Agent.get(&(&1))
             |> Enum.sort_by(&(&1.file))
-      title = Serum.get_data("proj", "list_title_all") || @default_title_all
+      title = ProjectInfo.get :list_title_all
 
       IO.puts "Generating posts index..."
       save_list "#{dstdir}index.html", title, Enum.reverse(infolist)
@@ -65,7 +64,7 @@ defmodule Serum.Build.IndexBuilder do
 
   def tag_task({tag, post_set}, dest) do
     tagdir = "#{dest}tags/#{tag.name}/"
-    fmt = Serum.get_data("proj", "list_title_tag") || @default_title_tag
+    fmt = ProjectInfo.get :list_title_tag
     title = fmt |> :io_lib.format([tag.name]) |> IO.iodata_to_binary
     posts = post_set |> MapSet.to_list |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir

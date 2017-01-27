@@ -5,6 +5,7 @@ defmodule Serum.Build do
 
   import Serum.Util
   alias Serum.Error
+  alias Serum.ProjectInfo
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
@@ -12,6 +13,7 @@ defmodule Serum.Build do
 
   @spec build(String.t, String.t, build_mode) :: Error.result(String.t)
   def build(src, dest, mode) do
+    ProjectInfo.start_link
     src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
     dest = String.ends_with?(dest, "/") && dest || dest <> "/"

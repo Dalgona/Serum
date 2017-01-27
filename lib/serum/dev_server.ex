@@ -6,6 +6,7 @@ defmodule Serum.DevServer do
   alias Serum.Error
   alias Serum.Build.Preparation
   alias Serum.DevServer.{DirStatus, Service, AutoBuilder, Looper}
+  alias Serum.ProjectInfo
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
   def run(dir, port) do
@@ -21,7 +22,7 @@ defmodule Serum.DevServer do
     else
       case Preparation.load_info dir do
         :ok ->
-          base = Serum.get_data "proj", "base_url"
+          base = ProjectInfo.get :base_url
           ms_callbacks = [Microscope.Logger, AutoBuilder]
           ms_options   = [port: port, base: base, callbacks: ms_callbacks]
           children = [

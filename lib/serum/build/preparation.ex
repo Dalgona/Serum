@@ -1,5 +1,4 @@
 defmodule Serum.Build.Preparation do
-  import Serum.Util
   alias Serum.Error
   alias Serum.ProjectInfo
   alias Serum.Validation
@@ -45,42 +44,9 @@ defmodule Serum.Build.Preparation do
     Validation.load_schema
     case Validation.validate "serum.json", proj do
       :ok ->
-        Serum.put_data "proj", ProjectInfo.new(proj)
-        Enum.each proj, fn {k, v} -> Serum.put_data "proj", k, v end
-        check_date_format()
-        check_list_title_format()
+        proj |> ProjectInfo.new() |> ProjectInfo.load()
         :ok
       error -> error
-    end
-  end
-
-  @spec check_date_format() :: :ok
-  defp check_date_format do
-    fmt = Serum.get_data "proj", "date_format"
-    if fmt != nil do
-      case Timex.validate_format fmt do
-        :ok -> :ok
-        {:error, message} ->
-          warn "Invalid date format string `date_format`:"
-          warn "  " <> message
-          warn "The default format string will be used instead."
-          Serum.del_data "proj", "date_format"
-      end
-    end
-  end
-
-  @spec check_list_title_format() :: :ok
-  defp check_list_title_format do
-    fmt = Serum.get_data "proj", "list_title_tag"
-    try do
-      if fmt != nil do
-        fmt |> :io_lib.format(["test"]) |> IO.iodata_to_binary
-      end
-    rescue
-      _e in ArgumentError ->
-        warn "Invalid post list title format string `list_title_tag`."
-        warn "The default format string will be used instead."
-        Serum.del_data "proj", "list_title_tag"
     end
   end
 

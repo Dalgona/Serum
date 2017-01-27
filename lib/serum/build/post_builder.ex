@@ -9,6 +9,7 @@ defmodule Serum.Build.PostBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
   alias Serum.PostInfo
+  alias Serum.ProjectInfo
 
   @type erl_datetime :: {erl_date, erl_time}
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
@@ -16,7 +17,6 @@ defmodule Serum.Build.PostBuilder do
 
   @typep header :: {String.t, [Serum.Tag.t], [String.t]}
 
-  @default_preview_length 200
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
@@ -97,7 +97,7 @@ defmodule Serum.Build.PostBuilder do
   @spec make_preview(String.t) :: String.t
 
   defp make_preview(html) do
-    maxlen = Serum.get_data("proj", "preview_length") || @default_preview_length
+    maxlen = ProjectInfo.get :preview_length
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
@@ -151,7 +151,7 @@ defmodule Serum.Build.PostBuilder do
   @spec extract_header(String.t) :: Error.result(header)
 
   def extract_header(fname) do
-    base = Serum.get_data "proj", "base_url"
+    base = ProjectInfo.get :base_url
     case File.read fname do
       {:ok, data} ->
         do_extract_header fname, base, data

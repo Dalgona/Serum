@@ -4,6 +4,7 @@ defmodule Serum.Build.Renderer do
   """
 
   alias Serum.Build
+  alias Serum.ProjectInfo
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
   @re_posts ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
@@ -28,7 +29,7 @@ defmodule Serum.Build.Renderer do
   @spec process_links(String.t) :: String.t
 
   def process_links(text) do
-    base = Serum.get_data "proj", "base_url"
+    base = ProjectInfo.get :base_url
     text = Regex.replace @re_media, text, ~s(\\1="#{base}media/\\2")
     text = Regex.replace @re_posts, text, ~s(\\1="#{base}posts/\\2.html")
     text = Regex.replace @re_pages, text, ~s(\\1="#{base}\\2.html")

@@ -2,10 +2,9 @@ defmodule Serum.PostInfo do
   @moduledoc "This module defines PostInfo struct."
 
   alias Serum.Build
+  alias Serum.ProjectInfo
 
   @type t :: %Serum.PostInfo{}
-
-  @default_date_format    "{YYYY}-{0M}-{0D}"
 
   defstruct [:file, :title, :date, :raw_date, :tags, :url, :preview_text]
 
@@ -14,8 +13,8 @@ defmodule Serum.PostInfo do
     :: Serum.PostInfo.t
 
   def new(filename, header, raw_date, preview) do
-    base = Serum.get_data "proj", "base_url"
-    date_fmt = Serum.get_data("proj", "date_format") || @default_date_format
+    base = ProjectInfo.get :base_url
+    date_fmt = ProjectInfo.get :date_format
     {title, tags, _lines} = header
     date_str =
       raw_date
