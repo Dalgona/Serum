@@ -1,6 +1,7 @@
 defmodule Serum.Build.Preparation do
   import Serum.Util
   alias Serum.Error
+  alias Serum.ProjectInfo
   alias Serum.Validation
 
   @spec check_tz() :: Error.result
@@ -30,10 +31,12 @@ defmodule Serum.Build.Preparation do
     case Poison.decode data do
       {:ok, proj} ->
         validate proj
-      {:error, :invalid} ->
-        {:error, :json_error, {:invalid_json, path, 0}}
-      {:error, {:invalid, token}} ->
-        {:error, :json_error, {"parse error near `#{token}`", path, 0}}
+      {:error, {:invalid, pos}} ->
+        {:error, :json_error,
+         {"parse error at position #{pos}", path, 0}}
+      {:error, {:invalid, token, pos}} ->
+        {:error, :json_error,
+         {"parse error near `#{token}' at position #{pos}", path, 0}}
     end
   end
 
@@ -42,6 +45,7 @@ defmodule Serum.Build.Preparation do
     Validation.load_schema
     case Validation.validate "serum.json", proj do
       :ok ->
+        Serum.put_data "proj", ProjectInfo.new(proj)
         Enum.each proj, fn {k, v} -> Serum.put_data "proj", k, v end
         check_date_format()
         check_list_title_format()

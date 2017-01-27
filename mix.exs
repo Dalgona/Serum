@@ -18,7 +18,7 @@ defmodule Serum.Mixfile do
 
   defp deps do
     [{:earmark, "~> 1.0.1"},
-     {:poison, "~> 2.2"},
+     {:poison, "~> 3.1"},
      {:fs, github: "Dalgona/fs"},
      {:microscope, "~> 1.0"},
      {:timex, "~> 3.0"},

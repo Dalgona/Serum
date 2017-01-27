@@ -13,7 +13,7 @@
   "mime": {:hex, :mime, "1.0.1", "05c393850524767d13a53627df71beeebb016205eb43bfbd92d14d24ec7a1b51", [:mix], []},
   "mochiweb": {:hex, :mochiweb, "2.15.0", "e1daac474df07651e5d17cc1e642c4069c7850dc4508d3db7263a0651330aacc", [:rebar3], []},
   "mochiweb_html": {:hex, :mochiweb_html, "2.15.0", "d7402e967d7f9f2912f8befa813c37be62d5eeeddbbcb6fe986c44e01460d497", [:rebar3], []},
-  "poison": {:hex, :poison, "2.2.0", "4763b69a8a77bd77d26f477d196428b741261a761257ff1cf92753a0d4d24a63", [:mix], []},
+  "poison": {:hex, :poison, "3.1.0", "d9eb636610e096f86f25d9a46f35a9facac35609a7591b3be3326e99a0484665", [:mix], []},
   "ranch": {:hex, :ranch, "1.2.1", "a6fb992c10f2187b46ffd17ce398ddf8a54f691b81768f9ef5f461ea7e28c762", [:make], []},
   "timex": {:hex, :timex, "3.1.7", "71f9c32e13ff4860e86a314303757cc02b3ead5db6e977579a2935225ce9a666", [:mix], [{:combine, "~> 0.7", [hex: :combine, optional: false]}, {:gettext, "~> 0.10", [hex: :gettext, optional: false]}, {:tzdata, "~> 0.1.8 or ~> 0.5", [hex: :tzdata, optional: false]}]},
   "tzdata": {:hex, :tzdata, "0.1.201605", "0c4184819b9d6adedcc02107b68321c45d8e853def7a32629b7961b9f2e95f33", [:mix], []}}
