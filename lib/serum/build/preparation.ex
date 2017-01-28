@@ -5,7 +5,7 @@ defmodule Serum.Build.Preparation do
   """
 
   alias Serum.Error
-  alias Serum.ProjectInfo
+  alias Serum.Build.ProjectInfo
   alias Serum.Validation
 
   @spec check_tz() :: Error.result
@@ -49,8 +49,7 @@ defmodule Serum.Build.Preparation do
     Validation.load_schema
     case Validation.validate "serum.json", proj do
       :ok ->
-        proj |> ProjectInfo.new() |> ProjectInfo.load()
-        :ok
+        ProjectInfo.load(self(), ProjectInfo.new(proj))
       error -> error
     end
   end
