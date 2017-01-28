@@ -1,54 +1,61 @@
 defmodule Serum.Build.BuildData do
-  @spec start_link(String.t) :: {:ok, pid}
-
-  def start_link(id) do
-    name = {:via, Registry, {Serum.Registry, id}}
-    Agent.start_link fn -> %{} end, name: name
+  defmacro name(owner) do
+    quote do
+      {:via, Registry, {Serum.Registry, {:build_data, unquote(owner)}}}
+    end
   end
 
-  @spec init(String.t) :: :ok
+  @spec start_link(pid) :: {:ok, pid}
 
-  def init(id) do
-    name = {:via, Registry, {Serum.Registry, id}}
-    Agent.update name, fn _ -> %{} end
+  def start_link(owner) do
+    Agent.start_link fn -> %{} end, name: name(owner)
   end
 
-  @spec put(String.t, String.t, term) :: :ok
+  @spec init(pid) :: :ok
 
-  def put(id, key, value) do
-    name = {:via, Registry, {Serum.Registry, id}}
-    Agent.update name, &Map.put(&1, key, value)
+  def init(owner) do
+    Agent.update name(owner), fn _ -> %{} end
   end
 
-  @spec put(String.t, String.t, String.t, term) :: :ok
+  @spec put(pid, String.t, term) :: :ok
 
-  def put(id, path, key, value) do
-    put id, path <> "__" <> key, value
+  def put(owner, key, value) do
+    Agent.update name(owner), &Map.put(&1, key, value)
   end
 
-  @spec get(String.t, String.t) :: term | nil
+  @spec put(pid, String.t, String.t, term) :: :ok
 
-  def get(id, key) do
-    name = {:via, Registry, {Serum.Registry, id}}
-    Agent.get name, &Map.get(&1, key)
+  def put(owner, path, key, value) do
+    put owner, path <> "__" <> key, value
   end
 
-  @spec get(String.t, String.t, String.t) :: term | nil
+  @spec get(pid, String.t) :: term | nil
 
-  def get(id, path, key) do
-    get id, path <> "__" <> key
+  def get(owner, key) do
+    Agent.get name(owner), &Map.get(&1, key)
   end
 
-  @spec delete(String.t, String.t) :: :ok
+  @spec get(pid, String.t, String.t) :: term | nil
 
-  def delete(id, key) do
-    name = {:via, Registry, {Serum.Registry, id}}
-    Agent.update name, &Map.delete(&1, key)
+  def get(owner, path, key) do
+    get owner, path <> "__" <> key
   end
 
-  @spec delete(String.t, String.t, String.t) :: :ok
+  @spec delete(pid, String.t) :: :ok
 
-  def delete(id, path, key) do
-    delete id, path <> "__" <> key
+  def delete(owner, key) do
+    Agent.update name(owner), &Map.delete(&1, key)
+  end
+
+  @spec delete(pid, String.t, String.t) :: :ok
+
+  def delete(owner, path, key) do
+    delete owner, path <> "__" <> key
+  end
+
+  @spec stop(pid) :: :ok
+
+  def stop(owner) do
+    Agent.stop name(owner)
   end
 end
