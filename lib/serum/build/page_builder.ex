@@ -16,7 +16,7 @@ defmodule Serum.Build.PageBuilder do
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
   def run(src, dest, mode) do
-    files = Serum.get_data "pages_file"
+    files = Serum.Build.BuildData.get "global", "pages_file"
     result = launch mode, files, src, dest
     Error.filter_results result, :page_builder
   end
@@ -44,7 +44,7 @@ defmodule Serum.Build.PageBuilder do
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
-    template = Serum.get_data "template", "page"
+    template = Serum.Build.BuildData.get "global", "template", "page"
 
     case extract_header fname do
       {:ok, {title, rest}} ->

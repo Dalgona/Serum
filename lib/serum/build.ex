@@ -39,8 +39,8 @@ defmodule Serum.Build do
     :: Error.result(String.t)
   defp do_build_stage1(src, dest, mode) do
     IO.puts "Rebuilding Website..."
-    Serum.init_data
-    Serum.put_data "pages_file", []
+    Serum.Build.BuildData.init "global"
+    Serum.Build.BuildData.put "global", "pages_file", []
 
     clean_dest dest
     prep_results =
@@ -111,9 +111,9 @@ defmodule Serum.Build do
   @spec compile_nav() :: :ok
   defp compile_nav do
     IO.puts "Compiling main navigation HTML stub..."
-    template = Serum.get_data "template", "nav"
+    template = Serum.Build.BuildData.get "global", "template", "nav"
     html = Renderer.render template, []
-    Serum.put_data "navstub", html
+    Serum.Build.BuildData.put "global", "navstub", html
   end
 
   @spec copy_assets(String.t, String.t) :: :ok

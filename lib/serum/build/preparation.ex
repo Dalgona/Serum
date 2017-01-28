@@ -71,7 +71,7 @@ defmodule Serum.Build.Preparation do
         try do
           template_str = "<% import Serum.TemplateHelper %>" <> data
           ast = EEx.compile_string template_str
-          Serum.put_data "template", name, ast
+          Serum.Build.BuildData.put "global", "template", name, ast
           :ok
         rescue
           e in EEx.SyntaxError ->
@@ -105,7 +105,7 @@ defmodule Serum.Build.Preparation do
           f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!
           do_scan_pages f, src, dest
         String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
-          Serum.put_data "pages_file", [f|Serum.get_data "pages_file"]
+          Serum.Build.BuildData.put "global", "pages_file", [f|Serum.Build.BuildData.get("global", "pages_file")]
         :otherwise -> :skip
       end
     end)

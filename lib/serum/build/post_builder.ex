@@ -117,7 +117,7 @@ defmodule Serum.Build.PostBuilder do
   @spec render_post(String.t, Serum.PostInfo.t) :: String.t
 
   defp render_post(contents, info) do
-    template = Serum.get_data "template", "post"
+    template = Serum.Build.BuildData.get "global", "template", "post"
     template
     |> Renderer.render([title: info.title, date: info.date,
       raw_date: info.raw_date, tags: info.tags, contents: contents])

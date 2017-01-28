@@ -39,10 +39,10 @@ defmodule Serum.Validation do
   @spec load_schema() :: :ok
   def load_schema do
     ["*", "serum.json"]
-    |> Enum.filter(fn x -> Serum.get_data("schema", x) == nil end)
+    |> Enum.filter(fn x -> Serum.Build.BuildData.get("global", "schema", x) == nil end)
     |> Enum.each(fn x ->
       sch = x |> schema |> Poison.decode! |> Schema.resolve
-      Serum.put_data "schema", x, sch
+      Serum.Build.BuildData.put "global", "schema", x, sch
     end)
   end
 
@@ -52,7 +52,7 @@ defmodule Serum.Validation do
   @spec validate(String.t, map) :: Error.result
   def validate(schema_name, data) do
     schema =
-      Serum.get_data("schema", schema_name) || Serum.get_data("schema", "*")
+      Serum.Build.BuildData.get("global", "schema", schema_name) || Serum.Build.BuildData.get("global", "schema", "*")
     case Validator.validate schema, data do
       :ok -> :ok
       {:error, errors} ->

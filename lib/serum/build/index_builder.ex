@@ -74,7 +74,7 @@ defmodule Serum.Build.IndexBuilder do
   @spec save_list(String.t, String.t, [Serum.PostInfo.t]) :: :ok
 
   defp save_list(path, title, posts) do
-    template = Serum.get_data "template", "list"
+    template = Serum.Build.BuildData.get "global", "template", "list"
     html =
       template
       |> Renderer.render([header: title, posts: posts])

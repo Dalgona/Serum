@@ -13,9 +13,9 @@ defmodule Serum.Build.Renderer do
   @spec genpage(String.t, keyword) :: String.t
 
   def genpage(contents, ctx) do
-    base = Serum.get_data "template", "base"
+    base = Serum.Build.BuildData.get "global", "template", "base"
     contents = process_links contents
-    binding = [contents: contents, navigation: Serum.get_data("navstub")]
+    binding = [contents: contents, navigation: Serum.Build.BuildData.get("global", "navstub")]
     render base, ctx ++ binding
   end
 
