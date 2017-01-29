@@ -29,12 +29,12 @@ defmodule Serum.Build.ProjectInfo do
     list_title_all: "All Posts", list_title_tag: "Posts Tagged ~s"
   ]
 
-  @type t :: %Serum.ProjectInfo{}
+  @type t :: %Serum.Build.ProjectInfo{}
 
   @spec new(map) :: t
 
   def new(map) do
-    default = %Serum.ProjectInfo{
+    default = %Serum.Build.ProjectInfo{
       site_name: "", site_description: "", base_url: "",
       author: "", author_email: ""
     }
