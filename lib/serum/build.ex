@@ -5,7 +5,7 @@ defmodule Serum.Build do
 
   import Serum.Util
   alias Serum.Error
-  alias Serum.ProjectInfo
+  alias Serum.Build.BuildData
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
@@ -13,11 +13,6 @@ defmodule Serum.Build do
 
   @spec build(String.t, String.t, build_mode) :: Error.result(String.t)
   def build(src, dest, mode) do
-    ProjectInfo.start_link
-    src = String.ends_with?(src, "/") && src || src <> "/"
-    dest = dest || src <> "site/"
-    dest = String.ends_with?(dest, "/") && dest || dest <> "/"
-
     case check_access dest do
       :ok -> do_build_stage1 src, dest, mode
       err -> {:error, :file_error, {err, dest, 0}}
@@ -39,13 +34,12 @@ defmodule Serum.Build do
     :: Error.result(String.t)
   defp do_build_stage1(src, dest, mode) do
     IO.puts "Rebuilding Website..."
-    Serum.Build.BuildData.init "global"
-    Serum.Build.BuildData.put "global", "pages_file", []
+    BuildData.init self()
+    BuildData.put self(), "pages_file", []
 
     clean_dest dest
     prep_results =
       [check_tz: [],
-       load_info: [src],
        load_templates: [src],
        scan_pages: [src, dest]]
       |> Enum.map(fn {fun, args} ->
@@ -111,9 +105,9 @@ defmodule Serum.Build do
   @spec compile_nav() :: :ok
   defp compile_nav do
     IO.puts "Compiling main navigation HTML stub..."
-    template = Serum.Build.BuildData.get "global", "template", "nav"
+    template = BuildData.get self(), "template", "nav"
     html = Renderer.render template, []
-    Serum.Build.BuildData.put "global", "navstub", html
+    BuildData.put self(), "navstub", html
   end
 
   @spec copy_assets(String.t, String.t) :: :ok

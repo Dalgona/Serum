@@ -54,6 +54,7 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call({:build, mode}, _from, {src, dest}) do
+    result = Serum.Build.build src, dest, mode
     {:reply, :not_implemented, {src, dest}}
   end
 

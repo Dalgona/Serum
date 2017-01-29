@@ -1,8 +1,9 @@
 defmodule Serum.PostInfo do
   @moduledoc "This module defines PostInfo struct."
 
+  import Serum.Util
   alias Serum.Build
-  alias Serum.ProjectInfo
+  alias Serum.Build.ProjectInfo
 
   @type t :: %Serum.PostInfo{}
 
@@ -13,8 +14,8 @@ defmodule Serum.PostInfo do
     :: Serum.PostInfo.t
 
   def new(filename, header, raw_date, preview) do
-    base = ProjectInfo.get :base_url
-    date_fmt = ProjectInfo.get :date_format
+    base = ProjectInfo.get owner(), :base_url
+    date_fmt = ProjectInfo.get owner(), :date_format
     {title, tags, _lines} = header
     date_str =
       raw_date

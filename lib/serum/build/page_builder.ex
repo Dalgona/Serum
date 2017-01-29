@@ -6,6 +6,7 @@ defmodule Serum.Build.PageBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
+  alias Serum.Build.BuildData
   alias Serum.Build.Renderer
 
   @typep header :: {String.t, [String.t]}
@@ -16,7 +17,7 @@ defmodule Serum.Build.PageBuilder do
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
   def run(src, dest, mode) do
-    files = Serum.Build.BuildData.get "global", "pages_file"
+    files = BuildData.get owner(), "pages_file"
     result = launch mode, files, src, dest
     Error.filter_results result, :page_builder
   end
@@ -27,24 +28,26 @@ defmodule Serum.Build.PageBuilder do
     :: [Error.result]
 
   defp launch(:parallel, files, src, dest) do
+    own = owner()
     files
-    |> Task.async_stream(__MODULE__, :page_task, [src, dest], @async_opt)
+    |> Task.async_stream(__MODULE__, :page_task, [src, dest, own], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
   defp launch(:sequential, files, src, dest) do
-    files
-    |> Enum.map(&page_task(&1, src, dest))
+    own = self()
+    files |> Enum.map(&page_task(&1, src, dest, own))
   end
 
   @doc "Defines the individual page build task."
-  @spec page_task(String.t, String.t, String.t) :: Error.result
+  @spec page_task(String.t, String.t, String.t, pid) :: Error.result
 
-  def page_task(fname, src, dest) do
+  def page_task(fname, src, dest, owner) do
+    Process.link owner
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
-    template = Serum.Build.BuildData.get "global", "template", "page"
+    template = BuildData.get owner(), "template", "page"
 
     case extract_header fname do
       {:ok, {title, rest}} ->
@@ -87,12 +90,12 @@ defmodule Serum.Build.PageBuilder do
   defp render("md", md, title, template) do
     template
     |> Renderer.render([contents: Earmark.to_html(md)])
-    |> Renderer.genpage([page_title: title])
+    |> Renderer.genpage([page_title: title], owner())
   end
 
   defp render("html", html, title, template) do
     template
     |> Renderer.render([contents: html])
-    |> Renderer.genpage([page_title: title])
+    |> Renderer.genpage([page_title: title], owner())
   end
 end

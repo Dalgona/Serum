@@ -7,9 +7,10 @@ defmodule Serum.Build.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
+  alias Serum.Build.BuildData
+  alias Serum.Build.ProjectInfo
   alias Serum.Build.Renderer
   alias Serum.PostInfo
-  alias Serum.ProjectInfo
 
   @type erl_datetime :: {erl_date, erl_time}
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
@@ -56,22 +57,24 @@ defmodule Serum.Build.PostBuilder do
   @spec launch(Build.build_mode, [String.t], String.t, String.t)
     :: [Error.result]
 
-  defp launch(:parallel, files, srcdir, dstdir) do
+  defp launch(:parallel, files, src, dst) do
+    own = owner()
     files
-    |> Task.async_stream(__MODULE__, :post_task, [srcdir, dstdir], @async_opt)
+    |> Task.async_stream(__MODULE__, :post_task, [src, dst, own], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
   defp launch(:sequential, files, srcdir, dstdir) do
-    files
-    |> Enum.map(&post_task(&1, srcdir, dstdir))
+    own = self()
+    files |> Enum.map(&post_task(&1, srcdir, dstdir, own))
   end
 
-  @spec post_task(String.t, String.t, String.t) :: Error.result
+  @spec post_task(String.t, String.t, String.t, pid) :: Error.result
 
-  def post_task(file, srcdir, dstdir) do
-    srcname = "#{srcdir}#{file}.md"
-    dstname = "#{dstdir}#{file}.html"
+  def post_task(file, src, dest, owner) do
+    Process.link owner
+    srcname = "#{src}#{file}.md"
+    dstname = "#{dest}#{file}.html"
     case {extract_date(srcname), extract_header(srcname)} do
       {{:ok, raw_date}, {:ok, header}} ->
         do_post_task file, srcname, dstname, header, raw_date
@@ -97,7 +100,7 @@ defmodule Serum.Build.PostBuilder do
   @spec make_preview(String.t) :: String.t
 
   defp make_preview(html) do
-    maxlen = ProjectInfo.get :preview_length
+    maxlen = ProjectInfo.get owner(), :preview_length
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
@@ -117,11 +120,11 @@ defmodule Serum.Build.PostBuilder do
   @spec render_post(String.t, Serum.PostInfo.t) :: String.t
 
   defp render_post(contents, info) do
-    template = Serum.Build.BuildData.get "global", "template", "post"
+    template = BuildData.get owner(), "template", "post"
     template
     |> Renderer.render([title: info.title, date: info.date,
       raw_date: info.raw_date, tags: info.tags, contents: contents])
-    |> Renderer.genpage([page_title: info.title])
+    |> Renderer.genpage([page_title: info.title], owner())
   end
 
   @doc "Extracts the date/time information from a file name."
@@ -151,7 +154,7 @@ defmodule Serum.Build.PostBuilder do
   @spec extract_header(String.t) :: Error.result(header)
 
   def extract_header(fname) do
-    base = ProjectInfo.get :base_url
+    base = ProjectInfo.get owner(), :base_url
     case File.read fname do
       {:ok, data} ->
         do_extract_header fname, base, data

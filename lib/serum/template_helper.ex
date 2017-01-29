@@ -1,11 +1,11 @@
 defmodule Serum.TemplateHelper.Macros do
   @moduledoc false
 
-  alias Serum.ProjectInfo
+  alias Serum.Build.ProjectInfo
 
   defmacro export_proj(prop) do
     quote do
-      def unquote(:"#{prop}")(), do: ProjectInfo.get(unquote(prop))
+      def unquote(:"#{prop}")(), do: ProjectInfo.get(owner(), unquote(prop))
     end
   end
 end
@@ -18,7 +18,8 @@ defmodule Serum.TemplateHelper do
 
   require Serum.TemplateHelper.Macros
   import Serum.TemplateHelper.Macros
-  alias Serum.ProjectInfo
+  import Serum.Util
+  alias Serum.Build.ProjectInfo
 
   @doc """
   Prepends the base URL (followed by a slash) in front of `path`.
@@ -31,7 +32,7 @@ defmodule Serum.TemplateHelper do
   ```
   """
   @spec base(String.t) :: String.t
-  def base(path \\ ""), do: ProjectInfo.get(:base_url) <> path
+  def base(path \\ ""), do: ProjectInfo.get(owner(), :base_url) <> path
 
   @doc """
   Provides shortcut for accessing pages.
