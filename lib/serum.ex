@@ -19,13 +19,11 @@ defmodule Serum do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    pis_args = [fn -> [] end,  [name: Serum.PostInfoStorage]]
     ts_args  = [fn -> %{} end, [name: Serum.TagStorage]]
 
     children = [
       supervisor(Registry, [:unique, Serum.Registry]),
       worker(Serum.Build.BuildData, ["global"], id: "serum_bd"),
-      worker(Agent, pis_args, id: "serum_pis"),
       worker(Agent, ts_args,  id: "serum_ts")
     ]
 

@@ -3,6 +3,7 @@ defmodule Serum.SiteBuilder do
   alias Serum.Build.BuildData
   alias Serum.Build.ProjectInfo
   alias Serum.Error
+  alias Serum.PostInfo
 
   @type build_mode :: :sequential | :parallel
 
@@ -45,6 +46,7 @@ defmodule Serum.SiteBuilder do
   def init(state) do
     BuildData.start_link self()
     ProjectInfo.start_link self()
+    PostInfo.start_link self()
     {:ok, state}
   end
 
@@ -55,11 +57,12 @@ defmodule Serum.SiteBuilder do
 
   def handle_call({:build, mode}, _from, {src, dest}) do
     result = Serum.Build.build src, dest, mode
-    {:reply, :not_implemented, {src, dest}}
+    {:reply, result, {src, dest}}
   end
 
   def handle_cast(:stop, _state) do
     BuildData.stop self()
+    PostInfo.stop self()
     exit :normal
   end
 end

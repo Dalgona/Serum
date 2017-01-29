@@ -26,7 +26,7 @@ defmodule Serum.Build.PostBuilder do
   def run(src, dest, mode) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-    Agent.update Serum.PostInfoStorage, fn _ -> [] end
+    PostInfo.init owner()
 
     case load_file_list srcdir do
       {:ok, list} ->
@@ -90,7 +90,7 @@ defmodule Serum.Build.PostBuilder do
     stub = Earmark.to_html lines
     preview = make_preview stub
     info = PostInfo.new file, header, raw_date, preview
-    Agent.update Serum.PostInfoStorage, &([info|&1])
+    PostInfo.add owner(), info
     html = render_post stub, info
     fwrite dstname, html
     IO.puts "  GEN  #{srcname} -> #{dstname}"

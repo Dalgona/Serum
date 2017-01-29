@@ -9,6 +9,7 @@ defmodule Serum.Build.IndexBuilder do
   alias Serum.Build.BuildData
   alias Serum.Build.ProjectInfo
   alias Serum.Build.Renderer
+  alias Serum.PostInfo
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
@@ -17,9 +18,7 @@ defmodule Serum.Build.IndexBuilder do
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
     if File.exists? dstdir do
-      infolist = Serum.PostInfoStorage
-            |> Agent.get(&(&1))
-            |> Enum.sort_by(&(&1.file))
+      infolist = PostInfo.all owner()
       title = ProjectInfo.get owner(), :list_title_all
 
       IO.puts "Generating posts index..."
