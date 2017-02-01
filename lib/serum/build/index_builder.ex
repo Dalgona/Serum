@@ -10,6 +10,7 @@ defmodule Serum.Build.IndexBuilder do
   alias Serum.Build.ProjectInfo
   alias Serum.Build.Renderer
   alias Serum.PostInfo
+  alias Serum.Tag
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
@@ -24,7 +25,7 @@ defmodule Serum.Build.IndexBuilder do
       IO.puts "Generating posts index..."
       save_list "#{dstdir}index.html", title, Enum.reverse(infolist)
 
-      tags = update_tags infolist
+      tags = update_tags owner(), infolist
       result = launch_tag mode, tags, dest
       Error.filter_results result, :index_builder
     else
@@ -32,19 +33,13 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec update_tags([Serum.PostInfo.t]) :: :ok
+  @spec update_tags(pid, [Serum.PostInfo.t]) :: :ok
 
-  defp update_tags(infolist) do
-    Agent.update Serum.TagStorage, fn _ -> %{} end
-    Enum.each infolist, fn info ->
-      tags = info.tags
-      Enum.each tags, fn tag ->
-        mapset = Agent.get Serum.TagStorage, &Map.get(&1, tag, MapSet.new())
-        mapset = MapSet.put mapset, info
-        Agent.update Serum.TagStorage, &Map.put(&1, tag, mapset)
-      end
-    end
-    Agent.get Serum.TagStorage, &(&1)
+  defp update_tags(owner, infolist) do
+    Tag.init owner
+    for info <- infolist,
+      do: Enum.each info.tags, &Tag.add_to_tag(owner, &1, info)
+    Tag.all owner
   end
 
   @spec launch_tag(Build.build_mode, map, String.t) :: [Task.t]

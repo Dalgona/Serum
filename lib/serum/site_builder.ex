@@ -4,6 +4,7 @@ defmodule Serum.SiteBuilder do
   alias Serum.Build.ProjectInfo
   alias Serum.Error
   alias Serum.PostInfo
+  alias Serum.Tag
 
   @type build_mode :: :sequential | :parallel
 
@@ -43,10 +44,11 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Server
   #
 
+  @storage_agents [BuildData, PostInfo, Tag]
+
   def init(state) do
-    BuildData.start_link self()
     ProjectInfo.start_link self()
-    PostInfo.start_link self()
+    for mod <- @storage_agents, do: mod.start_link self()
     {:ok, state}
   end
 
@@ -61,8 +63,7 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_cast(:stop, _state) do
-    BuildData.stop self()
-    PostInfo.stop self()
+    for mod <- @storage_agents, do: mod.stop self()
     exit :normal
   end
 end

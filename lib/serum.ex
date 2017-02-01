@@ -19,12 +19,9 @@ defmodule Serum do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    ts_args  = [fn -> %{} end, [name: Serum.TagStorage]]
-
     children = [
       supervisor(Registry, [:unique, Serum.Registry]),
       worker(Serum.Build.BuildData, ["global"], id: "serum_bd"),
-      worker(Agent, ts_args,  id: "serum_ts")
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]

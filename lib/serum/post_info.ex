@@ -71,15 +71,3 @@ end
 defimpl Inspect, for: Serum.PostInfo do
   def inspect(info, _opts), do: ~s(#Serum.PostInfo<"#{info.title}">)
 end
-
-defmodule Serum.Tag do
-  @moduledoc "This module defines Tag struct."
-
-  @type t :: %Serum.Tag{}
-
-  defstruct [:name, :list_url]
-end
-
-defimpl Inspect, for: Serum.Tag do
-  def inspect(tag, _opts), do: ~s(#Serum.Tag<"#{tag.name}": "#{tag.list_url}">)
-end
