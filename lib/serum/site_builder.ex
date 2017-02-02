@@ -1,6 +1,7 @@
 defmodule Serum.SiteBuilder do
   use GenServer
   alias Serum.Error
+  alias Serum.BuildPrep
   alias Serum.BuildDataStorage
   alias Serum.PostInfoStorage
   alias Serum.ProjectInfoStorage
@@ -53,7 +54,7 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call(:load_info, _from, {src, dest}) do
-    result = Serum.Build.Preparation.load_info src
+    result = BuildPrep.load_info src
     {:reply, result, {src, dest}}
   end
 

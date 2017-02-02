@@ -43,7 +43,7 @@ defmodule Serum.Build do
        load_templates: [src],
        scan_pages: [src, dest]]
       |> Enum.map(fn {fun, args} ->
-        apply Serum.Build.Preparation, fun, args
+        apply Serum.BuildPrep, fun, args
       end)
       |> Error.filter_results(:build_preparation)
     case prep_results do
