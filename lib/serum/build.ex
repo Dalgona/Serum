@@ -12,6 +12,7 @@ defmodule Serum.Build do
   @type compiled_template :: tuple
 
   @spec build(String.t, String.t, build_mode) :: Error.result(String.t)
+
   def build(src, dest, mode) do
     case check_access dest do
       :ok -> do_build_stage1 src, dest, mode
@@ -20,6 +21,7 @@ defmodule Serum.Build do
   end
 
   @spec check_access(String.t) :: :ok | File.posix
+
   defp check_access(dest) do
     parent = dest |> String.replace_suffix("/", "") |> :filename.dirname
     case File.stat parent do
@@ -32,6 +34,7 @@ defmodule Serum.Build do
 
   @spec do_build_stage1(String.t, String.t, build_mode)
     :: Error.result(String.t)
+
   defp do_build_stage1(src, dest, mode) do
     IO.puts "Rebuilding Website..."
     BuildDataStorage.init self()
@@ -39,12 +42,8 @@ defmodule Serum.Build do
 
     clean_dest dest
     prep_results =
-      [check_tz: [],
-       load_templates: [src],
-       scan_pages: [src, dest]]
-      |> Enum.map(fn {fun, args} ->
-        apply Serum.BuildPrep, fun, args
-      end)
+      [check_tz: [], load_templates: [src], scan_pages: [src, dest]]
+      |> Enum.map(fn {fun, args} -> apply Serum.BuildPrep, fun, args end)
       |> Error.filter_results(:build_preparation)
     case prep_results do
       :ok -> do_build_stage2 src, dest, mode
@@ -52,8 +51,22 @@ defmodule Serum.Build do
     end
   end
 
+  @spec clean_dest(String.t) :: :ok
+
+  defp clean_dest(dest) do
+    File.mkdir_p! "#{dest}"
+    IO.puts "Created directory `#{dest}`."
+
+    # exclude dotfiles so that git repository is not blown away
+    dest |> File.ls!
+         |> Enum.filter(&(not String.starts_with?(&1, ".")))
+         |> Enum.map(&("#{dest}#{&1}"))
+         |> Enum.each(&File.rm_rf!(&1))
+  end
+
   @spec do_build_stage2(String.t, String.t, build_mode)
     :: Error.result(String.t)
+
   defp do_build_stage2(src, dest, mode) do
     {time, result} =
       :timer.tc fn ->
@@ -69,40 +82,8 @@ defmodule Serum.Build do
     end
   end
 
-  @spec clean_dest(String.t) :: :ok
-  defp clean_dest(dest) do
-    File.mkdir_p! "#{dest}"
-    IO.puts "Created directory `#{dest}`."
-
-    # exclude dotfiles so that git repository is not blown away
-    dest |> File.ls!
-         |> Enum.filter(&(not String.starts_with?(&1, ".")))
-         |> Enum.map(&("#{dest}#{&1}"))
-         |> Enum.each(&File.rm_rf!(&1))
-  end
-
-  @spec launch_tasks(build_mode, String.t, String.t) :: Error.result
-  defp launch_tasks(:parallel, src, dest) do
-    IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
-    t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
-    t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
-    results = [Task.await(t1), Task.await(t2)]
-    # IndexBuilder must be run after PostBuilder has finished
-    t3 = Task.async fn -> IndexBuilder.run src, dest, :parallel end
-    results = results ++ [Task.await t3]
-    Error.filter_results results, :launch_tasks
-  end
-
-  defp launch_tasks(:sequential, src, dest) do
-    IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
-    r1 = PageBuilder.run src, dest, :sequential
-    r2 = PostBuilder.run src, dest, :sequential
-    r3 = IndexBuilder.run src, dest, :sequential
-    results = [r1, r2, r3]
-    Error.filter_results results, :launch_tasks
-  end
-
   @spec compile_nav() :: :ok
+
   defp compile_nav do
     IO.puts "Compiling main navigation HTML stub..."
     template = BuildDataStorage.get self(), "template", "nav"
@@ -110,7 +91,28 @@ defmodule Serum.Build do
     BuildDataStorage.put self(), "navstub", html
   end
 
+  @spec launch_tasks(build_mode, String.t, String.t) :: Error.result
+
+  defp launch_tasks(:parallel, src, dest) do
+    IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
+    t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
+    t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
+    results = [Task.await(t1), Task.await(t2)]
+    # IndexBuilder must be run after PostBuilder has finished
+    t3 = Task.async fn -> IndexBuilder.run src, dest, :parallel end
+    results = [Task.await(t3)|results]
+    Error.filter_results results, :launch_tasks
+  end
+
+  defp launch_tasks(:sequential, src, dest) do
+    IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
+    [PageBuilder, PostBuilder, IndexBuilder]
+    |> Enum.map(&(&1.run src, dest, :sequential))
+    |> Error.filter_results(:launch_tasks)
+  end
+
   @spec copy_assets(String.t, String.t) :: :ok
+
   defp copy_assets(src, dest) do
     IO.puts "Copying assets and media..."
     try_copy "#{src}assets/", "#{dest}assets/"
@@ -118,6 +120,7 @@ defmodule Serum.Build do
   end
 
   @spec try_copy(String.t, String.t) :: :ok
+
   defp try_copy(src, dest) do
     case File.cp_r src, dest do
       {:error, reason, _} ->
