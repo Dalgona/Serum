@@ -8,12 +8,21 @@ defmodule Serum.Mixfile do
      escript: [main_module: Serum.Cmdline],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     test_coverage: [tool: ExCoveralls],
+     preferred_cli_env: preferred_cli_env(),
      deps: deps()]
   end
 
   def application do
     [applications: [:logger, :eex, :cowboy],
      mod: {Serum, []}]
+  end
+
+  defp preferred_cli_env do
+    [coveralls: :test,
+     "coveralls.detail": :test,
+     "coveralls.travis": :test,
+     "coveralls.html": :test]
   end
 
   defp deps do
@@ -26,6 +35,7 @@ defmodule Serum.Mixfile do
      {:floki, "~> 0.13"},
      {:ex_json_schema, "~> 0.5.4"},
      {:credo, "0.5.3", only: [:dev, :test]},
+     {:excoveralls, "~> 0.6", only: [:test]},
      {:dialyxir, "~> 0.4", only: [:dev, :test]}]
   end
 end
