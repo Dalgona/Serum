@@ -3,7 +3,7 @@ defmodule Serum.Mixfile do
 
   def project do
     [app: :serum,
-     version: "0.9.0+201701212002",
+     version: "0.9.0+201702021514",
      elixir: "~> 1.4",
      escript: [main_module: Serum.Cmdline],
      build_embedded: Mix.env == :prod,
@@ -21,11 +21,11 @@ defmodule Serum.Mixfile do
      {:poison, "~> 3.1"},
      {:fs, github: "Dalgona/fs"},
      {:microscope, "~> 1.0"},
-     {:timex, "~> 3.0"},
+     {:timex, "~> 3.1.9"},
      {:tzdata, "~> 0.1.8", override: true},
-     {:floki, "~> 0.12"},
-     {:ex_json_schema, "~> 0.5.2"},
-     {:credo, "~> 0.5", only: [:dev, :test]},
+     {:floki, "~> 0.13"},
+     {:ex_json_schema, "~> 0.5.4"},
+     {:credo, "0.5.3", only: [:dev, :test]},
      {:dialyxir, "~> 0.4", only: [:dev, :test]}]
   end
 end
