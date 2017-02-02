@@ -2,11 +2,12 @@ defmodule Serum.SiteBuilder do
   use GenServer
   alias Serum.Error
   alias Serum.Build
-  alias Serum.BuildPrep
   alias Serum.BuildDataStorage
   alias Serum.PostInfoStorage
+  alias Serum.ProjectInfo
   alias Serum.ProjectInfoStorage
   alias Serum.TagStorage
+  alias Serum.Validation
 
   @type build_mode :: :sequential | :parallel
 
@@ -54,7 +55,7 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call(:load_info, _from, {src, dest}) do
-    result = BuildPrep.load_info src
+    result = do_load_info src
     {:reply, result, {src, dest}}
   end
 
@@ -66,5 +67,46 @@ defmodule Serum.SiteBuilder do
   def handle_cast(:stop, _state) do
     for mod <- @storage_agents, do: mod.stop self()
     exit :normal
+  end
+
+  #
+  # Internal Functions
+  #
+
+  @spec do_load_info(String.t) :: Error.result
+
+  defp do_load_info(dir) do
+    path = dir <> "serum.json"
+    IO.puts "Reading project metadata `#{path}'..."
+    case File.read path do
+      {:ok, data} -> decode_json path, data
+      {:error, reason} ->
+        {:error, :file_error, {reason, path, 0}}
+    end
+  end
+
+  @spec decode_json(String.t, String.t) :: Error.result
+
+  defp decode_json(path, data) do
+    case Poison.decode data do
+      {:ok, proj} -> validate proj
+      {:error, :invalid, pos} ->
+        {:error, :json_error,
+         {"parse error at position #{pos}", path, 0}}
+      {:error, {:invalid, token, pos}} ->
+        {:error, :json_error,
+         {"parse error near `#{token}' at position #{pos}", path, 0}}
+    end
+  end
+
+  @spec validate(map) :: Error.result
+
+  defp validate(proj) do
+    owner = self()
+    Validation.load_schema owner
+    case Validation.validate owner, "serum.json", proj do
+      :ok -> ProjectInfoStorage.load(owner, ProjectInfo.new(proj))
+      error -> error
+    end
   end
 end

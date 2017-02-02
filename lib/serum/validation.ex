@@ -7,6 +7,8 @@ defmodule Serum.Validation do
   alias ExJsonSchema.Schema
   alias Serum.BuildDataStorage
 
+  @spec schema(schema_name :: String.t) :: String.t
+
   defp schema("*") do
     "{}"
   end
@@ -37,26 +39,28 @@ defmodule Serum.Validation do
   @doc """
   Loads JSON schemas onto `Serum.BuildData` agent once.
   """
-  @spec load_schema() :: :ok
-  def load_schema do
+  @spec load_schema(pid) :: :ok
+
+  def load_schema(owner) do
     ["*", "serum.json"]
     |> Enum.filter(fn x ->
-      BuildDataStorage.get("global", "schema", x) == nil
+      BuildDataStorage.get(owner, "schema", x) == nil
     end)
     |> Enum.each(fn x ->
       sch = x |> schema |> Poison.decode! |> Schema.resolve
-      BuildDataStorage.put "global", "schema", x, sch
+      BuildDataStorage.put owner, "schema", x, sch
     end)
   end
 
   @doc """
   Validates the given `data` according to `schema_name` schema.
   """
-  @spec validate(String.t, map) :: Error.result
-  def validate(schema_name, data) do
+  @spec validate(pid, String.t, map) :: Error.result
+
+  def validate(owner, schema_name, data) do
     schema =
-      BuildDataStorage.get("global", "schema", schema_name)
-      || BuildDataStorage.get("global", "schema", "*")
+      BuildDataStorage.get(owner, "schema", schema_name)
+      || BuildDataStorage.get(owner, "schema", "*")
     case Validator.validate schema, data do
       :ok -> :ok
       {:error, errors} ->
