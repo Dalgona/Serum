@@ -4,9 +4,9 @@ defmodule Serum.DevServer do
   """
 
   alias Serum.Error
-  alias Serum.Build.Preparation
   alias Serum.DevServer.{DirStatus, Service, AutoBuilder, Looper}
-  alias Serum.ProjectInfo
+  alias Serum.ProjectInfoStorage
+  alias Serum.SiteBuilder
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
   def run(dir, port) do
@@ -16,29 +16,23 @@ defmodule Serum.DevServer do
     uniq = Base.url_encode64 <<System.monotonic_time::size(64)>>, padding: false
     site = "/tmp/serum_" <> uniq
 
-    if not File.exists? "#{dir}serum.json" do
-      IO.puts "\x1b[31mError: `#{dir}serum.json` not found."
-      IO.puts "Make sure you point at a valid Serum project directory.\x1b[0m"
-    else
-      {:ok, _pid} = ProjectInfo.start_link
-      case Preparation.load_info dir do
-        :ok ->
-          base = ProjectInfo.get :base_url
-          ms_callbacks = [Microscope.Logger, AutoBuilder]
-          ms_options   = [port: port, base: base, callbacks: ms_callbacks]
-          children = [
-            worker(Service, [dir, site, port]),
-            worker(DirStatus, []),
-            worker(__MODULE__, [dir], function: :start_watcher, id: "serum_fs"),
-            worker(Microscope, [site, ms_options]),
-            worker(Looper, [])
-          ]
-          opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
-          Supervisor.start_link children, opts
-          looper()
-        error ->
-          Error.show error
-      end
+    {:ok, pid_builder} = SiteBuilder.start_link dir, site
+    case SiteBuilder.load_info pid_builder do
+      error = {:error, _, _} -> Error.show error
+      :ok ->
+        base = ProjectInfoStorage.get pid_builder, :base_url
+        ms_callbacks = [Microscope.Logger, AutoBuilder]
+        ms_options   = [port: port, base: base, callbacks: ms_callbacks]
+        children = [
+          worker(Service, [pid_builder, dir, site, port]),
+          worker(DirStatus, []),
+          worker(__MODULE__, [dir], function: :start_watcher, id: "serum_fs"),
+          worker(Microscope, [site, ms_options]),
+          worker(Looper, [])
+        ]
+        opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
+        Supervisor.start_link children, opts
+        looper()
     end
   end
 
