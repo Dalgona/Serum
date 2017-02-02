@@ -21,7 +21,7 @@ defmodule Serum do
 
     children = [
       supervisor(Registry, [:unique, Serum.Registry]),
-      worker(Serum.Build.BuildData, ["global"], id: "serum_bd"),
+      worker(Serum.BuildDataStorage, ["global"], id: "serum_bd"),
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]

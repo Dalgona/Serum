@@ -4,8 +4,8 @@ defmodule Serum.Build.Renderer do
   """
 
   alias Serum.Build
-  alias Serum.Build.BuildData
-  alias Serum.Build.ProjectInfo
+  alias Serum.BuildDataStorage
+  alias Serum.ProjectInfoStorage
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
   @re_posts ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
@@ -14,9 +14,10 @@ defmodule Serum.Build.Renderer do
   @spec genpage(String.t, keyword, pid) :: String.t
 
   def genpage(contents, ctx, owner) do
-    base = Serum.Build.BuildData.get owner, "template", "base"
+    base = BuildDataStorage.get owner, "template", "base"
     contents = process_links contents, owner
-    binding = [contents: contents, navigation: BuildData.get(owner, "navstub")]
+    binding =
+      [contents: contents, navigation: BuildDataStorage.get(owner, "navstub")]
     render base, ctx ++ binding
   end
 
@@ -30,7 +31,7 @@ defmodule Serum.Build.Renderer do
   @spec process_links(String.t, pid) :: String.t
 
   def process_links(text, owner) do
-    base = ProjectInfo.get owner, :base_url
+    base = ProjectInfoStorage.get owner, :base_url
     text = Regex.replace @re_media, text, ~s(\\1="#{base}media/\\2")
     text = Regex.replace @re_posts, text, ~s(\\1="#{base}posts/\\2.html")
     text = Regex.replace @re_pages, text, ~s(\\1="#{base}\\2.html")

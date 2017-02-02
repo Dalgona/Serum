@@ -7,10 +7,11 @@ defmodule Serum.Build.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.Build.BuildData
-  alias Serum.Build.ProjectInfo
   alias Serum.Build.Renderer
+  alias Serum.BuildDataStorage
   alias Serum.PostInfo
+  alias Serum.PostInfoStorage
+  alias Serum.ProjectInfoStorage
 
   @type erl_datetime :: {erl_date, erl_time}
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
@@ -26,7 +27,7 @@ defmodule Serum.Build.PostBuilder do
   def run(src, dest, mode) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-    PostInfo.init owner()
+    PostInfoStorage.init owner()
 
     case load_file_list srcdir do
       {:ok, list} ->
@@ -90,7 +91,7 @@ defmodule Serum.Build.PostBuilder do
     stub = Earmark.to_html lines
     preview = make_preview stub
     info = PostInfo.new file, header, raw_date, preview
-    PostInfo.add owner(), info
+    PostInfoStorage.add owner(), info
     html = render_post stub, info
     fwrite dstname, html
     IO.puts "  GEN  #{srcname} -> #{dstname}"
@@ -100,7 +101,7 @@ defmodule Serum.Build.PostBuilder do
   @spec make_preview(String.t) :: String.t
 
   defp make_preview(html) do
-    maxlen = ProjectInfo.get owner(), :preview_length
+    maxlen = ProjectInfoStorage.get owner(), :preview_length
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
@@ -117,10 +118,10 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec render_post(String.t, Serum.PostInfo.t) :: String.t
+  @spec render_post(String.t, PostInfo.t) :: String.t
 
   defp render_post(contents, info) do
-    template = BuildData.get owner(), "template", "post"
+    template = BuildDataStorage.get owner(), "template", "post"
     template
     |> Renderer.render([title: info.title, date: info.date,
       raw_date: info.raw_date, tags: info.tags, contents: contents])
@@ -154,7 +155,7 @@ defmodule Serum.Build.PostBuilder do
   @spec extract_header(String.t) :: Error.result(header)
 
   def extract_header(fname) do
-    base = ProjectInfo.get owner(), :base_url
+    base = ProjectInfoStorage.get owner(), :base_url
     case File.read fname do
       {:ok, data} ->
         do_extract_header fname, base, data

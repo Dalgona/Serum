@@ -6,8 +6,8 @@ defmodule Serum.Build.PageBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.Build.BuildData
   alias Serum.Build.Renderer
+  alias Serum.BuildDataStorage
 
   @typep header :: {String.t, [String.t]}
 
@@ -17,7 +17,7 @@ defmodule Serum.Build.PageBuilder do
   @spec run(String.t, String.t, Build.build_mode) :: Error.result
 
   def run(src, dest, mode) do
-    files = BuildData.get owner(), "pages_file"
+    files = BuildDataStorage.get owner(), "pages_file"
     result = launch mode, files, src, dest
     Error.filter_results result, :page_builder
   end
@@ -47,7 +47,7 @@ defmodule Serum.Build.PageBuilder do
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"
-    template = BuildData.get owner(), "template", "page"
+    template = BuildDataStorage.get owner(), "template", "page"
 
     case extract_header fname do
       {:ok, {title, rest}} ->

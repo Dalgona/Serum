@@ -1,4 +1,4 @@
-defmodule Serum.Build.BuildData do
+defmodule Serum.BuildDataStorage do
   defmacro name(owner) do
     quote do
       {:via, Registry, {Serum.Registry, {:build_data, unquote(owner)}}}

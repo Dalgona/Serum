@@ -1,10 +1,10 @@
 defmodule Serum.SiteBuilder do
   use GenServer
-  alias Serum.Build.BuildData
-  alias Serum.Build.ProjectInfo
   alias Serum.Error
-  alias Serum.PostInfo
-  alias Serum.Tag
+  alias Serum.BuildDataStorage
+  alias Serum.PostInfoStorage
+  alias Serum.ProjectInfoStorage
+  alias Serum.TagStorage
 
   @type build_mode :: :sequential | :parallel
 
@@ -44,10 +44,10 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Server
   #
 
-  @storage_agents [BuildData, PostInfo, Tag]
+  @storage_agents [BuildDataStorage, PostInfoStorage, TagStorage]
 
   def init(state) do
-    ProjectInfo.start_link self()
+    ProjectInfoStorage.start_link self()
     for mod <- @storage_agents, do: mod.start_link self()
     {:ok, state}
   end

@@ -5,8 +5,9 @@ defmodule Serum.Build.Preparation do
   """
 
   alias Serum.Error
-  alias Serum.Build.BuildData
-  alias Serum.Build.ProjectInfo
+  alias Serum.BuildDataStorage
+  alias Serum.ProjectInfo
+  alias Serum.ProjectInfoStorage
   alias Serum.Validation
 
   @spec check_tz() :: Error.result
@@ -50,7 +51,7 @@ defmodule Serum.Build.Preparation do
     Validation.load_schema
     case Validation.validate "serum.json", proj do
       :ok ->
-        ProjectInfo.load(self(), ProjectInfo.new(proj))
+        ProjectInfoStorage.load(self(), ProjectInfo.new(proj))
       error -> error
     end
   end
@@ -71,7 +72,7 @@ defmodule Serum.Build.Preparation do
         try do
           template_str = "<% import Serum.TemplateHelper %>" <> data
           ast = EEx.compile_string template_str
-          BuildData.put self(), "template", name, ast
+          BuildDataStorage.put self(), "template", name, ast
           :ok
         rescue
           e in EEx.SyntaxError ->
@@ -105,8 +106,8 @@ defmodule Serum.Build.Preparation do
           f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!
           do_scan_pages f, src, dest
         String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
-          files = BuildData.get self(), "pages_file"
-          BuildData.put self(), "pages_file", [f|files]
+          files = BuildDataStorage.get self(), "pages_file"
+          BuildDataStorage.put self(), "pages_file", [f|files]
         :otherwise -> :skip
       end
     end)

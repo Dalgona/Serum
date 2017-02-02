@@ -6,11 +6,11 @@ defmodule Serum.Build.IndexBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.Build.BuildData
-  alias Serum.Build.ProjectInfo
   alias Serum.Build.Renderer
-  alias Serum.PostInfo
-  alias Serum.Tag
+  alias Serum.BuildDataStorage
+  alias Serum.PostInfoStorage
+  alias Serum.ProjectInfoStorage
+  alias Serum.TagStorage
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
@@ -19,8 +19,8 @@ defmodule Serum.Build.IndexBuilder do
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
     if File.exists? dstdir do
-      infolist = PostInfo.all owner()
-      title = ProjectInfo.get owner(), :list_title_all
+      infolist = PostInfoStorage.all owner()
+      title = ProjectInfoStorage.get owner(), :list_title_all
 
       IO.puts "Generating posts index..."
       save_list "#{dstdir}index.html", title, Enum.reverse(infolist)
@@ -36,10 +36,10 @@ defmodule Serum.Build.IndexBuilder do
   @spec update_tags(pid, [Serum.PostInfo.t]) :: :ok
 
   defp update_tags(owner, infolist) do
-    Tag.init owner
+    TagStorage.init owner
     for info <- infolist,
-      do: Enum.each info.tags, &Tag.add_to_tag(owner, &1, info)
-    Tag.all owner
+      do: Enum.each info.tags, &TagStorage.add_to_tag(owner, &1, info)
+    TagStorage.all owner
   end
 
   @spec launch_tag(Build.build_mode, map, String.t) :: [Task.t]
@@ -62,7 +62,7 @@ defmodule Serum.Build.IndexBuilder do
   def tag_task({tag, post_set}, dest, owner) do
     Process.link owner
     tagdir = "#{dest}tags/#{tag.name}/"
-    fmt = ProjectInfo.get owner(), :list_title_tag
+    fmt = ProjectInfoStorage.get owner(), :list_title_tag
     title = fmt |> :io_lib.format([tag.name]) |> IO.iodata_to_binary
     posts = post_set |> MapSet.to_list |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir
@@ -72,7 +72,7 @@ defmodule Serum.Build.IndexBuilder do
   @spec save_list(String.t, String.t, [Serum.PostInfo.t]) :: :ok
 
   defp save_list(path, title, posts) do
-    template = BuildData.get owner(), "template", "list"
+    template = BuildDataStorage.get owner(), "template", "list"
     html =
       template
       |> Renderer.render([header: title, posts: posts])

@@ -5,7 +5,7 @@ defmodule Serum.Build do
 
   import Serum.Util
   alias Serum.Error
-  alias Serum.Build.BuildData
+  alias Serum.BuildDataStorage
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
@@ -34,8 +34,8 @@ defmodule Serum.Build do
     :: Error.result(String.t)
   defp do_build_stage1(src, dest, mode) do
     IO.puts "Rebuilding Website..."
-    BuildData.init self()
-    BuildData.put self(), "pages_file", []
+    BuildDataStorage.init self()
+    BuildDataStorage.put self(), "pages_file", []
 
     clean_dest dest
     prep_results =
@@ -105,9 +105,9 @@ defmodule Serum.Build do
   @spec compile_nav() :: :ok
   defp compile_nav do
     IO.puts "Compiling main navigation HTML stub..."
-    template = BuildData.get self(), "template", "nav"
+    template = BuildDataStorage.get self(), "template", "nav"
     html = Renderer.render template, []
-    BuildData.put self(), "navstub", html
+    BuildDataStorage.put self(), "navstub", html
   end
 
   @spec copy_assets(String.t, String.t) :: :ok
