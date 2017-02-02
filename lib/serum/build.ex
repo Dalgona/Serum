@@ -6,6 +6,7 @@ defmodule Serum.Build do
   import Serum.Util
   alias Serum.Error
   alias Serum.BuildDataStorage
+  alias Serum.Build.Preparation
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
@@ -43,7 +44,7 @@ defmodule Serum.Build do
     clean_dest dest
     prep_results =
       [check_tz: [], load_templates: [src], scan_pages: [src, dest]]
-      |> Enum.map(fn {fun, args} -> apply Serum.BuildPrep, fun, args end)
+      |> Enum.map(fn {fun, args} -> apply Preparation, fun, args end)
       |> Error.filter_results(:build_preparation)
     case prep_results do
       :ok -> do_build_stage2 src, dest, mode

@@ -1,4 +1,4 @@
-defmodule Serum.BuildPrep do
+defmodule Serum.Build.Preparation do
   @moduledoc """
   This module contains functions which are used to prepare the site building
   process.
