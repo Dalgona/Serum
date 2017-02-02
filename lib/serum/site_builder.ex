@@ -1,6 +1,7 @@
 defmodule Serum.SiteBuilder do
   use GenServer
   alias Serum.Error
+  alias Serum.Build
   alias Serum.BuildPrep
   alias Serum.BuildDataStorage
   alias Serum.PostInfoStorage
@@ -28,7 +29,6 @@ defmodule Serum.SiteBuilder do
     GenServer.call server, :load_info
   end
 
-  # TODO: @spec
   @spec build(pid, build_mode) :: Error.result(String.t)
 
   def build(server, mode) do
@@ -59,7 +59,7 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call({:build, mode}, _from, {src, dest}) do
-    result = Serum.Build.build src, dest, mode
+    result = Build.build src, dest, mode
     {:reply, result, {src, dest}}
   end
 

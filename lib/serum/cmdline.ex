@@ -6,7 +6,7 @@ defmodule Serum.Cmdline do
 
   alias Serum.Error
   alias Serum.Init
-  alias Serum.Build
+  alias Serum.SiteBuilder
   alias Serum.DevServer
 
   @opt_build    [parallel: :boolean, output: :string]
@@ -16,6 +16,7 @@ defmodule Serum.Cmdline do
 
   @doc "The entry point for Serum command-line program."
   @spec main(args :: [String.t]) :: any
+
   def main([]) do
     info()
     usage()
@@ -35,6 +36,7 @@ defmodule Serum.Cmdline do
   end
 
   @spec info() :: :ok
+
   defp info() do
     {:ok, vsn} = :application.get_key :serum, :vsn
     IO.puts """
@@ -44,10 +46,12 @@ defmodule Serum.Cmdline do
   end
 
   @spec cmd_init([String.t]) :: :ok
+
   defp cmd_init([]),      do: Init.init "."
   defp cmd_init([dir|_]), do: Init.init dir
 
   @spec cmd_build([String.t]) :: Serum.Error.result
+
   defp cmd_build(cmd) do
     {opts, args, errors} =
       OptionParser.parse cmd, strict: @opt_build, aliases: @alias_build
@@ -59,7 +63,27 @@ defmodule Serum.Cmdline do
     end
   end
 
+  @spec launch_build([String.t], String.t, SiteBuilder.build_mode) :: any
+
+  defp launch_build(args, out, mode) do
+    dir =
+      case args do
+        []      -> "."
+        [dir|_] -> dir
+      end
+    {:ok, pid} = SiteBuilder.start_link dir, out
+    case SiteBuilder.load_info pid do
+      :ok ->
+        case SiteBuilder.build pid, mode do
+          {:ok, dest} -> finish_build dest
+          error = {:error, _, _} -> error_build error
+        end
+      error = {:error, _, _} -> error_build error
+    end
+  end
+
   @spec cmd_server([String.t]) :: any
+
   defp cmd_server(cmd) do
     {opts, args, errors} =
       OptionParser.parse cmd, strict: @opt_server, aliases: @alias_server
@@ -71,22 +95,8 @@ defmodule Serum.Cmdline do
     end
   end
 
-  @spec launch_build([String.t], String.t, Build.build_mode) :: any
-  defp launch_build(args, out, mode) do
-    dir =
-      case args do
-        []      -> "."
-        [dir|_] -> dir
-      end
-    case Build.build(dir, out, mode) do
-      {:ok, dest} ->
-        finish_build dest
-      error = {:error, _, _} ->
-        error_build error
-    end
-  end
-
   @spec usage() :: :ok
+
   defp usage() do
     IO.puts """
     Usage: serum <task>
@@ -111,6 +121,7 @@ defmodule Serum.Cmdline do
   end
 
   @spec finish_build(String.t) :: :ok
+
   defp finish_build(dest) do
     IO.puts """
 
@@ -121,6 +132,7 @@ defmodule Serum.Cmdline do
   end
 
   @spec error_build(Error.error) :: :ok
+
   defp error_build(error) do
     Error.show(error)
     IO.puts """
