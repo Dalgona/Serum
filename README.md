@@ -1,5 +1,8 @@
 # Serum
 
+[![Build Status](https://travis-ci.org/Dalgona/Serum.svg?branch=master)](https://travis-ci.org/Dalgona/Serum)
+[![Coverage Status](https://coveralls.io/repos/github/Dalgona/Serum/badge.svg?branch=master)](https://coveralls.io/github/Dalgona/Serum?branch=master)
+
 **Serum** is a simple static website generator written in
 [Elixir](http://elixir-lang.org).
 
