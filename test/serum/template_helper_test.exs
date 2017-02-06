@@ -10,9 +10,12 @@ defmodule TemplateHelperTest do
   end
 
   setup_all do
+    null = spawn_link __MODULE__, :looper, []
     priv = :code.priv_dir :serum
     {:ok, pid} = SiteBuilder.start_link "#{priv}/testsite_good", ""
+    Process.group_leader pid, null
     SiteBuilder.load_info pid
+    send null, :stop
     on_exit fn -> SiteBuilder.stop pid end
     {:ok, [builder: pid]}
   end
@@ -102,5 +105,15 @@ defmodule TemplateHelperTest do
     assert "Welcome to my website!" == m.site_description
     assert "Somebody" == m.author
     assert "somebody@example.com" == m.author_email
+  end
+
+  def looper do
+    receive do
+      {:io_request, from, reply_as, _} when is_pid(from) ->
+        send from, {:io_reply, reply_as, :ok}
+        looper()
+      :stop -> :stop
+      _ -> looper()
+    end
   end
 end
