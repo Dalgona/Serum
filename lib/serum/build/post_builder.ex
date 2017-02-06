@@ -155,19 +155,19 @@ defmodule Serum.Build.PostBuilder do
   @spec extract_header(String.t) :: Error.result(header)
 
   def extract_header(fname) do
-    base = ProjectInfoStorage.get owner(), :base_url
     case File.read fname do
       {:ok, data} ->
-        do_extract_header fname, base, data
+        do_extract_header fname, data
       {:error, reason} ->
         {:error, :file_error, {reason, fname, 0}}
     end
   end
 
-  @spec do_extract_header(String.t, String.t, String.t) :: Error.result(header)
+  @spec do_extract_header(String.t, String.t) :: Error.result(header)
 
-  defp do_extract_header(fname, base, data) do
+  defp do_extract_header(fname, data) do
     try do
+      base = ProjectInfoStorage.get owner(), :base_url
       [l1, l2|rest] = data |> String.split("\n")
       {"# " <> title, "#" <> tags} = {l1, l2}
       title = String.trim title
