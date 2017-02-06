@@ -76,7 +76,8 @@ defmodule Serum.Build.PostBuilder do
     Process.link owner
     srcname = "#{src}#{file}.md"
     dstname = "#{dest}#{file}.html"
-    case {extract_date(srcname), extract_header(srcname)} do
+    base = ProjectInfoStorage.get owner, :base_url
+    case {extract_date(srcname), extract_header(srcname, base)} do
       {{:ok, raw_date}, {:ok, header}} ->
         do_post_task file, srcname, dstname, header, raw_date
       {error = {:error, _, _}, _} -> error
@@ -89,7 +90,8 @@ defmodule Serum.Build.PostBuilder do
   defp do_post_task(file, srcname, dstname, header, raw_date) do
     lines = elem header, 2
     stub = Earmark.to_html lines
-    preview = make_preview stub
+    preview_len = ProjectInfoStorage.get owner(), :preview_length
+    preview = make_preview stub, preview_len
     info = PostInfo.new file, header, raw_date, preview
     PostInfoStorage.add owner(), info
     html = render_post stub, info
@@ -98,10 +100,9 @@ defmodule Serum.Build.PostBuilder do
     :ok
   end
 
-  @spec make_preview(String.t) :: String.t
+  @spec make_preview(String.t, non_neg_integer) :: String.t
 
-  defp make_preview(html) do
-    maxlen = ProjectInfoStorage.get owner(), :preview_length
+  def make_preview(html, maxlen) do
     case maxlen do
       0 -> ""
       x when is_integer(x) ->
@@ -111,8 +112,7 @@ defmodule Serum.Build.PostBuilder do
             l when is_list(l)  -> l
           end
         parsed
-        |> Enum.filter(&(elem(&1, 0) == "p"))
-        |> Enum.map(&Floki.text(elem &1, 2))
+        |> Enum.filter_map(&(elem(&1, 0) == "p"), &Floki.text/1)
         |> Enum.join(" ")
         |> String.slice(0, x)
     end
@@ -152,22 +152,21 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec extract_header(String.t) :: Error.result(header)
+  @spec extract_header(String.t, String.t) :: Error.result(header)
 
-  def extract_header(fname) do
+  def extract_header(fname, base) do
     case File.read fname do
       {:ok, data} ->
-        do_extract_header fname, data
+        do_extract_header fname, data, base
       {:error, reason} ->
         {:error, :file_error, {reason, fname, 0}}
     end
   end
 
-  @spec do_extract_header(String.t, String.t) :: Error.result(header)
+  @spec do_extract_header(String.t, String.t, String.t) :: Error.result(header)
 
-  defp do_extract_header(fname, data) do
+  defp do_extract_header(fname, data, base) do
     try do
-      base = ProjectInfoStorage.get owner(), :base_url
       [l1, l2|rest] = data |> String.split("\n")
       {"# " <> title, "#" <> tags} = {l1, l2}
       title = String.trim title

@@ -1,9 +1,6 @@
 defmodule PostBuilderTest do
   use ExUnit.Case, async: true
   alias Serum.Build.PostBuilder
-  alias Serum.ProjectInfo
-  alias Serum.ProjectInfoStorage
-  alias Serum.SiteBuilder
   alias Serum.Tag
 
   defmacro expect_fail(fname) do
@@ -16,12 +13,26 @@ defmodule PostBuilderTest do
     end
   end
 
-  setup_all do
-    {:ok, pid} = SiteBuilder.start_link "", ""
-    info = ProjectInfo.new %{"base_url" => "/test_base/"}
-    ProjectInfoStorage.load pid, info
-    on_exit fn -> SiteBuilder.stop pid end
-    {:ok, [builder: pid]}
+  describe "make_preview/2" do
+    test "zero length" do
+      result = PostBuilder.make_preview "<p>AaaaaAAaaaAAAaaAAAAaAAAAA</p>", 0
+      assert "" == result
+    end
+
+    test "text only, not truncated" do
+      html = ~s(<p>Hello, world!</p>\n<p>Bye, world!</p>)
+      assert "Hello, world! Bye, world!" == PostBuilder.make_preview html, 999
+    end
+
+    test "text and images, not truncated" do
+      html = ~s(<p>Hello, world!</p><img src="a.png"><p>Bye, world!</p>)
+      assert "Hello, world! Bye, world!" == PostBuilder.make_preview html, 999
+    end
+
+    test "truncated" do
+      html = ~s(<p>Pneumonoultramicroscopicsilicovolcanoconiosis</p>)
+      assert "Pneum" == PostBuilder.make_preview html, 5
+    end
   end
 
   describe "extract_date/1" do
@@ -70,8 +81,8 @@ defmodule PostBuilderTest do
     end
   end
 
-  describe "extract_header/1" do
-    test "good post", %{builder: pid} do
+  describe "extract_header/2" do
+    test "good post" do
       expected =
         {:ok,
          {"An Example of Well-formed Post",
@@ -80,49 +91,49 @@ defmodule PostBuilderTest do
            %Tag{name: "test", list_url: "/test_base/tags/test"}],
           ["", "Hello, world!", "",
            "The quick brown fox jumps over the lazy dog.", ""]}}
-      assert expected == get_header pid, get_post("wellformed.md")
+      assert expected == get_header "wellformed.md"
     end
 
-    test "empty post 1", %{builder: pid} do
+    test "empty post 1" do
       expected =
         {:ok,
          {"Empty Post",
           [%Tag{name: "serum", list_url: "/test_base/tags/serum"},
            %Tag{name: "test", list_url: "/test_base/tags/test"}],
           [""]}}
-      assert expected == get_header pid, get_post("an-empty-post.md")
+      assert expected == get_header "an-empty-post.md"
     end
 
-    test "empty post 2", %{builder: pid} do
+    test "empty post 2" do
       expected =
         {:ok,
          {"This Post is Also Empty",
           [%Tag{name: "serum", list_url: "/test_base/tags/serum"},
            %Tag{name: "test", list_url: "/test_base/tags/test"}],
           ["", ""]}}
-      assert expected == get_header pid, get_post("another-empty-post.md")
+      assert expected == get_header "another-empty-post.md"
     end
 
-    test "untagged post", %{builder: pid} do
+    test "untagged post" do
       expected = {:ok, {"This Post is Not Tagged", [], ["", "Test post.", ""]}}
-      assert expected == get_header pid, get_post("good-post-without-tags.md")
+      assert expected == get_header "good-post-without-tags.md"
     end
 
-    test "no tagline", %{builder: pid} do
+    test "no tagline" do
       path = get_post "no-tagline.md"
       expected = {:error, :post_error, {:invalid_header, path, 0}}
-      assert expected == get_header pid, path
+      assert expected == get_header "no-tagline.md"
     end
 
-    test "no header", %{builder: pid} do
+    test "no header" do
       path = get_post "no-header.md"
       expected = {:error, :post_error, {:invalid_header, path, 0}}
-      assert expected == get_header pid, path
+      assert expected == get_header "no-header.md"
     end
 
     test "not even an existing file" do
       expected = {:error, :file_error, {:enoent, "asdf", 0}}
-      assert expected == PostBuilder.extract_header "asdf"
+      assert expected == PostBuilder.extract_header "asdf", "/test_base/"
     end
   end
 
@@ -131,8 +142,9 @@ defmodule PostBuilderTest do
     "#{priv}/test_posts/#{fname}"
   end
 
-  defp get_header(pid, fname) do
-    t = Task.async fn -> Process.link pid; PostBuilder.extract_header fname end
-    Task.await t
+  defp get_header(fname) do
+    fname
+    |> get_post()
+    |> PostBuilder.extract_header("/test_base/")
   end
 end
