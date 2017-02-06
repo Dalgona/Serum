@@ -63,7 +63,7 @@ defmodule Serum.Build.PageBuilder do
   # Extracts the title and contents from a given page source file.
   @spec extract_header(String.t) :: Error.result(header)
 
-  defp extract_header(fname) do
+  def extract_header(fname) do
     case File.read fname do
       {:ok, data} ->
         do_extract_header fname, data

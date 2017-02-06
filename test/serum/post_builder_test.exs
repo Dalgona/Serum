@@ -72,7 +72,7 @@ defmodule PostBuilderTest do
       assert expected == result
     end
 
-    # Yeah, this function permits this kind of date, for now.
+    # TODO: Yeah, this function permits this kind of date, for now.
     # Timex may raise an error.
     test "ridiculous date" do
       expected = {:ok, {{2017, 33, 66}, {18, 55, 0}}}
