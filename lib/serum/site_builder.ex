@@ -6,7 +6,6 @@ defmodule Serum.SiteBuilder do
   alias Serum.PostInfoStorage
   alias Serum.ProjectInfo
   alias Serum.ProjectInfoStorage
-  alias Serum.TagStorage
   alias Serum.Validation
 
   @type build_mode :: :sequential | :parallel
@@ -46,7 +45,7 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Server
   #
 
-  @storage_agents [BuildDataStorage, PostInfoStorage, TagStorage]
+  @storage_agents [BuildDataStorage, PostInfoStorage]
 
   def init(state) do
     ProjectInfoStorage.start_link self()

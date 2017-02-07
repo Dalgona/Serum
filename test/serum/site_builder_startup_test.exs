@@ -7,7 +7,7 @@ defmodule SiteBuilderStartupTest do
     # Start a SiteBuilder process and make sure all subprocesses are alive.
     {:ok, pid} = SiteBuilder.start_link "", ""
     processes =
-      [:build_data, :post_info, :project_info, :tag_storage]
+      [:build_data, :post_info, :project_info]
       |> Enum.map(fn x ->
         list = Registry.lookup Serum.Registry, {x, pid}
         refute list == []

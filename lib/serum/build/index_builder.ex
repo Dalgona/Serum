@@ -10,7 +10,6 @@ defmodule Serum.Build.IndexBuilder do
   alias Serum.BuildDataStorage
   alias Serum.PostInfoStorage
   alias Serum.ProjectInfoStorage
-  alias Serum.TagStorage
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
@@ -19,13 +18,13 @@ defmodule Serum.Build.IndexBuilder do
   def run(_src, dest, mode) do
     dstdir = "#{dest}posts/"
     if File.exists? dstdir do
-      infolist = PostInfoStorage.all owner()
+      all_posts = PostInfoStorage.all owner()
       title = ProjectInfoStorage.get owner(), :list_title_all
 
       IO.puts "Generating posts index..."
-      save_list "#{dstdir}index.html", title, Enum.reverse(infolist)
+      save_list "#{dstdir}index.html", title, Enum.reverse(all_posts)
 
-      tags = update_tags owner(), infolist
+      tags = get_tag_map all_posts
       result = launch_tag mode, tags, dest
       Error.filter_results result, :index_builder
     else
@@ -33,13 +32,20 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec update_tags(pid, [Serum.PostInfo.t]) :: :ok
+  @spec get_tag_map([Serum.PostInfo.t]) :: map
 
-  defp update_tags(owner, infolist) do
-    TagStorage.init owner
-    for info <- infolist,
-      do: Enum.each info.tags, &TagStorage.add_to_tag(owner, &1, info)
-    TagStorage.all owner
+  defp get_tag_map(all_posts) do
+    all_tags =
+      Enum.reduce all_posts, MapSet.new(), fn info, acc ->
+        MapSet.union acc, MapSet.new(info.tags)
+      end
+    for tag <- all_tags, into: %{} do
+      posts =
+        all_posts
+        |> Enum.filter(&(tag in &1.tags))
+        |> Enum.sort(&(&1.file > &2.file))
+      {tag, posts}
+    end
   end
 
   @spec launch_tag(Build.build_mode, map, String.t) :: [Task.t]
@@ -57,14 +63,13 @@ defmodule Serum.Build.IndexBuilder do
     |> Enum.map(&tag_task(&1, dir, own))
   end
 
-  @spec tag_task({Serum.Tag.t, MapSet.t}, String.t, pid) :: :ok
+  @spec tag_task({Serum.Tag.t, [Serum.PostInfo.t]}, String.t, pid) :: :ok
 
-  def tag_task({tag, post_set}, dest, owner) do
+  def tag_task({tag, posts}, dest, owner) do
     Process.link owner
     tagdir = "#{dest}tags/#{tag.name}/"
     fmt = ProjectInfoStorage.get owner(), :list_title_tag
     title = fmt |> :io_lib.format([tag.name]) |> IO.iodata_to_binary
-    posts = post_set |> MapSet.to_list |> Enum.sort(&(&1.file > &2.file))
     File.mkdir_p! tagdir
     save_list "#{tagdir}index.html", title, posts
   end
