@@ -24,7 +24,11 @@ defmodule Serum.Util do
     {:links, links} = Process.info self(), :links
     [self()|links]
     |> Enum.reject(fn pid ->
-      Registry.lookup(Serum.Registry, {:project_info, pid}) == []
+      lookups =
+        [:project_info, :build_data, :post_info]
+        |> Enum.map(fn key -> Registry.lookup Serum.Registry, {key, pid} end)
+        |> Enum.uniq
+      lookups == [[]]
     end)
     |> hd()
   end

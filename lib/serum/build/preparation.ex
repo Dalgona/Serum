@@ -4,6 +4,7 @@ defmodule Serum.Build.Preparation do
   process.
   """
 
+  import Serum.Util
   alias Serum.Error
   alias Serum.BuildDataStorage
 
@@ -33,7 +34,7 @@ defmodule Serum.Build.Preparation do
         try do
           template_str = "<% import Serum.TemplateHelper %>" <> data
           ast = EEx.compile_string template_str
-          BuildDataStorage.put self(), "template", name, ast
+          BuildDataStorage.put owner(), "template", name, ast
           :ok
         rescue
           e in EEx.SyntaxError ->
@@ -67,8 +68,8 @@ defmodule Serum.Build.Preparation do
           f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!
           do_scan_pages f, src, dest
         String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
-          files = BuildDataStorage.get self(), "pages_file"
-          BuildDataStorage.put self(), "pages_file", [f|files]
+          files = BuildDataStorage.get owner(), "pages_file"
+          BuildDataStorage.put owner(), "pages_file", [f|files]
         :otherwise -> :skip
       end
     end)

@@ -1,6 +1,8 @@
 defmodule PostBuilderTest do
   use ExUnit.Case, async: true
   alias Serum.Build.PostBuilder
+  alias Serum.Build.Preparation
+  alias Serum.SiteBuilder
   alias Serum.Tag
 
   defmacro expect_fail(fname) do
@@ -11,6 +13,75 @@ defmodule PostBuilderTest do
       result = PostBuilder.extract_date unquote(fname)
       assert expected == result
     end
+  end
+
+  test "run/3, nonexistent dir" do
+    {:ok, pid} = SiteBuilder.start_link "asdf/", ""
+    result = PostBuilder.run "asdf/", "", :sequential
+    assert {:error, :file_error, {:enoent, "asdf/posts/", 0}} == result
+    SiteBuilder.stop pid
+  end
+
+  test "run/3, sequential and parallel" do
+    null = spawn_link __MODULE__, :looper, []
+    src  = "#{:code.priv_dir :serum}/testsite_good/"
+    {:ok, pid} = SiteBuilder.start_link src, ""
+    Process.group_leader self(), null
+    Process.group_leader pid, null
+    Preparation.load_templates src
+    SiteBuilder.load_info pid
+
+    uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
+    dest = "/tmp/serum_#{uniq}/"
+    assert :ok == PostBuilder.run src, dest, :sequential
+    assert_exists dest
+    File.rm_rf! dest
+
+    uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
+    dest = "/tmp/serum_#{uniq}/"
+    assert :ok == PostBuilder.run src, dest, :parallel
+    assert_exists dest
+    File.rm_rf! dest
+
+    SiteBuilder.stop pid
+    send null, :stop
+  end
+
+  defp assert_exists(dest) do
+    assert File.exists? "#{dest}posts"
+    files = "#{dest}posts" |> File.ls!() |> Enum.sort()
+    assert files ==
+      ["2017-01-01-0000-test-post-001.html",
+       "2017-01-01-0010-test-post-002.html",
+       "2017-01-01-0020-test-post-003.html",
+       "2017-01-01-0030-test-post-004.html"]
+  end
+
+  test "run/3, returning errors" do
+    null = spawn_link __MODULE__, :looper, []
+    src  = "#{:code.priv_dir :serum}/testsite_bad/"
+    {:ok, pid} = SiteBuilder.start_link src, ""
+    Process.group_leader self(), null
+    Process.group_leader pid, null
+    Preparation.load_templates src
+    SiteBuilder.load_info pid
+
+    uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
+    dest = "/tmp/serum_#{uniq}/"
+    expected =
+      {:error, :child_tasks,
+       {:post_builder,
+        [{:error, :post_error,
+          {:invalid_header,
+           "#{src}posts/2017-01-01-0020-invalid-header.md", 0}},
+         {:error, :post_error,
+          {:invalid_filename,
+           "#{src}posts/invalid-filename.md", 0}}]}}
+    assert expected == PostBuilder.run src, dest, :parallel
+    File.rm_rf! dest
+
+    SiteBuilder.stop pid
+    send null, :stop
   end
 
   describe "make_preview/2" do
@@ -146,5 +217,15 @@ defmodule PostBuilderTest do
     fname
     |> get_post()
     |> PostBuilder.extract_header("/test_base/")
+  end
+
+  def looper do
+    receive do
+      {:io_request, from, reply_as, _} when is_pid(from) ->
+        send from, {:io_reply, reply_as, :ok}
+        looper()
+      :stop -> :stop
+      _ -> looper()
+    end
   end
 end

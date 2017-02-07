@@ -66,7 +66,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   defp launch(:sequential, files, srcdir, dstdir) do
-    own = self()
+    own = owner()
     files |> Enum.map(&post_task(&1, srcdir, dstdir, own))
   end
 
