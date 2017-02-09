@@ -8,11 +8,10 @@ defmodule Serum.Build.PostBuilder do
   alias Serum.Error
   alias Serum.Build
   alias Serum.Build.Renderer
-  alias Serum.BuildDataStorage
   alias Serum.PostInfo
   alias Serum.PostInfoStorage
-  alias Serum.ProjectInfoStorage
 
+  @type state :: Build.state
   @type erl_datetime :: {erl_date, erl_time}
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
   @type erl_time :: {non_neg_integer, non_neg_integer, non_neg_integer}
@@ -22,9 +21,9 @@ defmodule Serum.Build.PostBuilder do
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(String.t, String.t, Build.build_mode) :: Error.result
+  @spec run(Build.build_mode, String.t, String.t, state) :: Error.result
 
-  def run(src, dest, mode) do
+  def run(mode, src, dest, state) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
     PostInfoStorage.init owner()
@@ -32,7 +31,7 @@ defmodule Serum.Build.PostBuilder do
     case load_file_list srcdir do
       {:ok, list} ->
         File.mkdir_p! dstdir
-        result = launch mode, list, srcdir, dstdir
+        result = launch mode, list, srcdir, dstdir, state
         Error.filter_results result, :post_builder
       error -> error
     end
@@ -55,48 +54,46 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec launch(Build.build_mode, [String.t], String.t, String.t)
+  @spec launch(Build.build_mode, [String.t], String.t, String.t, state)
     :: [Error.result]
 
-  defp launch(:parallel, files, src, dst) do
-    own = owner()
+  defp launch(:parallel, files, src, dst, state) do
     files
-    |> Task.async_stream(__MODULE__, :post_task, [src, dst, own], @async_opt)
+    |> Task.async_stream(__MODULE__, :post_task, [src, dst, state], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, files, srcdir, dstdir) do
-    own = owner()
-    files |> Enum.map(&post_task(&1, srcdir, dstdir, own))
+  defp launch(:sequential, files, src, dst, state) do
+    files |> Enum.map(&post_task(&1, src, dst, state))
   end
 
-  @spec post_task(String.t, String.t, String.t, pid) :: Error.result
+  @spec post_task(String.t, String.t, String.t, state) :: Error.result
 
-  def post_task(file, src, dest, owner) do
-    Process.link owner
+  def post_task(file, src, dest, state) do
     srcname = "#{src}#{file}.md"
     dstname = "#{dest}#{file}.html"
-    base = ProjectInfoStorage.get owner, :base_url
+    %{project_info: %{base_url: base}} = state
     case {extract_date(srcname), extract_header(srcname, base)} do
       {{:ok, raw_date}, {:ok, header}} ->
-        do_post_task file, srcname, dstname, header, raw_date
+        do_post_task file, srcname, dstname, header, raw_date, state
       {error = {:error, _, _}, _} -> error
       {_, error = {:error, _, _}} -> error
     end
   end
 
-  @spec do_post_task(String.t, String.t, String.t, header, erl_datetime) :: :ok
+  @spec do_post_task(String.t, String.t, String.t, header, erl_datetime, state)
+    :: :ok
 
-  defp do_post_task(file, srcname, dstname, header, raw_date) do
+  defp do_post_task(file, src, dest, header, raw_date, state) do
     lines = elem header, 2
     stub = Earmark.to_html lines
-    preview_len = ProjectInfoStorage.get owner(), :preview_length
+    %{project_info: %{preview_length: preview_len}} = state
     preview = make_preview stub, preview_len
     info = PostInfo.new file, header, raw_date, preview
     PostInfoStorage.add owner(), info
-    html = render_post stub, info
-    fwrite dstname, html
-    IO.puts "  GEN  #{srcname} -> #{dstname}"
+    html = render_post stub, info, state
+    fwrite dest, html
+    IO.puts "  GEN  #{src} -> #{dest}"
     :ok
   end
 
@@ -118,14 +115,14 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec render_post(String.t, PostInfo.t) :: String.t
+  @spec render_post(String.t, PostInfo.t, state) :: String.t
 
-  defp render_post(contents, info) do
-    template = BuildDataStorage.get owner(), "template", "post"
-    template
-    |> Renderer.render([title: info.title, date: info.date,
-      raw_date: info.raw_date, tags: info.tags, contents: contents])
-    |> Renderer.genpage([page_title: info.title], owner())
+  defp render_post(contents, info, state) do
+    post_ctx = [
+      title: info.title, date: info.date, raw_date: info.raw_date,
+      tags: info.tags, contents: contents
+    ]
+    Renderer.render "post", post_ctx, [page_title: info.title], state
   end
 
   @doc "Extracts the date/time information from a file name."

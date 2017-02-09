@@ -11,11 +11,13 @@ defmodule Serum.Build.IndexBuilder do
   alias Serum.PostInfoStorage
   alias Serum.ProjectInfoStorage
 
+  @type state :: Build.state
+
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(String.t, String.t, Build.build_mode) :: Error.result
+  @spec run(Build.build_mode, String.t, String.t, Build.state) :: Error.result
 
-  def run(_src, dest, mode) do
+  def run(mode, _src, dest, state) do
     dstdir = "#{dest}posts/"
     if File.exists? dstdir do
       all_posts = PostInfoStorage.all owner()

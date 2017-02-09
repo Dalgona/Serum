@@ -41,6 +41,12 @@ defmodule Serum.ProjectInfoStorage do
     GenServer.call name(owner), {:get, key}
   end
 
+  @spec all(pid) :: map
+
+  def all(owner) do
+    GenServer.call name(owner), :all
+  end
+
   #
   # GenServer Implementation - Server
   #
@@ -61,5 +67,9 @@ defmodule Serum.ProjectInfoStorage do
 
   def handle_call({:get, key}, _from, proj) do
     {:reply, Map.get(proj, key), proj}
+  end
+
+  def handle_call(:all, _from, proj) do
+    {:reply, proj, proj}
   end
 end

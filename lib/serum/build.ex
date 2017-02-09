@@ -6,11 +6,13 @@ defmodule Serum.Build do
   import Serum.Util
   alias Serum.Error
   alias Serum.BuildDataStorage
+  alias Serum.ProjectInfoStorage
   alias Serum.Build.Preparation
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type build_mode :: :parallel | :sequential
   @type compiled_template :: tuple
+  @type state :: %{project_info: map, build_data: map}
 
   @spec build(String.t, String.t, build_mode) :: Error.result(String.t)
 
@@ -72,7 +74,11 @@ defmodule Serum.Build do
     {time, result} =
       :timer.tc fn ->
         compile_nav()
-        launch_tasks mode, src, dest
+        # TODO: prettify codes or change storage apis
+        proj_info = ProjectInfoStorage.all self()
+        build_data = Agent.get {:via, Registry, {Serum.Registry, {:build_data, self()}}}, &(&1)
+        state = %{project_info: proj_info, build_data: build_data}
+        launch_tasks mode, src, dest, state
       end
     case result do
       :ok ->
@@ -92,23 +98,23 @@ defmodule Serum.Build do
     BuildDataStorage.put self(), "navstub", html
   end
 
-  @spec launch_tasks(build_mode, String.t, String.t) :: Error.result
+  @spec launch_tasks(build_mode, String.t, String.t, state) :: Error.result
 
-  defp launch_tasks(:parallel, src, dest) do
+  defp launch_tasks(:parallel, src, dest, state) do
     IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
-    t1 = Task.async fn -> PageBuilder.run src, dest, :parallel end
-    t2 = Task.async fn -> PostBuilder.run src, dest, :parallel end
+    t1 = Task.async fn -> PageBuilder.run :parallel, src, dest, state end
+    t2 = Task.async fn -> PostBuilder.run :parallel, src, dest, state end
     results = [Task.await(t1), Task.await(t2)]
     # IndexBuilder must be run after PostBuilder has finished
-    t3 = Task.async fn -> IndexBuilder.run src, dest, :parallel end
+    t3 = Task.async fn -> IndexBuilder.run :parallel, src, dest, state end
     results = [Task.await(t3)|results]
     Error.filter_results results, :launch_tasks
   end
 
-  defp launch_tasks(:sequential, src, dest) do
+  defp launch_tasks(:sequential, src, dest, state) do
     IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
     [PageBuilder, PostBuilder, IndexBuilder]
-    |> Enum.map(&(&1.run src, dest, :sequential))
+    |> Enum.map(&(&1.run :sequential, src, dest, state))
     |> Error.filter_results(:launch_tasks)
   end
 
