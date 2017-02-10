@@ -4,8 +4,6 @@ defmodule Serum.Build.Renderer do
   """
 
   alias Serum.Build
-  alias Serum.BuildDataStorage
-  alias Serum.ProjectInfoStorage
 
   @type state :: Build.state
 
@@ -15,28 +13,23 @@ defmodule Serum.Build.Renderer do
 
   @spec render(binary, keyword, keyword, state) :: binary
 
-  def render(template_name, stub_context, page_context, state) do
+  # render full page
+  def render(template_name, stub_ctx, page_ctx, state) do
     with %{project_info: proj, build_data: build_data} <- state do
+      site_ctx = [
+        site_name: proj.site_name, site_description: proj.site_description,
+        author: proj.author, author_email: proj.author_email
+      ]
       page_template = build_data["template__#{template_name}"]
       base_template = build_data["template__base"]
       nav_area      = build_data["navstub"]
-      with {stub, _} <- Code.eval_quoted page_template, stub_context do
+      with {stub, _} <- Code.eval_quoted page_template, stub_ctx ++ site_ctx do
         contents = process_links stub, proj.base_url
-        ctx = [{:contents, contents}, {:navigation, nav_area}|page_context]
-        {html, _} = Code.eval_quoted base_template, ctx
+        ctx = [{:contents, contents}, {:navigation, nav_area}|page_ctx]
+        {html, _} = Code.eval_quoted base_template, ctx ++ site_ctx
         html
       end
     end
-  end
-
-  @spec genpage(String.t, keyword, pid) :: String.t
-
-  def genpage(contents, ctx, owner) do
-    base = BuildDataStorage.get owner, "template", "base"
-    contents = process_links contents, owner
-    binding =
-      [contents: contents, navigation: BuildDataStorage.get(owner, "navstub")]
-    render base, ctx ++ binding
   end
 
   @spec render(Build.compiled_template, keyword) :: String.t

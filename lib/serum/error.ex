@@ -22,15 +22,31 @@ defmodule Serum.Error do
   @type line    :: non_neg_integer
 
   @spec filter_results([result], term) :: result
+
   def filter_results(results, from) do
-    case Enum.filter(results, &(&1 != :ok)) do
+    case Enum.reject results, &succeeded?/1 do
       [] -> :ok
-      errors when is_list(errors) ->
-        {:error, :child_tasks, {from, errors}}
+      errors when is_list(errors) -> {:error, :child_tasks, {from, errors}}
     end
   end
 
+  @spec filter_results_with_values([result(term)], term) :: result([term])
+
+  def filter_results_with_values(results, from) do
+    case Enum.reject results, &succeeded?/1 do
+      [] -> {:ok, Enum.map(results, &elem(&1, 1))}
+      errors when is_list(errors) -> {:error, :child_tasks, {from, errors}}
+    end
+  end
+
+  @spec succeeded?(result | result(term)) :: boolean
+
+  defp succeeded?(:ok),            do: true
+  defp succeeded?({:ok, _}),       do: true
+  defp succeeded?({:error, _, _}), do: false
+
   @spec show(result, non_neg_integer) :: :ok
+
   def show(result, indent \\ 0)
 
   def show(:ok, indent) do
@@ -74,6 +90,6 @@ defmodule Serum.Error do
   end
 
   defp perr(str) do
-    IO.puts "\x1b[31m❌\x1b[0m  #{str}"
+    IO.puts "\x1b[31m\u274c\x1b[0m  #{str}"
   end
 end

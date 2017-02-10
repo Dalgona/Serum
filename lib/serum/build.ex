@@ -49,7 +49,19 @@ defmodule Serum.Build do
       |> Enum.map(fn {fun, args} -> apply Preparation, fun, args end)
       |> Error.filter_results(:build_preparation)
     case prep_results do
-      :ok -> do_build_stage2 src, dest, mode
+      :ok ->
+        # TODO: prettify codes or change storage apis
+        proj_info = ProjectInfoStorage.all self()
+        build_data = Agent.get {:via, Registry, {Serum.Registry, {:build_data, self()}}}, &(&1)
+        state = %{
+          project_info: proj_info,
+          build_data: Map.put(
+            build_data,
+            "navstub",
+            compile_nav(build_data["template__nav"])
+          )
+        }
+        do_build_stage2 src, dest, mode, state
       error -> error
     end
   end
@@ -67,17 +79,12 @@ defmodule Serum.Build do
          |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec do_build_stage2(String.t, String.t, build_mode)
+  @spec do_build_stage2(String.t, String.t, build_mode, state)
     :: Error.result(String.t)
 
-  defp do_build_stage2(src, dest, mode) do
+  defp do_build_stage2(src, dest, mode, state) do
     {time, result} =
       :timer.tc fn ->
-        compile_nav()
-        # TODO: prettify codes or change storage apis
-        proj_info = ProjectInfoStorage.all self()
-        build_data = Agent.get {:via, Registry, {Serum.Registry, {:build_data, self()}}}, &(&1)
-        state = %{project_info: proj_info, build_data: build_data}
         launch_tasks mode, src, dest, state
       end
     case result do
@@ -89,33 +96,46 @@ defmodule Serum.Build do
     end
   end
 
-  @spec compile_nav() :: :ok
+  @spec compile_nav(compiled_template) :: binary
 
-  defp compile_nav do
+  defp compile_nav(template) do
     IO.puts "Compiling main navigation HTML stub..."
-    template = BuildDataStorage.get self(), "template", "nav"
-    html = Renderer.render template, []
-    BuildDataStorage.put self(), "navstub", html
+    Renderer.render template, []
   end
 
   @spec launch_tasks(build_mode, String.t, String.t, state) :: Error.result
 
   defp launch_tasks(:parallel, src, dest, state) do
-    IO.puts "⚡️  \x1b[1mStarting parallel build...\x1b[0m"
+    IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run :parallel, src, dest, state end
     t2 = Task.async fn -> PostBuilder.run :parallel, src, dest, state end
-    results = [Task.await(t1), Task.await(t2)]
-    # IndexBuilder must be run after PostBuilder has finished
-    t3 = Task.async fn -> IndexBuilder.run :parallel, src, dest, state end
-    results = [Task.await(t3)|results]
-    Error.filter_results results, :launch_tasks
+    page_result = Task.await t1
+    post_result = Task.await t2
+    case post_result do
+      {:ok, posts} ->
+        build_data = state.build_data
+        state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
+        t3 = Task.async fn -> IndexBuilder.run :parallel, src, dest, state end
+        index_result = Task.await t3
+        Error.filter_results [page_result, index_result], :launch_tasks
+      _ ->
+        Error.filter_results [page_result, post_result], :launch_tasks
+    end
   end
 
   defp launch_tasks(:sequential, src, dest, state) do
-    IO.puts "⌛️  \x1b[1mStarting sequential build...\x1b[0m"
-    [PageBuilder, PostBuilder, IndexBuilder]
-    |> Enum.map(&(&1.run :sequential, src, dest, state))
-    |> Error.filter_results(:launch_tasks)
+    IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
+    page_result = PageBuilder.run :sequential, src, dest, state
+    post_result = PostBuilder.run :sequential, src, dest, state
+    case post_result do
+      {:ok, posts} ->
+        build_data = state.build_data
+        state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
+        index_result = IndexBuilder.run :sequential, src, dest, state
+        Error.filter_results [page_result, index_result], :launch_tasks
+      _ ->
+        Error.filter_results [page_result, post_result], :launch_tasks
+    end
   end
 
   @spec copy_assets(String.t, String.t) :: :ok

@@ -9,7 +9,6 @@ defmodule Serum.Build.PostBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
   alias Serum.PostInfo
-  alias Serum.PostInfoStorage
 
   @type state :: Build.state
   @type erl_datetime :: {erl_date, erl_time}
@@ -21,18 +20,18 @@ defmodule Serum.Build.PostBuilder do
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.build_mode, String.t, String.t, state) :: Error.result
+  @spec run(Build.build_mode, String.t, String.t, state)
+    :: Error.result([PostInfo.t])
 
   def run(mode, src, dest, state) do
     srcdir = "#{src}posts/"
     dstdir = "#{dest}posts/"
-    PostInfoStorage.init owner()
 
     case load_file_list srcdir do
       {:ok, list} ->
         File.mkdir_p! dstdir
         result = launch mode, list, srcdir, dstdir, state
-        Error.filter_results result, :post_builder
+        Error.filter_results_with_values result, :post_builder
       error -> error
     end
   end
@@ -55,7 +54,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   @spec launch(Build.build_mode, [String.t], String.t, String.t, state)
-    :: [Error.result]
+    :: [Error.result(PostInfo.t)]
 
   defp launch(:parallel, files, src, dst, state) do
     files
@@ -67,12 +66,13 @@ defmodule Serum.Build.PostBuilder do
     files |> Enum.map(&post_task(&1, src, dst, state))
   end
 
-  @spec post_task(String.t, String.t, String.t, state) :: Error.result
+  @spec post_task(String.t, String.t, String.t, state)
+    :: Error.result(PostInfo.t)
 
   def post_task(file, src, dest, state) do
     srcname = "#{src}#{file}.md"
     dstname = "#{dest}#{file}.html"
-    %{project_info: %{base_url: base}} = state
+    base = state.project_info.base_url
     case {extract_date(srcname), extract_header(srcname, base)} do
       {{:ok, raw_date}, {:ok, header}} ->
         do_post_task file, srcname, dstname, header, raw_date, state
@@ -82,19 +82,18 @@ defmodule Serum.Build.PostBuilder do
   end
 
   @spec do_post_task(String.t, String.t, String.t, header, erl_datetime, state)
-    :: :ok
+    :: Error.result(PostInfo.t)
 
   defp do_post_task(file, src, dest, header, raw_date, state) do
     lines = elem header, 2
     stub = Earmark.to_html lines
-    %{project_info: %{preview_length: preview_len}} = state
+    preview_len = state.project_info.preview_length
     preview = make_preview stub, preview_len
-    info = PostInfo.new file, header, raw_date, preview
-    PostInfoStorage.add owner(), info
+    info = PostInfo.new file, header, raw_date, preview, state
     html = render_post stub, info, state
     fwrite dest, html
     IO.puts "  GEN  #{src} -> #{dest}"
-    :ok
+    {:ok, info}
   end
 
   @spec make_preview(String.t, non_neg_integer) :: String.t

@@ -17,7 +17,7 @@ defmodule Serum.Build.PageBuilder do
   @spec run(Build.build_mode, String.t, String.t, state) :: Error.result
 
   def run(mode, src, dest, state) do
-    %{build_data: %{"pages_file" => files}} = state
+    files = state.build_data["pages_file"]
     result = launch mode, files, src, dest, state
     Error.filter_results result, :page_builder
   end
