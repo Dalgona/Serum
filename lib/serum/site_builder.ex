@@ -3,7 +3,6 @@ defmodule Serum.SiteBuilder do
   alias Serum.Error
   alias Serum.Build
   alias Serum.BuildDataStorage
-  alias Serum.PostInfoStorage
   alias Serum.ProjectInfo
   alias Serum.ProjectInfoStorage
   alias Serum.Validation
@@ -43,7 +42,7 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Server
   #
 
-  @storage_agents [BuildDataStorage, PostInfoStorage]
+  @storage_agents [BuildDataStorage]
 
   def init(state) do
     ProjectInfoStorage.start_link self()
