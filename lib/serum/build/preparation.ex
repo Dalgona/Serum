@@ -4,41 +4,45 @@ defmodule Serum.Build.Preparation do
   process.
   """
 
-  import Serum.Util
+  alias Serum.Build
   alias Serum.Error
-  alias Serum.ProjectInfoStorage
-  alias Serum.BuildDataStorage
 
-  @spec check_tz() :: Error.result
-  def check_tz do
+  @spec check_tz(term) :: Error.result(nil)
+
+  def check_tz(_state) do
     try do
       Timex.local
-      :ok
+      {:ok, nil}
     rescue
       _ -> {:error, :system_error, "system timezone is not set"}
     end
   end
 
-  @spec load_templates(String.t) :: Error.result
+  @spec load_templates(String.t, Build.state) :: Error.result(map)
 
-  def load_templates(dir) do
+  def load_templates(dir, state) do
     IO.puts "Loading templates..."
-    ["base", "list", "page", "post", "nav"]
-    |> Enum.map(&do_load_templates(dir, &1))
-    |> Error.filter_results(:load_templates)
+    result =
+      ["base", "list", "page", "post", "nav"]
+      |> Enum.map(&do_load_templates(dir, &1, state))
+      |> Error.filter_results_with_values(:load_templates)
+    case result do
+      {:ok, list} -> {:ok, Map.new(list)}
+      error = {:error, _, _} -> error
+    end
   end
 
-  @spec do_load_templates(String.t, String.t) :: Error.result
+  @spec do_load_templates(String.t, String.t, Build.state)
+    :: Error.result({String.t, Macro.t})
 
-  defp do_load_templates(dir, name) do
+  defp do_load_templates(dir, name, state) do
     path = "#{dir}templates/#{name}.html.eex"
     case File.read path do
       {:ok, data} ->
         try do
-          base = ProjectInfoStorage.get owner(), :base_url
+          base = state.project_info.base_url
           ast = data |> EEx.compile_string() |> preprocess_template(base)
-          BuildDataStorage.put owner(), "template", name, ast
-          :ok
+          {:ok, {"template__#{name}", ast}}
         rescue
           e in EEx.SyntaxError ->
             {:error, :invalid_template, {e.message, path, e.line}}
@@ -110,30 +114,32 @@ defmodule Serum.Build.Preparation do
     children |> Code.eval_quoted() |> elem(0)
   end
 
-  @spec scan_pages(String.t, String.t) :: Error.result
+  @spec scan_pages(String.t, String.t, term) :: Error.result(map)
 
-  def scan_pages(src, dest) do
+  def scan_pages(src, dest, _state) do
     dir = src <> "pages/"
     IO.puts "Scanning `#{dir}` directory..."
-    if File.exists?(dir), do: do_scan_pages(dir, src, dest),
-    else: {:error, :file_error, {:enoent, dir, 0}}
+    if File.exists? dir do
+      {:ok, %{"pages_file" => List.flatten(do_scan_pages dir, src, dest)}}
+    else
+      {:error, :file_error, {:enoent, dir, 0}}
+    end
   end
 
-  @spec do_scan_pages(String.t, String.t, String.t) :: :ok
+  @spec do_scan_pages(String.t, String.t, String.t) :: list(any)
 
   defp do_scan_pages(path, src, dest) do
     path
-    |> File.ls!
-    |> Enum.each(fn x ->
+    |> File.ls!()
+    |> Enum.reduce([], fn x, acc ->
       f = Regex.replace ~r(/+), "#{path}/#{x}", "/"
       cond do
         File.dir? f ->
-          f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!
-          do_scan_pages f, src, dest
+          f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!()
+          [do_scan_pages(f, src, dest)|acc]
         String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
-          files = BuildDataStorage.get owner(), "pages_file"
-          BuildDataStorage.put owner(), "pages_file", [f|files]
-        :otherwise -> :skip
+          [f|acc]
+        :otherwise -> acc
       end
     end)
   end

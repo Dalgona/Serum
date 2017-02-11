@@ -63,7 +63,7 @@ defmodule Serum.Cmdline do
     end
   end
 
-  @spec launch_build([String.t], String.t, SiteBuilder.build_mode) :: any
+  @spec launch_build([String.t], String.t, Serum.Build.mode) :: any
 
   defp launch_build(args, out, mode) do
     dir =

@@ -20,7 +20,7 @@ defmodule Serum.Build.PostBuilder do
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.build_mode, String.t, String.t, state)
+  @spec run(Build.mode, String.t, String.t, state)
     :: Error.result([PostInfo.t])
 
   def run(mode, src, dest, state) do
@@ -53,7 +53,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec launch(Build.build_mode, [String.t], String.t, String.t, state)
+  @spec launch(Build.mode, [String.t], String.t, String.t, state)
     :: [Error.result(PostInfo.t)]
 
   defp launch(:parallel, files, src, dst, state) do

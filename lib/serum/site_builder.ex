@@ -8,8 +8,6 @@ defmodule Serum.SiteBuilder do
   alias Serum.ProjectInfoStorage
   alias Serum.Validation
 
-  @type build_mode :: :sequential | :parallel
-
   #
   # GenServer Implementation - Client
   #
@@ -29,7 +27,7 @@ defmodule Serum.SiteBuilder do
     GenServer.call server, :load_info
   end
 
-  @spec build(pid, build_mode) :: Error.result(String.t)
+  @spec build(pid, Build.mode) :: Error.result(String.t)
 
   def build(server, mode) do
     GenServer.call server, {:build, mode}
@@ -59,7 +57,9 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call({:build, mode}, _from, {src, dest}) do
-    result = Build.build src, dest, mode
+    proj = ProjectInfoStorage.all self()
+    state = %{project_info: proj, build_data: %{}}
+    result = Build.build mode, src, dest, state
     {:reply, result, {src, dest}}
   end
 

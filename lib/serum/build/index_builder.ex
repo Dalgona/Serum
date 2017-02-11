@@ -12,7 +12,7 @@ defmodule Serum.Build.IndexBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.build_mode, String.t, String.t, state) :: Error.result
+  @spec run(Build.mode, String.t, String.t, state) :: Error.result
 
   def run(mode, _src, dest, state) do
     dstdir = "#{dest}posts/"
@@ -47,7 +47,7 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec launch_tag(Build.build_mode, map, String.t, state) :: [Task.t]
+  @spec launch_tag(Build.mode, map, String.t, state) :: [Task.t]
 
   defp launch_tag(:parallel, tagmap, dir, state) do
     tagmap

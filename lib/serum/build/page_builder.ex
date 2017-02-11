@@ -14,7 +14,7 @@ defmodule Serum.Build.PageBuilder do
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts building pages in the `/path/to/project/pages` directory."
-  @spec run(Build.build_mode, String.t, String.t, state) :: Error.result
+  @spec run(Build.mode, String.t, String.t, state) :: Error.result
 
   def run(mode, src, dest, state) do
     files = state.build_data["pages_file"]
@@ -24,7 +24,7 @@ defmodule Serum.Build.PageBuilder do
 
   # Launches individual page build tasks if the program is running in `parallel`
   # mode, otherwise performs the tasks one by one.
-  @spec launch(Build.build_mode, [String.t], String.t, String.t, state)
+  @spec launch(Build.mode, [String.t], String.t, String.t, state)
     :: [Error.result]
 
   defp launch(:parallel, files, src, dest, state) do
