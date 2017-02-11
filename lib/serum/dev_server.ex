@@ -5,7 +5,6 @@ defmodule Serum.DevServer do
 
   alias Serum.Error
   alias Serum.DevServer.{DirStatus, Service, AutoBuilder, Looper}
-  alias Serum.ProjectInfoStorage
   alias Serum.SiteBuilder
 
   @spec run(dir :: String.t, port :: pos_integer) :: any
@@ -19,8 +18,8 @@ defmodule Serum.DevServer do
     {:ok, pid_builder} = SiteBuilder.start_link dir, site
     case SiteBuilder.load_info pid_builder do
       error = {:error, _, _} -> Error.show error
-      :ok ->
-        base = ProjectInfoStorage.get pid_builder, :base_url
+      {:ok, proj} ->
+        base = proj.base_url
         ms_callbacks = [Microscope.Logger, AutoBuilder]
         ms_options   = [port: port, base: base, callbacks: ms_callbacks]
         children = [

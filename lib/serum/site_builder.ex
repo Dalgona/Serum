@@ -2,9 +2,7 @@ defmodule Serum.SiteBuilder do
   use GenServer
   alias Serum.Error
   alias Serum.Build
-  alias Serum.BuildDataStorage
   alias Serum.ProjectInfo
-  alias Serum.ProjectInfoStorage
   alias Serum.Validation
 
   #
@@ -20,7 +18,7 @@ defmodule Serum.SiteBuilder do
     GenServer.start_link __MODULE__, {src, dest}
   end
 
-  @spec load_info(pid) :: :ok
+  @spec load_info(pid) :: Error.result(ProjectInfo.t)
 
   def load_info(server) do
     GenServer.call server, :load_info
@@ -42,28 +40,32 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Server
   #
 
-  @storage_agents [BuildDataStorage]
-
-  def init(state) do
-    ProjectInfoStorage.start_link self()
-    for mod <- @storage_agents, do: mod.start_link self()
-    {:ok, state}
+  def init({src, dest}) do
+    {:ok, {src, dest, nil}}
   end
 
-  def handle_call(:load_info, _from, {src, dest}) do
-    result = do_load_info src
-    {:reply, result, {src, dest}}
+  def handle_call(:load_info, _from, {src, dest, _}) do
+    case do_load_info src do
+      {:ok, proj} ->
+        {:reply, {:ok, proj}, {src, dest, proj}}
+      error = {:error, _, _} ->
+        {:reply, error, {src, dest, nil}}
+    end
   end
 
-  def handle_call({:build, mode}, _from, {src, dest}) do
-    proj = ProjectInfoStorage.all self()
+  def handle_call({:build, _mode}, _from, {src, dest, nil}) do
+    {:reply,
+     {:error, :build_error, "project metadata is not loaded"},
+     {src, dest, nil}}
+  end
+
+  def handle_call({:build, mode}, _from, {src, dest, proj}) do
     state = %{project_info: proj, build_data: %{}}
     result = Build.build mode, src, dest, state
-    {:reply, result, {src, dest}}
+    {:reply, result, {src, dest, proj}}
   end
 
   def handle_cast(:stop, _state) do
-    for mod <- @storage_agents, do: mod.stop self()
     exit :normal
   end
 
@@ -71,7 +73,7 @@ defmodule Serum.SiteBuilder do
   # Internal Functions
   #
 
-  @spec do_load_info(String.t) :: Error.result
+  @spec do_load_info(String.t) :: Error.result(ProjectInfo.t)
 
   defp do_load_info(dir) do
     path = dir <> "serum.json"
@@ -83,7 +85,7 @@ defmodule Serum.SiteBuilder do
     end
   end
 
-  @spec decode_json(String.t, String.t) :: Error.result
+  @spec decode_json(String.t, String.t) :: Error.result(ProjectInfo.t)
 
   defp decode_json(path, data) do
     case Poison.decode data do
@@ -97,13 +99,11 @@ defmodule Serum.SiteBuilder do
     end
   end
 
-  @spec validate(map) :: Error.result
+  @spec validate(map) :: Error.result(ProjectInfo.t)
 
   defp validate(proj) do
-    owner = self()
-    Validation.load_schema owner
-    case Validation.validate owner, "serum.json", proj do
-      :ok -> ProjectInfoStorage.load(owner, ProjectInfo.new(proj))
+    case Validation.validate "serum.json", proj do
+      :ok -> {:ok, ProjectInfo.new(proj)}
       error -> error
     end
   end
