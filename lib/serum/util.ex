@@ -17,19 +17,4 @@ defmodule Serum.Util do
 
   def warn(str),
     do: IO.puts :stderr, "\x1b[33m * #{str}\x1b[0m"
-
-  @spec owner :: pid
-
-  def owner do
-    {:links, links} = Process.info self(), :links
-    [self()|links]
-    |> Enum.reject(fn pid ->
-      lookups =
-        [:project_info, :build_data, :post_info]
-        |> Enum.map(fn key -> Registry.lookup Serum.Registry, {key, pid} end)
-        |> Enum.uniq
-      lookups == [[]]
-    end)
-    |> hd()
-  end
 end

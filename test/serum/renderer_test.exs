@@ -2,6 +2,26 @@ defmodule RendererTest do
   use ExUnit.Case, async: true
   import Serum.Build.Renderer
 
+  describe "render/2" do
+    test "simple template" do
+      template = EEx.compile_string "Hello, world!"
+      assert "Hello, world!" == render template, []
+      assert "Hello, world!" == render template, [unused: "unused"]
+    end
+
+    test "binding" do
+      template = EEx.compile_string "Hello, <%= name %>!"
+      assert "Hello, world!" == render template, [name: "world"]
+    end
+
+    test "undefined function" do
+      template = EEx.compile_string "Hello, <%= name() %>!"
+      assert_raise CompileError, fn ->
+        render template, []
+      end
+    end
+  end
+
   describe "process_links/2" do
     test "a blank string" do
       assert "" == process_links "", "/test_base/"

@@ -28,18 +28,21 @@ defmodule PostBuilderTest do
     {:ok, pid} = SiteBuilder.start_link src, ""
     Process.group_leader self(), null
     Process.group_leader pid, null
-    Preparation.load_templates src
-    SiteBuilder.load_info pid
+
+    {:ok, proj} = SiteBuilder.load_info pid
+    state = %{project_info: proj, build_data: %{}}
+    {:ok, templates} = Preparation.load_templates src, state
+    state = %{state|build_data: templates}
 
     uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
     dest = "/tmp/serum_#{uniq}/"
-    assert :ok == PostBuilder.run :sequential, src, dest
+    {:ok, [_h|_t]} = PostBuilder.run :sequential, src, dest, state
     assert_exists dest
     File.rm_rf! dest
 
     uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
     dest = "/tmp/serum_#{uniq}/"
-    assert :ok == PostBuilder.run :parallel, src, dest
+    {:ok, [_h|_t]} = PostBuilder.run :parallel, src, dest, state
     assert_exists dest
     File.rm_rf! dest
 
@@ -63,8 +66,11 @@ defmodule PostBuilderTest do
     {:ok, pid} = SiteBuilder.start_link src, ""
     Process.group_leader self(), null
     Process.group_leader pid, null
-    Preparation.load_templates src
-    SiteBuilder.load_info pid
+
+    {:ok, proj} = SiteBuilder.load_info pid
+    state = %{project_info: proj, build_data: %{}}
+    {:ok, templates} = Preparation.load_templates src, state
+    state = %{state|build_data: templates}
 
     uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
     dest = "/tmp/serum_#{uniq}/"
@@ -77,7 +83,7 @@ defmodule PostBuilderTest do
          {:error, :post_error,
           {:invalid_filename,
            "#{src}posts/invalid-filename.md", 0}}]}}
-    assert expected == PostBuilder.run src, dest, :parallel
+    assert expected == PostBuilder.run :parallel, src, dest, state
     File.rm_rf! dest
 
     SiteBuilder.stop pid
