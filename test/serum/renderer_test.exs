@@ -1,131 +1,119 @@
 defmodule RendererTest do
   use ExUnit.Case, async: true
-  alias Serum.Build.Renderer
-  alias Serum.SiteBuilder
-
-  setup_all do
-    null = spawn_link __MODULE__, :looper, []
-    priv = :code.priv_dir :serum
-    {:ok, pid} = SiteBuilder.start_link "#{priv}/testsite_good", ""
-    Process.group_leader pid, null
-    SiteBuilder.load_info pid
-    send null, :stop
-    on_exit fn -> SiteBuilder.stop pid end
-    {:ok, [builder: pid]}
-  end
+  import Serum.Build.Renderer
 
   describe "process_links/2" do
-    test "a blank string", %{builder: builder} do
-      assert "" == Renderer.process_links "", builder
+    test "a blank string" do
+      assert "" == process_links "", "/test_base/"
     end
 
-    test "no match", %{builder: builder} do
-      assert "hello" == Renderer.process_links "hello", builder
+    test "no match" do
+      assert "hello" == process_links "hello", "/test_base/"
     end
 
-    test "media src from md", %{builder: builder} do
+    test "media src from md" do
       expected = ~s(src="/test_base/media/image.jpg")
       code = ~s(src="%25media:image.jpg")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "media href from md", %{builder: builder} do
+    test "media href from md" do
       expected = ~s(href="/test_base/media/image.jpg")
       code = ~s(href="%25media:image.jpg")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "media other from md", %{builder: builder} do
+    test "media other from md" do
       code = ~s(asdf="%25media:image.jpg")
-      assert code == Renderer.process_links code, builder
+      assert code == process_links code, "/test_base/"
     end
 
-    test "media src from html", %{builder: builder} do
+    test "media src from html" do
       expected = ~s(src="/test_base/media/image.jpg")
       code = ~s(src="%media:image.jpg")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "media href from html", %{builder: builder} do
+    test "media href from html" do
       expected = ~s(href="/test_base/media/image.jpg")
       code = ~s(href="%media:image.jpg")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "media other from html", %{builder: builder} do
+    test "media other from html" do
       code = ~s(asdf="%media:image.jpg")
-      assert code == Renderer.process_links code, builder
+      assert code == process_links code, "/test_base/"
     end
 
-    test "post src from md", %{builder: builder} do
+    test "post src from md" do
       expected = ~s(src="/test_base/posts/test-post.html")
       code = ~s(src="%25posts:test-post")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "post href from md", %{builder: builder} do
+    test "post href from md" do
       expected = ~s(href="/test_base/posts/test-post.html")
       code = ~s(href="%25posts:test-post")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "post other from md", %{builder: builder} do
+    test "post other from md" do
       code = ~s(asdf="%25posts:test-post")
-      assert code == Renderer.process_links code, builder
+      assert code == process_links code, "/test_base/"
     end
 
-    test "post src from html", %{builder: builder} do
+    test "post src from html" do
       expected = ~s(src="/test_base/posts/test-post.html")
       code = ~s(src="%posts:test-post")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "post href from html", %{builder: builder} do
+    test "post href from html" do
       expected = ~s(href="/test_base/posts/test-post.html")
       code = ~s(href="%posts:test-post")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "post other from html", %{builder: builder} do
+    test "post other from html" do
       code = ~s(asdf="%posts:test-post")
-      assert code == Renderer.process_links code, builder
+      assert code == process_links code, "/test_base/"
     end
 
-    test "page src from md", %{builder: builder} do
+    test "page src from md" do
       expected = ~s(src="/test_base/docs/index.html")
       code = ~s(src="%25pages:docs/index")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "page href from md", %{builder: builder} do
+    test "page href from md" do
       expected = ~s(href="/test_base/docs/index.html")
       code = ~s(href="%25pages:docs/index")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "page other from md", %{builder: builder} do
+    test "page other from md" do
       code = ~s(asdf="%25pages:docs/index")
-      assert code == Renderer.process_links code, builder
+      assert code == process_links code, "/test_base/"
     end
 
-    test "page src from html", %{builder: builder} do
+    test "page src from html" do
       expected = ~s(src="/test_base/docs/index.html")
       code = ~s(src="%pages:docs/index")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "page href from html", %{builder: builder} do
+    test "page href from html" do
       expected = ~s(href="/test_base/docs/index.html")
       code = ~s(href="%pages:docs/index")
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
 
-    test "page other from html", %{builder: builder} do
+    test "page other from html" do
       code = ~s(asdf="%pages:docs/index")
-      assert code == Renderer.process_links code, builder
+      assert code == process_links code, "/test_base/"
     end
 
-    test "convert multiple occurrences", %{builder: builder} do
+    test "convert multiple occurrences" do
       expected =
         """
         Hello, world! <a href="/test_base/docs/index.html">[Docs]</a>
@@ -138,7 +126,7 @@ defmodule RendererTest do
         <img src="%media:main/logo.png">
         Latest post: <a href="%25posts:my-post">My Post</a>
         """
-      assert expected == Renderer.process_links code, builder
+      assert expected == process_links code, "/test_base/"
     end
   end
 

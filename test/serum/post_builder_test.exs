@@ -17,7 +17,7 @@ defmodule PostBuilderTest do
 
   test "run/3, nonexistent dir" do
     {:ok, pid} = SiteBuilder.start_link "asdf/", ""
-    result = PostBuilder.run "asdf/", "", :sequential
+    result = PostBuilder.run :sequential, "asdf/", "", %{}
     assert {:error, :file_error, {:enoent, "asdf/posts/", 0}} == result
     SiteBuilder.stop pid
   end
@@ -33,13 +33,13 @@ defmodule PostBuilderTest do
 
     uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
     dest = "/tmp/serum_#{uniq}/"
-    assert :ok == PostBuilder.run src, dest, :sequential
+    assert :ok == PostBuilder.run :sequential, src, dest
     assert_exists dest
     File.rm_rf! dest
 
     uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
     dest = "/tmp/serum_#{uniq}/"
-    assert :ok == PostBuilder.run src, dest, :parallel
+    assert :ok == PostBuilder.run :parallel, src, dest
     assert_exists dest
     File.rm_rf! dest
 

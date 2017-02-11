@@ -1,80 +1,93 @@
 defmodule PrepTest do
   use ExUnit.Case, async: true
-  alias Serum.Build.Preparation
-  alias Serum.BuildDataStorage
+  import ExUnit.CaptureIO
+  import Serum.Build.Preparation
 
   setup_all do
-    pid = spawn_link __MODULE__, :looper, []
-    on_exit fn -> send pid, :stop end
-    {:ok, [null_io: pid]}
+    {:ok, [state: %{project_info: %{base_url: "/test_base/"}}]}
   end
 
   describe "load_templates/1" do
-    test "all ok", %{null_io: null} do
-      Process.group_leader self(), null
-      {:ok, _pid} = BuildDataStorage.start_link self()
-      assert :ok == Preparation.load_templates priv("testsite_good/")
-      BuildDataStorage.stop self()
+    test "all ok", %{state: state} do
+      capture_io fn ->
+        send self(), load_templates(priv("testsite_good/"), state)
+      end
+      assert_received(
+        {:ok,
+         %{"template__base" => _base,
+           "template__page" => _page,
+           "template__post" => _post,
+           "template__list" => _list,
+           "template__nav"  => _nav}}
+      )
     end
 
-    test "some templates are missing", %{null_io: null} do
-      Process.group_leader self(), null
-      {:ok, _pid} = BuildDataStorage.start_link self()
+    test "some templates are missing", %{state: state} do
       priv = fn x -> priv("test_templates/missing/templates/" <> x) end
-      result = Preparation.load_templates priv("test_templates/missing/")
+      capture_io fn ->
+        send self(), load_templates(priv("test_templates/missing/"), state)
+      end
       expected =
         {:error, :child_tasks,
          {:load_templates,
           [{:error, :file_error, {:enoent, priv.("list.html.eex"), 0}},
            {:error, :file_error, {:enoent, priv.("post.html.eex"), 0}}]}}
-      assert expected == result
-      BuildDataStorage.stop self()
+      assert_received ^expected
     end
 
-    test "some templates contain errors 1", %{null_io: null} do
-      Process.group_leader self(), null
-      {:ok, _pid} = BuildDataStorage.start_link self()
-      result = Preparation.load_templates priv("test_templates/eex_error/")
-      {:error, :child_tasks, {:load_templates, errors}} = result
-      Enum.each errors, fn e ->
-        assert elem(e, 0) == :error
-        assert elem(e, 1) == :invalid_template
+    test "some templates contain errors 1", %{state: state} do
+      capture_io fn ->
+        send self(), load_templates(priv("test_templates/eex_error/"), state)
       end
-      BuildDataStorage.stop self()
+      receive do
+        {:error, :child_tasks, {:load_templates, errors}} ->
+          Enum.each errors, fn e ->
+            assert elem(e, 0) == :error
+            assert elem(e, 1) == :invalid_template
+          end
+      end
     end
 
-    test "some templates contain errors 2", %{null_io: null} do
-      Process.group_leader self(), null
-      {:ok, _pid} = BuildDataStorage.start_link self()
-      result = Preparation.load_templates priv("test_templates/elixir_error/")
-      {:error, :child_tasks, {:load_templates, errors}} = result
-      Enum.each errors, fn e ->
-        assert elem(e, 0) == :error
-        assert elem(e, 1) == :invalid_template
+    test "some templates contain errors 2", %{state: state} do
+      capture_io fn ->
+        send self(), load_templates(priv("test_templates/elixir_error/"), state)
       end
-      BuildDataStorage.stop self()
+      receive do
+        {:error, :child_tasks, {:load_templates, errors}} ->
+          Enum.each errors, fn e ->
+            assert elem(e, 0) == :error
+            assert elem(e, 1) == :invalid_template
+          end
+      end
     end
   end
 
   describe "scan_pages/2" do
-    test "successfully scanned", %{null_io: null} do
-      Process.group_leader self(), null
-      BuildDataStorage.start_link self()
-      BuildDataStorage.put self(), "pages_file", []
+    test "successfully scanned" do
+      expected_files =
+        [priv("testsite_good/pages/foo/bar.md"),
+         priv("testsite_good/pages/foo/baz.html"),
+         priv("testsite_good/pages/index.md"),
+         priv("testsite_good/pages/test.html")]
       uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64()
       tmpname = "/tmp/serum_#{uniq}/"
       File.mkdir_p! tmpname
-      assert :ok == Preparation.scan_pages priv("testsite_good/"), tmpname
-      assert 4 == length BuildDataStorage.get(self(), "pages_file")
+      capture_io fn ->
+        send self(), scan_pages(priv("testsite_good/"), tmpname, %{})
+      end
+      receive do
+        {:ok, %{"pages_file" => files}} ->
+          assert expected_files == Enum.sort(files)
+      end
       File.rm_rf! tmpname
-      BuildDataStorage.stop self()
     end
 
-    test "source dir does not exist", %{null_io: null} do
-      Process.group_leader self(), null
-      result = Preparation.scan_pages "/nonexistent_123/", ""
+    test "source dir does not exist" do
+      capture_io fn ->
+        send self(), scan_pages("/nonexistent_123/", "", %{})
+      end
       expected = {:error, :file_error, {:enoent, "/nonexistent_123/pages/", 0}}
-      assert expected == result
+      assert_received ^expected
     end
   end
 
