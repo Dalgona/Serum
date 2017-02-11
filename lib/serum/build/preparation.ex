@@ -58,7 +58,7 @@ defmodule Serum.Build.Preparation do
 
   @spec preprocess_template(Macro.t, String.t) :: Macro.t
 
-  defp preprocess_template(ast, base) do
+  def preprocess_template(ast, base) do
     Macro.postwalk ast, fn
       expr = {_name, _meta, _children} ->
         eval_helpers expr, base

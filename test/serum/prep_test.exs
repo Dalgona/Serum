@@ -91,6 +91,93 @@ defmodule PrepTest do
     end
   end
 
+  describe "preprocess_template/2" do
+    test "empty template" do
+      template = EEx.compile_string ""
+      assert "" == preprocess_template template, ""
+    end
+
+    test "no special macros" do
+      template = EEx.compile_string "<%= 1 + 2 %><%= text %>"
+      result =
+        template
+        |> preprocess_template("")
+        |> Code.eval_quoted([text: "hello"])
+        |> elem(0)
+      assert "3hello" == result
+    end
+
+    test "expand base" do
+      template = EEx.compile_string """
+      <%= base %>
+      <%= base() %>
+      <%= base "test.html" %>
+      """
+      expected = """
+      hello
+      /test_base/
+      /test_base/test.html
+      """
+      result =
+        template
+        |> preprocess_template("/test_base/")
+        |> Code.eval_quoted([base: "hello"])
+        |> elem(0)
+      assert expected == result
+    end
+
+    test "expand page" do
+      template = EEx.compile_string """
+      <%= page %>
+      <%= page "docs/cmdline" %>
+      """
+      expected = """
+      hello
+      /test_base/docs/cmdline.html
+      """
+      result =
+        template
+        |> preprocess_template("/test_base/")
+        |> Code.eval_quoted([page: "hello"])
+        |> elem(0)
+      assert expected == result
+    end
+
+    test "expand post" do
+      template = EEx.compile_string """
+      <%= post %>
+      <%= post "2017-01-01-0000-test-post" %>
+      """
+      expected = """
+      hello
+      /test_base/posts/2017-01-01-0000-test-post.html
+      """
+      result =
+        template
+        |> preprocess_template("/test_base/")
+        |> Code.eval_quoted([post: "hello"])
+        |> elem(0)
+      assert expected == result
+    end
+
+    test "expand asset" do
+      template = EEx.compile_string """
+      <%= asset %>
+      <%= asset "css/style.css" %>
+      """
+      expected = """
+      hello
+      /test_base/assets/css/style.css
+      """
+      result =
+        template
+        |> preprocess_template("/test_base/")
+        |> Code.eval_quoted([asset: "hello"])
+        |> elem(0)
+      assert expected == result
+    end
+  end
+
   defp priv(path) do
     "#{:code.priv_dir :serum}/#{path}"
   end
