@@ -73,7 +73,7 @@ defmodule Serum.Cmdline do
       end
     {:ok, pid} = SiteBuilder.start_link dir, out
     case SiteBuilder.load_info pid do
-      :ok ->
+      {:ok, _} ->
         case SiteBuilder.build pid, mode do
           {:ok, dest} -> finish_build dest
           error = {:error, _, _} -> error_build error
