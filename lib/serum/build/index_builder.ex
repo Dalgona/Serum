@@ -15,25 +15,25 @@ defmodule Serum.Build.IndexBuilder do
   @spec run(Build.mode, String.t, String.t, state) :: Error.result
 
   def run(mode, _src, dest, state) do
-    dstdir = "#{dest}posts/"
-    if File.exists? dstdir do
+    postdir = "#{dest}posts/"
+    if File.exists? postdir do
       all_posts = state.build_data["all_posts"]
       title = state.project_info.list_title_all
 
       IO.puts "Generating posts index..."
-      save_list "#{dstdir}index.html", title, Enum.reverse(all_posts), state
+      save_list "#{postdir}index.html", title, Enum.reverse(all_posts), state
 
       tags = get_tag_map all_posts
       result = launch_tag mode, tags, dest, state
       Error.filter_results result, :index_builder
     else
-      {:error, :file_error, {:enoent, dstdir, 0}}
+      {:error, :file_error, {:enoent, postdir, 0}}
     end
   end
 
   @spec get_tag_map([Serum.PostInfo.t]) :: map
 
-  defp get_tag_map(all_posts) do
+  def get_tag_map(all_posts) do
     all_tags =
       Enum.reduce all_posts, MapSet.new(), fn info, acc ->
         MapSet.union acc, MapSet.new(info.tags)

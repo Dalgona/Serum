@@ -76,7 +76,8 @@ defmodule SiteBuilderTest do
       path = "#{priv()}/test_projinfo/schema_error/"
       {:ok, pid} = SiteBuilder.start_link path, ""
       Process.group_leader pid, null
-      {:error, :child_tasks, {:validate_json, errors}} = SiteBuilder.load_info pid
+      {:error, :child_tasks,
+       {:validate_json, errors}} = SiteBuilder.load_info pid
       Enum.each errors, fn {:error, reason, {_msg, schema_name, 0}} ->
         assert :validation_error == reason
         assert "serum.json" == schema_name
