@@ -9,7 +9,9 @@ defmodule Serum.DevServer.Service do
   alias Serum.Error
   alias Serum.SiteBuilder
 
-  ## Client
+  #
+  # GenServer Implementation - Client
+  #
 
   @spec start_link(pid, String.t, String.t, pos_integer)
     :: {:ok, pid} | {:error, atom}
@@ -35,7 +37,9 @@ defmodule Serum.DevServer.Service do
 
   def port(), do: GenServer.call __MODULE__, :port
 
-  ## Server
+  #
+  # GenServer Implementation - Server
+  #
 
   def init([builder, dir, site, portnum]) do
     do_rebuild builder
@@ -60,12 +64,19 @@ defmodule Serum.DevServer.Service do
   @spec do_rebuild(pid) :: :ok
 
   defp do_rebuild(builder) do
-    case SiteBuilder.build builder, :parallel do
-      {:ok, _} -> :ok
-      error = {:error, _, _} ->
-        Error.show error
-        warn "Error occurred while building the website."
-        warn "The website may not be displayed correctly."
+    case SiteBuilder.load_info builder do
+      {:ok, _info} ->
+        case SiteBuilder.build builder, :parallel do
+          {:ok, _} -> :ok
+          error -> build_failed error
+        end
+      error -> build_failed error
     end
+  end
+
+  defp build_failed(error) do
+    Error.show error
+    warn "Error occurred while building the website."
+    warn "The website may not be displayed correctly."
   end
 end
