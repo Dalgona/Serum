@@ -12,10 +12,10 @@ defmodule Serum.Build.IndexBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.mode, String.t, String.t, state) :: Error.result
+  @spec run(Build.mode, state) :: Error.result
 
-  def run(mode, _src, dest, state) do
-    postdir = "#{dest}posts/"
+  def run(mode, state) do
+    postdir = "#{state.dest}posts/"
     if File.exists? postdir do
       all_posts = state.build_data["all_posts"]
       title = state.project_info.list_title_all
@@ -24,7 +24,7 @@ defmodule Serum.Build.IndexBuilder do
       save_list "#{postdir}index.html", title, Enum.reverse(all_posts), state
 
       tags = get_tag_map all_posts
-      result = launch_tag mode, tags, dest, state
+      result = launch_tag mode, tags, state
       Error.filter_results result, :index_builder
     else
       {:error, :file_error, {:enoent, postdir, 0}}
@@ -47,15 +47,17 @@ defmodule Serum.Build.IndexBuilder do
     end
   end
 
-  @spec launch_tag(Build.mode, map, String.t, state) :: [Task.t]
+  @spec launch_tag(Build.mode, map, state) :: [Task.t]
 
-  defp launch_tag(:parallel, tagmap, dir, state) do
+  defp launch_tag(:parallel, tagmap, state) do
+    %{dest: dir} = state
     tagmap
     |> Task.async_stream(__MODULE__, :tag_task, [dir, state], @async_opt)
     |> Enum.map(&elem(&1, 1))
   end
 
-  defp launch_tag(:sequential, tagmap, dir, state) do
+  defp launch_tag(:sequential, tagmap, state) do
+    %{dest: dir} = state
     tagmap
     |> Enum.map(&tag_task(&1, dir, state))
   end

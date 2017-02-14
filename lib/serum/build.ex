@@ -10,14 +10,15 @@ defmodule Serum.Build do
 
   @type mode :: :parallel | :sequential
   @type compiled_template :: tuple
-  @type state :: %{project_info: map, build_data: map}
+  @type state ::
+    %{project_info: map, build_data: map, src: String.t, dest: String.t}
 
-  @spec build(mode, String.t, String.t, state) :: Error.result(String.t)
+  @spec build(mode, state) :: Error.result(String.t)
 
-  def build(mode, src, dest, state) do
-    case check_access dest do
-      :ok -> do_build_stage1 mode, src, dest, state
-      err -> {:error, :file_error, {err, dest, 0}}
+  def build(mode, state) do
+    case check_access state.dest do
+      :ok -> do_build_stage1 mode, state
+      err -> {:error, :file_error, {err, state.dest, 0}}
     end
   end
 
@@ -33,16 +34,15 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build_stage1(mode, String.t, String.t, state)
-    :: Error.result(String.t)
+  @spec do_build_stage1(mode, state) :: Error.result(String.t)
 
-  defp do_build_stage1(mode, src, dest, state) do
+  defp do_build_stage1(mode, state) do
     IO.puts "Rebuilding Website..."
 
-    clean_dest dest
+    clean_dest state.dest
     prep_results =
-      [check_tz: [], load_templates: [src], scan_pages: [src, dest]]
-      |> Enum.map(fn {fun, args} -> apply Preparation, fun, args ++ [state] end)
+      [:check_tz, :load_templates, :scan_pages]
+      |> Enum.map(fn fun -> apply Preparation, fun, [state] end)
       |> Error.filter_results_with_values(:build_preparation)
     case prep_results do
       {:ok, [nil, templates, pages]} ->
@@ -52,7 +52,7 @@ defmodule Serum.Build do
           |> Map.merge(pages)
           |> Map.put("navstub", compile_nav(templates["template__nav"]))
         state = %{state|build_data: build_data}
-        do_build_stage2 mode, src, dest, state
+        do_build_stage2 mode, state
       error -> error
     end
   end
@@ -70,19 +70,18 @@ defmodule Serum.Build do
          |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec do_build_stage2(mode, String.t, String.t, state)
-    :: Error.result(String.t)
+  @spec do_build_stage2(mode, state) :: Error.result(String.t)
 
-  defp do_build_stage2(mode, src, dest, state) do
+  defp do_build_stage2(mode, state) do
     {time, result} =
       :timer.tc fn ->
-        launch_tasks mode, src, dest, state
+        launch_tasks mode, state
       end
     case result do
       :ok ->
         IO.puts "Build process took #{time/1000}ms."
-        copy_assets src, dest
-        {:ok, dest}
+        copy_assets state
+        {:ok, state.dest}
       error -> error
     end
   end
@@ -94,19 +93,19 @@ defmodule Serum.Build do
     Renderer.render template, []
   end
 
-  @spec launch_tasks(mode, String.t, String.t, state) :: Error.result
+  @spec launch_tasks(mode, state) :: Error.result
 
-  defp launch_tasks(:parallel, src, dest, state) do
+  defp launch_tasks(:parallel, state) do
     IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
-    t1 = Task.async fn -> PageBuilder.run :parallel, src, dest, state end
-    t2 = Task.async fn -> PostBuilder.run :parallel, src, dest, state end
+    t1 = Task.async fn -> PageBuilder.run :parallel, state end
+    t2 = Task.async fn -> PostBuilder.run :parallel, state end
     page_result = Task.await t1
     post_result = Task.await t2
     case post_result do
       {:ok, posts} ->
         build_data = state.build_data
         state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
-        t3 = Task.async fn -> IndexBuilder.run :parallel, src, dest, state end
+        t3 = Task.async fn -> IndexBuilder.run :parallel, state end
         index_result = Task.await t3
         Error.filter_results [page_result, index_result], :launch_tasks
       _ ->
@@ -114,24 +113,24 @@ defmodule Serum.Build do
     end
   end
 
-  defp launch_tasks(:sequential, src, dest, state) do
+  defp launch_tasks(:sequential, state) do
     IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
-    page_result = PageBuilder.run :sequential, src, dest, state
-    post_result = PostBuilder.run :sequential, src, dest, state
+    page_result = PageBuilder.run :sequential, state
+    post_result = PostBuilder.run :sequential, state
     case post_result do
       {:ok, posts} ->
         build_data = state.build_data
         state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
-        index_result = IndexBuilder.run :sequential, src, dest, state
+        index_result = IndexBuilder.run :sequential, state
         Error.filter_results [page_result, index_result], :launch_tasks
       _ ->
         Error.filter_results [page_result, post_result], :launch_tasks
     end
   end
 
-  @spec copy_assets(String.t, String.t) :: :ok
+  @spec copy_assets(state) :: :ok
 
-  defp copy_assets(src, dest) do
+  defp copy_assets(%{src: src, dest: dest}) do
     IO.puts "Copying assets and media..."
     try_copy "#{src}assets/", "#{dest}assets/"
     try_copy "#{src}media/", "#{dest}media/"

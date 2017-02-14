@@ -20,17 +20,13 @@ defmodule Serum.Build.PostBuilder do
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.mode, String.t, String.t, state)
-    :: Error.result([PostInfo.t])
+  @spec run(Build.mode, state) :: Error.result([PostInfo.t])
 
-  def run(mode, src, dest, state) do
-    srcdir = "#{src}posts/"
-    dstdir = "#{dest}posts/"
-
-    case load_file_list srcdir do
+  def run(mode, state) do
+    case load_file_list "#{state.src}posts/" do
       {:ok, list} ->
-        File.mkdir_p! dstdir
-        result = launch mode, list, srcdir, dstdir, state
+        File.mkdir_p! "#{state.dest}posts/"
+        result = launch mode, list, state
         Error.filter_results_with_values result, :post_builder
       error -> error
     end
@@ -53,38 +49,38 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec launch(Build.mode, [String.t], String.t, String.t, state)
-    :: [Error.result(PostInfo.t)]
+  @spec launch(Build.mode, [String.t], state) :: [Error.result(PostInfo.t)]
 
-  defp launch(:parallel, files, src, dst, state) do
+  defp launch(:parallel, files, state) do
     files
-    |> Task.async_stream(__MODULE__, :post_task, [src, dst, state], @async_opt)
+    |> Task.async_stream(__MODULE__, :post_task, [state], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, files, src, dst, state) do
-    files |> Enum.map(&post_task(&1, src, dst, state))
+  defp launch(:sequential, files, state) do
+    files |> Enum.map(&post_task(&1, state))
   end
 
-  @spec post_task(String.t, String.t, String.t, state)
-    :: Error.result(PostInfo.t)
+  @spec post_task(String.t, state) :: Error.result(PostInfo.t)
 
-  def post_task(file, src, dest, state) do
-    srcname = "#{src}#{file}.md"
-    dstname = "#{dest}#{file}.html"
+  def post_task(file, state) do
+    %{src: src, dest: dest} = state
+    state =
+      %{state|src: "#{src}posts/#{file}.md", dest: "#{dest}posts/#{file}.html"}
     base = state.project_info.base_url
-    case {extract_date(srcname), extract_header(srcname, base)} do
+    case {extract_date(state.src), extract_header(state.src, base)} do
       {{:ok, raw_date}, {:ok, header}} ->
-        do_post_task file, srcname, dstname, header, raw_date, state
+        do_post_task file, header, raw_date, state
       {error = {:error, _, _}, _} -> error
       {_, error = {:error, _, _}} -> error
     end
   end
 
-  @spec do_post_task(String.t, String.t, String.t, header, erl_datetime, state)
+  @spec do_post_task(String.t, header, erl_datetime, state)
     :: Error.result(PostInfo.t)
 
-  defp do_post_task(file, src, dest, header, raw_date, state) do
+  defp do_post_task(file, header, raw_date, state) do
+    %{src: src, dest: dest} = state
     lines = elem header, 2
     stub = Earmark.to_html lines
     preview_len = state.project_info.preview_length

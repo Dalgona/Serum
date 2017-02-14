@@ -14,33 +14,33 @@ defmodule Serum.Build.PageBuilder do
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts building pages in the `/path/to/project/pages` directory."
-  @spec run(Build.mode, String.t, String.t, state) :: Error.result
+  @spec run(Build.mode, state) :: Error.result
 
-  def run(mode, src, dest, state) do
+  def run(mode, state) do
     files = state.build_data["pages_file"]
-    result = launch mode, files, src, dest, state
+    result = launch mode, files, state
     Error.filter_results result, :page_builder
   end
 
   # Launches individual page build tasks if the program is running in `parallel`
   # mode, otherwise performs the tasks one by one.
-  @spec launch(Build.mode, [String.t], String.t, String.t, state)
-    :: [Error.result]
+  @spec launch(Build.mode, [String.t], state) :: [Error.result]
 
-  defp launch(:parallel, files, src, dest, state) do
+  defp launch(:parallel, files, state) do
     files
-    |> Task.async_stream(__MODULE__, :page_task, [src, dest, state], @async_opt)
+    |> Task.async_stream(__MODULE__, :page_task, [state], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, files, src, dest, state) do
-    files |> Enum.map(&page_task(&1, src, dest, state))
+  defp launch(:sequential, files, state) do
+    files |> Enum.map(&page_task(&1, state))
   end
 
   @doc "Defines the individual page build task."
-  @spec page_task(String.t, String.t, String.t, state) :: Error.result
+  @spec page_task(String.t, state) :: Error.result
 
-  def page_task(fname, src, dest, state) do
+  def page_task(fname, state) do
+    %{src: src, dest: dest} = state
     [type|name] = fname |> String.split(".") |> Enum.reverse
     name = name |> Enum.reverse |> Enum.join(".")
     destname = String.replace_prefix(name, "#{src}pages/", dest) <> ".html"

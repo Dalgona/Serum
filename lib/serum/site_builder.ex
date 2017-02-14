@@ -60,8 +60,8 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call({:build, mode}, _from, {src, dest, proj}) do
-    state = %{project_info: proj, build_data: %{}}
-    result = Build.build mode, src, dest, state
+    state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
+    result = Build.build mode, state
     {:reply, result, {src, dest, proj}}
   end
 

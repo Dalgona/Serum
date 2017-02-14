@@ -7,7 +7,9 @@ defmodule Serum.Build.Preparation do
   alias Serum.Build
   alias Serum.Error
 
-  @spec check_tz(term) :: Error.result(nil)
+  @type state :: Build.state
+
+  @spec check_tz(state) :: Error.result(nil)
 
   def check_tz(_state) do
     try do
@@ -18,13 +20,13 @@ defmodule Serum.Build.Preparation do
     end
   end
 
-  @spec load_templates(String.t, Build.state) :: Error.result(map)
+  @spec load_templates(state) :: Error.result(map)
 
-  def load_templates(dir, state) do
+  def load_templates(state) do
     IO.puts "Loading templates..."
     result =
       ["base", "list", "page", "post", "nav"]
-      |> Enum.map(&do_load_templates(dir, &1, state))
+      |> Enum.map(&do_load_templates(&1, state))
       |> Error.filter_results_with_values(:load_templates)
     case result do
       {:ok, list} -> {:ok, Map.new(list)}
@@ -32,11 +34,10 @@ defmodule Serum.Build.Preparation do
     end
   end
 
-  @spec do_load_templates(String.t, String.t, Build.state)
-    :: Error.result({String.t, Macro.t})
+  @spec do_load_templates(String.t, state) :: Error.result({String.t, Macro.t})
 
-  defp do_load_templates(dir, name, state) do
-    path = "#{dir}templates/#{name}.html.eex"
+  defp do_load_templates(name, state) do
+    path = "#{state.src}templates/#{name}.html.eex"
     case File.read path do
       {:ok, data} ->
         try do
@@ -114,9 +115,10 @@ defmodule Serum.Build.Preparation do
     children |> Code.eval_quoted() |> elem(0)
   end
 
-  @spec scan_pages(String.t, String.t, term) :: Error.result(map)
+  @spec scan_pages(state) :: Error.result(map)
 
-  def scan_pages(src, dest, _state) do
+  def scan_pages(state) do
+    %{src: src, dest: dest} = state
     dir = src <> "pages/"
     IO.puts "Scanning `#{dir}` directory..."
     if File.exists? dir do
