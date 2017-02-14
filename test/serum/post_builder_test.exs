@@ -17,10 +17,8 @@ defmodule PostBuilderTest do
 
   describe "run/4" do
     test "nonexistent dir" do
-      {:ok, pid} = SiteBuilder.start_link "asdf/", ""
-      result = PostBuilder.run :sequential, "asdf/", "", %{}
+      result = PostBuilder.run :sequential, %{src: "asdf/"}
       assert {:error, :file_error, {:enoent, "asdf/posts/", 0}} == result
-      SiteBuilder.stop pid
     end
 
     test "sequential and parallel" do
@@ -31,19 +29,19 @@ defmodule PostBuilderTest do
       Process.group_leader pid, null
 
       {:ok, proj} = SiteBuilder.load_info pid
-      state = %{project_info: proj, build_data: %{}}
-      {:ok, templates} = Preparation.load_templates src, state
+      state = %{project_info: proj, build_data: %{}, src: src, dest: nil}
+      {:ok, templates} = Preparation.load_templates state
       state = %{state|build_data: templates}
 
       uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
       dest = "/tmp/serum_#{uniq}/"
-      {:ok, [_h|_t]} = PostBuilder.run :sequential, src, dest, state
+      {:ok, [_h|_t]} = PostBuilder.run :sequential, %{state|dest: dest}
       assert_exists dest
       File.rm_rf! dest
 
       uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
       dest = "/tmp/serum_#{uniq}/"
-      {:ok, [_h|_t]} = PostBuilder.run :parallel, src, dest, state
+      {:ok, [_h|_t]} = PostBuilder.run :parallel, %{state|dest: dest}
       assert_exists dest
       File.rm_rf! dest
 
@@ -59,8 +57,8 @@ defmodule PostBuilderTest do
       Process.group_leader pid, null
 
       {:ok, proj} = SiteBuilder.load_info pid
-      state = %{project_info: proj, build_data: %{}}
-      {:ok, templates} = Preparation.load_templates src, state
+      state = %{project_info: proj, build_data: %{}, src: src, dest: nil}
+      {:ok, templates} = Preparation.load_templates state
       state = %{state|build_data: templates}
 
       uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
@@ -74,7 +72,7 @@ defmodule PostBuilderTest do
            {:error, :post_error,
             {:invalid_filename,
              "#{src}posts/invalid-filename.md", 0}}]}}
-      assert expected == PostBuilder.run :parallel, src, dest, state
+      assert expected == PostBuilder.run :parallel, %{state|dest: dest}
       File.rm_rf! dest
 
       SiteBuilder.stop pid

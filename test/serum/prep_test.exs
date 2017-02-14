@@ -4,14 +4,17 @@ defmodule PrepTest do
   import Serum.Build.Preparation
 
   setup_all do
-    {:ok, [state: %{project_info: %{base_url: "/test_base/"}}]}
+    {:ok,
+     [state:
+      %{project_info: %{base_url: "/test_base/"},
+       src: nil,
+       dest: nil}]}
   end
 
   describe "load_templates/1" do
     test "all ok", %{state: state} do
-      capture_io fn ->
-        send self(), load_templates(priv("testsite_good/"), state)
-      end
+      state = %{state|src: priv("testsite_good/")}
+      capture_io fn -> send self(), load_templates(state) end
       assert_received(
         {:ok,
          %{"template__base" => _base,
@@ -23,10 +26,9 @@ defmodule PrepTest do
     end
 
     test "some templates are missing", %{state: state} do
+      state = %{state|src: priv("test_templates/missing/")}
       priv = fn x -> priv("test_templates/missing/templates/" <> x) end
-      capture_io fn ->
-        send self(), load_templates(priv("test_templates/missing/"), state)
-      end
+      capture_io fn -> send self(), load_templates(state) end
       expected =
         {:error, :child_tasks,
          {:load_templates,
@@ -36,9 +38,8 @@ defmodule PrepTest do
     end
 
     test "some templates contain errors 1", %{state: state} do
-      capture_io fn ->
-        send self(), load_templates(priv("test_templates/eex_error/"), state)
-      end
+      state = %{state|src: priv("test_templates/eex_error/")}
+      capture_io fn -> send self(), load_templates(state) end
       receive do
         {:error, :child_tasks, {:load_templates, errors}} ->
           Enum.each errors, fn e ->
@@ -49,9 +50,8 @@ defmodule PrepTest do
     end
 
     test "some templates contain errors 2", %{state: state} do
-      capture_io fn ->
-        send self(), load_templates(priv("test_templates/elixir_error/"), state)
-      end
+      state = %{state|src: priv("test_templates/elixir_error/")}
+      capture_io fn -> send self(), load_templates(state) end
       receive do
         {:error, :child_tasks, {:load_templates, errors}} ->
           Enum.each errors, fn e ->
@@ -72,9 +72,8 @@ defmodule PrepTest do
       uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64()
       tmpname = "/tmp/serum_#{uniq}/"
       File.mkdir_p! tmpname
-      capture_io fn ->
-        send self(), scan_pages(priv("testsite_good/"), tmpname, %{})
-      end
+      state = %{src: priv("testsite_good/"), dest: tmpname}
+      capture_io fn -> send self(), scan_pages(state) end
       receive do
         {:ok, %{"pages_file" => files}} ->
           assert expected_files == Enum.sort(files)
@@ -83,9 +82,8 @@ defmodule PrepTest do
     end
 
     test "source dir does not exist" do
-      capture_io fn ->
-        send self(), scan_pages("/nonexistent_123/", "", %{})
-      end
+      state = %{src: "/nonexistent_123/", dest: ""}
+      capture_io fn -> send self(), scan_pages(state) end
       expected = {:error, :file_error, {:enoent, "/nonexistent_123/pages/", 0}}
       assert_received ^expected
     end

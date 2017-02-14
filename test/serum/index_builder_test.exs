@@ -10,23 +10,23 @@ defmodule IndexBuilderTest do
   describe "run/4" do
     test "posts not built yet" do
       expected = {:error, :file_error, {:enoent, "/xyz/posts/", 0}}
-      assert expected == IndexBuilder.run :parallel, "", "/xyz/", %{}
+      assert expected == IndexBuilder.run :parallel, %{dest: "/xyz/"}
     end
 
     test "no posts" do
       null = spawn_link __MODULE__, :looper, []
       src = "#{:code.priv_dir :serum}/testsite_good/"
+      uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64()
+      dest = "/tmp/serum_#{uniq}/"
       {:ok, pid} = SiteBuilder.start_link src, ""
       Process.group_leader self(), null
       Process.group_leader pid, null
       {:ok, proj} = SiteBuilder.load_info pid
-      {:ok, templates} = Preparation.load_templates src, %{project_info: proj}
-      state =
-        %{project_info: proj, build_data: Map.put(templates, "all_posts", [])}
-      uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64()
-      dest = "/tmp/serum_#{uniq}/"
+      state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
+      {:ok, templates} = Preparation.load_templates state
+      state = %{state|build_data: Map.put(templates, "all_posts", [])}
       File.mkdir_p! dest <> "posts"
-      :ok = IndexBuilder.run :sequential, "", dest, state
+      :ok = IndexBuilder.run :sequential, state
       assert File.exists? dest <> "posts/index.html"
       refute File.exists? dest <> "tags"
       File.rm_rf! dest
@@ -36,28 +36,27 @@ defmodule IndexBuilderTest do
     test "sequential and parallel" do
       null = spawn_link __MODULE__, :looper, []
       src = "#{:code.priv_dir :serum}/testsite_good/"
+      uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64()
+      dest = "/tmp/serum_#{uniq}/"
       {:ok, pid} = SiteBuilder.start_link src, ""
       Process.group_leader self(), null
       Process.group_leader pid, null
       {:ok, proj} = SiteBuilder.load_info pid
-      {:ok, templates} = Preparation.load_templates src, %{project_info: proj}
-      state = %{project_info: proj, build_data: templates}
-      uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64()
-      dest = "/tmp/serum_#{uniq}/"
-      {:ok, posts} = PostBuilder.run :sequential, src, dest, state
-      state =
-        %{project_info: proj,
-          build_data: Map.merge(templates, %{"all_posts" => posts})}
+      state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
+      {:ok, templates} = Preparation.load_templates state
+      state = %{state|build_data: templates}
+      {:ok, posts} = PostBuilder.run :sequential, state
+      state = %{state|build_data: Map.put(state.build_data, "all_posts", posts)}
       expected_files =
         ["posts/index.html",
          "tags/development/index.html",
          "tags/serum/index.html",
          "tags/test/index.html"]
-      :ok = IndexBuilder.run :sequential, src, dest, state
+      :ok = IndexBuilder.run :sequential, state
       Enum.each(expected_files, &assert(File.exists? dest <> &1))
       File.rm_rf! dest
       File.mkdir_p! dest <> "posts"
-      :ok = IndexBuilder.run :parallel, src, dest, state
+      :ok = IndexBuilder.run :parallel, state
       Enum.each(expected_files, &assert(File.exists? dest <> &1))
       File.rm_rf! dest
       SiteBuilder.stop pid

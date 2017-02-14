@@ -20,15 +20,16 @@ defmodule PageBuilderTest do
       Process.group_leader self(), null
       Process.group_leader pid, null
 
+      uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
+      dest = "/tmp/serum_#{uniq}/"
+
       {:ok, proj} = SiteBuilder.load_info pid
-      state = %{project_info: proj, build_data: %{}}
-      {:ok, templates} = Preparation.load_templates src, state
+      state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
+      {:ok, templates} = Preparation.load_templates state
       build_data = Map.merge templates, %{"pages_file" => []}
       state = %{state|build_data: build_data}
 
-      uniq = <<System.monotonic_time()::size(48)>> |> Base.url_encode64
-      dest = "/tmp/serum_#{uniq}/"
-      :ok = PageBuilder.run :sequential, src, dest, state
+      :ok = PageBuilder.run :sequential, state
       File.rm_rf! dest
 
       SiteBuilder.stop pid
@@ -45,14 +46,14 @@ defmodule PageBuilderTest do
       dest = "/tmp/serum_#{uniq}/"
 
       {:ok, proj} = SiteBuilder.load_info pid
-      state = %{project_info: proj, build_data: %{}}
-      {:ok, templates} = Preparation.load_templates src, state
-      {:ok, pages} = Preparation.scan_pages src, dest, %{}
+      state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
+      {:ok, templates} = Preparation.load_templates state
+      {:ok, pages} = Preparation.scan_pages state
       build_data = Map.merge templates, pages
       state = %{state|build_data: build_data}
 
-      :ok = PageBuilder.run :sequential, src, dest, state
-      :ok = PageBuilder.run :parallel, src, dest, state
+      :ok = PageBuilder.run :sequential, state
+      :ok = PageBuilder.run :parallel, state
       File.rm_rf! dest
       SiteBuilder.stop pid
     end
@@ -68,9 +69,9 @@ defmodule PageBuilderTest do
       dest = "/tmp/serum_#{uniq}/"
 
       {:ok, proj} = SiteBuilder.load_info pid
-      state = %{project_info: proj, build_data: %{}}
-      {:ok, templates} = Preparation.load_templates src, state
-      {:ok, pages} = Preparation.scan_pages src, dest, %{}
+      state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
+      {:ok, templates} = Preparation.load_templates state
+      {:ok, pages} = Preparation.scan_pages state
       build_data = Map.merge templates, pages
       state = %{state|build_data: build_data}
 
@@ -81,7 +82,7 @@ defmodule PageBuilderTest do
             {:invalid_header, "#{src}pages/no-header.html", 0}},
            {:error, :page_error,
             {:invalid_header, "#{src}pages/foo/invalid-header.md", 0}}]}}
-      assert expected == PageBuilder.run :sequential, src, dest, state
+      assert expected == PageBuilder.run :sequential, state
 
       File.rm_rf! dest
       SiteBuilder.stop pid
