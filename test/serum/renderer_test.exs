@@ -2,23 +2,22 @@ defmodule RendererTest do
   use ExUnit.Case, async: true
   import Serum.Build.Renderer
 
-  describe "render/2" do
+  describe "render_stub/3" do
     test "simple template" do
       template = EEx.compile_string "Hello, world!"
-      assert "Hello, world!" == render template, []
-      assert "Hello, world!" == render template, [unused: "unused"]
+      assert {:ok, "Hello, world!"} == render_stub template, []
+      assert {:ok, "Hello, world!"} == render_stub template, [unused: "unused"]
     end
 
     test "binding" do
       template = EEx.compile_string "Hello, <%= name %>!"
-      assert "Hello, world!" == render template, [name: "world"]
+      assert {:ok, "Hello, world!"} == render_stub template, [name: "world"]
     end
 
     test "undefined function" do
       template = EEx.compile_string "Hello, <%= name() %>!"
-      assert_raise CompileError, fn ->
-        render template, []
-      end
+      {:error, :render_error, {_, "test.html.eex", 1}} =
+        render_stub template, [], "test"
     end
   end
 
