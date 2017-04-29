@@ -9,7 +9,7 @@ defmodule Serum.Build do
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type mode :: :parallel | :sequential
-  @type compiled_template :: tuple
+  @type compiled_template :: tuple | nil
   @type state ::
     %{project_info: map, build_data: map, src: String.t, dest: String.t}
 

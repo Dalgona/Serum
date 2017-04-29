@@ -37,18 +37,32 @@ defmodule Serum.Build.Renderer do
   @spec render_stub(Build.compiled_template, keyword, String.t)
     :: Error.result(String.t)
 
-  def render_stub(template, context, name \\ "") do
-    filename =
-      case name do
-        "" -> "nofile"
-        s when is_binary(s) -> s <> ".html.eex"
-      end
+  def render_stub(template, context, name \\ "")
+
+  def render_stub(nil, _ctx, name) do
+    filename = to_filename name
+    {:error, :render_error,
+      {"template was not compiled successfully", filename, 0}}
+  end
+
+  def render_stub(template, context, name) do
+    filename = to_filename name
     try do
       {html, _} = Code.eval_quoted template, context
       {:ok, html}
     rescue
       e in CompileError ->
         {:error, :render_error, {e.description, filename, e.line}}
+    end
+  end
+
+  @spec to_filename(String.t) :: String.t
+
+  defp to_filename(name) do
+    case name do
+      "" -> "nofile"
+      s when is_binary(s) -> s <> ".html.eex"
+      _ -> "nofile"
     end
   end
 

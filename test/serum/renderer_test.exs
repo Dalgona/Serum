@@ -3,6 +3,12 @@ defmodule RendererTest do
   import Serum.Build.Renderer
 
   describe "render_stub/3" do
+    test "nil template" do
+      expected =
+        {:error, :render_error,
+          {"template was not compiled successfully", "test.html.eex", 0}}
+      assert expected == render_stub nil, [], "test"
+    end
     test "simple template" do
       template = EEx.compile_string "Hello, world!"
       assert {:ok, "Hello, world!"} == render_stub template, []
