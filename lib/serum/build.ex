@@ -46,11 +46,13 @@ defmodule Serum.Build do
       |> Error.filter_results_with_values(:build_preparation)
     case prep_results do
       {:ok, [nil, templates, pages]} ->
+        # TODO: wrap this line with case
+        {:ok, nav} = Renderer.render_stub templates["template__nav"], [], "nav"
         build_data =
           state.build_data
           |> Map.merge(templates)
           |> Map.merge(pages)
-          |> Map.put("navstub", compile_nav(templates["template__nav"]))
+          |> Map.put("navstub", nav)
         state = %{state|build_data: build_data}
         do_build_stage2 mode, state
       error -> error
@@ -90,7 +92,7 @@ defmodule Serum.Build do
 
   defp compile_nav(template) do
     IO.puts "Compiling main navigation HTML stub..."
-    Renderer.render template, []
+    Renderer.render_stub template, []
   end
 
   @spec launch_tasks(mode, state) :: Error.result

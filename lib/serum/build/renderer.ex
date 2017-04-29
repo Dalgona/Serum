@@ -3,6 +3,7 @@ defmodule Serum.Build.Renderer do
   This module provides functions for rendering pages into complete HTML files.
   """
 
+  alias Serum.Error
   alias Serum.Build
 
   @type state :: Build.state
@@ -11,7 +12,7 @@ defmodule Serum.Build.Renderer do
   @re_posts ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
   @re_pages ~r/(?<type>href|src)="(?:%|%25)pages:(?<url>[^"]*)"/
 
-  @spec render(binary, keyword, keyword, state) :: binary
+  @spec render(binary, keyword, keyword, state) :: Error.result(binary)
 
   # render full page
   def render(template_name, stub_ctx, page_ctx, state) do
@@ -23,20 +24,32 @@ defmodule Serum.Build.Renderer do
       page_template = build_data["template__#{template_name}"]
       base_template = build_data["template__base"]
       nav_area      = build_data["navstub"]
-      with {stub, _} <- Code.eval_quoted page_template, stub_ctx ++ site_ctx do
-        contents = process_links stub, proj.base_url
-        ctx = [{:contents, contents}, {:navigation, nav_area}|page_ctx]
-        {html, _} = Code.eval_quoted base_template, ctx ++ site_ctx
-        html
+      case render_stub page_template, stub_ctx ++ site_ctx, template_name do
+        {:ok, stub} ->
+          contents = process_links stub, proj.base_url
+          ctx = [contents: contents, navigation: nav_area] ++ page_ctx
+          render_stub base_template, ctx ++ site_ctx, "base"
+        error -> error
       end
     end
   end
 
-  @spec render(Build.compiled_template, keyword) :: String.t
+  @spec render_stub(Build.compiled_template, keyword, String.t)
+    :: Error.result(String.t)
 
-  def render(template, context) do
-    {html, _} = Code.eval_quoted template, context
-    html
+  def render_stub(template, context, name \\ "") do
+    filename =
+      case name do
+        "" -> "nofile"
+        s when is_binary(s) -> s <> ".html.eex"
+      end
+    try do
+      {html, _} = Code.eval_quoted template, context
+      {:ok, html}
+    rescue
+      e in CompileError ->
+        {:error, :render_error, {e.description, filename, e.line}}
+    end
   end
 
   @spec process_links(String.t, String.t) :: String.t

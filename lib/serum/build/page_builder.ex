@@ -48,10 +48,12 @@ defmodule Serum.Build.PageBuilder do
     case extract_header fname do
       {:ok, {title, rest}} ->
         raw = rest |> Enum.join("\n")
-        html = render type, raw, title, state
-        fwrite destname, html
-        IO.puts "  GEN  #{fname} -> #{destname}"
-        :ok
+        case render_page type, raw, title, state do
+          {:ok, html} ->
+            fwrite destname, html
+            IO.puts "  GEN  #{fname} -> #{destname}"
+          error -> error
+        end
       error -> error
     end
   end
@@ -80,15 +82,15 @@ defmodule Serum.Build.PageBuilder do
   end
 
   # Renders a page into an complete HTML format.
-  @spec render(String.t, String.t, String.t, state)
-    :: String.t
+  @spec render_page(String.t, String.t, String.t, state)
+    :: Error.result(String.t)
 
-  defp render("md", md, title, state) do
+  defp render_page("md", md, title, state) do
     html = Earmark.to_html md
     Renderer.render "page", [contents: html], [page_title: title], state
   end
 
-  defp render("html", html, title, state) do
+  defp render_page("html", html, title, state) do
     Renderer.render "page", [contents: html], [page_title: title], state
   end
 end

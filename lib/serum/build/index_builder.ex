@@ -76,8 +76,11 @@ defmodule Serum.Build.IndexBuilder do
 
   defp save_list(path, title, posts, state) do
     list_ctx = [header: title, posts: posts]
-    html = Renderer.render "list", list_ctx, [page_title: title], state
-    fwrite path, html
-    IO.puts "  GEN  #{path}"
+    case Renderer.render "list", list_ctx, [page_title: title], state do
+      {:ok, html} ->
+        fwrite path, html
+        IO.puts "  GEN  #{path}"
+      error -> error
+    end
   end
 end

@@ -86,10 +86,13 @@ defmodule Serum.Build.PostBuilder do
     preview_len = state.project_info.preview_length
     preview = make_preview stub, preview_len
     info = PostInfo.new file, header, raw_date, preview, state
-    html = render_post stub, info, state
-    fwrite dest, html
-    IO.puts "  GEN  #{src} -> #{dest}"
-    {:ok, info}
+    case render_post stub, info, state do
+      {:ok, html} ->
+        fwrite dest, html
+        IO.puts "  GEN  #{src} -> #{dest}"
+        {:ok, info}
+      error -> error
+    end
   end
 
   @spec make_preview(String.t, non_neg_integer) :: String.t
