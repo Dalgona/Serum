@@ -10,9 +10,8 @@ defmodule Serum.Error do
   @type error :: {:error, reason, err_details}
 
   @type reason      :: atom
-  @type err_details :: no_detail | msg_detail | full_detail | nest_detail
+  @type err_details :: msg_detail | full_detail | nest_detail
 
-  @type no_detail   :: nil
   @type msg_detail  :: message
   @type full_detail :: {message, file, line}
   @type nest_detail :: {term, [error]}
@@ -56,11 +55,6 @@ defmodule Serum.Error do
 
   def show({:ok, _result}, indent) do
     show :ok, indent
-  end
-
-  def show({:error, reason, nil}, indent) do
-    IO.write String.duplicate("  ", indent)
-    perr "#{reason}"
   end
 
   def show({:error, _r, message}, indent) when is_binary(message) do
