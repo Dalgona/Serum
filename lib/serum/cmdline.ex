@@ -71,14 +71,12 @@ defmodule Serum.Cmdline do
         []      -> "."
         [dir|_] -> dir
       end
-    {:ok, pid} = SiteBuilder.start_link dir, out
-    case SiteBuilder.load_info pid do
-      {:ok, _} ->
-        case SiteBuilder.build pid, mode do
-          {:ok, dest} -> finish_build dest
-          error = {:error, _, _} -> error_build error
-        end
-      error = {:error, _, _} -> error_build error
+    with {:ok, pid} <- SiteBuilder.start_link(dir, out),
+         {:ok, _} <- SiteBuilder.load_info(pid),
+         {:ok, dest} <- SiteBuilder.build(pid, mode) do
+      finish_build dest
+    else
+      {:error, _, _} = error -> error_build error
     end
   end
 
