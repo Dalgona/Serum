@@ -107,17 +107,14 @@ defmodule Serum.Build do
     IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run :parallel, state end
     t2 = Task.async fn -> PostBuilder.run :parallel, state end
-    page_result = Task.await t1
-    post_result = Task.await t2
-    case post_result do
-      {:ok, posts} ->
-        build_data = state.build_data
-        state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
-        t3 = Task.async fn -> IndexBuilder.run :parallel, state end
-        index_result = Task.await t3
-        Error.filter_results [page_result, index_result], :launch_tasks
-      _ ->
-        Error.filter_results [page_result, post_result], :launch_tasks
+    with :ok <- Task.await(t1),
+         {:ok, posts} <- Task.await(t2) do
+      build_data = state.build_data
+      state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
+      t3 = Task.async fn -> IndexBuilder.run :parallel, state end
+      Task.await t3
+    else
+      {:error, _, _} = error -> error
     end
   end
 
@@ -125,14 +122,13 @@ defmodule Serum.Build do
     IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
     page_result = PageBuilder.run :sequential, state
     post_result = PostBuilder.run :sequential, state
-    case post_result do
-      {:ok, posts} ->
-        build_data = state.build_data
-        state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
-        index_result = IndexBuilder.run :sequential, state
-        Error.filter_results [page_result, index_result], :launch_tasks
-      _ ->
-        Error.filter_results [page_result, post_result], :launch_tasks
+    with :ok <- page_result,
+         {:ok, posts} <- post_result do
+      build_data = state.build_data
+      state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
+      IndexBuilder.run :sequential, state
+    else
+      {:error, _, _} = error -> error
     end
   end
 
