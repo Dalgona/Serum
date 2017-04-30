@@ -64,13 +64,11 @@ defmodule Serum.DevServer.Service do
   @spec do_rebuild(pid) :: :ok
 
   defp do_rebuild(builder) do
-    case SiteBuilder.load_info builder do
-      {:ok, _info} ->
-        case SiteBuilder.build builder, :parallel do
-          {:ok, _} -> :ok
-          error -> build_failed error
-        end
-      error -> build_failed error
+    with {:ok, _info} <- SiteBuilder.load_info(builder),
+         {:ok, _} <- SiteBuilder.build(builder, :parallel) do
+      :ok
+    else
+      {:error, _, _} = error -> build_failed error
     end
   end
 
