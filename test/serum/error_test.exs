@@ -29,18 +29,6 @@ defmodule ErrorTest do
     end
   end
 
-  describe "show no_detail" do
-    test "without indent" do
-      output = capture_io fn -> show {:error, :test_error, nil} end
-      assert "#{@bullet} test_error\n" == output
-    end
-
-    test "with indent" do
-      output = capture_io fn -> show {:error, :test_error, nil}, 2 end
-      assert "    #{@bullet} test_error\n" == output
-    end
-  end
-
   describe "show msg_detail" do
     test "without indent" do
       output = capture_io fn -> show {:error, :test_error, "oh no"} end
@@ -93,14 +81,12 @@ defmodule ErrorTest do
         capture_io fn ->
           show {:error, :child_tasks,
                 {:foo,
-                 [{:error, :boo, nil},
-                  {:error, :some_error, "oh no!"},
+                 [{:error, :some_error, "oh no!"},
                   {:error, :yuck, {"oh no!", "foo", 0}}]}}
         end
       expected =
         """
         \x1b[1;31mSeveral errors occurred from foo:\x1b[0m
-          #{@bullet} boo
           #{@bullet} oh no!
           #{@bullet} \x1b[97mfoo:\x1b[0m oh no!
         """
@@ -112,14 +98,12 @@ defmodule ErrorTest do
         capture_io fn ->
           show {:error, :child_tasks,
                 {:foo,
-                 [{:error, :boo, nil},
-                  {:error, :some_error, "oh no!"},
+                 [{:error, :some_error, "oh no!"},
                   {:error, :yuck, {"oh no!", "foo", 0}}]}}, 2
         end
       expected =
         """
             \x1b[1;31mSeveral errors occurred from foo:\x1b[0m
-              #{@bullet} boo
               #{@bullet} oh no!
               #{@bullet} \x1b[97mfoo:\x1b[0m oh no!
         """
@@ -133,15 +117,13 @@ defmodule ErrorTest do
                 {:foo,
                  [{:error, :child_tasks,
                    {:bar,
-                    [{:error, :boo, nil},
-                     {:error, :some_error, "oh no!"},
+                    [{:error, :some_error, "oh no!"},
                      {:error, :yuck, {"oh no!", "foo", 0}}]}}]}}
         end
       expected =
         """
         \x1b[1;31mSeveral errors occurred from foo:\x1b[0m
           \x1b[1;31mSeveral errors occurred from bar:\x1b[0m
-            #{@bullet} boo
             #{@bullet} oh no!
             #{@bullet} \x1b[97mfoo:\x1b[0m oh no!
         """
@@ -155,15 +137,13 @@ defmodule ErrorTest do
                 {:foo,
                  [{:error, :child_tasks,
                    {:bar,
-                    [{:error, :boo, nil},
-                     {:error, :some_error, "oh no!"},
+                    [{:error, :some_error, "oh no!"},
                      {:error, :yuck, {"oh no!", "foo", 0}}]}}]}}, 2
         end
       expected =
         """
             \x1b[1;31mSeveral errors occurred from foo:\x1b[0m
               \x1b[1;31mSeveral errors occurred from bar:\x1b[0m
-                #{@bullet} boo
                 #{@bullet} oh no!
                 #{@bullet} \x1b[97mfoo:\x1b[0m oh no!
         """
