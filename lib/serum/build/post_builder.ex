@@ -28,7 +28,7 @@ defmodule Serum.Build.PostBuilder do
         File.mkdir_p! "#{state.dest}posts/"
         result = launch mode, list, state
         Error.filter_results_with_values result, :post_builder
-      error -> error
+      {:error, _, _} = error -> error
     end
   end
 
@@ -71,8 +71,8 @@ defmodule Serum.Build.PostBuilder do
     case {extract_date(state.src), extract_header(state.src, base)} do
       {{:ok, raw_date}, {:ok, header}} ->
         do_post_task file, header, raw_date, state
-      {error = {:error, _, _}, _} -> error
-      {_, error = {:error, _, _}} -> error
+      {{:error, _, _} = error, _} -> error
+      {_, {:error, _, _} = error} -> error
     end
   end
 
@@ -91,7 +91,7 @@ defmodule Serum.Build.PostBuilder do
         fwrite dest, html
         IO.puts "  GEN  #{src} -> #{dest}"
         {:ok, info}
-      error -> error
+      {:error, _, _} = error -> error
     end
   end
 
@@ -113,7 +113,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec render_post(binary, PostInfo.t, state) :: {:ok, binary}
+  @spec render_post(binary, PostInfo.t, state) :: Error.result(binary)
 
   defp render_post(contents, info, state) do
     post_ctx = [

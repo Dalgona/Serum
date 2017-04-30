@@ -48,7 +48,7 @@ defmodule Serum.SiteBuilder do
     case do_load_info src do
       {:ok, proj} ->
         {:reply, {:ok, proj}, {src, dest, proj}}
-      error = {:error, _, _} ->
+      {:error, _, _} = error ->
         {:reply, error, {src, dest, nil}}
     end
   end

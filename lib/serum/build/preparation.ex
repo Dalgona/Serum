@@ -30,7 +30,7 @@ defmodule Serum.Build.Preparation do
       |> Error.filter_results_with_values(:load_templates)
     case result do
       {:ok, list} -> {:ok, Map.new(list)}
-      error = {:error, _, _} -> error
+      {:error, _, _} = error -> error
     end
   end
 
