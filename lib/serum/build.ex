@@ -16,46 +16,52 @@ defmodule Serum.Build do
   @spec build(mode, state) :: Error.result(binary)
 
   def build(mode, state) do
-    case check_access state.dest do
-      :ok -> do_build_stage1 mode, state
-      err -> {:error, :file_error, {err, state.dest, 0}}
+    with :ok <- check_dest_perm(state.dest),
+         {:ok, state2} <- prepare_build(state),
+         {:ok, dest} <- do_build(mode, state2) do
+      {:ok, dest}
+    else
+      {:error, _, _} = error -> error
     end
   end
 
-  @spec check_access(binary) :: :ok | File.posix
+  @spec check_dest_perm(binary) :: Error.result
 
-  defp check_access(dest) do
+  defp check_dest_perm(dest) do
     parent = dest |> String.replace_suffix("/", "") |> :filename.dirname
-    case File.stat parent do
-      {:error, reason} -> reason
-      {:ok, %File.Stat{access: :none}} -> :eacces
-      {:ok, %File.Stat{access: :read}} -> :eacces
-      {:ok, _} -> :ok
+    result =
+      case File.stat parent do
+        {:error, reason} -> reason
+        {:ok, %File.Stat{access: :none}} -> :eacces
+        {:ok, %File.Stat{access: :read}} -> :eacces
+        {:ok, _} -> :ok
+      end
+    case result do
+      :ok -> :ok
+      err -> {:error, :file_error, {err, dest, 0}}
     end
   end
 
-  @spec do_build_stage1(mode, state) :: Error.result(binary)
+  @spec prepare_build(state) :: Error.result(state)
 
-  defp do_build_stage1(mode, state) do
+  defp prepare_build(state) do
     IO.puts "Rebuilding Website..."
-
     clean_dest state.dest
     prep_results =
       [:check_tz, :load_templates, :scan_pages]
       |> Enum.map(fn fun -> apply Preparation, fun, [state] end)
       |> Error.filter_results_with_values(:build_preparation)
-    case prep_results do
-      {:ok, [nil, templates, pages]} ->
-        # TODO: wrap this line with case
-        {:ok, nav} = Renderer.render_stub templates["template__nav"], [], "nav"
-        build_data =
-          state.build_data
-          |> Map.merge(templates)
-          |> Map.merge(pages)
-          |> Map.put("navstub", nav)
-        state = %{state|build_data: build_data}
-        do_build_stage2 mode, state
-      error -> error
+    with {:ok, [_, templates, pages]} <- prep_results,
+         template_nav = templates["template__nav"],
+         {:ok, nav} <- Renderer.render_stub(template_nav, [], "nav") do
+      build_data =
+        state.build_data
+        |> Map.merge(templates)
+        |> Map.merge(pages)
+        |> Map.put("navstub", nav)
+      {:ok, %{state|build_data: build_data}}
+    else
+      {:error, _, _} = error -> error
     end
   end
 
@@ -72,9 +78,9 @@ defmodule Serum.Build do
          |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec do_build_stage2(mode, state) :: Error.result(binary)
+  @spec do_build(mode, state) :: Error.result(binary)
 
-  defp do_build_stage2(mode, state) do
+  defp do_build(mode, state) do
     {time, result} =
       :timer.tc fn ->
         launch_tasks mode, state
