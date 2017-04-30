@@ -11,6 +11,7 @@ defmodule Serum.DevServer.AutoBuilder do
   alias Serum.DevServer.Service
 
   @spec on_request() :: no_return
+
   def on_request() do
     if DirStatus.dirty? do
       warn "Changes were detected in the source directory."
@@ -18,9 +19,11 @@ defmodule Serum.DevServer.AutoBuilder do
     end
   end
 
-  @spec on_200(String.t, String.t, String.t) :: no_return
+  @spec on_200(binary, binary, binary) :: no_return
+
   def on_200(_, _, _), do: :ok
 
-  @spec on_404(String.t, String.t, String.t) :: no_return
+  @spec on_404(binary, binary, binary) :: no_return
+
   def on_404(_, _, _), do: :ok
 end

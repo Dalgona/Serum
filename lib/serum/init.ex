@@ -6,7 +6,7 @@ defmodule Serum.Init do
   import Serum.Payload
   import Serum.Util
 
-  @type dirname   :: String.t
+  @type dirname   :: binary
   @type ok_result :: {:ok, dirname}
 
   @doc """

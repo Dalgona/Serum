@@ -6,7 +6,7 @@ defmodule Serum.Validation do
   alias ExJsonSchema.Validator
   alias ExJsonSchema.Schema
 
-  @spec schema(schema_name :: String.t) :: String.t
+  @spec schema(schema_name :: binary) :: binary
 
   defp schema("*") do
     "{}"
@@ -51,7 +51,7 @@ defmodule Serum.Validation do
   @doc """
   Validates the given `data` according to `schema_name` schema.
   """
-  @spec validate(String.t, map) :: Error.result
+  @spec validate(binary, map) :: Error.result
 
   def validate(schema_name, data) do
     schema =

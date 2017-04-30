@@ -15,7 +15,7 @@ defmodule Serum.Build.PostBuilder do
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
   @type erl_time :: {non_neg_integer, non_neg_integer, non_neg_integer}
 
-  @typep header :: {String.t, [Serum.Tag.t], [String.t]}
+  @typep header :: {binary, [Serum.Tag.t], [binary]}
 
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
@@ -32,7 +32,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec load_file_list(String.t) :: Error.result([String.t])
+  @spec load_file_list(binary) :: Error.result([binary])
 
   defp load_file_list(srcdir) do
     case File.ls srcdir do
@@ -49,7 +49,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec launch(Build.mode, [String.t], state) :: [Error.result(PostInfo.t)]
+  @spec launch(Build.mode, [binary], state) :: [Error.result(PostInfo.t)]
 
   defp launch(:parallel, files, state) do
     files
@@ -61,7 +61,7 @@ defmodule Serum.Build.PostBuilder do
     files |> Enum.map(&post_task(&1, state))
   end
 
-  @spec post_task(String.t, state) :: Error.result(PostInfo.t)
+  @spec post_task(binary, state) :: Error.result(PostInfo.t)
 
   def post_task(file, state) do
     %{src: src, dest: dest} = state
@@ -76,7 +76,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec do_post_task(String.t, header, erl_datetime, state)
+  @spec do_post_task(binary, header, erl_datetime, state)
     :: Error.result(PostInfo.t)
 
   defp do_post_task(file, header, raw_date, state) do
@@ -95,7 +95,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec make_preview(String.t, non_neg_integer) :: String.t
+  @spec make_preview(binary, non_neg_integer) :: binary
 
   def make_preview(html, maxlen) do
     case maxlen do
@@ -113,7 +113,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec render_post(String.t, PostInfo.t, state) :: String.t
+  @spec render_post(binary, PostInfo.t, state) :: binary
 
   defp render_post(contents, info, state) do
     post_ctx = [
@@ -124,7 +124,7 @@ defmodule Serum.Build.PostBuilder do
   end
 
   @doc "Extracts the date/time information from a file name."
-  @spec extract_date(String.t) :: Error.result(erl_datetime)
+  @spec extract_date(binary) :: Error.result(erl_datetime)
 
   def extract_date(path) do
     fname = :filename.basename path, ".md"
@@ -147,7 +147,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec extract_header(String.t, String.t) :: Error.result(header)
+  @spec extract_header(binary, binary) :: Error.result(header)
 
   def extract_header(fname, base) do
     case File.read fname do
@@ -158,7 +158,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec do_extract_header(String.t, String.t, String.t) :: Error.result(header)
+  @spec do_extract_header(binary, binary, binary) :: Error.result(header)
 
   defp do_extract_header(fname, data, base) do
     try do

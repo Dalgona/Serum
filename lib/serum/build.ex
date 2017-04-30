@@ -9,11 +9,11 @@ defmodule Serum.Build do
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
 
   @type mode :: :parallel | :sequential
-  @type compiled_template :: tuple | nil
+  @type template_ast :: Macro.t | nil
   @type state ::
-    %{project_info: map, build_data: map, src: String.t, dest: String.t}
+    %{project_info: map, build_data: map, src: binary, dest: binary}
 
-  @spec build(mode, state) :: Error.result(String.t)
+  @spec build(mode, state) :: Error.result(binary)
 
   def build(mode, state) do
     case check_access state.dest do
@@ -22,7 +22,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec check_access(String.t) :: :ok | File.posix
+  @spec check_access(binary) :: :ok | File.posix
 
   defp check_access(dest) do
     parent = dest |> String.replace_suffix("/", "") |> :filename.dirname
@@ -34,7 +34,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build_stage1(mode, state) :: Error.result(String.t)
+  @spec do_build_stage1(mode, state) :: Error.result(binary)
 
   defp do_build_stage1(mode, state) do
     IO.puts "Rebuilding Website..."
@@ -59,7 +59,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec clean_dest(String.t) :: :ok
+  @spec clean_dest(binary) :: :ok
 
   defp clean_dest(dest) do
     File.mkdir_p! "#{dest}"
@@ -72,7 +72,7 @@ defmodule Serum.Build do
          |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec do_build_stage2(mode, state) :: Error.result(String.t)
+  @spec do_build_stage2(mode, state) :: Error.result(binary)
 
   defp do_build_stage2(mode, state) do
     {time, result} =
@@ -88,7 +88,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec compile_nav(compiled_template) :: binary
+  @spec compile_nav(template_ast) :: binary
 
   defp compile_nav(template) do
     IO.puts "Compiling main navigation HTML stub..."
@@ -138,7 +138,7 @@ defmodule Serum.Build do
     try_copy "#{src}media/", "#{dest}media/"
   end
 
-  @spec try_copy(String.t, String.t) :: :ok
+  @spec try_copy(binary, binary) :: :ok
 
   defp try_copy(src, dest) do
     case File.cp_r src, dest do

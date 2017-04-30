@@ -5,14 +5,14 @@ defmodule Serum.Util do
   """
 
   @doc "Writes `str` to a file specified by `fname`."
-  @spec fwrite(String.t, String.t) :: :ok
+  @spec fwrite(binary, binary) :: :ok
   @compile {:inline, fwrite: 2}
 
   def fwrite(fname, str),
     do: File.open! fname, [:write, :utf8], &IO.write(&1, str)
 
   @doc "Prints a warning message to stderr."
-  @spec warn(String.t) :: :ok
+  @spec warn(binary) :: :ok
   @compile {:inline, warn: 1}
 
   def warn(str),

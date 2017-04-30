@@ -34,8 +34,7 @@ defmodule Serum.Build.Renderer do
     end
   end
 
-  @spec render_stub(Build.compiled_template, keyword, String.t)
-    :: Error.result(String.t)
+  @spec render_stub(Build.template_ast, keyword, binary) :: Error.result(binary)
 
   def render_stub(template, context, name \\ "")
 
@@ -56,7 +55,7 @@ defmodule Serum.Build.Renderer do
     end
   end
 
-  @spec to_filename(String.t) :: String.t
+  @spec to_filename(binary) :: binary
 
   defp to_filename(name) do
     case name do
@@ -66,7 +65,7 @@ defmodule Serum.Build.Renderer do
     end
   end
 
-  @spec process_links(String.t, String.t) :: String.t
+  @spec process_links(binary, binary) :: binary
 
   def process_links(text, base) do
     text = Regex.replace @re_media, text, ~s(\\1="#{base}media/\\2")

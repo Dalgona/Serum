@@ -17,8 +17,8 @@ defmodule Serum.Error do
   @type full_detail :: {message, file, line}
   @type nest_detail :: {term, [error]}
 
-  @type message :: atom | String.t
-  @type file    :: String.t
+  @type message :: atom | binary
+  @type file    :: binary
   @type line    :: non_neg_integer
 
   @spec filter_results([result], term) :: result

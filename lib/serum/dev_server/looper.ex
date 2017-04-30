@@ -28,7 +28,7 @@ defmodule Serum.DevServer.Looper do
   end
 
   @spec cmd(atom) :: no_return
-  @spec cmd(:quit, String.t) :: no_return
+  @spec cmd(:quit, binary) :: no_return
   defp cmd(:help) do
     IO.puts "Available commands are:"
     IO.puts "  help   Displays this help message"

@@ -15,7 +15,7 @@ defmodule Serum.Cmdline do
   @alias_server [p: :port]
 
   @doc "The entry point for Serum command-line program."
-  @spec main(args :: [String.t]) :: any
+  @spec main(args :: [binary]) :: any
 
   def main([]) do
     info()
@@ -45,12 +45,12 @@ defmodule Serum.Cmdline do
     """
   end
 
-  @spec cmd_init([String.t]) :: :ok
+  @spec cmd_init([binary]) :: :ok
 
   defp cmd_init([]),      do: Init.init "."
   defp cmd_init([dir|_]), do: Init.init dir
 
-  @spec cmd_build([String.t]) :: Serum.Error.result
+  @spec cmd_build([binary]) :: Serum.Error.result
 
   defp cmd_build(cmd) do
     {opts, args, errors} =
@@ -63,7 +63,7 @@ defmodule Serum.Cmdline do
     end
   end
 
-  @spec launch_build([String.t], String.t, Serum.Build.mode) :: any
+  @spec launch_build([binary], binary, Serum.Build.mode) :: any
 
   defp launch_build(args, out, mode) do
     dir =
@@ -82,7 +82,7 @@ defmodule Serum.Cmdline do
     end
   end
 
-  @spec cmd_server([String.t]) :: any
+  @spec cmd_server([binary]) :: any
 
   defp cmd_server(cmd) do
     {opts, args, errors} =
@@ -120,7 +120,7 @@ defmodule Serum.Cmdline do
     """
   end
 
-  @spec finish_build(String.t) :: :ok
+  @spec finish_build(binary) :: :ok
 
   defp finish_build(dest) do
     IO.puts """

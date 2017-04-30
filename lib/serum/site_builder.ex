@@ -9,7 +9,7 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Client
   #
 
-  @spec start_link(String.t, String.t) :: {:ok, pid}
+  @spec start_link(binary, binary) :: {:ok, pid}
 
   def start_link(src, dest) do
     src = String.ends_with?(src, "/") && src || src <> "/"
@@ -24,7 +24,7 @@ defmodule Serum.SiteBuilder do
     GenServer.call server, :load_info
   end
 
-  @spec build(pid, Build.mode) :: Error.result(String.t)
+  @spec build(pid, Build.mode) :: Error.result(binary)
 
   def build(server, mode) do
     GenServer.call server, {:build, mode}
@@ -73,7 +73,7 @@ defmodule Serum.SiteBuilder do
   # Internal Functions
   #
 
-  @spec do_load_info(String.t) :: Error.result(ProjectInfo.t)
+  @spec do_load_info(binary) :: Error.result(ProjectInfo.t)
 
   defp do_load_info(dir) do
     path = dir <> "serum.json"
@@ -85,7 +85,7 @@ defmodule Serum.SiteBuilder do
     end
   end
 
-  @spec decode_json(String.t, String.t) :: Error.result(ProjectInfo.t)
+  @spec decode_json(binary, binary) :: Error.result(ProjectInfo.t)
 
   defp decode_json(path, data) do
     case Poison.decode data do

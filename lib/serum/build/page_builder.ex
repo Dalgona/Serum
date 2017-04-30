@@ -8,7 +8,7 @@ defmodule Serum.Build.PageBuilder do
   alias Serum.Build
   alias Serum.Build.Renderer
 
-  @typep header :: {String.t, [String.t]}
+  @typep header :: {binary, [binary]}
   @type state :: Build.state
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
@@ -24,7 +24,7 @@ defmodule Serum.Build.PageBuilder do
 
   # Launches individual page build tasks if the program is running in `parallel`
   # mode, otherwise performs the tasks one by one.
-  @spec launch(Build.mode, [String.t], state) :: [Error.result]
+  @spec launch(Build.mode, [binary], state) :: [Error.result]
 
   defp launch(:parallel, files, state) do
     files
@@ -37,7 +37,7 @@ defmodule Serum.Build.PageBuilder do
   end
 
   @doc "Defines the individual page build task."
-  @spec page_task(String.t, state) :: Error.result
+  @spec page_task(binary, state) :: Error.result
 
   def page_task(fname, state) do
     %{src: src, dest: dest} = state
@@ -59,7 +59,7 @@ defmodule Serum.Build.PageBuilder do
   end
 
   # Extracts the title and contents from a given page source file.
-  @spec extract_header(String.t) :: Error.result(header)
+  @spec extract_header(binary) :: Error.result(header)
 
   def extract_header(fname) do
     case File.read fname do
@@ -70,7 +70,7 @@ defmodule Serum.Build.PageBuilder do
     end
   end
 
-  @spec do_extract_header(String.t, String.t) :: Error.result(header)
+  @spec do_extract_header(binary, binary) :: Error.result(header)
   defp do_extract_header fname, data do
     [title|rest] = data |> String.split("\n")
     if String.starts_with? title, "# " do
@@ -82,8 +82,7 @@ defmodule Serum.Build.PageBuilder do
   end
 
   # Renders a page into an complete HTML format.
-  @spec render_page(String.t, String.t, String.t, state)
-    :: Error.result(String.t)
+  @spec render_page(binary, binary, binary, state) :: Error.result(binary)
 
   defp render_page("md", md, title, state) do
     html = Earmark.to_html md

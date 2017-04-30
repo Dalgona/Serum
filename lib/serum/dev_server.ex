@@ -7,7 +7,7 @@ defmodule Serum.DevServer do
   alias Serum.DevServer.{DirStatus, Service, AutoBuilder, Looper}
   alias Serum.SiteBuilder
 
-  @spec run(dir :: String.t, port :: pos_integer) :: any
+  @spec run(dir :: binary, port :: pos_integer) :: any
   def run(dir, port) do
     import Supervisor.Spec
 
@@ -35,7 +35,7 @@ defmodule Serum.DevServer do
     end
   end
 
-  @spec start_watcher(String.t) :: {:ok, pid}
+  @spec start_watcher(binary) :: {:ok, pid}
   def start_watcher(dir) do
     dir = :filename.absname dir
     pid = spawn_link fn ->

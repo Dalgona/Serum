@@ -9,7 +9,7 @@ defmodule Serum.PostInfo do
   defstruct [:file, :title, :date, :raw_date, :tags, :url, :preview_text]
 
   @doc "A helper function for creating a new PostInfo struct."
-  @spec new(String.t, Build.header, Build.erl_datetime, String.t, state) :: t
+  @spec new(binary, Build.header, Build.erl_datetime, binary, state) :: t
 
   def new(filename, header, raw_date, preview, state) do
     base = state.project_info.base_url

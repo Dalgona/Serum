@@ -34,7 +34,7 @@ defmodule Serum.Build.Preparation do
     end
   end
 
-  @spec do_load_templates(String.t, state) :: Error.result({String.t, Macro.t})
+  @spec do_load_templates(binary, state) :: Error.result({binary, Macro.t})
 
   defp do_load_templates(name, state) do
     path = "#{state.src}templates/#{name}.html.eex"
@@ -57,7 +57,7 @@ defmodule Serum.Build.Preparation do
     end
   end
 
-  @spec preprocess_template(Macro.t, String.t) :: Macro.t
+  @spec preprocess_template(Macro.t, binary) :: Macro.t
 
   def preprocess_template(ast, base) do
     Macro.postwalk ast, fn
@@ -128,7 +128,7 @@ defmodule Serum.Build.Preparation do
     end
   end
 
-  @spec do_scan_pages(String.t, String.t, String.t) :: list(any)
+  @spec do_scan_pages(binary, binary, binary) :: list(any)
 
   defp do_scan_pages(path, src, dest) do
     path

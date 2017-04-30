@@ -13,7 +13,7 @@ defmodule Serum.DevServer.Service do
   # GenServer Implementation - Client
   #
 
-  @spec start_link(pid, String.t, String.t, pos_integer)
+  @spec start_link(pid, binary, binary, pos_integer)
     :: {:ok, pid} | {:error, atom}
 
   def start_link(builder, dir, site, portnum) do
@@ -25,11 +25,11 @@ defmodule Serum.DevServer.Service do
 
   def rebuild(), do: GenServer.call __MODULE__, :rebuild
 
-  @spec source_dir() :: String.t
+  @spec source_dir() :: binary
 
   def source_dir(), do: GenServer.call __MODULE__, :source_dir
 
-  @spec site_dir() :: String.t
+  @spec site_dir() :: binary
 
   def site_dir(), do: GenServer.call __MODULE__, :site_dir
 

@@ -62,7 +62,7 @@ defmodule Serum.Build.IndexBuilder do
     |> Enum.map(&tag_task(&1, dir, state))
   end
 
-  @spec tag_task({Serum.Tag.t, [Serum.PostInfo.t]}, String.t, state) :: :ok
+  @spec tag_task({Serum.Tag.t, [Serum.PostInfo.t]}, binary, state) :: :ok
 
   def tag_task({tag, posts}, dest, state) do
     tagdir = "#{dest}tags/#{tag.name}/"
@@ -72,7 +72,7 @@ defmodule Serum.Build.IndexBuilder do
     save_list "#{tagdir}index.html", title, posts, state
   end
 
-  @spec save_list(String.t, String.t, [Serum.PostInfo.t], state) :: :ok
+  @spec save_list(binary, binary, [Serum.PostInfo.t], state) :: :ok
 
   defp save_list(path, title, posts, state) do
     list_ctx = [header: title, posts: posts]
