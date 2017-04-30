@@ -113,7 +113,7 @@ defmodule Serum.Build.PostBuilder do
     end
   end
 
-  @spec render_post(binary, PostInfo.t, state) :: binary
+  @spec render_post(binary, PostInfo.t, state) :: {:ok, binary}
 
   defp render_post(contents, info, state) do
     post_ctx = [
