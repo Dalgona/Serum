@@ -7,6 +7,7 @@ defmodule Serum.Build do
   alias Serum.Error
   alias Serum.Build.Preparation
   alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
+  alias Serum.BuildPass1, as: Pass1
 
   @type mode :: :parallel | :sequential
   @type template_ast :: Macro.t | nil
@@ -16,13 +17,15 @@ defmodule Serum.Build do
   @spec build(mode, state) :: Error.result(binary)
 
   def build(mode, state) do
-    with :ok <- check_dest_perm(state.dest),
-         {:ok, state2} <- prepare_build(state),
-         {:ok, dest} <- do_build(mode, state2) do
-      {:ok, dest}
-    else
-      {:error, _, _} = error -> error
-    end
+    {:ok, new_state} = build_pass1 mode, state
+    IO.inspect new_state
+#    with :ok <- check_dest_perm(state.dest),
+#         {:ok, state2} <- prepare_build(state),
+#         {:ok, dest} <- do_build(mode, state2) do
+#      {:ok, dest}
+#    else
+#      {:error, _, _} = error -> error
+#    end
   end
 
   @spec check_dest_perm(binary) :: Error.result
@@ -42,11 +45,31 @@ defmodule Serum.Build do
     end
   end
 
+  @spec build_pass1(mode, state) :: Error.result(state)
+
+  defp build_pass1(:parallel, state) do
+    clean_dest state.dest
+    t1 = Task.async fn -> Pass1.PageBuilder.run :parallel, state end
+    t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
+    with {:ok, page_info} <- Task.await(t1),
+         {:ok, post_info} <- Task.await(t2) do
+      state =
+        state
+        |> Map.put(:page_info, page_info)
+        |> Map.put(:post_info, post_info)
+      t3 = Task.async fn -> Pass1.IndexBuilder.run :parallel, state end
+      {:ok, tags} = Task.await t3
+      {:ok, Map.put(state, :tags, tags)}
+    else
+      {:error, _, _} = error -> error
+    end
+  end
+
   @spec prepare_build(state) :: Error.result(state)
 
   defp prepare_build(state) do
     IO.puts "Rebuilding Website..."
-    clean_dest state.dest
+    # clean_dest state.dest # TODO: ??
     prep_results =
       [:check_tz, :load_templates, :scan_pages]
       |> Enum.map(fn fun -> apply Preparation, fun, [state] end)

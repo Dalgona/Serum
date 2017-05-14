@@ -5,5 +5,5 @@ defmodule Serum.PageInfo do
 end
 
 defimpl Inspect, for: Serum.PageInfo do
-  def inspect(info, _opts), do: ~s(%Serum.PageInfo<"#{info.title}">)
+  def inspect(info, _opts), do: ~s(#Serum.PageInfo<"#{info.title}">)
 end

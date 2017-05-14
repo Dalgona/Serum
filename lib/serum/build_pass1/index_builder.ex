@@ -7,9 +7,9 @@ defmodule Serum.BuildPass1.IndexBuilder do
 
   @spec run(Build.mode, state) :: Error.result(Tag.t)
 
-  def run(mode, _state) do
+  def run(_mode, state) do
     tags =
-      state.build_data["post_info"]
+      state.post_info
       |> Enum.reduce(MapSet.new(), fn info, acc ->
         MapSet.union acc, MapSet.new(info.tags)
       end)
