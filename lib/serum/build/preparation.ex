@@ -9,17 +9,6 @@ defmodule Serum.Build.Preparation do
 
   @type state :: Build.state
 
-  @spec check_tz(state) :: Error.result(nil)
-
-  def check_tz(_state) do
-    try do
-      Timex.local
-      {:ok, nil}
-    rescue
-      _ -> {:error, :system_error, "system timezone is not set"}
-    end
-  end
-
   @spec load_templates(state) :: Error.result(map)
 
   def load_templates(state) do
@@ -113,36 +102,5 @@ defmodule Serum.Build.Preparation do
 
   defp extract_args(children) do
     children |> Code.eval_quoted() |> elem(0)
-  end
-
-  @spec scan_pages(state) :: Error.result(map)
-
-  def scan_pages(state) do
-    %{src: src, dest: dest} = state
-    dir = src <> "pages/"
-    IO.puts "Scanning `#{dir}` directory..."
-    if File.exists? dir do
-      {:ok, %{"pages_file" => List.flatten(do_scan_pages dir, src, dest)}}
-    else
-      {:error, :file_error, {:enoent, dir, 0}}
-    end
-  end
-
-  @spec do_scan_pages(binary, binary, binary) :: list(any)
-
-  defp do_scan_pages(path, src, dest) do
-    path
-    |> File.ls!()
-    |> Enum.reduce([], fn x, acc ->
-      f = Regex.replace ~r(/+), "#{path}/#{x}", "/"
-      cond do
-        File.dir? f ->
-          f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!()
-          [do_scan_pages(f, src, dest)|acc]
-        String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
-          [f|acc]
-        :otherwise -> acc
-      end
-    end)
   end
 end

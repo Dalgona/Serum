@@ -54,13 +54,11 @@ defmodule Serum.BuildPass1.PostBuilder do
   @spec post_task(binary, state) :: Error.result(PostInfo.t)
 
   def post_task(file, state) do
-    %{src: src, dest: dest} = state
-    state =
-      %{state|src: "#{src}posts/#{file}.md", dest: "#{dest}posts/#{file}.html"}
+    filepath = "#{state.src}posts/#{file}.md"
     base = state.project_info.base_url
-    with {:ok, raw_date} <- extract_date(state.src),
-         {:ok, header} <- extract_header(state.src, base) do
-      info = PostInfo.new file, header, raw_date, "", state
+    with {:ok, raw_date} <- extract_date(filepath),
+         {:ok, header} <- extract_header(filepath, base) do
+      info = PostInfo.new filepath, header, raw_date, "", state
       {:ok, info}
     else
       {:error, _, _} = error -> error
