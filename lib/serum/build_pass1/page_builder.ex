@@ -7,19 +7,13 @@ defmodule Serum.BuildPass1.PageBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.mode, state) :: Error.result(state)
+  @spec run(Build.mode, state) :: Error.result([PageInfo.t])
 
   def run(mode, state) do
-    build_data = state.build_data
-    files = build_data["pages_file"]
-    result = launch mode, files, state
-    case Error.filter_results_with_values result, :page_builder do
-      {:ok, list} ->
-        build_data =
-          build_data
-          |> Map.put("page_info", list)
-          |> Map.delete("pages_file")
-        {:ok, %{state|build_data: build_data}}
+    case scan_pages state do
+      {:ok, files} ->
+        result = launch mode, files, state
+        Error.filter_results_with_values result, :page_builder
       {:error, _, _} = error -> error
     end
   end
@@ -51,5 +45,36 @@ defmodule Serum.BuildPass1.PageBuilder do
       {:error, reason} ->
         {:error, :file_error, {reason, fname, 0}}
     end
+  end
+
+  @spec scan_pages(state) :: Error.result([binary])
+
+  def scan_pages(state) do
+    %{src: src, dest: dest} = state
+    dir = src <> "pages/"
+    IO.puts "Scanning `#{dir}` directory..."
+    if File.exists? dir do
+      {:ok, List.flatten(do_scan_pages dir, src, dest)}
+    else
+      {:error, :file_error, {:enoent, dir, 0}}
+    end
+  end
+
+  @spec do_scan_pages(binary, binary, binary) :: list(any)
+
+  defp do_scan_pages(path, src, dest) do
+    path
+    |> File.ls!()
+    |> Enum.reduce([], fn x, acc ->
+      f = Regex.replace ~r(/+), "#{path}/#{x}", "/"
+      cond do
+        File.dir? f ->
+          f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!()
+          [do_scan_pages(f, src, dest)|acc]
+        String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
+          [f|acc]
+        :otherwise -> acc
+      end
+    end)
   end
 end
