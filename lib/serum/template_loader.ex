@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass2.Preparation do
+defmodule Serum.TemplateLoader do
   @moduledoc """
   This module contains functions which are used to prepare the site building
   process.

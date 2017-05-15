@@ -8,6 +8,7 @@ defmodule Serum.Build do
   alias Serum.BuildPass1, as: Pass1
   alias Serum.BuildPass2, as: Pass2
   alias Serum.Renderer
+  alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
   @type template_ast :: Macro.t | nil
@@ -105,7 +106,7 @@ defmodule Serum.Build do
   @spec prepare_templates(state) :: Error.result(state)
 
   defp prepare_templates(state) do
-    with {:ok, templates} <- Pass2.Preparation.load_templates(state),
+    with {:ok, templates} <- TemplateLoader.load_templates(state),
          template_nav = templates["template__nav"],
          {:ok, nav} <- Renderer.render_stub(template_nav, [], "nav") do
       build_data =
