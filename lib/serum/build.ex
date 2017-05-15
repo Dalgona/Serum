@@ -6,8 +6,8 @@ defmodule Serum.Build do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build.Preparation
-  alias Serum.Build.{PageBuilder, PostBuilder, IndexBuilder, Renderer}
   alias Serum.BuildPass1, as: Pass1
+  alias Serum.BuildPass2, as: Pass2
 
   @type mode :: :parallel | :sequential
   @type template_ast :: Macro.t | nil
@@ -20,18 +20,14 @@ defmodule Serum.Build do
     with :ok <- check_dest_perm(state.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(state.dest),
-         {:ok, new_state} <- build_pass1(mode, state) do
-      IO.inspect new_state
+         {:ok, state2} <- build_pass1(mode, state),
+         {:ok, state3} <- prepare_templates(state2),
+         :ok <- build_pass2(mode, state3) do
+      copy_assets state3
+      {:ok, state.dest}
     else
       {:error, _, _} = error -> error
     end
-#    with :ok <- check_dest_perm(state.dest),
-#         {:ok, state2} <- prepare_build(state),
-#         {:ok, dest} <- do_build(mode, state2) do
-#      {:ok, dest}
-#    else
-#      {:error, _, _} = error -> error
-#    end
   end
 
   @spec check_dest_perm(binary) :: Error.result
@@ -87,9 +83,7 @@ defmodule Serum.Build do
         state
         |> Map.put(:page_info, page_info)
         |> Map.put(:post_info, post_info)
-      t3 = Task.async fn -> Pass1.IndexBuilder.run :parallel, state end
-      {:ok, tags} = Task.await t3
-      {:ok, Map.put(state, :tags, tags)}
+      {:ok, state}
     else
       {:error, _, _} = error -> error
     end
@@ -102,24 +96,18 @@ defmodule Serum.Build do
         state
         |> Map.put(:page_info, page_info)
         |> Map.put(:post_info, post_info)
-      {:ok, tags} = Pass1.IndexBuilder.run :parallel, state
-      {:ok, Map.put(state, :tags, tags)}
+      {:ok, state}
     else
       {:error, _, _} = error -> error
     end
   end
 
-  @spec prepare_build(state) :: Error.result(state)
+  @spec prepare_templates(state) :: Error.result(state)
 
-  defp prepare_build(state) do
-    IO.puts "Rebuilding Website..."
-    prep_results =
-      [:load_templates]
-      |> Enum.map(fn fun -> apply Preparation, fun, [state] end)
-      |> Error.filter_results_with_values(:build_preparation)
-    with {:ok, [templates]} <- prep_results,
+  defp prepare_templates(state) do
+    with {:ok, templates} <- Preparation.load_templates(state),
          template_nav = templates["template__nav"],
-         {:ok, nav} <- Renderer.render_stub(template_nav, [], "nav") do
+         {:ok, nav} <- Pass2.Renderer.render_stub(template_nav, [], "nav") do
       build_data =
         state.build_data
         |> Map.merge(templates)
@@ -130,55 +118,28 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build(mode, state) :: Error.result(binary)
+  @spec build_pass2(mode, state) :: Error.result
 
-  defp do_build(mode, state) do
-    {time, result} =
-      :timer.tc fn ->
-        launch_tasks mode, state
-      end
-    case result do
-      :ok ->
-        IO.puts "Build process took #{time/1000}ms."
-        copy_assets state
-        {:ok, state.dest}
-      error -> error
-    end
-  end
-
-  @spec compile_nav(template_ast) :: binary
-
-  defp compile_nav(template) do
-    IO.puts "Compiling main navigation HTML stub..."
-    Renderer.render_stub template, []
-  end
-
-  @spec launch_tasks(mode, state) :: Error.result
-
-  defp launch_tasks(:parallel, state) do
-    IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
-    t1 = Task.async fn -> PageBuilder.run :parallel, state end
-    t2 = Task.async fn -> PostBuilder.run :parallel, state end
+  defp build_pass2(:parallel, state) do
+    t1 = Task.async fn -> Pass2.PageBuilder.run :parallel, state end
+    t2 = Task.async fn -> Pass2.PostBuilder.run :parallel, state end
     with :ok <- Task.await(t1),
-         {:ok, posts} <- Task.await(t2) do
-      build_data = state.build_data
-      state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
-      t3 = Task.async fn -> IndexBuilder.run :parallel, state end
+         {:ok, post_info} <- Task.await(t2) do
+      state = %{state|post_info: post_info}
+      t3 = Task.async fn -> Pass2.IndexBuilder.run :parallel, state end
       Task.await t3
     else
       {:error, _, _} = error -> error
     end
   end
 
-  defp launch_tasks(:sequential, state) do
-    IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
-    page_result = PageBuilder.run :sequential, state
-    post_result = PostBuilder.run :sequential, state
+  defp build_pass2(:sequential, state) do
+    page_result = Pass2.PageBuilder.run :sequential, state
+    post_result = Pass2.PostBuilder.run :sequential, state
     with :ok <- page_result,
-         {:ok, posts} <- post_result do
-      build_data = state.build_data
-      state = %{state|build_data: Map.put(build_data, "all_posts", posts)}
-      IndexBuilder.run :sequential, state
+         {:ok, post_info} <- post_result do
+      state = %{state|post_info: post_info}
+      Pass2.IndexBuilder.run :sequential, state
     else
       {:error, _, _} = error -> error
     end
