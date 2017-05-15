@@ -18,7 +18,6 @@ defmodule Serum.BuildPass1.PostBuilder do
 
   def run(mode, state) do
     list = load_file_list "#{state.src}posts/"
-    File.mkdir_p! "#{state.dest}posts/"
     result = launch mode, list, state
     Error.filter_results_with_values result, :post_builder
   end
