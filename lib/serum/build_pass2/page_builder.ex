@@ -6,7 +6,7 @@ defmodule Serum.BuildPass2.PageBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.Build.Renderer
+  alias Serum.BuildPass2.Renderer
   alias Serum.PageInfo
 
   @type state :: Build.state

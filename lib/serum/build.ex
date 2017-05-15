@@ -5,7 +5,6 @@ defmodule Serum.Build do
 
   import Serum.Util
   alias Serum.Error
-  alias Serum.Build.Preparation
   alias Serum.BuildPass1, as: Pass1
   alias Serum.BuildPass2, as: Pass2
 
@@ -105,7 +104,7 @@ defmodule Serum.Build do
   @spec prepare_templates(state) :: Error.result(state)
 
   defp prepare_templates(state) do
-    with {:ok, templates} <- Preparation.load_templates(state),
+    with {:ok, templates} <- Pass2.Preparation.load_templates(state),
          template_nav = templates["template__nav"],
          {:ok, nav} <- Pass2.Renderer.render_stub(template_nav, [], "nav") do
       build_data =
