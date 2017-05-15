@@ -6,7 +6,7 @@ defmodule Serum.BuildPass2.IndexBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.BuildPass2.Renderer
+  alias Serum.Renderer
 
   @type state :: Build.state
 

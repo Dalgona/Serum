@@ -7,7 +7,7 @@ defmodule Serum.BuildPass2.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.BuildPass2.Renderer
+  alias Serum.Renderer
   alias Serum.PostInfo
 
   @type state :: Build.state

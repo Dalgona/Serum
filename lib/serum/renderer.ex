@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass2.Renderer do
+defmodule Serum.Renderer do
   @moduledoc """
   This module provides functions for rendering pages into complete HTML files.
   """
