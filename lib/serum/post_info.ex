@@ -14,7 +14,7 @@ defmodule Serum.PostInfo do
   def new(filename, header, raw_date, preview, state) do
     base = state.project_info.base_url
     date_fmt = state.project_info.date_format
-    {title, tags, _lines} = header
+    {title, tags} = header
     date_str =
       raw_date
       |> Timex.to_datetime(:local)

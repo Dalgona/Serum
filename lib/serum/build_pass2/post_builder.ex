@@ -47,6 +47,7 @@ defmodule Serum.BuildPass2.PostBuilder do
         _ = IO.read file, :line
         _ = IO.read file, :line
         data = IO.read file, :all
+        File.close file
         htmlstub = Earmark.to_html data
         preview = make_preview htmlstub, state.project_info.preview_length
         case render_post htmlstub, info, state do

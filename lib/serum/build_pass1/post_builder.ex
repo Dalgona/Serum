@@ -9,7 +9,7 @@ defmodule Serum.BuildPass1.PostBuilder do
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
   @type erl_time :: {non_neg_integer, non_neg_integer, non_neg_integer}
 
-  @typep header :: {binary, [Serum.Tag.t], [binary]}
+  @typep header :: {binary, [Serum.Tag.t]}
 
   @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
@@ -91,20 +91,21 @@ defmodule Serum.BuildPass1.PostBuilder do
   @spec extract_header(binary, binary) :: Error.result(header)
 
   def extract_header(fname, base) do
-    case File.read fname do
-      {:ok, data} ->
-        do_extract_header fname, data, base
+    case File.open fname, [:read, :utf8] do
+      {:ok, file} ->
+        result = do_extract_header fname, file, base
+        File.close file
+        result
       {:error, reason} ->
         {:error, :file_error, {reason, fname, 0}}
     end
   end
 
-  @spec do_extract_header(binary, binary, binary) :: Error.result(header)
+  @spec do_extract_header(binary, IO.device, binary) :: Error.result(header)
 
-  defp do_extract_header(fname, data, base) do
-    try do
-      [l1, l2|rest] = data |> String.split("\n")
-      {"# " <> title, "#" <> tags} = {l1, l2}
+  defp do_extract_header(fname, file, base) do
+    with "# " <> title <- IO.read(file, :line),
+         "#" <> tags <- IO.read(file, :line) do
       title = String.trim title
       tags =
         tags
@@ -113,9 +114,9 @@ defmodule Serum.BuildPass1.PostBuilder do
         |> Stream.reject(&(&1 == ""))
         |> Enum.sort
         |> Enum.map(&(%Serum.Tag{name: &1, list_url: "#{base}tags/#{&1}"}))
-      {:ok, {title, tags, rest}}
-    rescue
-      _ in MatchError ->
+      {:ok, {title, tags}}
+    else
+      _ ->
         {:error, :post_error, {:invalid_header, fname, 0}}
     end
   end

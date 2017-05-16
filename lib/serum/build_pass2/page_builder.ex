@@ -45,6 +45,7 @@ defmodule Serum.BuildPass2.PageBuilder do
       {:ok, file} ->
         _ = IO.read file, :line
         data = IO.read file, :all
+        File.close file
         case render_page type, data, info.title, state do
           {:ok, html} ->
             fwrite destpath, html

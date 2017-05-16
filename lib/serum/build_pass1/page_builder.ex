@@ -34,9 +34,10 @@ defmodule Serum.BuildPass1.PageBuilder do
   @spec page_task(binary, state) :: Error.result(PageInfo.t)
 
   def page_task(fname, _state) do
-    case File.open fname do
+    case File.open fname, [:read, :utf8] do
       {:ok, file} ->
         title = file |> IO.gets("") |> String.trim
+        File.close file
         if String.starts_with? title, "# " do
           "# " <> title = title
           {:ok, %PageInfo{file: fname, title: title}}
