@@ -77,8 +77,9 @@ defmodule Serum.Build do
   defp build_pass1(:parallel, state) do
     t1 = Task.async fn -> Pass1.PageBuilder.run :parallel, state end
     t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
-    with {:ok, page_info} <- Task.await(t1),
-         {:ok, post_info} <- Task.await(t2) do
+    {result1, result2} = {Task.await(t1), Task.await(t2)}
+    with {:ok, page_info} <- result1,
+         {:ok, post_info} <- result2 do
       state =
         state
         |> Map.put(:page_info, page_info)
@@ -123,8 +124,9 @@ defmodule Serum.Build do
   defp build_pass2(:parallel, state) do
     t1 = Task.async fn -> Pass2.PageBuilder.run :parallel, state end
     t2 = Task.async fn -> Pass2.PostBuilder.run :parallel, state end
-    with :ok <- Task.await(t1),
-         {:ok, post_info} <- Task.await(t2) do
+    {result1, result2} = {Task.await(t1), Task.await(t2)}
+    with :ok <- result1,
+         {:ok, post_info} <- result2 do
       state = %{state|post_info: post_info}
       t3 = Task.async fn -> Pass2.IndexBuilder.run :parallel, state end
       Task.await t3
