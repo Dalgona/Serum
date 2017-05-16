@@ -107,13 +107,13 @@ defmodule Serum.Build do
 
   defp prepare_templates(state) do
     with {:ok, templates} <- TemplateLoader.load_templates(state),
-         template_nav = templates["template__nav"],
+         template_nav = templates["nav"],
          {:ok, nav} <- Renderer.render_stub(template_nav, [], "nav") do
-      build_data =
-        state.build_data
-        |> Map.merge(templates)
-        |> Map.put("navstub", nav)
-      {:ok, %{state|build_data: build_data}}
+      new_state =
+        state
+        |> Map.put(:templates, templates)
+        |> Map.put(:includes, %{"nav" => nav})
+      {:ok, new_state}
     else
       {:error, _, _} = error -> error
     end

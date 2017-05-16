@@ -32,7 +32,7 @@ defmodule Serum.TemplateLoader do
         try do
           base = state.project_info.base_url
           ast = data |> EEx.compile_string() |> preprocess_template(base)
-          {:ok, {"template__#{name}", ast}}
+          {:ok, {name, ast}}
         rescue
           e in EEx.SyntaxError ->
             {:error, :invalid_template, {e.message, path, e.line}}
