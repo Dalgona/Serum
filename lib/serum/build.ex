@@ -7,7 +7,6 @@ defmodule Serum.Build do
   alias Serum.Error
   alias Serum.BuildPass1, as: Pass1
   alias Serum.BuildPass2, as: Pass2
-  alias Serum.Renderer
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
@@ -109,12 +108,11 @@ defmodule Serum.Build do
 
   defp prepare_templates(state) do
     with {:ok, templates} <- TemplateLoader.load_templates(state),
-         template_nav = templates["nav"],
-         {:ok, nav} <- Renderer.render_stub(template_nav, [], "nav") do
+         {:ok, includes} <- TemplateLoader.load_includes(state) do
       new_state =
         state
         |> Map.put(:templates, templates)
-        |> Map.put(:includes, %{"nav" => nav})
+        |> Map.put(:includes, includes)
       {:ok, new_state}
     else
       {:error, _, _} = error -> error

@@ -6,6 +6,7 @@ defmodule Serum.TemplateLoader do
 
   alias Serum.Build
   alias Serum.Error
+  alias Serum.Renderer
 
   @type state :: Build.state
 
@@ -14,7 +15,7 @@ defmodule Serum.TemplateLoader do
   def load_templates(state) do
     IO.puts "Loading templates..."
     result =
-      ["base", "list", "page", "post", "nav"]
+      ["base", "list", "page", "post"]
       |> Enum.map(&do_load_templates(&1, state))
       |> Error.filter_results_with_values(:load_templates)
     case result do
@@ -27,12 +28,68 @@ defmodule Serum.TemplateLoader do
 
   defp do_load_templates(name, state) do
     path = "#{state.src}templates/#{name}.html.eex"
+    case compile_template path, state do
+      {:ok, ast} -> {:ok, {name, ast}}
+      {:error, _, _} = error -> error
+    end
+  end
+
+  @spec load_includes(state) :: Error.result(map)
+
+  def load_includes(state) do
+    IO.puts "Loading includes..."
+    includes_dir = state.src <> "includes/"
+    if File.exists? includes_dir do
+      result =
+        includes_dir
+        |> File.ls!
+        |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
+        |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
+        |> Stream.map(&do_load_includes(&1, state))
+        |> Enum.map(&render_includes/1)
+        |> Error.filter_results_with_values(:load_includes)
+      case result do
+        {:ok, list} -> {:ok, Map.new(list)}
+        {:error, _, _} = error -> error
+      end
+    else
+      []
+    end
+  end
+
+  @spec do_load_includes(binary, state) :: Error.result({binary, Macro.t})
+
+  defp do_load_includes(name, state) do
+    path = "#{state.src}includes/#{name}.html.eex"
+    case compile_template path, state do
+      {:ok, ast} -> {:ok, {name, ast}}
+      {:error, _, _} = error -> error
+    end
+  end
+
+  @spec render_includes(Error.result({binary, Macro.t}))
+    :: Error.result({binary, binary})
+
+  defp render_includes({:ok, {name, ast}}) do
+    case Renderer.render_stub ast, [], name do
+      {:ok, html} -> {:ok, {name, html}}
+      {:error, _, _} = error -> error
+    end
+  end
+
+  defp render_includes(error = {:error, _, _}) do
+    error
+  end
+
+  @spec compile_template(binary, state) :: Error.result(Macro.t)
+
+  defp compile_template(path, state) do
     case File.read path do
       {:ok, data} ->
         try do
           base = state.project_info.base_url
           ast = data |> EEx.compile_string() |> preprocess_template(base)
-          {:ok, {name, ast}}
+          {:ok, ast}
         rescue
           e in EEx.SyntaxError ->
             {:error, :invalid_template, {e.message, path, e.line}}
