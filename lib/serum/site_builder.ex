@@ -41,28 +41,31 @@ defmodule Serum.SiteBuilder do
   #
 
   def init({src, dest}) do
-    {:ok, {src, dest, nil}}
+    {:ok, %{src: src, dest: dest, project_info: nil}}
   end
 
-  def handle_call(:load_info, _from, {src, dest, _}) do
-    case do_load_info src do
+  def handle_call(:load_info, _from, state) do
+    case do_load_info state.src do
       {:ok, proj} ->
-        {:reply, {:ok, proj}, {src, dest, proj}}
+        {:reply, {:ok, proj}, Map.put(state, :project_info, proj)}
       {:error, _, _} = error ->
-        {:reply, error, {src, dest, nil}}
+        {:reply, error, state}
     end
   end
 
-  def handle_call({:build, _mode}, _from, {src, dest, nil}) do
+  def handle_call({:build, _mode}, _from, state = %{project_info: nil}) do
     {:reply,
      {:error, :build_error, "project metadata is not loaded"},
-     {src, dest, nil}}
+     state}
   end
 
-  def handle_call({:build, mode}, _from, {src, dest, proj}) do
-    state = %{project_info: proj, build_data: %{}, src: src, dest: dest}
-    result = Build.build mode, state
-    {:reply, result, {src, dest, proj}}
+  def handle_call({:build, mode}, _from, state) do
+    case Build.build mode, state do
+      {:ok, new_state} ->
+        {:reply, {:ok, new_state.dest}, new_state}
+      {:error, _, _} = error ->
+        {:reply, error, state}
+    end
   end
 
   def handle_cast(:stop, _state) do

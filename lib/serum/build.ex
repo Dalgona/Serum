@@ -12,8 +12,7 @@ defmodule Serum.Build do
 
   @type mode :: :parallel | :sequential
   @type template_ast :: Macro.t | nil
-  @type state ::
-    %{project_info: map, build_data: map, src: binary, dest: binary}
+  @type state :: map
 
   @spec build(mode, state) :: Error.result(binary)
 
@@ -25,7 +24,7 @@ defmodule Serum.Build do
          {:ok, state3} <- prepare_templates(state2),
          :ok <- build_pass2(mode, state3) do
       copy_assets state3
-      {:ok, state.dest}
+      {:ok, state3}
     else
       {:error, _, _} = error -> error
     end
