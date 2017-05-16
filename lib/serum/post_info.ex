@@ -19,6 +19,10 @@ defmodule Serum.PostInfo do
       raw_date
       |> Timex.to_datetime(:local)
       |> Timex.format!(date_fmt)
+    url =
+      filename
+      |> String.replace_prefix(state.src, "")
+      |> String.replace_suffix("md", "html")
     %Serum.PostInfo{
       file: filename,
       title: title,
@@ -26,7 +30,7 @@ defmodule Serum.PostInfo do
       preview_text: preview,
       raw_date: raw_date,
       date: date_str,
-      url: base <> "posts/" <> filename <> ".html"
+      url: base <> url
     }
   end
 end
