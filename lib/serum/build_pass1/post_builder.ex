@@ -17,6 +17,7 @@ defmodule Serum.BuildPass1.PostBuilder do
   @spec run(Build.mode, state) :: Error.result([PostInfo.t])
 
   def run(mode, state) do
+    IO.puts "Collecting posts information..."
     list = load_file_list "#{state.src}posts/"
     result = launch mode, list, state
     Error.filter_results_with_values result, :post_builder

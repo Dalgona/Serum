@@ -27,7 +27,16 @@ defmodule Serum.SiteBuilder do
   @spec build(pid, Build.mode) :: Error.result(binary)
 
   def build(server, mode) do
-    GenServer.call server, {:build, mode}
+    {time, result} =
+      :timer.tc fn ->
+        GenServer.call server, {:build, mode}
+      end
+    case result do
+      {:ok, dest} ->
+        IO.puts "Build process took #{time/1000}ms."
+        {:ok, dest}
+      {:error, _, _} = error -> error
+    end
   end
 
   @spec stop(pid) :: :ok

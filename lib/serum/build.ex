@@ -75,6 +75,7 @@ defmodule Serum.Build do
   @spec build_pass1(mode, state) :: Error.result(state)
 
   defp build_pass1(:parallel, state) do
+    IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> Pass1.PageBuilder.run :parallel, state end
     t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
     {result1, result2} = {Task.await(t1), Task.await(t2)}
@@ -91,6 +92,7 @@ defmodule Serum.Build do
   end
 
   defp build_pass1(:sequential, state) do
+    IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
     with {:ok, page_info} <- Pass1.PageBuilder.run(:parallel, state),
          {:ok, post_info} <- Pass1.PostBuilder.run(:parallel, state) do
       state =

@@ -10,6 +10,7 @@ defmodule Serum.BuildPass1.PageBuilder do
   @spec run(Build.mode, state) :: Error.result([PageInfo.t])
 
   def run(mode, state) do
+    IO.puts "Collecting pages information..."
     case scan_pages state do
       {:ok, files} ->
         result = launch mode, files, state
