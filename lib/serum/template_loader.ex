@@ -7,6 +7,7 @@ defmodule Serum.TemplateLoader do
   alias Serum.Build
   alias Serum.Error
   alias Serum.Renderer
+  import Serum.Util
 
   @type state :: Build.state
 
@@ -137,7 +138,12 @@ defmodule Serum.TemplateLoader do
 
   defp eval_helpers({:include, _meta, children}, state) do
     arg = extract_arg children
-    state.includes[arg]
+    case state.includes[arg] do
+      nil ->
+        warn "There is no includable named `#{arg}'."
+        ""
+      stub when is_binary(stub) -> stub
+    end
   end
 
   defp eval_helpers({x, y, z}, _) do
