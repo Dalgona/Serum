@@ -17,19 +17,17 @@ defmodule Serum.Renderer do
   # render full page
   def render(template_name, stub_ctx, page_ctx, state) do
     %{project_info: proj,
-      templates: templates,
-      includes: includes} = state
+      templates: templates} = state
     site_ctx = [
       site_name: proj.site_name, site_description: proj.site_description,
       author: proj.author, author_email: proj.author_email
     ]
     page_template = templates[template_name]
     base_template = templates["base"]
-    nav_area      = includes["nav"]
     case render_stub page_template, stub_ctx ++ site_ctx, template_name do
       {:ok, stub} ->
         contents = process_links stub, proj.base_url
-        ctx = [contents: contents, navigation: nav_area] ++ page_ctx
+        ctx = [contents: contents] ++ page_ctx
         render_stub base_template, ctx ++ site_ctx, "base"
       error -> error
     end

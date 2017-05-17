@@ -19,7 +19,7 @@ defmodule Serum.TemplateLoader do
       |> Enum.map(&do_load_templates(&1, state))
       |> Error.filter_results_with_values(:load_templates)
     case result do
-      {:ok, list} -> {:ok, Map.new(list)}
+      {:ok, list} -> {:ok, Map.put(state, :templates, Map.new(list))}
       {:error, _, _} = error -> error
     end
   end
@@ -49,11 +49,11 @@ defmodule Serum.TemplateLoader do
         |> Enum.map(&render_includes/1)
         |> Error.filter_results_with_values(:load_includes)
       case result do
-        {:ok, list} -> {:ok, Map.new(list)}
+        {:ok, list} -> {:ok, Map.put(state, :includes, Map.new(list))}
         {:error, _, _} = error -> error
       end
     else
-      []
+      {:ok, Map.put(state, :includes, %{})}
     end
   end
 
@@ -87,8 +87,7 @@ defmodule Serum.TemplateLoader do
     case File.read path do
       {:ok, data} ->
         try do
-          base = state.project_info.base_url
-          ast = data |> EEx.compile_string() |> preprocess_template(base)
+          ast = data |> EEx.compile_string() |> preprocess_template(state)
           {:ok, ast}
         rescue
           e in EEx.SyntaxError ->
@@ -103,61 +102,51 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec preprocess_template(Macro.t, binary) :: Macro.t
+  @spec preprocess_template(Macro.t, state) :: Macro.t
 
-  def preprocess_template(ast, base) do
+  def preprocess_template(ast, state) do
     Macro.postwalk ast, fn
-      expr = {_name, _meta, _children} ->
-        eval_helpers expr, base
+      {name, meta, children} when not is_nil(children) ->
+        eval_helpers {name, meta, children}, state
       x -> x
     end
   end
 
-  defp eval_helpers({:base, meta, children}, base) do
-    if children == nil do
-      {:base, meta, nil}
-    else
-      case extract_args children do
-        []       -> base
-        [path|_] -> base <> path
-      end
+  defp eval_helpers({:base, _meta, children}, state) do
+    arg = extract_arg children
+    case arg do
+      nil -> state.project_info.base_url
+      path -> state.project_info.base_url <> path
     end
   end
 
-  defp eval_helpers({:page, meta, children}, base) do
-    if children == nil do
-      {:page, meta, nil}
-    else
-      arg = children |> extract_args() |> hd()
-      "#{base}#{arg}.html"
-    end
+  defp eval_helpers({:page, _meta, children}, state) do
+    arg = extract_arg children
+    state.project_info.base_url <> arg <> ".html"
   end
 
-  defp eval_helpers({:post, meta, children}, base) do
-    if children == nil do
-      {:post, meta, nil}
-    else
-      arg = children |> extract_args() |> hd()
-      "#{base}posts/#{arg}.html"
-    end
+  defp eval_helpers({:post, _meta, children}, state) do
+    arg = extract_arg children
+    state.project_info.base_url <> "posts/" <> arg <> ".html"
   end
 
-  defp eval_helpers({:asset, meta, children}, base) do
-    if children == nil do
-      {:asset, meta, nil}
-    else
-      arg = children |> extract_args() |> hd()
-      "#{base}assets/#{arg}"
-    end
+  defp eval_helpers({:asset, _meta, children}, state) do
+    arg = extract_arg children
+    state.project_info.base_url <> "assets/" <> arg
+  end
+
+  defp eval_helpers({:include, _meta, children}, state) do
+    arg = extract_arg children
+    state.includes[arg]
   end
 
   defp eval_helpers({x, y, z}, _) do
     {x, y, z}
   end
 
-  @spec extract_args(Macro.t) :: [term]
+  @spec extract_arg(Macro.t) :: [term]
 
-  defp extract_args(children) do
-    children |> Code.eval_quoted() |> elem(0)
+  defp extract_arg(children) do
+    children |> Code.eval_quoted |> elem(0) |> List.first
   end
 end

@@ -107,13 +107,9 @@ defmodule Serum.Build do
   @spec prepare_templates(state) :: Error.result(state)
 
   defp prepare_templates(state) do
-    with {:ok, templates} <- TemplateLoader.load_templates(state),
-         {:ok, includes} <- TemplateLoader.load_includes(state) do
-      new_state =
-        state
-        |> Map.put(:templates, templates)
-        |> Map.put(:includes, includes)
-      {:ok, new_state}
+    with {:ok, state2} <- TemplateLoader.load_includes(state),
+         {:ok, state3} <- TemplateLoader.load_templates(state2) do
+      {:ok, state3}
     else
       {:error, _, _} = error -> error
     end
