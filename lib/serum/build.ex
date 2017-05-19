@@ -78,12 +78,12 @@ defmodule Serum.Build do
     t1 = Task.async fn -> Pass1.PageBuilder.run :parallel, state end
     t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
     {result1, result2} = {Task.await(t1), Task.await(t2)}
-    with {:ok, page_info} <- result1,
-         {:ok, post_info} <- result2 do
+    with {:ok, pages} <- result1,
+         {:ok, posts} <- result2 do
       state =
         state
-        |> Map.put(:page_info, page_info)
-        |> Map.put(:post_info, post_info)
+        |> Map.put(:pages, pages)
+        |> Map.put(:posts, posts)
       {:ok, state}
     else
       {:error, _, _} = error -> error
@@ -92,12 +92,12 @@ defmodule Serum.Build do
 
   defp build_pass1(:sequential, state) do
     IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
-    with {:ok, page_info} <- Pass1.PageBuilder.run(:parallel, state),
-         {:ok, post_info} <- Pass1.PostBuilder.run(:parallel, state) do
+    with {:ok, pages} <- Pass1.PageBuilder.run(:parallel, state),
+         {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state) do
       state =
         state
-        |> Map.put(:page_info, page_info)
-        |> Map.put(:post_info, post_info)
+        |> Map.put(:pages, pages)
+        |> Map.put(:posts, posts)
       {:ok, state}
     else
       {:error, _, _} = error -> error
@@ -122,8 +122,8 @@ defmodule Serum.Build do
     t2 = Task.async fn -> Pass2.PostBuilder.run :parallel, state end
     {result1, result2} = {Task.await(t1), Task.await(t2)}
     with :ok <- result1,
-         {:ok, post_info} <- result2 do
-      state = %{state|post_info: post_info}
+         {:ok, posts} <- result2 do
+      state = %{state|posts: posts}
       t3 = Task.async fn -> Pass2.IndexBuilder.run :parallel, state end
       Task.await t3
     else
@@ -135,8 +135,8 @@ defmodule Serum.Build do
     page_result = Pass2.PageBuilder.run :sequential, state
     post_result = Pass2.PostBuilder.run :sequential, state
     with :ok <- page_result,
-         {:ok, post_info} <- post_result do
-      state = %{state|post_info: post_info}
+         {:ok, posts} <- post_result do
+      state = %{state|posts: posts}
       Pass2.IndexBuilder.run :sequential, state
     else
       {:error, _, _} = error -> error
