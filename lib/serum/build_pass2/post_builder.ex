@@ -7,6 +7,7 @@ defmodule Serum.BuildPass2.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
+  alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.PostInfo
 
@@ -44,8 +45,7 @@ defmodule Serum.BuildPass2.PostBuilder do
       |> String.replace_suffix(".md", ".html")
     case File.open srcpath, [:read, :utf8] do
       {:ok, file} ->
-        _ = IO.read file, :line
-        _ = IO.read file, :line
+        file = HeaderParser.skip_header file
         data = IO.read file, :all
         File.close file
         htmlstub = Earmark.to_html data

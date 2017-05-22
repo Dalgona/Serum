@@ -2,6 +2,7 @@ defmodule Serum.BuildPass1.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
+  alias Serum.HeaderParser
   alias Serum.PostInfo
 
   @type state :: Build.state
@@ -93,7 +94,7 @@ defmodule Serum.BuildPass1.PostBuilder do
   def extract_header(fname, base) do
     case File.open fname, [:read, :utf8] do
       {:ok, file} ->
-        result = do_extract_header fname, file, base
+        result = do_extract_header file, fname, base
         File.close file
         result
       {:error, reason} ->
@@ -101,23 +102,19 @@ defmodule Serum.BuildPass1.PostBuilder do
     end
   end
 
-  @spec do_extract_header(binary, IO.device, binary) :: Error.result(header)
+  @spec do_extract_header(IO.device, binary, binary) :: Error.result(header)
 
-  defp do_extract_header(fname, file, base) do
-    with "# " <> title <- IO.read(file, :line),
-         "#" <> tags <- IO.read(file, :line) do
-      title = String.trim title
-      tags =
-        tags
-        |> String.split(~r/, */)
-        |> Stream.map(&String.trim/1)
-        |> Stream.reject(&(&1 == ""))
-        |> Enum.sort
-        |> Enum.map(&(%Serum.Tag{name: &1, list_url: "#{base}tags/#{&1}"}))
-      {:ok, {title, tags}}
-    else
-      _ ->
-        {:error, :post_error, {:invalid_header, fname, 0}}
+  defp do_extract_header(file, fname, base) do
+    hp_opts = [title: :string, tags: {:list, :string}]
+    case HeaderParser.parse_header file, fname, hp_opts, [:title] do
+      {:ok, header} ->
+        tags =
+          header
+          |> Map.get(:tags, [])
+          |> Enum.sort
+          |> Enum.map(&%Serum.Tag{name: &1, list_url: "#{base}tags/#{&1}"})
+        {:ok, {header.title, tags}}
+      {:error, _, _} = error -> error
     end
   end
 end
