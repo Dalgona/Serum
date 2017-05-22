@@ -17,7 +17,7 @@ defmodule Serum.BuildPass2.IndexBuilder do
   def run(mode, state) do
     postdir = "#{state.dest}posts/"
     if File.exists? postdir do
-      all_posts = state.post_info
+      all_posts = state.posts
       title = state.project_info.list_title_all
 
       IO.puts "Generating posts index..."

@@ -53,7 +53,7 @@ defmodule Serum.Init do
   # Creates necessary directory structure under the specified directory.
   @spec init_dir(ok_result) :: ok_result
   defp init_dir({:ok, dir}) do
-    ["posts", "pages", "media", "templates",
+    ["posts", "pages", "media", "templates", "includes",
      "assets/css", "assets/js", "assets/images"]
     |> Enum.each(fn x ->
       File.mkdir_p! "#{dir}#{x}"
@@ -96,15 +96,17 @@ defmodule Serum.Init do
   # Generates default template files.
   @spec init_templates(ok_result) :: ok_result
   defp init_templates({:ok, dir}) do
-    [base: template_base(),
-     nav:  template_nav(),
-     list: template_list(),
-     page: template_page(),
-     post: template_post()]
-    |> Enum.each(fn {k, v} ->
-      fwrite "#{dir}templates/#{k}.html.eex", v
+    [:base, :list, :page, :post]
+    |> Enum.each(fn k ->
+      fwrite "#{dir}templates/#{k}.html.eex", template(k)
     end)
     IO.puts "Generated essential templates into `#{dir}templates/`."
+
+    [:nav]
+    |> Enum.each(fn k ->
+      fwrite "#{dir}includes/#{k}.html.eex", include(k)
+    end)
+    IO.puts "Generated includes into `#{dir}includes/`."
     {:ok, dir}
   end
 

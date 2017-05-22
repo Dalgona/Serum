@@ -18,7 +18,7 @@ defmodule Serum.BuildPass2.PageBuilder do
   @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
-    result = launch mode, state.page_info, state
+    result = launch mode, state.pages, state
     Error.filter_results result, :page_builder
   end
 
