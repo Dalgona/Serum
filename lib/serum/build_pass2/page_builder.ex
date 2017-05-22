@@ -6,6 +6,7 @@ defmodule Serum.BuildPass2.PageBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
+  alias Serum.HeaderParser
   alias Serum.PageInfo
   alias Serum.Renderer
 
@@ -43,7 +44,7 @@ defmodule Serum.BuildPass2.PageBuilder do
     {type, destpath} = get_type_and_destpath srcpath, state
     case File.open srcpath, [:read, :utf8] do
       {:ok, file} ->
-        _ = IO.read file, :line
+        file = HeaderParser.skip_header file
         data = IO.read file, :all
         File.close file
         case render_page type, data, info.title, state do

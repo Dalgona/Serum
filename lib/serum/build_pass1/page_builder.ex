@@ -1,6 +1,7 @@
 defmodule Serum.BuildPass1.PageBuilder do
   alias Serum.Error
   alias Serum.Build
+  alias Serum.HeaderParser
   alias Serum.PageInfo
 
   @type state :: Build.state
@@ -34,18 +35,15 @@ defmodule Serum.BuildPass1.PageBuilder do
   @spec page_task(binary, state) :: Error.result(PageInfo.t)
 
   def page_task(fname, _state) do
-    case File.open fname, [:read, :utf8] do
-      {:ok, file} ->
-        title = file |> IO.gets("") |> String.trim
-        File.close file
-        if String.starts_with? title, "# " do
-          "# " <> title = title
-          {:ok, %PageInfo{file: fname, title: title}}
-        else
-          {:error, :page_error, {:invalid_header, fname, 0}}
-        end
-      {:error, reason} ->
-        {:error, :file_error, {reason, fname, 0}}
+    opts = [title: :string]
+    reqs = [:title]
+    with {:ok, file} <- File.open(fname, [:read, :utf8]),
+         {:ok, header} <- HeaderParser.parse_header(file, fname, opts, reqs) do
+      File.close file
+      {:ok, %PageInfo{file: fname, title: header.title}}
+    else
+      {:error, reason} -> {:error, :file_error, {reason, fname, 0}}
+      {:error, _, _} = error -> error
     end
   end
 
