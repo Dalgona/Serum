@@ -82,7 +82,13 @@ defmodule Serum.Init do
   # Generates a minimal index page for the new project.
   @spec init_index(ok_result) :: ok_result
   defp init_index({:ok, dir}) do
-    fwrite "#{dir}pages/index.md", "# Welcome\n\n*Hello, world!*\n"
+    fwrite "#{dir}pages/index.md", """
+    ===
+    title: Welcome
+    ===
+
+    *Hello, world!*
+    """
     IO.puts "Generated `#{dir}pages/pages.json`."
     {:ok, dir}
   end
