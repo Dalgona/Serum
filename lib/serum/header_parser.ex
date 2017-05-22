@@ -75,10 +75,10 @@ defmodule Serum.HeaderParser do
   @spec split_kv(binary) :: {binary, binary}
 
   defp split_kv(line) do
-    line
-    |> String.split(":", parts: 2)
-    |> Enum.map(&String.trim/1)
-    |> List.to_tuple
+    case String.split(line, ":", parts: 2) do
+      [x] -> {String.trim(x), ""}
+      [k, v] -> {k, v}
+    end
   end
 
   @spec find_missing([{binary, binary}], [atom]) :: [atom]
