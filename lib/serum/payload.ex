@@ -3,8 +3,9 @@ defmodule Serum.Payload do
   This module contains static data used to initialize a new Serum project.
   """
 
-  @spec template_base() :: binary
-  def template_base(), do: """
+  @spec template(atom) :: binary
+
+  def template(:base), do: """
   <!doctype html>
   <html>
     <head>
@@ -14,22 +15,13 @@ defmodule Serum.Payload do
     <body>
       <h1><a href="<%= base() %>"><%= site_name %></a></h1>
       <p><%= site_description %></p>
-      <%= navigation %>
+      <%= include "nav" %>
       <%= contents %>
     </body>
   </html>
   """
 
-  @spec template_nav() :: binary
-  def template_nav(), do: """
-  <ul>
-    <li><a href="<%= page "index" %>">Home</a></li>
-    <li><a href="<%= base "posts" %>">Posts</a></li>
-  </ul>
-  """
-
-  @spec template_list() :: binary
-  def template_list(), do: """
+  def template(:list), do: """
   <h2><%= header %></h2>
   <ul>
     <%= for x <- posts do %>
@@ -43,13 +35,11 @@ defmodule Serum.Payload do
   </ul>
   """
 
-  @spec template_page() :: binary
-  def template_page(), do: """
+  def template(:page), do: """
   <%= contents %>
   """
 
-  @spec template_post() :: binary
-  def template_post(), do: """
+  def template(:post), do: """
   <h1><%= title %></h1>
   <p>Posted on <%= date %> by <%= author %></p>
   <%= unless Enum.empty? tags do %>
@@ -61,5 +51,14 @@ defmodule Serum.Payload do
     </ul>
   <% end %>
   <%= contents %>
+  """
+
+  @spec include(atom) :: binary
+
+  def include(:nav), do: """
+  <ul>
+    <li><a href="<%= page "index" %>">Home</a></li>
+    <li><a href="<%= base "posts" %>">Posts</a></li>
+  </ul>
   """
 end
