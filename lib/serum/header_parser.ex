@@ -5,9 +5,9 @@ defmodule Serum.HeaderParser do
   @type value_type :: :string | :integer | {:list, value_type}
   @type value :: binary | integer | [binary] | [integer]
 
-  @spec parse_header(IO.device, options, [atom]) :: Error.result(map)
+  @spec parse_header(IO.device, binary, options, [atom]) :: Error.result(map)
 
-  def parse_header(device, options, required \\ []) do
+  def parse_header(device, fname, options, required \\ []) do
     case extract_header device, [], false do
       {:ok, lines} ->
         key_strings = options |> Keyword.keys |> Enum.map(&Atom.to_string/1)
@@ -19,30 +19,28 @@ defmodule Serum.HeaderParser do
              {:ok, new_kv} <- transform_values(kv_list, options, []) do
           {:ok, Map.new(new_kv)}
         else
-          error -> handle_error error
+          error -> handle_error error, fname
         end
       {:error, error} ->
         {:error, :invalid_header,
-         {"header parse error: #{error}", "nofile", 0}} # TODO: accept filename
+         {"header parse error: #{error}", fname, 0}}
     end
   end
 
-  defp handle_error([missing]) do # TODO: accept filename
+  defp handle_error([missing], fname) do
     {:error, :invalid_header,
-     {"`#{missing}` field is required, but not specified.",
-      "nofile", 0}}
+     {"`#{missing}` field is required, but not specified.", fname, 0}}
   end
 
-  defp handle_error([_|_] = missing) do # TODO: accept filename
+  defp handle_error([_|_] = missing, fname) do
     repr = missing |> Enum.map(&"`#{&1}`") |> Enum.join(", ")
     {:error, :invalid_header,
-     {"#{repr} fields are required, but not specified.",
-      "nofile", 0}}
+     {"#{repr} fields are required, but not specified.", fname, 0}}
   end
 
-  defp handle_error({:error, error}) do # TODO: accept filename
+  defp handle_error({:error, error}, fname) do
     {:error, :invalid_header,
-     {"header parse error: #{error}", "nofile", 0}}
+     {"header parse error: #{error}", fname, 0}}
   end
 
   @spec extract_header(IO.device, [binary], boolean)
