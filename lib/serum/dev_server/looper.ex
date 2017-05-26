@@ -6,14 +6,8 @@ defmodule Serum.DevServer.Looper do
   import Serum.Util
   alias Serum.DevServer.Service
 
-  @spec start_link() :: {:ok, pid}
-  def start_link() do
-    pid = spawn_link fn -> looper() end
-    {:ok, pid}
-  end
-
   @spec looper() :: no_return
-  defp looper() do
+  def looper() do
     IO.write "#{Service.port}> "
     cmd = "" |> IO.gets |> String.trim
     case cmd do

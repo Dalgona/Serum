@@ -27,11 +27,10 @@ defmodule Serum.DevServer do
           worker(DirStatus, []),
           worker(__MODULE__, [dir], function: :start_watcher, id: "serum_fs"),
           worker(Microscope, [site, ms_options]),
-          worker(Looper, [])
         ]
         opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
         Supervisor.start_link children, opts
-        looper()
+        Looper.looper()
     end
   end
 
@@ -55,6 +54,4 @@ defmodule Serum.DevServer do
         watcher_looper()
     end
   end
-
-  defp looper, do: looper()
 end
