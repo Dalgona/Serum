@@ -50,7 +50,7 @@ defmodule Serum.HeaderParser do
 
   defp extract_header(device, lines, false) do
     case IO.read device, :line do
-      "===\n" ->
+      "---\n" ->
         extract_header device, lines, true
       line when is_binary(line) ->
         extract_header device, lines, false
@@ -61,7 +61,7 @@ defmodule Serum.HeaderParser do
 
   defp extract_header(device, lines, true) do
     case IO.read device, :line do
-      "===\n" ->
+      "---\n" ->
         {:ok, lines}
       line when is_binary(line) ->
         extract_header device, [line|lines], true
@@ -166,7 +166,7 @@ defmodule Serum.HeaderParser do
 
   defp do_skip_header(device, false) do
     case IO.read device, :line do
-      "===\n" -> do_skip_header device, true
+      "---\n" -> do_skip_header device, true
       :eof -> device
       _ -> do_skip_header device, false
     end
@@ -174,7 +174,7 @@ defmodule Serum.HeaderParser do
 
   defp do_skip_header(device, true) do
     case IO.read device, :line do
-      "===\n" -> device
+      "---\n" -> device
       :eof -> device
       _ -> do_skip_header device, true
     end
