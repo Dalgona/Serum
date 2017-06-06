@@ -83,9 +83,9 @@ defmodule Serum.Init do
   @spec init_index(ok_result) :: ok_result
   defp init_index({:ok, dir}) do
     fwrite "#{dir}pages/index.md", """
-    ===
+    ---
     title: Welcome
-    ===
+    ---
 
     *Hello, world!*
     """
