@@ -16,12 +16,12 @@ defmodule Serum.Init do
   **NOTE:** If the directory `dir` is not empty, some contents in that
   directory may be overwritten *without a question*.
   """
-  @spec init(binary) :: Error.result
+  @spec init(binary, boolean) :: Error.result
 
-  def init(dir) do
+  def init(dir, force?) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
 
-    with :ok <- check_dir(dir),
+    with :ok <- check_dir(dir, force?),
          :ok <- create_dir(dir)
     do
       create_info dir
@@ -42,13 +42,22 @@ defmodule Serum.Init do
 
   # Checks if the specified directory already exists.
   # Prints a warning message if so.
-  @spec check_dir(binary) :: Error.result
+  @spec check_dir(binary, boolean) :: Error.result
 
-  defp check_dir(dir) do
-    if File.exists? dir do
-      warn "The directory `#{dir}` already exists and might not be empty."
+  defp check_dir(dir, force?) do
+    with true <- File.exists?(dir),
+         {:ok, list} <- File.ls(dir)
+    do
+      if not Enum.empty?(list) and not force? do
+        {:error, :init_error,
+         {"directory is not empty. Use -f option to proceed anyway.", dir, 0}}
+      else
+        :ok
+      end
+    else
+      false -> :ok
+      {:error, reason} -> {:error, :file_error, {reason, dir, 0}}
     end
-    :ok
   end
 
   # Creates necessary directory structure under the specified directory.

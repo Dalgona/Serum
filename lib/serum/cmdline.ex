@@ -9,8 +9,10 @@ defmodule Serum.Cmdline do
   alias Serum.SiteBuilder
   alias Serum.DevServer
 
+  @opt_init     [force: :boolean]
   @opt_build    [parallel: :boolean, output: :string]
   @opt_server   [port: :integer]
+  @alias_init   [f: :force]
   @alias_build  [p: :parallel, o: :output]
   @alias_server [p: :port]
 
@@ -47,8 +49,18 @@ defmodule Serum.Cmdline do
 
   @spec cmd_init([binary]) :: :ok
 
-  defp cmd_init([]),      do: Init.init "."
-  defp cmd_init([dir|_]), do: Init.init dir
+  defp cmd_init(cmd) do
+    {opts, args, errors} =
+      OptionParser.parse cmd, strict: @opt_init, aliases: @alias_init
+    force = opts[:force] || false
+    case errors do
+      [] ->
+        dir = List.first(args) || "."
+        Init.init dir, force
+      _ ->
+        usage()
+    end
+  end
 
   @spec cmd_build([binary]) :: Serum.Error.result
 
@@ -100,7 +112,9 @@ defmodule Serum.Cmdline do
     Usage: serum <task>
 
       Available Tasks:
-      \x1b[96minit\x1b[0m [dir]               Initializes a new Serum project
+      \x1b[96minit\x1b[0m [options] [dir]     Initializes a new Serum project
+        dir                    (optional) Directory of new Serum project
+        -f, --force            Forces initialization even if dir is not empty
 
       \x1b[96mbuild\x1b[0m [options] [dir]    Builds an existing Serum project
         dir                    (optional) Path to a Serum project
