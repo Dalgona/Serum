@@ -5,9 +5,7 @@ defmodule Serum.Init do
 
   import Serum.Payload
   import Serum.Util
-
-  @type dirname   :: binary
-  @type ok_result :: {:ok, dirname}
+  alias Serum.Error
 
   @doc """
   Initializes a new Serum project into the given directory `dir`.
@@ -18,53 +16,69 @@ defmodule Serum.Init do
   **NOTE:** If the directory `dir` is not empty, some contents in that
   directory may be overwritten *without a question*.
   """
-  @spec init(dirname) :: :ok
+  @spec init(binary) :: Error.result
+
   def init(dir) do
     dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
 
-    :ok =
-      dir
-      |> check_dir
-      |> init_dir
-      |> init_info
-      |> init_index
-      |> init_templates
-      |> init_gitignore
-      |> finish
+    with :ok <- check_dir(dir),
+         :ok <- create_dir(dir)
+    do
+      create_info dir
+      create_index dir
+      create_templates dir
+      create_gitignore dir
+      finish dir
+    else
+      {:error, _, _} = error ->
+        Error.show error
+        IO.puts """
+
+        Could not initialize a new project.
+        Make sure the target directory is writable.
+        """
+    end
   end
 
   # Checks if the specified directory already exists.
   # Prints a warning message if so.
-  @spec check_dir(dirname) :: ok_result
+  @spec check_dir(binary) :: Error.result
+
   defp check_dir(dir) do
     if File.exists? dir do
       warn "The directory `#{dir}` already exists and might not be empty."
     end
-    {:ok, dir}
-  end
-
-  # Prints an information message after successfully initializing a new project.
-  @spec finish(ok_result) :: :ok
-  defp finish({:ok, dir}) do
-    IO.puts "\n\x1b[1mSuccessfully initialized a new Serum project!"
-    IO.puts "try `serum build #{dir}` to build the site.\x1b[0m\n"
+    :ok
   end
 
   # Creates necessary directory structure under the specified directory.
-  @spec init_dir(ok_result) :: ok_result
-  defp init_dir({:ok, dir}) do
-    ["posts", "pages", "media", "templates", "includes",
-     "assets/css", "assets/js", "assets/images"]
-    |> Enum.each(fn x ->
-      File.mkdir_p! "#{dir}#{x}"
-      IO.puts "Created directory `#{dir}#{x}`."
-    end)
-    {:ok, dir}
+  @spec create_dir(binary) :: Error.result
+
+  defp create_dir(dir) do
+    dirs =
+      ["posts", "pages", "media", "templates", "includes",
+       "assets/css", "assets/js", "assets/images"]
+    mkdir_result =
+      dirs
+      |> Enum.map(fn x ->
+        dirname = dir <> x
+        {dirname, File.mkdir_p(dirname)}
+      end)
+    case Enum.reject(mkdir_result, fn {_, x} -> x == :ok end) do
+      [] ->
+        Enum.each mkdir_result, fn {dirname, _} ->
+          IO.puts "Created directory `#{dirname}`."
+        end
+        :ok
+      [{dirname, {:error, reason}}|_] ->
+        {:error, :file_error, {reason, dirname, 0}}
+    end
   end
 
   # Generates default project metadata files.
-  @spec init_info(ok_result) :: ok_result
-  defp init_info({:ok, dir}) do
+  @spec create_info(binary) :: :ok
+
+  defp create_info(dir) do
     projinfo =
       %{site_name: "New Website",
         site_description: "Welcome to my website!",
@@ -76,12 +90,12 @@ defmodule Serum.Init do
       |> Poison.encode!(pretty: true, indent: 2)
     fwrite "#{dir}serum.json", projinfo
     IO.puts "Generated `#{dir}serum.json`."
-    {:ok, dir}
   end
 
   # Generates a minimal index page for the new project.
-  @spec init_index(ok_result) :: ok_result
-  defp init_index({:ok, dir}) do
+  @spec create_index(binary) :: :ok
+
+  defp create_index(dir) do
     fwrite "#{dir}pages/index.md", """
     ---
     title: Welcome
@@ -90,12 +104,12 @@ defmodule Serum.Init do
     *Hello, world!*
     """
     IO.puts "Generated `#{dir}pages/pages.json`."
-    {:ok, dir}
   end
 
   # Generates default template files.
-  @spec init_templates(ok_result) :: ok_result
-  defp init_templates({:ok, dir}) do
+  @spec create_templates(binary) :: :ok
+
+  defp create_templates(dir) do
     [:base, :list, :page, :post]
     |> Enum.each(fn k ->
       fwrite "#{dir}templates/#{k}.html.eex", template(k)
@@ -106,15 +120,22 @@ defmodule Serum.Init do
     |> Enum.each(fn k ->
       fwrite "#{dir}includes/#{k}.html.eex", include(k)
     end)
-    IO.puts "Generated includes into `#{dir}includes/`."
-    {:ok, dir}
+    IO.puts "Generated includable templates into `#{dir}includes/`."
   end
 
   # Generates the initial `.gitignore` file.
-  @spec init_gitignore(ok_result) :: ok_result
-  defp init_gitignore({:ok, dir}) do
+  @spec create_gitignore(binary) :: :ok
+
+  defp create_gitignore(dir) do
     fwrite "#{dir}.gitignore", "site\n"
     IO.puts "Generated `#{dir}.gitignore`."
-    {:ok, dir}
+  end
+
+  # Prints an information message after successfully initializing a new project.
+  @spec finish(binary) :: :ok
+
+  defp finish(dir) do
+    IO.puts "\n\x1b[1mSuccessfully initialized a new Serum project!"
+    IO.puts "try `serum build #{dir}` to build the site.\x1b[0m\n"
   end
 end
