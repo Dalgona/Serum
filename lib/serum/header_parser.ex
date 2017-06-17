@@ -1,8 +1,10 @@
 defmodule Serum.HeaderParser do
   alias Serum.Error
 
+  @date_format "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
+
   @type options :: [{atom, value_type}]
-  @type value_type :: :string | :integer | {:list, value_type}
+  @type value_type :: :string | :integer | :datetime | {:list, value_type}
   @type value :: binary | integer | [binary] | [integer]
 
   @spec parse_header(IO.device, binary, options, [atom]) :: Error.result(map)
@@ -26,6 +28,8 @@ defmodule Serum.HeaderParser do
          {"header parse error: #{error}", fname, 0}}
     end
   end
+
+  @spec handle_error(term, binary) :: Error.result
 
   defp handle_error([missing], fname) do
     {:error, :invalid_header,
@@ -111,7 +115,7 @@ defmodule Serum.HeaderParser do
 
   defp transform_values([{k, v}|rest], options, acc) do
     atom_k = String.to_existing_atom k
-    case transform_value v, options[atom_k] do
+    case transform_value String.trim(v), options[atom_k] do
       {:error, _} = error -> error
       value -> transform_values rest, options, [{atom_k, value}|acc]
     end
@@ -127,6 +131,14 @@ defmodule Serum.HeaderParser do
     case Integer.parse valstr do
       {value, ""} -> value
       _ -> {:error, "invalid integer"}
+    end
+  end
+
+  defp transform_value(valstr, :datetime) do
+    case Timex.parse(valstr, @date_format) do
+      {:ok, dt} ->
+        dt |> Timex.to_erl |> Timex.to_datetime(:local)
+      {:error, _} = error -> error
     end
   end
 
