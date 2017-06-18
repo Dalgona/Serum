@@ -10,9 +10,6 @@ defmodule Serum.BuildPass1.PostBuilder do
   @type erl_date :: {non_neg_integer, non_neg_integer, non_neg_integer}
   @type erl_time :: {non_neg_integer, non_neg_integer, non_neg_integer}
 
-  @typep header :: {binary, [Serum.Tag.t]}
-
-  @re_fname ~r/^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9a-z\-]+$/
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @spec run(Build.mode, state) :: Error.result([PostInfo.t])
@@ -55,57 +52,18 @@ defmodule Serum.BuildPass1.PostBuilder do
   @spec post_task(binary, state) :: Error.result(PostInfo.t)
 
   def post_task(file, state) do
+    opts = [title: :string, tags: {:list, :string}, date: :datetime]
+    reqs = [:title]
     filename = "#{state.src}posts/#{file}.md"
-    base = state.project_info.base_url
-    with {:ok, raw_date} <- extract_date(filename),
-         {:ok, file} <- File.open(filename, [:read, :utf8]),
-         {:ok, header} <- extract_header(file, filename, base)
+    with {:ok, file} <- File.open(filename, [:read, :utf8]),
+         {:ok, header} <- HeaderParser.parse_header(file, filename, opts, reqs)
     do
       html = file |> IO.read(:all) |> Earmark.to_html
       File.close file
-      info = PostInfo.new filename, header, raw_date, html, state
+      info = PostInfo.new filename, header, html, state
       {:ok, info}
     else
       {:error, reason} -> {:error, :file_error, {reason, filename, 0}}
-      {:error, _, _} = error -> error
-    end
-  end
-
-  @spec extract_date(binary) :: Error.result(erl_datetime)
-
-  def extract_date(path) do
-    fname = :filename.basename path, ".md"
-    if fname =~ @re_fname do
-      [y, m, d, hhmm|_] =
-        fname
-        |> String.split("-")
-        |> Enum.take(4)
-        |> Enum.map(&(&1 |> Integer.parse |> elem(0)))
-      {h, i} =
-        with h <- div(hhmm, 100), i <- rem(hhmm, 100) do
-          h = h > 23 && 23 || h
-          i = i > 59 && 59 || i
-          {h, i}
-        end
-      raw_date = {{y, m, d}, {h, i, 0}}
-      {:ok, raw_date}
-    else
-      {:error, :post_error, {:invalid_filename, path, 0}}
-    end
-  end
-
-  @spec extract_header(IO.device, binary, binary) :: Error.result(header)
-
-  defp extract_header(file, fname, base) do
-    hp_opts = [title: :string, tags: {:list, :string}]
-    case HeaderParser.parse_header file, fname, hp_opts, [:title] do
-      {:ok, header} ->
-        tags =
-          header
-          |> Map.get(:tags, [])
-          |> Enum.sort
-          |> Enum.map(&%Serum.Tag{name: &1, list_url: "#{base}tags/#{&1}"})
-        {:ok, {header.title, tags}}
       {:error, _, _} = error -> error
     end
   end

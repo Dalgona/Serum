@@ -2,6 +2,7 @@ defmodule Serum.PostInfo do
   @moduledoc "This module defines PostInfo struct."
 
   alias Serum.Build
+  alias Serum.Tag
 
   @type t :: %Serum.PostInfo{}
   @type state :: Build.state
@@ -9,16 +10,20 @@ defmodule Serum.PostInfo do
   defstruct [:file, :title, :date, :raw_date, :tags, :url, :preview_text, :html]
 
   @doc "A helper function for creating a new PostInfo struct."
-  @spec new(binary, Build.header, Build.erl_datetime, binary, state) :: t
+  @spec new(binary, map, binary, state) :: t
 
-  def new(filename, header, raw_date, html, state) do
+  def new(filename, header, html, state) do
     base = state.project_info.base_url
     date_fmt = state.project_info.date_format
-    {title, tags} = header
-    date_str =
-      raw_date
-      |> Timex.to_datetime(:local)
-      |> Timex.format!(date_fmt)
+    title = header.title
+    tags =
+      header
+      |> Map.get(:tags, [])
+      |> Enum.sort
+      |> Enum.map(&%Tag{name: &1, list_url: "#{base}tags/#{&1}"})
+    datetime = header[:date] || Timex.to_datetime(Timex.zero(), :local)
+    date_str = Timex.format! datetime, date_fmt
+    raw_date = datetime |> Timex.to_erl
     url =
       filename
       |> String.replace_prefix(state.src, "")
