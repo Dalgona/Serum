@@ -82,18 +82,14 @@ defmodule Serum.Build do
          {:ok, posts} <- result2
     do
       pages = Enum.sort pages, & &1.order < &2.order
+      posts = Enum.sort posts, & &1.raw_date > &2.raw_date
       proj = state.project_info
       site_ctx = [
         site_name: proj.site_name, site_description: proj.site_description,
         author: proj.author, author_email: proj.author_email,
         pages: pages, posts: posts
       ]
-      state =
-        state
-        |> Map.put(:pages, pages)
-        |> Map.put(:posts, posts)
-        |> Map.put(:site_ctx, site_ctx)
-      {:ok, state}
+      {:ok, Map.put(state, :site_ctx, site_ctx)}
     else
       {:error, _, _} = error -> error
     end
@@ -105,18 +101,14 @@ defmodule Serum.Build do
          {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state)
     do
       pages = Enum.sort pages, & &1.order < &2.order
+      posts = Enum.sort posts, & &1.raw_date > &2.raw_date
       proj = state.project_info
       site_ctx = [
         site_name: proj.site_name, site_description: proj.site_description,
         author: proj.author, author_email: proj.author_email,
         pages: pages, posts: posts
       ]
-      state =
-        state
-        |> Map.put(:pages, pages)
-        |> Map.put(:posts, posts)
-        |> Map.put(:site_ctx, site_ctx)
-      {:ok, state}
+      {:ok, Map.put(state, :site_ctx, site_ctx)}
     else
       {:error, _, _} = error -> error
     end

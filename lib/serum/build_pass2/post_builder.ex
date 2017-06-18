@@ -18,7 +18,7 @@ defmodule Serum.BuildPass2.PostBuilder do
 
   def run(mode, state) do
     File.mkdir_p! "#{state.dest}posts/"
-    result = launch mode, state.posts, state
+    result = launch mode, state.site_ctx[:posts], state
     Error.filter_results result, :post_builder
   end
 

@@ -21,7 +21,7 @@ defmodule Serum.BuildPass2.IndexBuilder do
     title = state.project_info.list_title_all
 
     IO.puts "Generating posts index..."
-    save_list "#{postdir}index.html", title, Enum.reverse(all_posts), state
+    save_list "#{postdir}index.html", title, all_posts, state
 
     tags = get_tag_map all_posts
     result = launch_tag mode, tags, state
