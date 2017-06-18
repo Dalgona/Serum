@@ -51,7 +51,7 @@ defmodule Serum.TemplateLoader do
         |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
         |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
         |> Stream.map(&do_load_includes(&1, state))
-        |> Enum.map(&render_includes/1)
+        |> Enum.map(&render_includes(&1, state))
         |> Error.filter_results_with_values(:load_includes)
       case result do
         {:ok, list} -> {:ok, Map.put(state, :includes, Map.new(list))}
@@ -76,17 +76,17 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec render_includes(Error.result({binary, Macro.t}))
+  @spec render_includes(Error.result({binary, Macro.t}), state)
     :: Error.result({binary, binary})
 
-  defp render_includes({:ok, {name, ast}}) do
-    case Renderer.render_stub ast, [], name do
+  defp render_includes({:ok, {name, ast}}, state) do
+    case Renderer.render_stub ast, state.site_ctx, name do
       {:ok, html} -> {:ok, {name, html}}
       {:error, _, _} = error -> error
     end
   end
 
-  defp render_includes(error = {:error, _, _}) do
+  defp render_includes(error = {:error, _, _}, _state) do
     error
   end
 

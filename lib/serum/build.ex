@@ -79,11 +79,19 @@ defmodule Serum.Build do
     t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
     {result1, result2} = {Task.await(t1), Task.await(t2)}
     with {:ok, pages} <- result1,
-         {:ok, posts} <- result2 do
+         {:ok, posts} <- result2
+    do
+      proj = state.project_info
+      site_ctx = [
+        site_name: proj.site_name, site_description: proj.site_description,
+        author: proj.author, author_email: proj.author_email,
+        pages: pages, posts: posts
+      ]
       state =
         state
         |> Map.put(:pages, pages)
         |> Map.put(:posts, posts)
+        |> Map.put(:site_ctx, site_ctx)
       {:ok, state}
     else
       {:error, _, _} = error -> error

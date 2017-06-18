@@ -18,10 +18,7 @@ defmodule Serum.Renderer do
   def render(template_name, stub_ctx, page_ctx, state) do
     %{project_info: proj,
       templates: templates} = state
-    site_ctx = [
-      site_name: proj.site_name, site_description: proj.site_description,
-      author: proj.author, author_email: proj.author_email
-    ]
+    site_ctx = state.site_ctx
     page_template = templates[template_name]
     base_template = templates["base"]
     case render_stub page_template, stub_ctx ++ site_ctx, template_name do
