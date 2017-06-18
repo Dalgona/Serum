@@ -29,9 +29,13 @@ defmodule Serum.TemplateLoader do
 
   defp do_load_templates(name, state) do
     path = "#{state.src}templates/#{name}.html.eex"
-    case compile_template path, state do
-      {:ok, ast} -> {:ok, {name, ast}}
-      {:error, _, _} = error -> error
+    with {:ok, data} <- File.read(path),
+         {:ok, ast} <- compile_template(data, state)
+    do
+      {:ok, {name, ast}}
+    else
+      {:error, reason} -> {:error, :file_error, {reason, path, 0}}
+      {:error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
     end
   end
 
@@ -62,9 +66,13 @@ defmodule Serum.TemplateLoader do
 
   defp do_load_includes(name, state) do
     path = "#{state.src}includes/#{name}.html.eex"
-    case compile_template path, state do
-      {:ok, ast} -> {:ok, {name, ast}}
-      {:error, _, _} = error -> error
+    with {:ok, data} <- File.read(path),
+         {:ok, ast} <- compile_template(data, state)
+    do
+      {:ok, {name, ast}}
+    else
+      {:error, reason} -> {:error, :file_error, {reason, path, 0}}
+      {:error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
     end
   end
 
@@ -82,24 +90,21 @@ defmodule Serum.TemplateLoader do
     error
   end
 
-  @spec compile_template(binary, state) :: Error.result(Macro.t)
+  @spec compile_template(binary, state)
+    :: {:ok, Macro.t}
+     | {:error, binary, integer}
 
-  defp compile_template(path, state) do
-    case File.read path do
-      {:ok, data} ->
-        try do
-          ast = data |> EEx.compile_string() |> preprocess_template(state)
-          {:ok, ast}
-        rescue
-          e in EEx.SyntaxError ->
-            {:error, :invalid_template, {e.message, path, e.line}}
-          e in SyntaxError ->
-            {:error, :invalid_template, {e.description, path, e.line}}
-          e in TokenMissingError ->
-            {:error, :invalid_template, {e.description, path, e.line}}
-        end
-      {:error, reason} ->
-        {:error, :file_error, {reason, path, 0}}
+  def compile_template(data, state) do
+    try do
+      ast = data |> EEx.compile_string() |> preprocess_template(state)
+      {:ok, ast}
+    rescue
+      e in EEx.SyntaxError ->
+        {:error, e.message, e.line}
+      e in SyntaxError ->
+        {:error, e.description, e.line}
+      e in TokenMissingError ->
+        {:error, e.description, e.line}
     end
   end
 
