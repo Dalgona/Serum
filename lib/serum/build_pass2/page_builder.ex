@@ -42,7 +42,8 @@ defmodule Serum.BuildPass2.PageBuilder do
 
   def page_task(info, state) do
     srcpath = info.file
-    {type, destpath} = get_type_and_destpath srcpath, state
+    {type, destpath} = PageInfo.get_type_and_destpath srcpath, state
+    destpath = state.dest <> destpath
     case File.open srcpath, [:read, :utf8] do
       {:ok, file} ->
         file = HeaderParser.skip_header file
@@ -57,20 +58,6 @@ defmodule Serum.BuildPass2.PageBuilder do
       {:error, reason} ->
         {:error, :file_error, {reason, srcpath, 0}}
     end
-  end
-
-  @spec get_type_and_destpath(binary, state) :: {binary, binary}
-
-  defp get_type_and_destpath(srcpath, state) do
-    [type|temp] = srcpath |> String.split(".") |> Enum.reverse
-    temp = (type == "eex") && tl(temp) || temp
-    destpath =
-      temp
-      |> Enum.reverse
-      |> Enum.join(".")
-      |> String.replace_prefix("#{state.src}pages/", state.dest)
-      |> Kernel.<>(".html")
-    {type, destpath}
   end
 
   # Renders a page into a complete HTML format.
