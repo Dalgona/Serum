@@ -35,7 +35,7 @@ defmodule Serum.BuildPass1.PageBuilder do
   @spec page_task(binary, state) :: Error.result(PageInfo.t)
 
   def page_task(fname, state) do
-    opts = [title: :string]
+    opts = [title: :string, label: :string, group: :string, order: :integer]
     reqs = [:title]
     with {:ok, file} <- File.open(fname, [:read, :utf8]),
          {:ok, header} <- HeaderParser.parse_header(file, fname, opts, reqs)

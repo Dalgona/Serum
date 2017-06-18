@@ -81,6 +81,7 @@ defmodule Serum.Build do
     with {:ok, pages} <- result1,
          {:ok, posts} <- result2
     do
+      pages = Enum.sort pages, & &1.order < &2.order
       proj = state.project_info
       site_ctx = [
         site_name: proj.site_name, site_description: proj.site_description,
@@ -103,6 +104,7 @@ defmodule Serum.Build do
     with {:ok, pages} <- Pass1.PageBuilder.run(:parallel, state),
          {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state)
     do
+      pages = Enum.sort pages, & &1.order < &2.order
       proj = state.project_info
       site_ctx = [
         site_name: proj.site_name, site_description: proj.site_description,

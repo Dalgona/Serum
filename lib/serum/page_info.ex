@@ -4,7 +4,7 @@ defmodule Serum.PageInfo do
   @type t :: %Serum.PageInfo{}
   @type state :: Build.state
 
-  defstruct [:file, :title, :url]
+  defstruct [:file, :title, :label, :group, :order, :url]
 
   @spec new(binary, map, state) :: t
 
@@ -13,6 +13,9 @@ defmodule Serum.PageInfo do
     %Serum.PageInfo{
       file: filename,
       title: header[:title],
+      label: header[:label] || header[:title],
+      group: header[:group],
+      order: header[:order],
       url: state.project_info.base_url <> url
     }
   end
