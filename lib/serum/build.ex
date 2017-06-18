@@ -101,11 +101,19 @@ defmodule Serum.Build do
   defp build_pass1(:sequential, state) do
     IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
     with {:ok, pages} <- Pass1.PageBuilder.run(:parallel, state),
-         {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state) do
+         {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state)
+    do
+      proj = state.project_info
+      site_ctx = [
+        site_name: proj.site_name, site_description: proj.site_description,
+        author: proj.author, author_email: proj.author_email,
+        pages: pages, posts: posts
+      ]
       state =
         state
         |> Map.put(:pages, pages)
         |> Map.put(:posts, posts)
+        |> Map.put(:site_ctx, site_ctx)
       {:ok, state}
     else
       {:error, _, _} = error -> error
