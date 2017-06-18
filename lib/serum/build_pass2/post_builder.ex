@@ -7,7 +7,6 @@ defmodule Serum.BuildPass2.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.PostInfo
 
@@ -15,15 +14,15 @@ defmodule Serum.BuildPass2.PostBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @spec run(Build.mode, state) :: Error.result([PostInfo.t])
+  @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
     File.mkdir_p! "#{state.dest}posts/"
     result = launch mode, state.posts, state
-    Error.filter_results_with_values result, :post_builder
+    Error.filter_results result, :post_builder
   end
 
-  @spec launch(Build.mode, [PostInfo.t], state) :: [Error.result(PostInfo.t)]
+  @spec launch(Build.mode, [PostInfo.t], state) :: [Error.result]
 
   defp launch(:parallel, files, state) do
     files
@@ -35,7 +34,7 @@ defmodule Serum.BuildPass2.PostBuilder do
     files |> Enum.map(&post_task(&1, state))
   end
 
-  @spec post_task(PostInfo.t, state) :: Error.result(PostInfo.t)
+  @spec post_task(PostInfo.t, state) :: Error.result
 
   def post_task(info, state) do
     srcpath = info.file
@@ -43,49 +42,21 @@ defmodule Serum.BuildPass2.PostBuilder do
       srcpath
       |> String.replace_prefix(state.src, state.dest)
       |> String.replace_suffix(".md", ".html")
-    case File.open srcpath, [:read, :utf8] do
-      {:ok, file} ->
-        file = HeaderParser.skip_header file
-        data = IO.read file, :all
-        File.close file
-        htmlstub = Earmark.to_html data
-        preview = make_preview htmlstub, state.project_info.preview_length
-        case render_post htmlstub, info, state do
-          {:ok, html} ->
-            fwrite destpath, html
-            IO.puts "  GEN  #{srcpath} -> #{destpath}"
-            {:ok, %PostInfo{info|preview_text: preview}}
-          {:error, _, _} = error -> error
-        end
-      {:error, reason} ->
-        {:error, :file_error, {reason, srcpath, 0}}
+    case render_post info, state do
+      {:ok, html} ->
+        fwrite destpath, html
+        IO.puts "  GEN  #{srcpath} -> #{destpath}"
+        :ok
+      {:error, _, _} = error -> error
     end
   end
 
-  @spec make_preview(binary, non_neg_integer) :: binary
+  @spec render_post(PostInfo.t, state) :: Error.result(binary)
 
-  def make_preview(html, maxlen) do
-    case maxlen do
-      0 -> ""
-      x when is_integer(x) ->
-        parsed =
-          case Floki.parse html do
-            t when is_tuple(t) -> [t]
-            l when is_list(l)  -> l
-          end
-        parsed
-        |> Enum.filter_map(&(elem(&1, 0) == "p"), &Floki.text/1)
-        |> Enum.join(" ")
-        |> String.slice(0, x)
-    end
-  end
-
-  @spec render_post(binary, PostInfo.t, state) :: Error.result(binary)
-
-  defp render_post(contents, info, state) do
+  defp render_post(info, state) do
     post_ctx = [
       title: info.title, date: info.date, raw_date: info.raw_date,
-      tags: info.tags, contents: contents
+      tags: info.tags, contents: info.html
     ]
     Renderer.render "post", post_ctx, [page_title: info.title], state
   end

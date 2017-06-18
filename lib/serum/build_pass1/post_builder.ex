@@ -55,13 +55,18 @@ defmodule Serum.BuildPass1.PostBuilder do
   @spec post_task(binary, state) :: Error.result(PostInfo.t)
 
   def post_task(file, state) do
-    filepath = "#{state.src}posts/#{file}.md"
+    filename = "#{state.src}posts/#{file}.md"
     base = state.project_info.base_url
-    with {:ok, raw_date} <- extract_date(filepath),
-         {:ok, header} <- extract_header(filepath, base) do
-      info = PostInfo.new filepath, header, raw_date, "", state
+    with {:ok, raw_date} <- extract_date(filename),
+         {:ok, file} <- File.open(filename, [:read, :utf8]),
+         {:ok, header} <- extract_header(file, filename, base)
+    do
+      html = file |> IO.read(:all) |> Earmark.to_html
+      File.close file
+      info = PostInfo.new filename, header, raw_date, html, state
       {:ok, info}
     else
+      {:error, reason} -> {:error, :file_error, {reason, filename, 0}}
       {:error, _, _} = error -> error
     end
   end
@@ -89,22 +94,9 @@ defmodule Serum.BuildPass1.PostBuilder do
     end
   end
 
-  @spec extract_header(binary, binary) :: Error.result(header)
+  @spec extract_header(IO.device, binary, binary) :: Error.result(header)
 
-  def extract_header(fname, base) do
-    case File.open fname, [:read, :utf8] do
-      {:ok, file} ->
-        result = do_extract_header file, fname, base
-        File.close file
-        result
-      {:error, reason} ->
-        {:error, :file_error, {reason, fname, 0}}
-    end
-  end
-
-  @spec do_extract_header(IO.device, binary, binary) :: Error.result(header)
-
-  defp do_extract_header(file, fname, base) do
+  defp extract_header(file, fname, base) do
     hp_opts = [title: :string, tags: {:list, :string}]
     case HeaderParser.parse_header file, fname, hp_opts, [:title] do
       {:ok, header} ->
