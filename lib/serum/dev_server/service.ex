@@ -65,7 +65,8 @@ defmodule Serum.DevServer.Service do
 
   defp do_rebuild(builder) do
     with {:ok, _info} <- SiteBuilder.load_info(builder),
-         {:ok, _} <- SiteBuilder.build(builder, :parallel) do
+         {:ok, _} <- SiteBuilder.build(builder, :parallel)
+    do
       :ok
     else
       {:error, _, _} = error -> build_failed error

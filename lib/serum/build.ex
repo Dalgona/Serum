@@ -21,7 +21,8 @@ defmodule Serum.Build do
          :ok <- clean_dest(state.dest),
          {:ok, state2} <- build_pass1(mode, state),
          {:ok, state3} <- prepare_templates(state2),
-         :ok <- build_pass2(mode, state3) do
+         :ok <- build_pass2(mode, state3)
+    do
       copy_assets state3
       {:ok, state3}
     else
@@ -118,7 +119,8 @@ defmodule Serum.Build do
 
   defp prepare_templates(state) do
     with {:ok, state2} <- TemplateLoader.load_includes(state),
-         {:ok, state3} <- TemplateLoader.load_templates(state2) do
+         {:ok, state3} <- TemplateLoader.load_templates(state2)
+    do
       {:ok, state3}
     else
       {:error, _, _} = error -> error

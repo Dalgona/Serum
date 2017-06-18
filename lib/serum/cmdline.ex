@@ -85,7 +85,8 @@ defmodule Serum.Cmdline do
       end
     with {:ok, pid} <- SiteBuilder.start_link(dir, out),
          {:ok, _} <- SiteBuilder.load_info(pid),
-         {:ok, dest} <- SiteBuilder.build(pid, mode) do
+         {:ok, dest} <- SiteBuilder.build(pid, mode)
+    do
       finish_build dest
     else
       {:error, _, _} = error -> error_build error

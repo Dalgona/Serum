@@ -18,7 +18,8 @@ defmodule Serum.HeaderParser do
           |> Enum.map(&split_kv/1)
           |> Enum.filter(fn {k, _} -> k in key_strings end)
         with [] <- find_missing(kv_list, required),
-             {:ok, new_kv} <- transform_values(kv_list, options, []) do
+             {:ok, new_kv} <- transform_values(kv_list, options, [])
+        do
           {:ok, Map.new(new_kv)}
         else
           error -> handle_error error, fname
