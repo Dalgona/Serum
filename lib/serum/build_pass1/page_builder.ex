@@ -71,7 +71,7 @@ defmodule Serum.BuildPass1.PageBuilder do
         File.dir? f ->
           f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!()
           [do_scan_pages(f, src, dest)|acc]
-        String.ends_with?(f, ".md") or String.ends_with?(f, ".html") ->
+        f =~ ~r/(\.md|\.html|\.html\.eex)$/ ->
           [f|acc]
         :otherwise -> acc
       end

@@ -9,6 +9,7 @@ defmodule Serum.BuildPass2.PageBuilder do
   alias Serum.HeaderParser
   alias Serum.PageInfo
   alias Serum.Renderer
+  alias Serum.TemplateLoader
 
   @type state :: Build.state
 
@@ -62,6 +63,7 @@ defmodule Serum.BuildPass2.PageBuilder do
 
   defp get_type_and_destpath(srcpath, state) do
     [type|temp] = srcpath |> String.split(".") |> Enum.reverse
+    temp = (type == "eex") && tl(temp) || temp
     destpath =
       temp
       |> Enum.reverse
@@ -81,5 +83,15 @@ defmodule Serum.BuildPass2.PageBuilder do
 
   defp render_page("html", html, title, state) do
     Renderer.render "page", [contents: html], [page_title: title], state
+  end
+
+  defp render_page("eex", html, title, state) do
+    with {:ok, ast} <- TemplateLoader.compile_template(html, state),
+         {:ok, html} <- Renderer.render_stub(ast, [], "")
+    do
+      Renderer.render "page", [contents: html], [page_title: title], state
+    else
+      {:error, _, _} = error -> error
+    end
   end
 end
