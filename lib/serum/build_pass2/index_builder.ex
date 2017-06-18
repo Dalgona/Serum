@@ -16,19 +16,16 @@ defmodule Serum.BuildPass2.IndexBuilder do
 
   def run(mode, state) do
     postdir = "#{state.dest}posts/"
-    if File.exists? postdir do
-      all_posts = state.posts
-      title = state.project_info.list_title_all
+    File.mkdir_p! postdir
+    all_posts = state.site_ctx[:posts]
+    title = state.project_info.list_title_all
 
-      IO.puts "Generating posts index..."
-      save_list "#{postdir}index.html", title, Enum.reverse(all_posts), state
+    IO.puts "Generating posts index..."
+    save_list "#{postdir}index.html", title, Enum.reverse(all_posts), state
 
-      tags = get_tag_map all_posts
-      result = launch_tag mode, tags, state
-      Error.filter_results result, :index_builder
-    else
-      {:error, :file_error, {:enoent, postdir, 0}}
-    end
+    tags = get_tag_map all_posts
+    result = launch_tag mode, tags, state
+    Error.filter_results result, :index_builder
   end
 
   @spec get_tag_map([Serum.PostInfo.t]) :: map

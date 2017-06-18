@@ -21,7 +21,8 @@ defmodule Serum.Renderer do
     site_ctx = state.site_ctx
     page_template = templates[template_name]
     base_template = templates["base"]
-    case render_stub page_template, stub_ctx ++ site_ctx, template_name do
+    tmp = Keyword.merge(stub_ctx, site_ctx, fn _k, v, _ -> v end)
+    case render_stub page_template, tmp, template_name do
       {:ok, stub} ->
         contents = process_links stub, proj.base_url
         ctx = [contents: contents] ++ page_ctx

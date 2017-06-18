@@ -136,29 +136,20 @@ defmodule Serum.Build do
   @spec build_pass2(mode, state) :: Error.result
 
   defp build_pass2(:parallel, state) do
-    t1 = Task.async fn -> Pass2.PageBuilder.run :parallel, state end
-    t2 = Task.async fn -> Pass2.PostBuilder.run :parallel, state end
-    {result1, result2} = {Task.await(t1), Task.await(t2)}
-    with :ok <- result1,
-         {:ok, posts} <- result2 do
-      state = %{state|posts: posts}
-      t3 = Task.async fn -> Pass2.IndexBuilder.run :parallel, state end
-      Task.await t3
-    else
-      {:error, _, _} = error -> error
-    end
+    [Pass2.PageBuilder,
+     Pass2.PostBuilder,
+     Pass2.IndexBuilder]
+    |> Enum.map(&Task.async(&1, :run, [:parallel, state]))
+    |> Enum.map(&Task.await/1)
+    |> Error.filter_results(:build_pass2)
   end
 
   defp build_pass2(:sequential, state) do
-    page_result = Pass2.PageBuilder.run :sequential, state
-    post_result = Pass2.PostBuilder.run :sequential, state
-    with :ok <- page_result,
-         {:ok, posts} <- post_result do
-      state = %{state|posts: posts}
-      Pass2.IndexBuilder.run :sequential, state
-    else
-      {:error, _, _} = error -> error
-    end
+    [Pass2.PageBuilder,
+     Pass2.PostBuilder,
+     Pass2.IndexBuilder]
+    |> Enum.map(& &1.run(:sequential, state))
+    |> Error.filter_results(:build_pass2)
   end
 
   @spec copy_assets(state) :: :ok
