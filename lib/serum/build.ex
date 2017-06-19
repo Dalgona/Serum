@@ -7,6 +7,8 @@ defmodule Serum.Build do
   alias Serum.Error
   alias Serum.BuildPass1, as: Pass1
   alias Serum.BuildPass2, as: Pass2
+  alias Serum.PageInfo
+  alias Serum.PostInfo
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
@@ -78,19 +80,10 @@ defmodule Serum.Build do
     IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> Pass1.PageBuilder.run :parallel, state end
     t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
-    {result1, result2} = {Task.await(t1), Task.await(t2)}
-    with {:ok, pages} <- result1,
-         {:ok, posts} <- result2
+    with {:ok, pages} <- Task.await(t1),
+         {:ok, posts} <- Task.await(t2)
     do
-      pages = Enum.sort pages, & &1.order < &2.order
-      posts = Enum.sort posts, & &1.raw_date > &2.raw_date
-      proj = state.project_info
-      site_ctx = [
-        site_name: proj.site_name, site_description: proj.site_description,
-        author: proj.author, author_email: proj.author_email,
-        pages: pages, posts: posts
-      ]
-      {:ok, Map.put(state, :site_ctx, site_ctx)}
+      {:ok, update_state(pages, posts, state)}
     else
       {:error, _, _} = error -> error
     end
@@ -101,17 +94,40 @@ defmodule Serum.Build do
     with {:ok, pages} <- Pass1.PageBuilder.run(:parallel, state),
          {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state)
     do
-      pages = Enum.sort pages, & &1.order < &2.order
-      posts = Enum.sort posts, & &1.raw_date > &2.raw_date
-      proj = state.project_info
-      site_ctx = [
-        site_name: proj.site_name, site_description: proj.site_description,
-        author: proj.author, author_email: proj.author_email,
-        pages: pages, posts: posts
-      ]
-      {:ok, Map.put(state, :site_ctx, site_ctx)}
+      {:ok, update_state(pages, posts, state)}
     else
       {:error, _, _} = error -> error
+    end
+  end
+
+  @spec update_state([PageInfo.t], [PostInfo.t], state) :: state
+
+  defp update_state(pages, posts, state) do
+    pages = Enum.sort pages, & &1.order < &2.order
+    posts = Enum.sort posts, & &1.raw_date > &2.raw_date
+    tag_map = get_tag_map posts
+    tags = Enum.map tag_map, fn {k, v} -> {k, Enum.count(v)} end
+    proj = state.project_info
+    site_ctx = [
+      site_name: proj.site_name, site_description: proj.site_description,
+      author: proj.author, author_email: proj.author_email,
+      pages: pages, posts: posts, tags: tags
+    ]
+    state
+    |> Map.put(:site_ctx, site_ctx)
+    |> Map.put(:tag_map, tag_map)
+  end
+
+  @spec get_tag_map([PostInfo.t]) :: map
+
+  defp get_tag_map(all_posts) do
+    all_tags =
+      Enum.reduce all_posts, MapSet.new(), fn info, acc ->
+        MapSet.union acc, MapSet.new(info.tags)
+      end
+    for tag <- all_tags, into: %{} do
+      posts = Enum.filter all_posts, &(tag in &1.tags)
+      {tag, posts}
     end
   end
 

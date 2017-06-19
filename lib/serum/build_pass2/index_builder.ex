@@ -23,25 +23,9 @@ defmodule Serum.BuildPass2.IndexBuilder do
     IO.puts "Generating posts index..."
     save_list "#{postdir}index.html", title, all_posts, state
 
-    tags = get_tag_map all_posts
+    tags = state.tag_map
     result = launch_tag mode, tags, state
     Error.filter_results result, :index_builder
-  end
-
-  @spec get_tag_map([Serum.PostInfo.t]) :: map
-
-  def get_tag_map(all_posts) do
-    all_tags =
-      Enum.reduce all_posts, MapSet.new(), fn info, acc ->
-        MapSet.union acc, MapSet.new(info.tags)
-      end
-    for tag <- all_tags, into: %{} do
-      posts =
-        all_posts
-        |> Enum.filter(&(tag in &1.tags))
-        |> Enum.sort(&(&1.file > &2.file))
-      {tag, posts}
-    end
   end
 
   @spec launch_tag(Build.mode, map, state) :: [Task.t]
