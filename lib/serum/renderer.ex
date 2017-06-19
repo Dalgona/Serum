@@ -49,6 +49,8 @@ defmodule Serum.Renderer do
     rescue
       e in CompileError ->
         {:error, :render_error, {e.description, filename, e.line}}
+      e ->
+        {:error, :render_error, {Exception.message(e), filename, 0}}
     end
   end
 
