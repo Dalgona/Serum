@@ -1,6 +1,6 @@
 defmodule Serum.Build do
   @moduledoc """
-  This module contains functions for generating pages of your website.
+  This module contains functions for actually building a Serum project.
   """
 
   import Serum.Util
@@ -13,6 +13,24 @@ defmodule Serum.Build do
   @type template_ast :: Macro.t | nil
   @type state :: map
 
+  @doc """
+  Starts building the website in given build mode (parallel or sequential).
+
+  This function does the followings:
+
+  1. Checks if the effective user has a write permission to the output
+    directory.
+  2. Checks if the system timezone is properly set. Timex application relies on
+    the system timezone to format the date string. So if the system timezone is
+    not set, Timex will fail.
+  3. Cleans the output directory. However, files or directories starting with a
+    dot (`'.'`) will not be deleted, as these may contain important version
+    control stuff and so on.
+  4. Launches 2-pass build process. Refer to `Serum.Build.Pass1` and
+    `Serum.Build.Pass2` for more information about 2-pass build process.
+  5. Finally copies `assets/` and `media/` directory to the output directory
+    (if any).
+  """
   @spec build(mode, state) :: Error.result(binary)
 
   def build(mode, state) do

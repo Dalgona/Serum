@@ -3,7 +3,19 @@ defmodule Serum.Payload do
   This module contains static data used to initialize a new Serum project.
   """
 
+  @doc """
+  Returns a default template with given `key`.
+
+  Possible values of `key` is:
+
+  * `:base` &mdash; for `templates/base.html.eex`
+  * `:list` &mdash; for `templates/list.html.eex`
+  * `:page` &mdash; for `templates/page.html.eex`
+  * `:post` &mdash; for `templates/post.html.eex`
+  """
   @spec template(atom) :: binary
+
+  def template(key)
 
   def template(:base), do: """
   <!doctype html>
@@ -53,6 +65,13 @@ defmodule Serum.Payload do
   <%= contents %>
   """
 
+  @doc """
+  Returns a sample includable template with given `key`.
+
+  Possible values of `key` is:
+
+  * `:nav` &mdash; for `includes/nav.html.eex`
+  """
   @spec include(atom) :: binary
 
   def include(:nav), do: """

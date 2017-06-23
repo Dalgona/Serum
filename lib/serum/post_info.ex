@@ -42,7 +42,7 @@ defmodule Serum.PostInfo do
 
   @spec make_preview(binary, non_neg_integer) :: binary
 
-  def make_preview(html, maxlen) do
+  defp make_preview(html, maxlen) do
     case maxlen do
       0 -> ""
       x when is_integer(x) ->

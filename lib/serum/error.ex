@@ -20,6 +20,14 @@ defmodule Serum.Error do
   @type file    :: binary
   @type line    :: non_neg_integer
 
+  @doc """
+  Takes a list of result objects (without returned values) and checks if there
+  is no error.
+
+  Returns `:ok` if there is no error.
+
+  Returns an aggregated error object if there is one or more errors.
+  """
   @spec filter_results([result], term) :: result
 
   def filter_results(results, from) do
@@ -29,6 +37,15 @@ defmodule Serum.Error do
     end
   end
 
+  @doc """
+  Takes a list of result objects (with returned values) and checks if there is
+  no error.
+
+  If there is no error, it returns `{:ok, list}` where `list` is a list of
+  returned values.
+
+  Returns an aggregated error object if there is one or more errors.
+  """
   @spec filter_results_with_values([result(term)], term) :: result([term])
 
   def filter_results_with_values(results, from) do
@@ -44,6 +61,7 @@ defmodule Serum.Error do
   defp succeeded?({:ok, _}),       do: true
   defp succeeded?({:error, _, _}), do: false
 
+  @doc "Prints an error object in a beautiful format."
   @spec show(result, non_neg_integer) :: :ok
 
   def show(result, indent \\ 0)
