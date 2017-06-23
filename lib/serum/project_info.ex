@@ -22,6 +22,7 @@ defmodule Serum.ProjectInfo do
 
   @type t :: %Serum.ProjectInfo{}
 
+  @doc "A helper function for creating a new ProjectInfo struct."
   @spec new(map) :: t
 
   def new(map) do

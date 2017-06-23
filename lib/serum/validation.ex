@@ -36,7 +36,7 @@ defmodule Serum.Validation do
   """ end
 
   @doc """
-  Loads JSON schemas onto `Serum.BuildData`.
+  Loads JSON schemas onto `Serum.Schema` agent.
   """
   @spec load_schema() :: :ok
 

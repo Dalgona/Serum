@@ -8,10 +8,10 @@ defmodule Serum.Payload do
 
   Possible values of `key` is:
 
-  * `:base` &mdash; for `templates/base.html.eex`
-  * `:list` &mdash; for `templates/list.html.eex`
-  * `:page` &mdash; for `templates/page.html.eex`
-  * `:post` &mdash; for `templates/post.html.eex`
+  * `:base` - for `templates/base.html.eex`
+  * `:list` - for `templates/list.html.eex`
+  * `:page` - for `templates/page.html.eex`
+  * `:post` - for `templates/post.html.eex`
   """
   @spec template(atom) :: binary
 
@@ -70,7 +70,7 @@ defmodule Serum.Payload do
 
   Possible values of `key` is:
 
-  * `:nav` &mdash; for `includes/nav.html.eex`
+  * `:nav` - for `includes/nav.html.eex`
   """
   @spec include(atom) :: binary
 

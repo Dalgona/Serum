@@ -1,6 +1,6 @@
 defmodule Serum.Renderer do
   @moduledoc """
-  This module provides functions for rendering pages into complete HTML files.
+  This module provides functions for rendering pages into HTML.
   """
 
   alias Serum.Error
@@ -12,6 +12,14 @@ defmodule Serum.Renderer do
   @re_posts ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
   @re_pages ~r/(?<type>href|src)="(?:%|%25)pages:(?<url>[^"]*)"/
 
+  @doc """
+  Renders contents into a complete HTML page.
+
+  `stub_ctx` is a list of variable bindings which is fed into
+  `templates/<template_name>.html.eex` template file, and `page_ctx` is a list
+  of variable bindings which is then fed into `templates/base.html.eex` template
+  file.
+  """
   @spec render(binary, keyword, keyword, state) :: Error.result(binary)
 
   # render full page
@@ -31,6 +39,9 @@ defmodule Serum.Renderer do
     end
   end
 
+  @doc """
+  Renders contents into a (partial) HTML stub.
+  """
   @spec render_stub(Build.template_ast, keyword, binary) :: Error.result(binary)
 
   def render_stub(template, context, name \\ "")
@@ -66,7 +77,7 @@ defmodule Serum.Renderer do
 
   @spec process_links(binary, binary) :: binary
 
-  def process_links(text, base) do
+  defp process_links(text, base) do
     text = Regex.replace @re_media, text, ~s(\\1="#{base}media/\\2")
     text = Regex.replace @re_posts, text, ~s(\\1="#{base}posts/\\2.html")
     text = Regex.replace @re_pages, text, ~s(\\1="#{base}\\2.html")

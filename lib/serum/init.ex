@@ -12,9 +12,6 @@ defmodule Serum.Init do
 
   This function will create a minimal required directory structure, and
   generate metadata files and templates.
-
-  **NOTE:** If the directory `dir` is not empty, some contents in that
-  directory may be overwritten *without a question*.
   """
   @spec init(binary, boolean) :: Error.result
 

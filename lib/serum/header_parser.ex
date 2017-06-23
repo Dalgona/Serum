@@ -1,4 +1,23 @@
 defmodule Serum.HeaderParser do
+  @moduledoc """
+  This module takes care of parsing headers of page (or post) source files.
+
+  Header is where all page or post metadata goes into, and has the following
+  format:
+
+  ```
+  ---
+  key: value
+  ...
+  ---
+  ```
+
+  where `---` in the first and last line delimits the beginning and the end of
+  the header area, and between these two lines are one or more key-value pair
+  delimited by a colon, where key is the name of a metadata and value is the
+  actual value of a metadata.
+  """
+
   alias Serum.Error
 
   @date_format "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
@@ -7,6 +26,36 @@ defmodule Serum.HeaderParser do
   @type value_type :: :string | :integer | :datetime | {:list, value_type}
   @type value :: binary | integer | [binary] | [integer]
 
+  @doc """
+  Reads lines from an I/O device `device` and extracts the header area into a
+  map.
+
+  `fname` argument seems to be redundant, but is used when generating error
+  objects.
+
+  `options` argument is a keyword list which specifies the name and type of
+  metadata the header parser expects. So the typical `options` should look like
+  this:
+
+      [key1: type1, key2: type2, ...]
+
+  See "Types" section for avilable value types.
+
+  `options` argument is a list of required keys (in atom). If the header parser
+  cannot find required keys in the header area, it returns an error.
+
+  ## Types
+
+  Currently the HeaderParser module supports following types:
+
+  * `:string` - A line of string. It can contain spaces.
+  * `:integer` - A decimal integer.
+  * `:datetime` - Date and time. Must be specified in the format of
+    `YYYY-MM-DD hh:mm:ss`. This data will be interpreted as a local time.
+  * `{:list, <type>}` - A list of multiple values separated by commas. Every
+    value must have the same type, either `:string`, `:integer`, or `:datetime`.
+    You cannot make a list of lists.
+  """
   @spec parse_header(IO.device, binary, options, [atom]) :: Error.result(map)
 
   def parse_header(device, fname, options, required \\ []) do
@@ -169,6 +218,10 @@ defmodule Serum.HeaderParser do
   defp error?({:error, _}), do: true
   defp error?(_), do: false
 
+  @doc """
+  Reads lines from I/O device `device`, discards the header area, and returns
+  the I/O device back.
+  """
   @spec skip_header(IO.device) :: IO.device
 
   def skip_header(device), do: do_skip_header device, false

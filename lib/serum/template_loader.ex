@@ -1,7 +1,6 @@
 defmodule Serum.TemplateLoader do
   @moduledoc """
-  This module contains functions which are used to prepare the site building
-  process.
+  This module handles template loading and preprocessing.
   """
 
   alias Serum.Build
@@ -11,7 +10,12 @@ defmodule Serum.TemplateLoader do
 
   @type state :: Build.state
 
-  @spec load_templates(state) :: Error.result(map)
+  @doc """
+  Reads, compiles, and preprocesses the site templates.
+
+  May return a new state object with loaded template AST objects.
+  """
+  @spec load_templates(state) :: Error.result(state)
 
   def load_templates(state) do
     IO.puts "Loading templates..."
@@ -39,7 +43,12 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec load_includes(state) :: Error.result(map)
+  @doc """
+  Reads, compiles, preprocesses, and renders the includable templates.
+
+  May return a new state object with rendered HTML stub of includable templates.
+  """
+  @spec load_includes(state) :: Error.result(state)
 
   def load_includes(state) do
     IO.puts "Loading includes..."
@@ -90,6 +99,12 @@ defmodule Serum.TemplateLoader do
     error
   end
 
+  @doc """
+  Compiles a given EEx string into an Elixir AST and preprocesses Serum template
+  helper macros.
+
+  Returns `{:ok, template_ast}` if there is no error.
+  """
   @spec compile_template(binary, state)
     :: {:ok, Macro.t}
      | {:error, binary, integer}
@@ -110,7 +125,7 @@ defmodule Serum.TemplateLoader do
 
   @spec preprocess_template(Macro.t, state) :: Macro.t
 
-  def preprocess_template(ast, state) do
+  defp preprocess_template(ast, state) do
     Macro.postwalk ast, fn
       {name, meta, children} when not is_nil(children) ->
         eval_helpers {name, meta, children}, state

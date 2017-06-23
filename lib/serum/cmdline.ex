@@ -19,6 +19,8 @@ defmodule Serum.Cmdline do
   @doc "The entry point for Serum command-line program."
   @spec main(args :: [binary]) :: any
 
+  def main(args)
+
   def main([]) do
     info()
     usage()
