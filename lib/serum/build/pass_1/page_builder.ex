@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass1.PageBuilder do
+defmodule Serum.Build.Pass1.PageBuilder do
   alias Serum.Error
   alias Serum.Build
   alias Serum.HeaderParser

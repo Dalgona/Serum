@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass2.PageBuilder do
+defmodule Serum.Build.Pass2.PageBuilder do
   @moduledoc """
   This module contains functions for building pages sequentially or parallelly.
   """

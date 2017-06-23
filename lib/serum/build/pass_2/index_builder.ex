@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass2.IndexBuilder do
+defmodule Serum.Build.Pass2.IndexBuilder do
   @moduledoc """
   This module contains functions for generating index pages of blog posts.
   """

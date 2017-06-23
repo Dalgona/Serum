@@ -5,10 +5,8 @@ defmodule Serum.Build do
 
   import Serum.Util
   alias Serum.Error
-  alias Serum.BuildPass1, as: Pass1
-  alias Serum.BuildPass2, as: Pass2
-  alias Serum.PageInfo
-  alias Serum.PostInfo
+  alias Serum.Build.Pass1
+  alias Serum.Build.Pass2
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
@@ -21,9 +19,9 @@ defmodule Serum.Build do
     with :ok <- check_dest_perm(state.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(state.dest),
-         {:ok, state2} <- build_pass1(mode, state),
+         {:ok, state2} <- Pass1.run(mode, state),
          {:ok, state3} <- prepare_templates(state2),
-         :ok <- build_pass2(mode, state3)
+         :ok <- Pass2.run(mode, state3)
     do
       copy_assets state3
       {:ok, state3}
@@ -74,63 +72,6 @@ defmodule Serum.Build do
     |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec build_pass1(mode, state) :: Error.result(state)
-
-  defp build_pass1(:parallel, state) do
-    IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
-    t1 = Task.async fn -> Pass1.PageBuilder.run :parallel, state end
-    t2 = Task.async fn -> Pass1.PostBuilder.run :parallel, state end
-    with {:ok, pages} <- Task.await(t1),
-         {:ok, posts} <- Task.await(t2)
-    do
-      {:ok, update_state(pages, posts, state)}
-    else
-      {:error, _, _} = error -> error
-    end
-  end
-
-  defp build_pass1(:sequential, state) do
-    IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
-    with {:ok, pages} <- Pass1.PageBuilder.run(:parallel, state),
-         {:ok, posts} <- Pass1.PostBuilder.run(:parallel, state)
-    do
-      {:ok, update_state(pages, posts, state)}
-    else
-      {:error, _, _} = error -> error
-    end
-  end
-
-  @spec update_state([PageInfo.t], [PostInfo.t], state) :: state
-
-  defp update_state(pages, posts, state) do
-    pages = Enum.sort pages, & &1.order < &2.order
-    posts = Enum.sort posts, & &1.raw_date > &2.raw_date
-    tag_map = get_tag_map posts
-    tags = Enum.map tag_map, fn {k, v} -> {k, Enum.count(v)} end
-    proj = state.project_info
-    site_ctx = [
-      site_name: proj.site_name, site_description: proj.site_description,
-      author: proj.author, author_email: proj.author_email,
-      pages: pages, posts: posts, tags: tags
-    ]
-    state
-    |> Map.put(:site_ctx, site_ctx)
-    |> Map.put(:tag_map, tag_map)
-  end
-
-  @spec get_tag_map([PostInfo.t]) :: map
-
-  defp get_tag_map(all_posts) do
-    all_tags =
-      Enum.reduce all_posts, MapSet.new(), fn info, acc ->
-        MapSet.union acc, MapSet.new(info.tags)
-      end
-    for tag <- all_tags, into: %{} do
-      posts = Enum.filter all_posts, &(tag in &1.tags)
-      {tag, posts}
-    end
-  end
-
   @spec prepare_templates(state) :: Error.result(state)
 
   defp prepare_templates(state) do
@@ -141,25 +82,6 @@ defmodule Serum.Build do
     else
       {:error, _, _} = error -> error
     end
-  end
-
-  @spec build_pass2(mode, state) :: Error.result
-
-  defp build_pass2(:parallel, state) do
-    [Pass2.PageBuilder,
-     Pass2.PostBuilder,
-     Pass2.IndexBuilder]
-    |> Enum.map(&Task.async(&1, :run, [:parallel, state]))
-    |> Enum.map(&Task.await/1)
-    |> Error.filter_results(:build_pass2)
-  end
-
-  defp build_pass2(:sequential, state) do
-    [Pass2.PageBuilder,
-     Pass2.PostBuilder,
-     Pass2.IndexBuilder]
-    |> Enum.map(& &1.run(:sequential, state))
-    |> Error.filter_results(:build_pass2)
   end
 
   @spec copy_assets(state) :: :ok

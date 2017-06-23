@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass2.PostBuilder do
+defmodule Serum.Build.Pass2.PostBuilder do
   @moduledoc """
   This module contains functions for building blog posts
   sequantially for parallelly.

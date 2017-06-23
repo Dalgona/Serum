@@ -1,4 +1,4 @@
-defmodule Serum.BuildPass1.PostBuilder do
+defmodule Serum.Build.Pass1.PostBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
