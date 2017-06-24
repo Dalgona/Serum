@@ -83,13 +83,13 @@ defmodule Serum.HeaderParser do
 
   defp handle_error([missing], fname) do
     {:error, :invalid_header,
-     {"`#{missing}` field is required, but not specified.", fname, 0}}
+     {"`#{missing}` is required, but it's missing", fname, 0}}
   end
 
   defp handle_error([_|_] = missing, fname) do
-    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.join(", ")
+    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse |> Enum.join(", ")
     {:error, :invalid_header,
-     {"#{repr} fields are required, but not specified.", fname, 0}}
+     {"#{repr} are required, but they are missing", fname, 0}}
   end
 
   defp handle_error({:error, error}, fname) do
@@ -120,7 +120,7 @@ defmodule Serum.HeaderParser do
       line when is_binary(line) ->
         extract_header device, [line|lines], true
       :eof ->
-        {:error, "unexpected end of file"}
+        {:error, "encountered unexpected end of file"}
     end
   end
 
@@ -165,52 +165,53 @@ defmodule Serum.HeaderParser do
 
   defp transform_values([{k, v}|rest], options, acc) do
     atom_k = String.to_existing_atom k
-    case transform_value String.trim(v), options[atom_k] do
+    case transform_value k, String.trim(v), options[atom_k] do
       {:error, _} = error -> error
       value -> transform_values rest, options, [{atom_k, value}|acc]
     end
   end
 
-  @spec transform_value(binary, value_type) :: value | {:error, binary}
+  @spec transform_value(binary, binary, value_type) :: value | {:error, binary}
 
-  defp transform_value(valstr, :string) do
+  defp transform_value(_key, valstr, :string) do
     valstr
   end
 
-  defp transform_value(valstr, :integer) do
+  defp transform_value(key, valstr, :integer) do
     case Integer.parse valstr do
       {value, ""} -> value
-      _ -> {:error, "invalid integer"}
+      _ -> {:error, "`#{key}`: invalid integer"}
     end
   end
 
-  defp transform_value(valstr, :datetime) do
+  defp transform_value(key, valstr, :datetime) do
     case Timex.parse(valstr, @date_format) do
       {:ok, dt} ->
         dt |> Timex.to_erl |> Timex.to_datetime(:local)
-      {:error, _} = error -> error
+      {:error, msg} ->
+        {:error, "`#{key}`: " <> msg}
     end
   end
 
-  defp transform_value(_valstr, {:list, {:list, _type}}) do
-    {:error, "\"list of lists\" type is not supported"}
+  defp transform_value(key, _valstr, {:list, {:list, _type}}) do
+    {:error, "`#{key}`: \"list of lists\" type is not supported"}
   end
 
-  defp transform_value(valstr, {:list, type}) when is_atom(type) do
+  defp transform_value(key, valstr, {:list, type}) when is_atom(type) do
     list =
       valstr
       |> String.split(",")
       |> Stream.map(&String.trim/1)
       |> Stream.reject(& &1 == "")
-      |> Stream.map(&transform_value &1, type)
+      |> Stream.map(&transform_value key, &1, type)
     case Enum.filter list, &error?/1 do
       [] -> Enum.to_list list
       [{:error, _} = error|_] -> error
     end
   end
 
-  defp transform_value(_valstr, _type) do
-    {:error, "invalid value type"}
+  defp transform_value(key, _valstr, _type) do
+    {:error, "`#{key}`: invalid value type"}
   end
 
   @spec error?(term) :: boolean
