@@ -5,6 +5,58 @@ defmodule ErrorTest do
 
   @bullet "\x1b[31m\u274c\x1b[0m "
 
+  defp errobj, do: {:error, :test_error, "test"}
+  defp errobj(x), do: {:error, :test_error, "test #{x}"}
+
+  describe "filter_results" do
+    test "an empty list" do
+      assert :ok == filter_results [], :test
+    end
+
+    test "one :ok" do
+      assert :ok == filter_results [:ok], :test
+    end
+
+    test "multiple :ok" do
+      assert :ok == filter_results [:ok, :ok, :ok], :test
+    end
+
+    test "one error" do
+      expected = {:error, :child_tasks, {:test, [errobj()]}}
+      assert expected == filter_results [:ok, errobj(), :ok], :test
+    end
+
+    test "several errors" do
+      expected = {:error, :child_tasks, {:test, [errobj(1), errobj(2)]}}
+      assert expected == filter_results [errobj(1), :ok, errobj(2), :ok], :test
+    end
+  end
+
+  describe "filter_results_with_values" do
+    test "an empty list" do
+      assert {:ok, []} == filter_results_with_values [], :test
+    end
+
+    test "one result" do
+      assert {:ok, [42]} == filter_results_with_values [ok: 42], :test
+    end
+
+    test "multiple results" do
+      assert {:ok, [1, 2]} == filter_results_with_values [ok: 1, ok: 2], :test
+    end
+
+    test "one error" do
+      expected = {:error, :child_tasks, {:test, [errobj()]}}
+      assert expected == filter_results_with_values [{:ok, 42}, errobj()], :test
+    end
+
+    test "several errors" do
+      expected = {:error, :child_tasks, {:test, [errobj(1), errobj(2)]}}
+      data = [errobj(1), {:ok, 42}, errobj(2), {:ok, 84}]
+      assert expected == filter_results data, :test
+    end
+  end
+
   describe "show :ok" do
     test "without indent" do
       output = capture_io fn -> show :ok end
