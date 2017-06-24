@@ -58,7 +58,8 @@ defmodule Serum.Build.Pass2.PageBuilder do
         file = HeaderParser.skip_header file
         data = IO.read file, :all
         File.close file
-        case render_page type, data, info.title, state do
+        new_state = Map.put state, :srcpath, srcpath
+        case render_page type, data, info.title, new_state do
           {:ok, html} ->
             fwrite destpath, html
             IO.puts "  GEN  #{srcpath} -> #{destpath}"
@@ -87,6 +88,8 @@ defmodule Serum.Build.Pass2.PageBuilder do
     do
       Renderer.render "page", [contents: html], [page_title: title], state
     else
+      {:ct_error, msg, line} ->
+        {:error, :invalid_template, {msg, state.srcpath, line}}
       {:error, _, _} = error -> error
     end
   end

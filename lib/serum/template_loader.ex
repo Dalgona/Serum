@@ -39,7 +39,7 @@ defmodule Serum.TemplateLoader do
       {:ok, {name, ast}}
     else
       {:error, reason} -> {:error, :file_error, {reason, path, 0}}
-      {:error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
+      {:ct_error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
     end
   end
 
@@ -81,7 +81,7 @@ defmodule Serum.TemplateLoader do
       {:ok, {name, ast}}
     else
       {:error, reason} -> {:error, :file_error, {reason, path, 0}}
-      {:error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
+      {:ct_error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
     end
   end
 
@@ -107,7 +107,7 @@ defmodule Serum.TemplateLoader do
   """
   @spec compile_template(binary, state)
     :: {:ok, Macro.t}
-     | {:error, binary, integer}
+     | {:ct_error, binary, integer}
 
   def compile_template(data, state) do
     try do
@@ -115,11 +115,11 @@ defmodule Serum.TemplateLoader do
       {:ok, ast}
     rescue
       e in EEx.SyntaxError ->
-        {:error, e.message, e.line}
+        {:ct_error, e.message, e.line}
       e in SyntaxError ->
-        {:error, e.description, e.line}
+        {:ct_error, e.description, e.line}
       e in TokenMissingError ->
-        {:error, e.description, e.line}
+        {:ct_error, e.description, e.line}
     end
   end
 
