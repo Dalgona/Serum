@@ -42,6 +42,16 @@ defmodule Serum.DevServer.Service do
 
   def port(), do: GenServer.call __MODULE__, :port
 
+  @doc "Checks if the source directory is marked as dirty."
+  @spec dirty?() :: boolean
+
+  def dirty?, do: GenServer.call __MODULE__, :is_dirty
+
+  @doc "Set the source directory as dirty."
+  @spec set_dirty() :: :ok
+
+  def set_dirty, do: GenServer.cast __MODULE__, :set_dirty
+
   #
   # GenServer Implementation - Server
   #
@@ -49,8 +59,15 @@ defmodule Serum.DevServer.Service do
   @doc false
 
   def init([builder, dir, site, portnum]) do
+    state = %{
+      builder: builder,
+      dir: dir,
+      site: site,
+      portnum: portnum,
+      is_dirty: false
+    }
     do_rebuild builder
-    {:ok, {builder, dir, site, portnum}}
+    {:ok, state}
   end
 
   @doc false
@@ -58,19 +75,29 @@ defmodule Serum.DevServer.Service do
   def handle_call(msg, from, state)
 
   def handle_call(:rebuild, _from, state) do
-    {builder, _, _, _} = state
+    builder = state.builder
     do_rebuild builder
     {:reply, :ok, state}
   end
 
   def handle_call(:source_dir, _from, state),
-    do: {:reply, elem(state, 1), state}
+    do: {:reply, state.dir, state}
 
   def handle_call(:site_dir, _from, state),
-    do: {:reply, elem(state, 2), state}
+    do: {:reply, state.site, state}
 
   def handle_call(:port, _from, state),
-    do: {:reply, elem(state, 3), state}
+    do: {:reply, state.portnum, state}
+
+  def handle_call(:is_dirty, _from, state),
+    do: {:reply, state.is_dirty, %{state|is_dirty: false}}
+
+  @doc false
+
+  def handle_cast(msg, state)
+
+  def handle_cast(:set_dirty, state),
+    do: {:noreply, %{state|is_dirty: true}}
 
   @spec do_rebuild(pid) :: :ok
 

@@ -4,7 +4,7 @@ defmodule Serum.DevServer do
   """
 
   alias Serum.Error
-  alias Serum.DevServer.{DirStatus, Service, AutoBuilder, Looper}
+  alias Serum.DevServer.{Service, AutoBuilder, Looper}
   alias Serum.SiteBuilder
 
   @doc """
@@ -34,7 +34,6 @@ defmodule Serum.DevServer do
         ms_options   = [port: port, base: base, callbacks: ms_callbacks]
         children = [
           worker(Service, [pid_builder, dir, site, port]),
-          worker(DirStatus, []),
           worker(__MODULE__, [dir], function: :start_watcher, id: "serum_fs"),
           worker(Microscope, [site, ms_options]),
         ]
@@ -60,7 +59,7 @@ defmodule Serum.DevServer do
   defp watcher_looper() do
     receive do
       {_pid, {:fs, :file_event}, {_path, _events}} ->
-        DirStatus.set_dirty
+        Service.set_dirty()
         watcher_looper()
       _ ->
         watcher_looper()
