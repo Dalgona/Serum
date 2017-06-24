@@ -13,6 +13,7 @@ defmodule Serum.DevServer.Service do
   # GenServer Implementation - Client
   #
 
+  @doc "Starts `Serum.DevServer.Service` GenServer."
   @spec start_link(pid, binary, binary, pos_integer)
     :: {:ok, pid} | {:error, atom}
 
@@ -21,18 +22,22 @@ defmodule Serum.DevServer.Service do
     GenServer.start_link __MODULE__, args, name: __MODULE__
   end
 
+  @doc "Rebuilds the current Serum project."
   @spec rebuild() :: :ok
 
   def rebuild(), do: GenServer.call __MODULE__, :rebuild
 
+  @doc "Returns the source directory."
   @spec source_dir() :: binary
 
   def source_dir(), do: GenServer.call __MODULE__, :source_dir
 
+  @doc "Returns the output directory (under `/tmp`)."
   @spec site_dir() :: binary
 
   def site_dir(), do: GenServer.call __MODULE__, :site_dir
 
+  @doc "Returns the port number the server currently listening on."
   @spec port() :: pos_integer
 
   def port(), do: GenServer.call __MODULE__, :port
@@ -41,10 +46,16 @@ defmodule Serum.DevServer.Service do
   # GenServer Implementation - Server
   #
 
+  @doc false
+
   def init([builder, dir, site, portnum]) do
     do_rebuild builder
     {:ok, {builder, dir, site, portnum}}
   end
+
+  @doc false
+
+  def handle_call(msg, from, state)
 
   def handle_call(:rebuild, _from, state) do
     {builder, _, _, _} = state
