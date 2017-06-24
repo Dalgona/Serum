@@ -20,7 +20,7 @@ defmodule Serum.PostInfo do
       header
       |> Map.get(:tags, [])
       |> Enum.sort
-      |> Enum.map(&%Tag{name: &1, list_url: "#{base}tags/#{&1}"})
+      |> Enum.map(&%Tag{name: &1, list_url: "#{base}tags/#{&1}/index.html"})
     datetime = header[:date] || Timex.to_datetime(Timex.zero(), :local)
     date_str = Timex.format! datetime, date_fmt
     raw_date = datetime |> Timex.to_erl
