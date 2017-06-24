@@ -1,4 +1,16 @@
 defmodule Serum.Build.Pass1.PostBuilder do
+  @moduledoc """
+  During Pass1, PostBuilder does the following:
+
+  1. Scans `/path/to/project/posts/` directory for any post source files. All
+    files which name ends with `.md` will be loaded.
+  2. Parses headers of all scanned post source files.
+  3. Reads the contents of each post source file and converts to HTML using
+    Earmark. And then generates the preview text from that HTML data.
+  4. Generates `Serum.PostInfo` object for each post and stores them for later
+    use in the second pass.
+  """
+
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
@@ -12,6 +24,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
+  @doc "Starts the first pass of PostBuilder."
   @spec run(Build.mode, state) :: Error.result([PostInfo.t])
 
   def run(mode, state) do
@@ -49,6 +62,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
     files |> Enum.map(&post_task(&1, state))
   end
 
+  @doc false
   @spec post_task(binary, state) :: Error.result(PostInfo.t)
 
   def post_task(file, state) do

@@ -1,4 +1,10 @@
 defmodule Serum.SiteBuilder do
+  @moduledoc """
+  This GenServer acts as the main interface between the Serum command-line
+  interface and internal site building logic. All tasks regarding building a
+  Serum project must be done through this GenServer.
+  """
+
   use GenServer
   alias Serum.Error
   alias Serum.Build
@@ -9,6 +15,15 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Client
   #
 
+  @doc """
+  Starts `Serum.SiteBuilder` GenServer
+
+  `src` argument must be the path of the project directory (which holds
+  `serum.json` file).
+
+  `dest` argument is the path of the valid output directory. Its validity must
+  be checked by its caller (i.e. the command-line interface).
+  """
   @spec start_link(binary, binary) :: {:ok, pid}
 
   def start_link(src, dest) do
@@ -18,12 +33,32 @@ defmodule Serum.SiteBuilder do
     GenServer.start_link __MODULE__, {src, dest}
   end
 
+  @doc """
+  Loads `serum.json` file.
+
+  Returns `{:ok, proj}` where `proj` is a `Serum.PostInfo` object parsed from
+  `serum.json` file.
+
+  Returns an error object otherwise.
+  """
   @spec load_info(pid) :: Error.result(ProjectInfo.t)
 
   def load_info(server) do
     GenServer.call server, :load_info
   end
 
+  @doc """
+  Builds the loaded project.
+
+  `mode` can be either `:parallel` or `:sequential`. This determines whether
+  the site builder should launch the sub tasks parallelly or sequentially.
+
+  If the whole build process succeeds, it prints the elapsed build time and
+  returns `{:ok, dest}` where `dest` is the output directory.
+
+  Returns an error object if the project metadata is not loaded (i.e.
+  `load_info/1` is not called yet), or other error occurs.
+  """
   @spec build(pid, Build.mode) :: Error.result(binary)
 
   def build(server, mode) do
@@ -39,6 +74,9 @@ defmodule Serum.SiteBuilder do
     end
   end
 
+  @doc """
+  Stops the `Serum.SiteBuilder` GenServer.
+  """
   @spec stop(pid) :: :ok
 
   def stop(server) do
@@ -49,9 +87,15 @@ defmodule Serum.SiteBuilder do
   # GenServer Implementation - Server
   #
 
+  @doc false
+
   def init({src, dest}) do
     {:ok, %{src: src, dest: dest, project_info: nil}}
   end
+
+  @doc false
+
+  def handle_call(msg, from, state)
 
   def handle_call(:load_info, _from, state) do
     case do_load_info state.src do
@@ -76,6 +120,8 @@ defmodule Serum.SiteBuilder do
         {:reply, error, state}
     end
   end
+
+  @doc false
 
   def handle_cast(:stop, _state) do
     exit :normal

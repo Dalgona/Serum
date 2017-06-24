@@ -1,4 +1,22 @@
 defmodule Serum.Build.Pass1 do
+  @moduledoc """
+  This module takes care of the first pass of site building process.
+
+  In pass 1, the following modules are run sequentially or parallelly. See the
+  docs for each module for more information.
+
+  * `Serum.Build.Pass1.PageBuilder`
+  * `Serum.Build.Pass1.PostBuilder`
+
+  After executing these two modules, the following tasks are performed:
+
+  1. Generates a tag map, where its keys are all tags existing in the project
+    and values are lists of `Serum.PostInfo` objects which has the key as one of
+    its tags.
+  2. Generates a site context, which is a list of variable bindings used when
+    rendering templates.
+  """
+
   alias Serum.Build
   alias Serum.Build.Pass1.PageBuilder
   alias Serum.Build.Pass1.PostBuilder
@@ -6,7 +24,10 @@ defmodule Serum.Build.Pass1 do
   alias Serum.PageInfo
   alias Serum.PostInfo
 
+  @doc "Starts the first pass of the building process in given build mode."
   @spec run(Build.mode, Build.state) :: Error.result(Build.state)
+
+  def run(build_mode, state)
 
   def run(:parallel, state) do
     IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"

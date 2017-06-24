@@ -1,4 +1,15 @@
 defmodule Serum.Build.Pass1.PageBuilder do
+  @moduledoc """
+  During pass 1, PageBuilder does the following:
+
+  1. Recursively scan `/path/to/project/pages/` directory for any page source
+    files. All files which name ends with `.md`, `.html` or `.html.eex` will be
+    registered.
+  2. Parses headers of all scanned page source files.
+  3. Generates `Serum.PageInfo` objects for all pages and stores them for later
+   use in the second pass.
+  """
+
   alias Serum.Error
   alias Serum.Build
   alias Serum.HeaderParser
@@ -8,6 +19,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
+  @doc "Starts the first pass of PageBuilder."
   @spec run(Build.mode, state) :: Error.result([PageInfo.t])
 
   def run(mode, state) do
@@ -32,6 +44,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
     files |> Enum.map(&page_task(&1, state))
   end
 
+  @doc false
   @spec page_task(binary, state) :: Error.result(PageInfo.t)
 
   def page_task(fname, state) do
@@ -50,7 +63,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
 
   @spec scan_pages(state) :: Error.result([binary])
 
-  def scan_pages(state) do
+  defp scan_pages(state) do
     %{src: src, dest: dest} = state
     dir = src <> "pages/"
     IO.puts "Scanning `#{dir}` directory..."

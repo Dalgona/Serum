@@ -1,6 +1,15 @@
 defmodule Serum.Build.Pass2.PageBuilder do
   @moduledoc """
-  This module contains functions for building pages sequentially or parallelly.
+  During pass 2, PageBuilder does the following:
+
+  1. Reads each page source file and produces HTML code according to the format:
+      * If the source format is markdown, converts the soruce into HTML using
+        Earmark.
+      * If the source format is HTML, passes its contents as is.
+      * If the source format is HTML with EEx, compiles the template and
+        processes using `Serum.TemplateLoader.compile_template/2` function.
+  2. Renders the full page using `Serum.Renderer.render/4` function.
+  3. Saves the rendered page to the output directory.
   """
 
   import Serum.Util
@@ -15,7 +24,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
-  @doc "Starts building pages in the `/path/to/project/pages` directory."
+  @doc "Starts the second pass of PageBuilder."
   @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
@@ -37,7 +46,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
     files |> Enum.map(&page_task(&1, state))
   end
 
-  @doc "Defines the individual page build task."
+  @doc false
   @spec page_task(PageInfo.t, state) :: Error.result
 
   def page_task(info, state) do

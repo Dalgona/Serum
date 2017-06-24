@@ -1,6 +1,11 @@
 defmodule Serum.Build.Pass2.IndexBuilder do
   @moduledoc """
-  This module contains functions for generating index pages of blog posts.
+  During pass 2, IndexBuilder does the following:
+
+  1. Renders a list of all blog posts and saves as an HTML document to the
+    output directory.
+  2. Loops through the tag map generated in the first pass, rendering a list of
+    blog posts filtered by each tag.
   """
 
   import Serum.Util
@@ -12,6 +17,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
+  @doc "Starts the IndexBuilder."
   @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
@@ -43,6 +49,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     |> Enum.map(&tag_task(&1, dir, state))
   end
 
+  @doc false
   @spec tag_task({Serum.Tag.t, [Serum.PostInfo.t]}, binary, state) :: :ok
 
   def tag_task({tag, posts}, dest, state) do
