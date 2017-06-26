@@ -48,7 +48,7 @@ defmodule InitTest do
     #   * Created project must be buildable.
 
     test "typical usage" do
-      dir = "/tmp/serum_test_" <> uniq_name()
+      dir = uniq_dir()
       assert :ok == init dir, false
       assert true == all_exists? dir
       assert true == check_templates dir
@@ -56,7 +56,7 @@ defmodule InitTest do
     end
 
     test "no write permission" do
-      dir = "/tmp/serum_test_" <> uniq_name()
+      dir = uniq_dir()
       File.mkdir_p! dir
       :ok = File.chmod dir, 0o000
       result = init dir, false
@@ -66,7 +66,7 @@ defmodule InitTest do
     end
 
     test "fail on non-empty dir" do
-      dir = "/tmp/serum_test_" <> uniq_name()
+      dir = uniq_dir()
       File.mkdir_p! dir
       :ok = File.touch dir <> "/heroes_of_the_storm"
       expected =
@@ -78,7 +78,7 @@ defmodule InitTest do
     end
 
     test "force init" do
-      dir = "/tmp/serum_test_" <> uniq_name()
+      dir = uniq_dir()
       File.mkdir_p! dir <> "/templates"
       File.touch! dir <> "/templates/base.html.eex"
       assert :ok == init dir, true
@@ -92,9 +92,12 @@ defmodule InitTest do
     flunk "this test is not implemented"
   end
 
-  @spec uniq_name() :: binary
+  @spec uniq_dir() :: binary
 
-  defp uniq_name, do: <<System.monotonic_time::size(48)>> |> Base.url_encode64
+  def uniq_dir do
+    uniq = <<System.monotonic_time::size(48)>> |> Base.url_encode64
+    "/tmp/serum_test_" <> uniq <> "/"
+  end
 
   @spec all_exists?(binary) :: boolean
 
