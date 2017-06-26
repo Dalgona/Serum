@@ -55,12 +55,22 @@ defmodule Serum.Cmdline do
     {opts, args, errors} =
       OptionParser.parse cmd, strict: @opt_init, aliases: @alias_init
     force = opts[:force] || false
-    case errors do
-      [] ->
-        dir = List.first(args) || "."
-        Init.init dir, force
-      _ ->
-        usage()
+    with [] <- errors,
+         dir = List.first(args) || ".",
+         :ok <- Init.init(dir, force)
+    do
+      IO.puts "\n\x1b[1mSuccessfully initialized a new Serum project!"
+      IO.puts "try `serum build #{dir}` to build the site.\x1b[0m\n"
+    else
+      x when is_list(x) -> usage()
+      {:error, _, _} = error ->
+        Error.show error
+        IO.puts """
+
+        Could not initialize a new project.
+        Make sure the target directory is writable.
+        """
+        System.halt 1
     end
   end
 
