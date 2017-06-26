@@ -20,4 +20,10 @@ defmodule InspectTest do
     expected = "#Serum.PostInfo<\"Test Post\">"
     assert expected == inspect info
   end
+
+  test "inspect pageinfo" do
+    info = %Serum.PageInfo{title: "Hello, world!"}
+    expected = "#Serum.PageInfo<\"Hello, world!\">"
+    assert expected == inspect info
+  end
 end
