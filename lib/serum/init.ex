@@ -25,15 +25,9 @@ defmodule Serum.Init do
       create_index dir
       create_templates dir
       create_gitignore dir
-      finish dir
+      :ok
     else
-      {:error, _, _} = error ->
-        Error.show error
-        IO.puts """
-
-        Could not initialize a new project.
-        Make sure the target directory is writable.
-        """
+      {:error, _, _} = error -> error
     end
   end
 
@@ -47,7 +41,7 @@ defmodule Serum.Init do
     do
       if not Enum.empty?(list) and not force? do
         {:error, :init_error,
-         {"directory is not empty. Use -f option to proceed anyway.", dir, 0}}
+         {"directory is not empty. use -f (--force) to proceed anyway", dir, 0}}
       else
         :ok
       end
@@ -135,13 +129,5 @@ defmodule Serum.Init do
   defp create_gitignore(dir) do
     fwrite "#{dir}.gitignore", "site\n"
     IO.puts "Generated `#{dir}.gitignore`."
-  end
-
-  # Prints an information message after successfully initializing a new project.
-  @spec finish(binary) :: :ok
-
-  defp finish(dir) do
-    IO.puts "\n\x1b[1mSuccessfully initialized a new Serum project!"
-    IO.puts "try `serum build #{dir}` to build the site.\x1b[0m\n"
   end
 end
