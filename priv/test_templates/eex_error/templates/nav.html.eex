@@ -1,4 +1,0 @@
-<ul>
-  <li><a href="<%= page "index" %>">Home</a></li>
-  <li><a href="<%= base "posts" %>">Posts</a></li>
-</ul>
