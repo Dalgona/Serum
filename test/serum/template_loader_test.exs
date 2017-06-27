@@ -1,5 +1,6 @@
 defmodule TemplateLoaderTest do
   use ExUnit.Case
+  import ExUnit.CaptureIO
   import Serum.TemplateLoader
 
   describe "load_templates/1" do
@@ -15,11 +16,12 @@ defmodule TemplateLoaderTest do
     #   Elixir AST.
     #
     # List of helper macros:
-    #   base()      => state.base_url
-    #   base(path)  => state.base_url <> path
-    #   post(name)  => state.base_url <> "posts/" <> name <> ".html"
-    #   page(name)  => state.base_url <> name <> ".html"
-    #   asset(path) => state.base_url <> "assets/" <> path
+    #   base()        => state.base_url
+    #   base(path)    => state.base_url <> path
+    #   post(name)    => state.base_url <> "posts/" <> name <> ".html"
+    #   page(name)    => state.base_url <> name <> ".html"
+    #   asset(path)   => state.base_url <> "assets/" <> path
+    #   include(name) => (contents of html stub)
     #
     # Tests will be performed by evaluating the output AST and comparing with
     # expected string.
@@ -80,23 +82,58 @@ defmodule TemplateLoaderTest do
       assert "/test_base/assets/css/style.css" == evaled
     end
 
+    test "expanding include/1" do
+      data = ~s(<div><%= include "test" %></div>)
+      {:ok, ast} = compile_template data, state()
+      {evaled, _} = Code.eval_quoted ast
+      assert "<div><span><b>Hello, world!</b></span></div>" == evaled
+    end
+
+    test "expanding include/1 with non-existent key" do
+      data = ~s(<div><%= include "heroes_of_the_storm" %></div>)
+      capture_io :stderr, fn -> send self(), compile_template(data, state()) end
+      receive do
+        {:ok, ast} ->
+          {evaled, _} = Code.eval_quoted ast
+          assert "<div></div>" == evaled
+        _ ->
+          flunk "received unexpected message"
+      end
+    end
+
     # TESTS FOR ERROR HANDLING
+    # Note: Handling undefined function error while eval-ing the template
+    #       is the responsibility of Serum.Renderer module.
 
-    @tag skip: "not implemented"
-
-    test "SyntaxError" do
+    test "missing closing eex delimiter" do
+      data = "<%= 42"
+      result = compile_template data, state()
+      refute :ok == elem(result, 0)
     end
 
-    @tag skip: "not implemented"
-
-    test "TokenMissingError" do
+    test "syntax error type 1" do
+      data = "<%= [ %>"
+      result = compile_template data, state()
+      refute :ok == elem(result, 0)
     end
 
-    @tag skip: "not implemented"
+    test "syntax error type 2" do
+      data = "<%= *323456 %>"
+      result = compile_template data, state()
+      refute :ok == elem(result, 0)
+    end
 
-    test "EEx.SyntaxError" do
+    test "syntax error type 3" do
+      data = "<%= for x <- [1, 2, 3] do %>"
+      result = compile_template data, state()
+      refute :ok == elem(result, 0)
     end
   end
 
-  defp state, do: %{project_info: %{base_url: "/test_base/"}}
+  defp state, do: %{
+    project_info: %{base_url: "/test_base/"},
+    includes: %{
+      "test" => "<span><b>Hello, world!</b></span>"
+    }
+  }
 end
