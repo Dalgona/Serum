@@ -4,6 +4,57 @@ defmodule TemplateLoaderTest do
   import Serum.TemplateLoader
 
   describe "load_templates/1" do
+    # load_templates(state) => Result(new_state)
+    #   loads {base,list,page,post}.html.eex from <states.src>templates/
+    #   directory, compiles and preprocesses them with compile_templates/2,
+    #   and returns the updated state object if everything is done successfully.
+    #   The state object must have valid .src and .project_info.base_url key.
+    #   The returned state object must have .templates, which looks like this:
+    #     %{"base" => <AST>, "list" => <AST>, "page" => <AST>, "post" => <AST>}
+    #
+    # Error Conditions:
+    #   * <states.src>/templates directory does not exist,
+    #     or at least one required template files are missing in that dir.
+    #   * Fails to read at least one required template files.
+    #   * compile_templates/2 returns at least one error.
+    # Since multiple errors may occur, this function should return an aggregated
+    # error object on failure.
+
+    test "typical usage" do
+      s = Map.put state(), :src, get_priv("load_templates/typical/")
+      silent_load_templates s
+      receive do
+        {:ok, _} -> :ok
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "templates dir is missing" do
+      s = Map.put state(), :src, get_priv("load_templates/missing_dir/")
+      silent_load_templates s
+      receive do
+        {:error, _, _} -> :ok
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "fails to read some templates" do
+      s = Map.put state(), :src, get_priv("load_templates/missing_some/")
+      silent_load_templates s
+      receive do
+        {:error, _, _} -> :ok
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "erroneous templates" do
+      s = Map.put state(), :src, get_priv("load_templates/erroneous/")
+      silent_load_templates s
+      receive do
+        {:error, _, _} -> :ok
+        _ -> flunk "received unexpected message"
+      end
+    end
   end
 
   describe "load_includes/1" do
@@ -129,6 +180,24 @@ defmodule TemplateLoaderTest do
       refute :ok == elem(result, 0)
     end
   end
+
+  defp get_priv(path) do
+    priv = :serum |> :code.priv_dir |> IO.iodata_to_binary
+    priv <> "/template_loader_test/" <> path
+  end
+
+  defp silent_load_templates(s) do
+    capture_io :stderr, fn ->
+      capture_io fn ->
+        result = load_templates s
+        send self(), result
+      end
+    end
+  end
+
+  #
+  # DATA
+  #
 
   defp state, do: %{
     project_info: %{base_url: "/test_base/"},

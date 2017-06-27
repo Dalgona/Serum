@@ -1,0 +1,11 @@
+<h1><%= title %></h1>
+<p>Posted on <%= date %> by <%= author %></p>
+<%= unless Enum.empty? tags do %>
+  <p>Tags:</p>
+  <ul>
+    <%= for t <- tags do %>
+      <li><a href="<%= t.list_url %>"><%= t.name %></a></li>
+    <% end %>
+  </ul>
+<% end %>
+<%= contents %>
