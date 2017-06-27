@@ -58,6 +58,68 @@ defmodule TemplateLoaderTest do
   end
 
   describe "load_includes/1" do
+    # load_includes(state) => Result(new_state)
+    #   Scans <state.src>includes/ directory for any .html.eex file, loads the
+    #   scanned files, compiles, preprocesses, and renders them into HTML stubs.
+    #   And finally returns the updated state object. The original state object
+    #   must have .src, .project_info.base_url, and .site_ctx.
+    #
+    #   This function should not return an error object if the directory is
+    #   missing. Instead, it should return a new state object with an empty map
+    #   added.
+    #
+    # Error Conditions:
+    #   * Errors while compiling template files into ASTs.
+    #   * Errors while eval-ing ASTs into HTML stubs.
+
+    test "no includes dir" do
+      s = Map.put state(), :src, get_priv("load_includes/missing_dir/")
+      silent_load_includes s
+      receive do
+        {:ok, s2} ->
+          assert s2.includes == %{}
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "empty includes dir" do
+      s = Map.put state(), :src, get_priv("load_includes/empty_dir/")
+      silent_load_includes s
+      receive do
+        {:ok, s2} ->
+          assert s2.includes == %{}
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "everything looks good" do
+      s = Map.put state(), :src, get_priv("load_includes/good/")
+      silent_load_includes s
+      receive do
+        {:ok, s2} ->
+          assert s2.includes["test"] == "Hello, world!\n"
+          assert s2.includes["test2"] == "[10][20][30]\n"
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "some has compile-time problems" do
+      s = Map.put state(), :src, get_priv("load_includes/compile_err/")
+      silent_load_includes s
+      receive do
+        {:error, _, _} -> :ok
+        _ -> flunk "received unexpected message"
+      end
+    end
+
+    test "some has eval-time problems" do
+      s = Map.put state(), :src, get_priv("load_includes/eval_err/")
+      silent_load_includes s
+      receive do
+        {:error, _, _} -> :ok
+        _ -> flunk "received unexpected message"
+      end
+    end
   end
 
   describe "compile_template/2" do
@@ -195,6 +257,15 @@ defmodule TemplateLoaderTest do
     end
   end
 
+  defp silent_load_includes(s) do
+    capture_io :stderr, fn ->
+      capture_io fn ->
+        result = load_includes s
+        send self(), result
+      end
+    end
+  end
+
   #
   # DATA
   #
@@ -203,6 +274,7 @@ defmodule TemplateLoaderTest do
     project_info: %{base_url: "/test_base/"},
     includes: %{
       "test" => "<span><b>Hello, world!</b></span>"
-    }
+    },
+    site_ctx: [hello: "world", list: [10, 20, 30]]
   }
 end
