@@ -1,4 +1,6 @@
 defmodule Serum.CLI.Build do
+  @moduledoc false
+
   alias Serum.CLI
   alias Serum.CLI.Task, as: CLITask
   alias Serum.Error

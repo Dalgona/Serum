@@ -1,4 +1,6 @@
 defmodule Serum.CLI.Server do
+  @moduledoc false
+
   alias Serum.CLI
   alias Serum.CLI.Task, as: CLITask
   alias Serum.DevServer

@@ -1,4 +1,6 @@
 defmodule Serum.CLI.Task do
+  @moduledoc false
+
   @callback run(task_name :: binary, args :: [binary]) :: any
 end
 

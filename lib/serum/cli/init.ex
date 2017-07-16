@@ -1,4 +1,6 @@
 defmodule Serum.CLI.Init do
+  @moduledoc false
+
   alias Serum.CLI
   alias Serum.CLI.Task, as: CLITask
   alias Serum.Error
@@ -18,7 +20,7 @@ defmodule Serum.CLI.Init do
          :ok <- Init.init(dir, force?)
     do
       IO.puts """
-      
+
       \x1b[1mSuccessfully initialized a new Serum project!
       try `serum build #{dir}` to build the site.\x1b[0m
       """
