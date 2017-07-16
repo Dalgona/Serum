@@ -5,7 +5,7 @@ defmodule Serum.Mixfile do
     [app: :serum,
      version: "0.9.0+201704301909",
      elixir: "~> 1.4",
-     escript: [main_module: Serum.Cmdline],
+     escript: [main_module: Serum.CLI],
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      test_coverage: [tool: ExCoveralls],
