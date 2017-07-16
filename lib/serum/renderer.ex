@@ -3,14 +3,17 @@ defmodule Serum.Renderer do
   This module provides functions for rendering pages into HTML.
   """
 
+  import Serum.Util
   alias Serum.Error
   alias Serum.Build
 
   @type state :: Build.state
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
-  @re_posts ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
-  @re_pages ~r/(?<type>href|src)="(?:%|%25)pages:(?<url>[^"]*)"/
+  @re_old_post ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
+  @re_old_page ~r/(?<type>href|src)="(?:%|%25)pages:(?<url>[^"]*)"/
+  @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
+  @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
 
   @doc """
   Renders contents into a complete HTML page.
@@ -78,9 +81,25 @@ defmodule Serum.Renderer do
   @spec process_links(binary, binary) :: binary
 
   defp process_links(text, base) do
-    text = Regex.replace @re_media, text, ~s(\\1="#{base}media/\\2")
-    text = Regex.replace @re_posts, text, ~s(\\1="#{base}posts/\\2.html")
-    text = Regex.replace @re_pages, text, ~s(\\1="#{base}\\2.html")
+    if Regex.match? @re_old_page, text do
+      warn "\"%pages:\" notation is deprecated, and will be removed in the "
+        <> "future release. Please use \"%page:\" instead"
+    end
+    if Regex.match? @re_old_post, text do
+      warn "\"%posts:\" notation is deprecated, and will be removed in the "
+        <> "future release. Please use \"%post:\" instead"
+    end
     text
+    |> regex_replace(@re_media, ~s(\\1="#{base}media/\\2"))
+    |> regex_replace(@re_old_page, ~s(\\1="#{base}\\2.html"))
+    |> regex_replace(@re_old_post, ~s(\\1="#{base}posts/\\2.html"))
+    |> regex_replace(@re_page, ~s(\\1="#{base}\\2.html"))
+    |> regex_replace(@re_post, ~s(\\1="#{base}posts/\\2.html"))
+  end
+
+  @spec regex_replace(binary, Regex.t, binary) :: binary
+
+  defp regex_replace(text, pattern, replacement) do
+    Regex.replace pattern, text, replacement
   end
 end
