@@ -11,6 +11,8 @@ defmodule Serum.CLI.Init do
   @strict  [force: :boolean]
   @aliases [f: :force]
 
+  def tasks, do: ["init"]
+
   def run(_task, args) do
     {opts, args, errors} =
       OptionParser.parse args, strict: @strict, aliases: @aliases

@@ -11,6 +11,8 @@ defmodule Serum.CLI.Build do
   @strict  [parallel: :boolean, output: :string]
   @aliases [p: :parallel, o: :output]
 
+  def tasks, do: ["build"]
+
   def run(_task, args) do
     {opts, args, errors} =
       OptionParser.parse args, strict: @strict, aliases: @aliases

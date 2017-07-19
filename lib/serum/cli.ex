@@ -1,6 +1,7 @@
 defmodule Serum.CLI.Task do
   @moduledoc false
 
+  @callback tasks() :: [binary]
   @callback run(task_name :: binary, args :: [binary]) :: any
 end
 
@@ -12,13 +13,12 @@ defmodule Serum.CLI do
 
   @behaviour Serum.CLI.Task
 
-  @task_map %{
-    "build" => Serum.CLI.Build,
-    "help" => __MODULE__,
-    "init" => Serum.CLI.Init,
-    "server" => Serum.CLI.Server,
-    "version" => __MODULE__
-  }
+  @main_task_providers [
+    Serum.CLI.Init,
+    Serum.CLI.Build,
+    Serum.CLI.Server,
+    __MODULE__
+  ]
 
   @doc "The entry point for Serum command-line program."
   @spec main(args :: [binary]) :: any
@@ -33,14 +33,26 @@ defmodule Serum.CLI do
   def main(args) do
     info()
     [task|opts] = args
-    case @task_map[task] do
+    case task_map()[task] do
       nil -> usage()
       task_module -> task_module.run(task, opts)
     end
   end
 
+  def tasks, do: ["help", "version"]
+
   def run("version", _), do: :ok
   def run("help", _), do: usage()
+
+  @spec task_map() :: %{required(binary) => atom}
+
+  defp task_map do
+    providers = @main_task_providers
+    Enum.reduce providers, %{}, fn module, acc ->
+      tasks = for task <- module.tasks(), into: %{}, do: {task, module}
+      Map.merge acc, tasks
+    end
+  end
 
   @spec info() :: :ok
 

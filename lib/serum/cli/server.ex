@@ -10,6 +10,8 @@ defmodule Serum.CLI.Server do
   @strict  [port: :integer]
   @aliases [p: :port]
 
+  def tasks, do: ["server"]
+
   def run(_task, args) do
     {opts, args, errors} =
       OptionParser.parse args, strict: @strict, aliases: @aliases
