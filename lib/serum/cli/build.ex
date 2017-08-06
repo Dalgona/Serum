@@ -63,4 +63,29 @@ defmodule Serum.CLI.Build do
     Please fix the problems shown above and try again.
     """
   end
+
+  def short_help(_task), do: "Build an existing Serum project"
+
+  def synopsis(_task), do: "serum build [OPTIONS] [DIR]"
+
+  def help(_task), do: """
+  `serum build` builds an existing Serum project located in `DIR` directory, or
+  the current working directory if `DIR` is not given.
+
+  ## OPTIONS
+
+  * `-p, --parallel`: If this option is used, Serum accelerates the build
+    process by processing source files parallelly. Otherwise, Serum processes
+    source files one by one.
+  * `-o, --output <OUTDIR>`: Specifies the directory where output files are
+    stored. If this option is not used, the project will built under
+    </path/to/project>/site directory.
+
+  ## NOTE
+
+  If the output directory exists and is not empty, all files and directories
+  under that directory will be deleted before the build process begins. However,
+  files and directories which names start with a dot (`.`) are preserved as they
+  may contain important information, such as version control-releated data.
+  """
 end

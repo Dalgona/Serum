@@ -38,4 +38,20 @@ defmodule Serum.CLI.Init do
         System.halt 1
     end
   end
+
+  def short_help(_task), do: "Initialize a new Serum project"
+
+  def synopsis(_task), do: "serum init [OPTIONS] [DIR]"
+
+  def help(_task), do: """
+  `serum init` initializes a new Serum project into `DIR` directory, or the
+  current working directory if `DIR` is not given. New directories will be
+  created if needed. By default, Serum refuses to initialize a new project if
+  `DIR` already exists and is not empty. This behavior can be overriden if
+  executed with `-f (--force)` option.
+
+  ## OPTIONS
+
+  * `-f, --force`: Forces initialization even if `DIR` is not empty.
+  """
 end
