@@ -40,9 +40,8 @@ defmodule Serum.Build.Pass1.PostBuilder do
     case File.ls srcdir do
       {:ok, list} ->
         list
-        |> Enum.filter_map(&String.ends_with?(&1, ".md"), fn x ->
-          String.replace x, ~r/\.md$/, ""
-        end)
+        |> Enum.filter(&String.ends_with?(&1, ".md"))
+        |> Enum.map(&String.replace(&1, ~r/\.md$/, ""))
         |> Enum.sort
       {:error, _reason} ->
         warn "Cannot access `posts/'. No post will be generated."

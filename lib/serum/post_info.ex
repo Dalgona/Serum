@@ -52,7 +52,8 @@ defmodule Serum.PostInfo do
             l when is_list(l)  -> l
           end
         parsed
-        |> Enum.filter_map(&(elem(&1, 0) == "p"), &Floki.text/1)
+        |> Enum.filter(&elem(&1, 0) == "p")
+        |> Enum.map(&Floki.text/1)
         |> Enum.join(" ")
         |> String.slice(0, x)
     end
