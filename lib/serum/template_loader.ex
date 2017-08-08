@@ -25,7 +25,7 @@ defmodule Serum.TemplateLoader do
       |> Error.filter_results_with_values(:load_templates)
     case result do
       {:ok, list} -> {:ok, Map.put(state, :templates, Map.new(list))}
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
@@ -38,8 +38,8 @@ defmodule Serum.TemplateLoader do
     do
       {:ok, {name, ast}}
     else
-      {:error, reason} -> {:error, :file_error, {reason, path, 0}}
-      {:ct_error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
+      {:error, reason} -> {:error, {reason, path, 0}}
+      {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end
 
@@ -64,7 +64,7 @@ defmodule Serum.TemplateLoader do
         |> Error.filter_results_with_values(:load_includes)
       case result do
         {:ok, list} -> {:ok, Map.put(state, :includes, Map.new(list))}
-        {:error, _, _} = error -> error
+        {:error, _} = error -> error
       end
     else
       {:ok, Map.put(state, :includes, %{})}
@@ -80,8 +80,8 @@ defmodule Serum.TemplateLoader do
     do
       {:ok, {name, ast}}
     else
-      {:error, reason} -> {:error, :file_error, {reason, path, 0}}
-      {:ct_error, msg, line} -> {:error, :invalid_template, {msg, path, line}}
+      {:error, reason} -> {:error, {reason, path, 0}}
+      {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end
 
@@ -91,11 +91,11 @@ defmodule Serum.TemplateLoader do
   defp render_includes({:ok, {name, ast}}, state) do
     case Renderer.render_stub ast, state.site_ctx, name do
       {:ok, html} -> {:ok, {name, html}}
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
-  defp render_includes(error = {:error, _, _}, _state) do
+  defp render_includes(error = {:error, _}, _state) do
     error
   end
 

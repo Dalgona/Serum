@@ -44,7 +44,7 @@ defmodule Serum.Build do
       copy_assets state3
       {:ok, state3}
     else
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
@@ -61,7 +61,7 @@ defmodule Serum.Build do
       end
     case result do
       :ok -> :ok
-      err -> {:error, :file_error, {err, dest, 0}}
+      err -> {:error, {err, dest, 0}}
     end
   end
 
@@ -72,7 +72,7 @@ defmodule Serum.Build do
       Timex.local()
       :ok
     rescue
-      _ -> {:error, :system_error, "system timezone is not set"}
+      _ -> {:error, "system timezone is not set"}
     end
   end
 
@@ -98,7 +98,7 @@ defmodule Serum.Build do
     do
       {:ok, state3}
     else
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 

@@ -28,7 +28,7 @@ defmodule Serum.CLI.Init do
       """
     else
       x when is_list(x) -> CLI.usage()
-      {:error, _, _} = error ->
+      {:error, _} = error ->
         Error.show error
         IO.puts """
 

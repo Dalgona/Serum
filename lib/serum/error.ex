@@ -15,7 +15,7 @@ defmodule Serum.Error do
   @type full_detail :: {message, file, line}
   @type nest_detail :: {term, [error]}
 
-  @type message :: atom | binary
+  @type message :: binary
   @type file    :: binary
   @type line    :: non_neg_integer
 

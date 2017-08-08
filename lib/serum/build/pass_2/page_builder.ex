@@ -63,10 +63,10 @@ defmodule Serum.Build.Pass2.PageBuilder do
           {:ok, html} ->
             fwrite destpath, html
             IO.puts "  GEN  #{srcpath} -> #{destpath}"
-          {:error, _, _} = error -> error
+          {:error, _} = error -> error
         end
       {:error, reason} ->
-        {:error, :file_error, {reason, srcpath, 0}}
+        {:error, {reason, srcpath, 0}}
     end
   end
 
@@ -89,8 +89,8 @@ defmodule Serum.Build.Pass2.PageBuilder do
       Renderer.render "page", [contents: html], [page_title: title], state
     else
       {:ct_error, msg, line} ->
-        {:error, :invalid_template, {msg, state.srcpath, line}}
-      {:error, _, _} = error -> error
+        {:error, {msg, state.srcpath, line}}
+      {:error, _} = error -> error
     end
   end
 end

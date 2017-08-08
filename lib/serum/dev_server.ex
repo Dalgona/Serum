@@ -27,7 +27,7 @@ defmodule Serum.DevServer do
 
     {:ok, pid_builder} = SiteBuilder.start_link dir, site
     case SiteBuilder.load_info pid_builder do
-      {:error, _, _} = error -> Error.show error
+      {:error, _} = error -> Error.show error
       {:ok, proj} ->
         base = proj.base_url
         ms_callbacks = [Microscope.Logger, AutoBuilder]

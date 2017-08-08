@@ -73,28 +73,23 @@ defmodule Serum.HeaderParser do
         else
           error -> handle_error error, fname
         end
-      {:error, error} ->
-        {:error, :invalid_header,
-         {"header parse error: #{error}", fname, 0}}
+      {:error, error} -> {:error, {"header parse error: #{error}", fname, 0}}
     end
   end
 
   @spec handle_error(term, binary) :: Error.result
 
   defp handle_error([missing], fname) do
-    {:error, :invalid_header,
-     {"`#{missing}` is required, but it's missing", fname, 0}}
+    {:error, {"`#{missing}` is required, but it's missing", fname, 0}}
   end
 
   defp handle_error([_|_] = missing, fname) do
     repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse |> Enum.join(", ")
-    {:error, :invalid_header,
-     {"#{repr} are required, but they are missing", fname, 0}}
+    {:error, {"#{repr} are required, but they are missing", fname, 0}}
   end
 
   defp handle_error({:error, error}, fname) do
-    {:error, :invalid_header,
-     {"header parse error: #{error}", fname, 0}}
+    {:error, {"header parse error: #{error}", fname, 0}}
   end
 
   @spec extract_header(IO.device, [binary], boolean)

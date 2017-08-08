@@ -62,9 +62,9 @@ defmodule Serum.Validation do
       {:error, errors} ->
         errors =
           for {message, _} <- errors do
-            {:error, :validation_error, {message, schema_name, 0}}
+            {:error, {message, schema_name, 0}}
           end
-        {:error, :child_tasks, {:validate_json, errors}}
+        {:error, {:validate_json, errors}}
     end
   end
 end

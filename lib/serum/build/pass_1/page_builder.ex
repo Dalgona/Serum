@@ -28,7 +28,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
       {:ok, files} ->
         result = launch mode, files, state
         Error.filter_results_with_values result, :page_builder
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
@@ -56,8 +56,8 @@ defmodule Serum.Build.Pass1.PageBuilder do
       File.close file
       {:ok, PageInfo.new(fname, header, state)}
     else
-      {:error, reason} -> {:error, :file_error, {reason, fname, 0}}
-      {:error, _, _} = error -> error
+      {:error, reason} when is_atom(reason) -> {:error, {reason, fname, 0}}
+      {:error, _} = error -> error
     end
   end
 
@@ -70,7 +70,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
     if File.exists? dir do
       {:ok, List.flatten(do_scan_pages dir, src, dest)}
     else
-      {:error, :file_error, {:enoent, dir, 0}}
+      {:error, {:enoent, dir, 0}}
     end
   end
 

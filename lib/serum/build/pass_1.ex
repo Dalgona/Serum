@@ -38,7 +38,7 @@ defmodule Serum.Build.Pass1 do
     do
       {:ok, update_state(pages, posts, state)}
     else
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
@@ -49,7 +49,7 @@ defmodule Serum.Build.Pass1 do
     do
       {:ok, update_state(pages, posts, state)}
     else
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 

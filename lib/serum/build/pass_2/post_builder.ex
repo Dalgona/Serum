@@ -51,7 +51,7 @@ defmodule Serum.Build.Pass2.PostBuilder do
         fwrite destpath, html
         IO.puts "  GEN  #{srcpath} -> #{destpath}"
         :ok
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 

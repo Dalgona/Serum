@@ -51,8 +51,7 @@ defmodule Serum.Renderer do
 
   def render_stub(nil, _ctx, name) do
     filename = to_filename name
-    {:error, :render_error,
-      {"template was not compiled successfully", filename, 0}}
+    {:error, {"template was not compiled successfully", filename, 0}}
   end
 
   def render_stub(template, context, name) do
@@ -62,9 +61,9 @@ defmodule Serum.Renderer do
       {:ok, html}
     rescue
       e in CompileError ->
-        {:error, :render_error, {e.description, filename, e.line}}
+        {:error, {e.description, filename, e.line}}
       e ->
-        {:error, :render_error, {Exception.message(e), filename, 0}}
+        {:error, {Exception.message(e), filename, 0}}
     end
   end
 

@@ -38,7 +38,7 @@ defmodule Serum.CLI.Build do
     do
       on_finish dest
     else
-      {:error, _, _} = error -> on_error error
+      {:error, _} = error -> on_error error
     end
   end
 

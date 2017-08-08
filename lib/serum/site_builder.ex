@@ -70,7 +70,7 @@ defmodule Serum.SiteBuilder do
       {:ok, dest} ->
         IO.puts "Build process took #{time/1000}ms."
         {:ok, dest}
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
@@ -101,23 +101,19 @@ defmodule Serum.SiteBuilder do
     case do_load_info state.src do
       {:ok, proj} ->
         {:reply, {:ok, proj}, Map.put(state, :project_info, proj)}
-      {:error, _, _} = error ->
+      {:error, _} = error ->
         {:reply, error, state}
     end
   end
 
   def handle_call({:build, _mode}, _from, state = %{project_info: nil}) do
-    {:reply,
-     {:error, :build_error, "project metadata is not loaded"},
-     state}
+    {:reply, {:error, "project metadata is not loaded"}, state}
   end
 
   def handle_call({:build, mode}, _from, state) do
     case Build.build mode, state do
-      {:ok, new_state} ->
-        {:reply, {:ok, new_state.dest}, new_state}
-      {:error, _, _} = error ->
-        {:reply, error, state}
+      {:ok, new_state} -> {:reply, {:ok, new_state.dest}, new_state}
+      {:error, _} = error -> {:reply, error, state}
     end
   end
 
@@ -138,8 +134,7 @@ defmodule Serum.SiteBuilder do
     IO.puts "Reading project metadata `#{path}'..."
     case File.read path do
       {:ok, data} -> decode_json path, data
-      {:error, reason} ->
-        {:error, :file_error, {reason, path, 0}}
+      {:error, reason} -> {:error, {reason, path, 0}}
     end
   end
 
@@ -149,11 +144,9 @@ defmodule Serum.SiteBuilder do
     case Poison.decode data do
       {:ok, proj} -> validate proj
       {:error, :invalid, pos} ->
-        {:error, :json_error,
-         {"parse error at position #{pos}", path, 0}}
+        {:error, {"parse error at position #{pos}", path, 0}}
       {:error, {:invalid, token, pos}} ->
-        {:error, :json_error,
-         {"parse error near `#{token}' at position #{pos}", path, 0}}
+        {:error, {"parse error near `#{token}' at position #{pos}", path, 0}}
     end
   end
 

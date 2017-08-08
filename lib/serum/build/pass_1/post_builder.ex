@@ -77,8 +77,8 @@ defmodule Serum.Build.Pass1.PostBuilder do
       info = PostInfo.new filename, header, html, state
       {:ok, info}
     else
-      {:error, reason} -> {:error, :file_error, {reason, filename, 0}}
-      {:error, _, _} = error -> error
+      {:error, reason} when is_atom(reason) -> {:error, {reason, filename, 0}}
+      {:error, _} = error -> error
     end
   end
 end

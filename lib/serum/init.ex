@@ -27,7 +27,7 @@ defmodule Serum.Init do
       create_gitignore dir
       :ok
     else
-      {:error, _, _} = error -> error
+      {:error, _} = error -> error
     end
   end
 
@@ -40,14 +40,14 @@ defmodule Serum.Init do
          {:ok, list} <- File.ls(dir)
     do
       if not Enum.empty?(list) and not force? do
-        {:error, :init_error,
+        {:error,
          {"directory is not empty. use -f (--force) to proceed anyway", dir, 0}}
       else
         :ok
       end
     else
       false -> :ok
-      {:error, reason} -> {:error, :file_error, {reason, dir, 0}}
+      {:error, reason} -> {:error, {reason, dir, 0}}
     end
   end
 
@@ -71,7 +71,7 @@ defmodule Serum.Init do
         end
         :ok
       [{dirname, {:error, reason}}|_] ->
-        {:error, :file_error, {reason, dirname, 0}}
+        {:error, {reason, dirname, 0}}
     end
   end
 
