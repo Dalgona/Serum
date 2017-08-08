@@ -5,8 +5,8 @@ defmodule ErrorTest do
 
   @bullet "\x1b[31m\u274c\x1b[0m "
 
-  defp errobj, do: {:error, :test_error, "test"}
-  defp errobj(x), do: {:error, :test_error, "test #{x}"}
+  defp errobj, do: {:error, "test"}
+  defp errobj(x), do: {:error, "test #{x}"}
 
   describe "filter_results" do
     test "an empty list" do
@@ -22,12 +22,12 @@ defmodule ErrorTest do
     end
 
     test "one error" do
-      expected = {:error, :child_tasks, {:test, [errobj()]}}
+      expected = {:error, {:test, [errobj()]}}
       assert expected == filter_results [:ok, errobj(), :ok], :test
     end
 
     test "several errors" do
-      expected = {:error, :child_tasks, {:test, [errobj(1), errobj(2)]}}
+      expected = {:error, {:test, [errobj(1), errobj(2)]}}
       assert expected == filter_results [errobj(1), :ok, errobj(2), :ok], :test
     end
   end
@@ -46,12 +46,12 @@ defmodule ErrorTest do
     end
 
     test "one error" do
-      expected = {:error, :child_tasks, {:test, [errobj()]}}
+      expected = {:error, {:test, [errobj()]}}
       assert expected == filter_results_with_values [{:ok, 42}, errobj()], :test
     end
 
     test "several errors" do
-      expected = {:error, :child_tasks, {:test, [errobj(1), errobj(2)]}}
+      expected = {:error, {:test, [errobj(1), errobj(2)]}}
       data = [errobj(1), {:ok, 42}, errobj(2), {:ok, 84}]
       assert expected == filter_results data, :test
     end
@@ -83,24 +83,24 @@ defmodule ErrorTest do
 
   describe "show msg_detail" do
     test "without indent" do
-      output = capture_io fn -> show {:error, :test_error, "oh no"} end
+      output = capture_io fn -> show {:error, "oh no"} end
       assert "#{@bullet} oh no\n" == output
     end
 
     test "with indent" do
-      output = capture_io fn -> show {:error, :test_error, "oh no"}, 2 end
+      output = capture_io fn -> show {:error, "oh no"}, 2 end
       assert "    #{@bullet} oh no\n" == output
     end
   end
 
   describe "show full_detail w/ line" do
     test "without indent" do
-      output = capture_io fn -> show {:error, :boo, {"nope", "foo", 3}} end
+      output = capture_io fn -> show {:error, {"nope", "foo", 3}} end
       assert "#{@bullet} \x1b[97mfoo:3:\x1b[0m nope\n" == output
     end
 
     test "with indent" do
-      output = capture_io fn -> show {:error, :boo, {"nope", "foo", 3}}, 2 end
+      output = capture_io fn -> show {:error, {"nope", "foo", 3}}, 2 end
       assert "    #{@bullet} \x1b[97mfoo:3:\x1b[0m nope\n" == output
     end
   end
@@ -109,7 +109,7 @@ defmodule ErrorTest do
     test "enoent without indent" do
       output =
         capture_io fn ->
-          show {:error, :file_error, {:enoent, "testfile", 0}}
+          show {:error, {:enoent, "testfile", 0}}
         end
       expected
         = "#{@bullet} \x1b[97mtestfile:\x1b[0m no such file or directory\n"
@@ -119,7 +119,7 @@ defmodule ErrorTest do
     test "eacces with indent" do
       output =
         capture_io fn ->
-          show {:error, :file_error, {:eacces, "testfile", 0}}, 2
+          show {:error, {:eacces, "testfile", 0}}, 2
         end
       expected
         = "    #{@bullet} \x1b[97mtestfile:\x1b[0m permission denied\n"
@@ -131,10 +131,10 @@ defmodule ErrorTest do
     test "1 level without indent" do
       output =
         capture_io fn ->
-          show {:error, :child_tasks,
+          show {:error,
                 {:foo,
-                 [{:error, :some_error, "oh no!"},
-                  {:error, :yuck, {"oh no!", "foo", 0}}]}}
+                 [{:error, "oh no!"},
+                  {:error, {"oh no!", "foo", 0}}]}}
         end
       expected =
         """
@@ -148,10 +148,10 @@ defmodule ErrorTest do
     test "1 level with indent" do
       output =
         capture_io fn ->
-          show {:error, :child_tasks,
+          show {:error,
                 {:foo,
-                 [{:error, :some_error, "oh no!"},
-                  {:error, :yuck, {"oh no!", "foo", 0}}]}}, 2
+                 [{:error, "oh no!"},
+                  {:error, {"oh no!", "foo", 0}}]}}, 2
         end
       expected =
         """
@@ -165,12 +165,12 @@ defmodule ErrorTest do
     test "2 level without indent" do
       output =
         capture_io fn ->
-          show {:error, :child_tasks,
+          show {:error,
                 {:foo,
-                 [{:error, :child_tasks,
+                 [{:error,
                    {:bar,
-                    [{:error, :some_error, "oh no!"},
-                     {:error, :yuck, {"oh no!", "foo", 0}}]}}]}}
+                    [{:error, "oh no!"},
+                     {:error, {"oh no!", "foo", 0}}]}}]}}
         end
       expected =
         """
@@ -185,12 +185,12 @@ defmodule ErrorTest do
     test "2 level with indent" do
       output =
         capture_io fn ->
-          show {:error, :child_tasks,
+          show {:error,
                 {:foo,
-                 [{:error, :child_tasks,
+                 [{:error,
                    {:bar,
-                    [{:error, :some_error, "oh no!"},
-                     {:error, :yuck, {"oh no!", "foo", 0}}]}}]}}, 2
+                    [{:error, "oh no!"},
+                     {:error, {"oh no!", "foo", 0}}]}}]}}, 2
         end
       expected =
         """

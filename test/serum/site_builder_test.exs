@@ -45,7 +45,7 @@ defmodule SiteBuilderTest do
       {:ok, pid} = SiteBuilder.start_link "/nonexistent_123/", ""
       Process.group_leader pid, null
       expected =
-        {:error, :file_error, {:enoent, "/nonexistent_123/serum.json", 0}}
+        {:error, {:enoent, "/nonexistent_123/serum.json", 0}}
       assert expected == SiteBuilder.load_info pid
       SiteBuilder.stop pid
     end
@@ -55,8 +55,7 @@ defmodule SiteBuilderTest do
       {:ok, pid} = SiteBuilder.start_link path, ""
       Process.group_leader pid, null
       expected =
-        {:error, :json_error,
-         {"parse error at position 0", path <> "serum.json", 0}}
+        {:error, {"parse error at position 0", path <> "serum.json", 0}}
       assert expected == SiteBuilder.load_info pid
       SiteBuilder.stop pid
     end
@@ -66,7 +65,7 @@ defmodule SiteBuilderTest do
       {:ok, pid} = SiteBuilder.start_link path, ""
       Process.group_leader pid, null
       expected =
-        {:error, :json_error,
+        {:error,
          {"parse error near `}' at position 25", path <> "serum.json", 0}}
       assert expected == SiteBuilder.load_info pid
       SiteBuilder.stop pid
@@ -76,10 +75,8 @@ defmodule SiteBuilderTest do
       path = "#{priv()}/test_projinfo/schema_error/"
       {:ok, pid} = SiteBuilder.start_link path, ""
       Process.group_leader pid, null
-      {:error, :child_tasks,
-       {:validate_json, errors}} = SiteBuilder.load_info pid
-      Enum.each errors, fn {:error, reason, {_msg, schema_name, 0}} ->
-        assert :validation_error == reason
+      {:error, {:validate_json, errors}} = SiteBuilder.load_info pid
+      Enum.each errors, fn {:error, {_msg, schema_name, 0}} ->
         assert "serum.json" == schema_name
       end
       SiteBuilder.stop pid

@@ -33,7 +33,7 @@ defmodule TemplateLoaderTest do
       s = Map.put state(), :src, get_priv("load_templates/missing_dir/")
       silent_load_templates s
       receive do
-        {:error, _, _} -> :ok
+        {:error, _} -> :ok
         _ -> flunk "received unexpected message"
       end
     end
@@ -42,7 +42,7 @@ defmodule TemplateLoaderTest do
       s = Map.put state(), :src, get_priv("load_templates/missing_some/")
       silent_load_templates s
       receive do
-        {:error, _, _} -> :ok
+        {:error, _} -> :ok
         _ -> flunk "received unexpected message"
       end
     end
@@ -51,7 +51,7 @@ defmodule TemplateLoaderTest do
       s = Map.put state(), :src, get_priv("load_templates/erroneous/")
       silent_load_templates s
       receive do
-        {:error, _, _} -> :ok
+        {:error, _} -> :ok
         _ -> flunk "received unexpected message"
       end
     end
@@ -107,7 +107,7 @@ defmodule TemplateLoaderTest do
       s = Map.put state(), :src, get_priv("load_includes/compile_err/")
       silent_load_includes s
       receive do
-        {:error, _, _} -> :ok
+        {:error, _} -> :ok
         _ -> flunk "received unexpected message"
       end
     end
@@ -116,7 +116,7 @@ defmodule TemplateLoaderTest do
       s = Map.put state(), :src, get_priv("load_includes/eval_err/")
       silent_load_includes s
       receive do
-        {:error, _, _} -> :ok
+        {:error, _} -> :ok
         _ -> flunk "received unexpected message"
       end
     end

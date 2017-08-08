@@ -39,8 +39,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:weird_pos), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), [:strlst]
       assert result ==
-        {:error, :invalid_header,
-         {"`strlst` is required, but it's missing", "test.txt", 0}}
+        {:error, {"`strlst` is required, but it's missing", "test.txt", 0}}
       StringIO.close sio
     end
 
@@ -48,7 +47,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:weird_pos), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), [:strlst, :intlst]
       assert result ==
-        {:error, :invalid_header,
+        {:error,
          {"`strlst`, `intlst` are required, but they are missing",
           "test.txt", 0}}
       StringIO.close sio
@@ -58,8 +57,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:no_header), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), []
       assert result ==
-        {:error, :invalid_header,
-         {"header parse error: header not found", "test.txt", 0}}
+        {:error, {"header parse error: header not found", "test.txt", 0}}
       StringIO.close sio
     end
 
@@ -67,7 +65,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:unexpected_eof), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), []
       assert result ==
-        {:error, :invalid_header,
+        {:error,
          {"header parse error: encountered unexpected end of file",
           "test.txt", 0}}
       StringIO.close sio
@@ -77,7 +75,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:bad_int), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), []
       assert result ==
-        {:error, :invalid_header,
+        {:error,
          {"header parse error: `intval`: invalid integer", "test.txt", 0}}
       StringIO.close sio
     end
@@ -85,7 +83,7 @@ defmodule HeaderParserTest do
     test "datetime parse error" do
       {:ok, sio} = StringIO.open data(:bad_date), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), []
-      {:error, :invalid_header, {msg, "test.txt", 0}} = result
+      {:error, {msg, "test.txt", 0}} = result
       assert String.starts_with? msg, "header parse error: `dateval`: "
       StringIO.close sio
     end
@@ -94,7 +92,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:bad_intlst), [:read, :utf8]
       result = parse_header sio, "test.txt", options(), []
       assert result ==
-        {:error, :invalid_header,
+        {:error,
          {"header parse error: `intlst`: invalid integer", "test.txt", 0}}
       StringIO.close sio
     end
@@ -103,7 +101,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:bad_intlst), [:read, :utf8]
       result = parse_header sio, "test.txt", [intlst: {:list, {:list, :_}}], []
       assert result ==
-        {:error, :invalid_header,
+        {:error,
          {"header parse error: `intlst`: "
           <> "\"list of lists\" type is not supported", "test.txt", 0}}
       StringIO.close sio
@@ -120,7 +118,7 @@ defmodule HeaderParserTest do
       {:ok, sio} = StringIO.open data(:bad_intlst), [:read, :utf8]
       result = parse_header sio, "test.txt", [intlst: :heroes_of_the_storm], []
       assert result ==
-        {:error, :invalid_header,
+        {:error,
          {"header parse error: `intlst`: invalid value type", "test.txt", 0}}
       StringIO.close sio
     end

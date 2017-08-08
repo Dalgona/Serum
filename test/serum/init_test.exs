@@ -63,7 +63,7 @@ defmodule InitTest do
       File.mkdir_p! dir
       :ok = File.chmod dir, 0o000
       silent_init dir, false
-      assert_received {:error, :file_error, {:eacces, dir, 0}}
+      assert_received {:error, {:eacces, dir, 0}}
       File.chmod dir, 0o755
       File.rm_rf! dir
     end
@@ -73,7 +73,7 @@ defmodule InitTest do
       File.mkdir_p! dir
       :ok = File.touch dir <> "/heroes_of_the_storm"
       expected =
-        {:error, :init_error,
+        {:error,
          {"directory is not empty. use -f (--force) to proceed anyway", dir, 0}}
       silent_init dir, false
       assert_received ^expected
