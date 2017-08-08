@@ -7,9 +7,8 @@ defmodule Serum.Error do
   @type result       :: :ok | error
   @type result(type) :: {:ok, type} | error
 
-  @type error :: {:error, reason, err_details}
+  @type error :: {:error, err_details}
 
-  @type reason      :: atom
   @type err_details :: msg_detail | full_detail | nest_detail
 
   @type msg_detail  :: message
@@ -33,7 +32,7 @@ defmodule Serum.Error do
   def filter_results(results, from) do
     case Enum.reject results, &succeeded?/1 do
       [] -> :ok
-      errors when is_list(errors) -> {:error, :child_tasks, {from, errors}}
+      errors when is_list(errors) -> {:error, {from, errors}}
     end
   end
 
@@ -51,15 +50,15 @@ defmodule Serum.Error do
   def filter_results_with_values(results, from) do
     case Enum.reject results, &succeeded?/1 do
       [] -> {:ok, Enum.map(results, &elem(&1, 1))}
-      errors when is_list(errors) -> {:error, :child_tasks, {from, errors}}
+      errors when is_list(errors) -> {:error, {from, errors}}
     end
   end
 
   @spec succeeded?(result | result(term)) :: boolean
 
-  defp succeeded?(:ok),            do: true
-  defp succeeded?({:ok, _}),       do: true
-  defp succeeded?({:error, _, _}), do: false
+  defp succeeded?(:ok),         do: true
+  defp succeeded?({:ok, _}),    do: true
+  defp succeeded?({:error, _}), do: false
 
   @doc "Prints an error object in a beautiful format."
   @spec show(result, non_neg_integer) :: :ok
@@ -75,27 +74,27 @@ defmodule Serum.Error do
     show :ok, indent
   end
 
-  def show({:error, _r, message}, indent) when is_binary(message) do
+  def show({:error, message}, indent) when is_binary(message) do
     IO.write String.duplicate("  ", indent)
     perr "#{message}"
   end
 
-  def show({:error, :file_error, {r, file, 0}}, indent) when is_atom(r) do
-    message = r |> :file.format_error |> IO.iodata_to_binary
-    show {:error, :file_error, {message, file, 0}}, indent
+  def show({:error, {posix, file, 0}}, indent) when is_atom(posix) do
+    message = posix |> :file.format_error |> IO.iodata_to_binary
+    show {:error, {message, file, 0}}, indent
   end
 
-  def show({:error, _r, {message, file, 0}}, indent) do
+  def show({:error, {message, file, 0}}, indent) do
     IO.write String.duplicate("  ", indent)
     perr "\x1b[97m#{file}:\x1b[0m #{message}"
   end
 
-  def show({:error, _r, {message, file, line}}, indent) do
+  def show({:error, {message, file, line}}, indent) do
     IO.write String.duplicate("  ", indent)
     perr "\x1b[97m#{file}:#{line}:\x1b[0m #{message}"
   end
 
-  def show({:error, :child_tasks, {from, errors}}, indent) do
+  def show({:error, {from, errors}}, indent) do
     IO.write String.duplicate("  ", indent)
     IO.puts "\x1b[1;31mSeveral errors occurred from #{from}:\x1b[0m"
     Enum.each errors, &show(&1, indent + 1)
