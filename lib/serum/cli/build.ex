@@ -19,8 +19,11 @@ defmodule Serum.CLI.Build do
     mode = opts[:parallel] && :parallel || :sequential
     out = opts[:output]
     case {args, errors} do
-      {args, []} -> launch_build args, out, mode
-      {_, _error} -> CLI.usage()
+      {args, []} ->
+        launch_build args, out, mode
+      {_, _error} ->
+        CLI.usage()
+        {:cli_exit, 2}
     end
   end
 
@@ -37,8 +40,11 @@ defmodule Serum.CLI.Build do
          {:ok, dest} <- SiteBuilder.build(pid, mode)
     do
       on_finish dest
+      {:cli_exit, 0}
     else
-      {:error, _} = error -> on_error error
+      {:error, _} = error ->
+        on_error error
+        {:cli_exit, 1}
     end
   end
 

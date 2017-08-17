@@ -17,9 +17,15 @@ defmodule Serum.CLI.Server do
       OptionParser.parse args, strict: @strict, aliases: @aliases
     port = opts[:port] || 8080
     case {args, errors} do
-      {[], []} -> DevServer.run ".", port
-      {[dir|_], []} -> DevServer.run dir, port
-      {_, _error} -> CLI.usage()
+      {[], []} ->
+        DevServer.run ".", port
+        {:cli_exit, 0}
+      {[dir|_], []} ->
+        DevServer.run dir, port
+        {:cli_exit, 0}
+      {_, _error} ->
+        CLI.usage()
+        {:cli_exit, 2}
     end
   end
 

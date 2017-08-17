@@ -26,8 +26,11 @@ defmodule Serum.CLI.Init do
       \x1b[1mSuccessfully initialized a new Serum project!
       try `serum build #{dir}` to build the site.\x1b[0m
       """
+      {:cli_exit, 0}
     else
-      x when is_list(x) -> CLI.usage()
+      x when is_list(x) ->
+        CLI.usage()
+        {:cli_exit, 2}
       {:error, _} = error ->
         Error.show error
         IO.puts """
@@ -35,7 +38,7 @@ defmodule Serum.CLI.Init do
         Could not initialize a new project.
         Make sure the target directory is writable.
         """
-        System.halt 1
+        {:cli_exit, 1}
     end
   end
 

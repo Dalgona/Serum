@@ -2,7 +2,7 @@ defmodule Serum.CLI.Task do
   @moduledoc false
 
   @callback tasks() :: [binary]
-  @callback run(task_name :: binary, args :: [binary]) :: any
+  @callback run(task_name :: binary, args :: [binary]) :: {:cli_exit, integer}
   @callback short_help(task_name :: binary) :: binary
   @callback synopsis(task_name :: binary) :: binary
   @callback help(task_name :: binary) :: binary | false
@@ -13,6 +13,8 @@ defmodule Serum.CLI do
   This module contains the entry point for the command line program
   (`Serum.CLI.main/1`).
   """
+
+  import Serum.Util
 
   @behaviour Serum.CLI.Task
 
@@ -36,9 +38,17 @@ defmodule Serum.CLI do
   def main(args) do
     info()
     [task|opts] = args
-    case task_map()[task] do
-      nil -> usage()
-      task_module -> task_module.run(task, opts)
+    with task_module when not is_nil(task_module) <- task_map()[task],
+         {:cli_exit, status} <- task_module.run(task, opts)
+    do
+      System.halt status
+    else
+      nil ->
+        usage()
+        System.halt 2
+      x ->
+        warn "The task returned unexpected value: #{x}"
+        System.halt 1
     end
   end
 
@@ -114,13 +124,14 @@ defmodule Serum.CLI do
 
   def run("help", []) do
     usage()
+    {:cli_exit, 0}
   end
 
   def run("help", [arg|_]) do
     case task_map()[arg] do
       nil ->
         usage()
-        System.halt 1
+        {:cli_exit, 2}
       mod ->
         IO.ANSI.Docs.print_heading mod.synopsis arg
         case mod.help arg do
@@ -129,10 +140,11 @@ defmodule Serum.CLI do
           false ->
             IO.puts "This task does not provide help text.\n"
         end
+        {:cli_exit, 0}
     end
   end
 
-  def run("version", _), do: :ok
+  def run("version", _), do: {:cli_exit, 0}
 
   def short_help("help"), do: "Show help messages"
   def short_help("version"), do: "Show version information"
