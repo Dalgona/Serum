@@ -128,7 +128,7 @@ defmodule Serum.SiteBuilder do
   @spec do_load_info(binary) :: Error.result(ProjectInfo.t)
 
   defp do_load_info(dir) do
-    path = dir <> "serum.json"
+    path = Path.join dir, "serum.json"
     IO.puts "Reading project metadata `#{path}'..."
     case File.read path do
       {:ok, data} -> decode_json path, data

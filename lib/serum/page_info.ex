@@ -16,7 +16,7 @@ defmodule Serum.PageInfo do
     relname =
       filename
       |> Path.rootname(type)
-      |> Path.relative_to(state.src <> "pages/")
+      |> Path.relative_to(Path.join state.src, "pages/")
       |> Kernel.<>(".html")
     %Serum.PageInfo{
       file: filename,

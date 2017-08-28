@@ -32,7 +32,7 @@ defmodule Serum.TemplateLoader do
   @spec do_load_templates(binary, state) :: Error.result({binary, Macro.t})
 
   defp do_load_templates(name, state) do
-    path = "#{state.src}templates/#{name}.html.eex"
+    path = Path.join [state.src, "templates", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
          {:ok, ast} <- compile_template(data, state)
     do
@@ -52,7 +52,7 @@ defmodule Serum.TemplateLoader do
 
   def load_includes(state) do
     IO.puts "Loading includes..."
-    includes_dir = state.src <> "includes/"
+    includes_dir = Path.join state.src, "includes"
     if File.exists? includes_dir do
       result =
         includes_dir
@@ -74,7 +74,7 @@ defmodule Serum.TemplateLoader do
   @spec do_load_includes(binary, state) :: Error.result({binary, Macro.t})
 
   defp do_load_includes(name, state) do
-    path = "#{state.src}includes/#{name}.html.eex"
+    path = Path.join [state.src, "includes", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
          {:ok, ast} <- compile_template(data, state)
     do
@@ -137,23 +137,23 @@ defmodule Serum.TemplateLoader do
     arg = extract_arg children
     case arg do
       nil -> state.project_info.base_url
-      path -> state.project_info.base_url <> path
+      path -> Path.join state.project_info.base_url, path
     end
   end
 
   defp eval_helpers({:page, _meta, children}, state) do
     arg = extract_arg children
-    state.project_info.base_url <> arg <> ".html"
+    Path.join state.project_info.base_url, arg <> ".html"
   end
 
   defp eval_helpers({:post, _meta, children}, state) do
     arg = extract_arg children
-    state.project_info.base_url <> "posts/" <> arg <> ".html"
+    Path.join [state.project_info.base_url, "posts", arg <> ".html"]
   end
 
   defp eval_helpers({:asset, _meta, children}, state) do
     arg = extract_arg children
-    state.project_info.base_url <> "assets/" <> arg
+    Path.join [state.project_info.base_url, "assets", arg]
   end
 
   defp eval_helpers({:include, _meta, children}, state) do
