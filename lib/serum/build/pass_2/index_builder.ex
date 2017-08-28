@@ -21,13 +21,13 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
-    postdir = "#{state.dest}posts/"
+    IO.puts "Generating posts index..."
+
+    postdir = Path.join state.dest, "posts"
     File.mkdir_p! postdir
     all_posts = state.site_ctx[:posts]
     title = state.project_info.list_title_all
-
-    IO.puts "Generating posts index..."
-    save_list "#{postdir}index.html", title, all_posts, state
+    save_list Path.join(postdir, "index.html"), title, all_posts, state
 
     tags = state.tag_map
     result = launch_tag mode, tags, state
@@ -53,11 +53,11 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   @spec tag_task({Serum.Tag.t, [Serum.PostInfo.t]}, binary, state) :: :ok
 
   def tag_task({tag, posts}, dest, state) do
-    tagdir = "#{dest}tags/#{tag.name}/"
+    tagdir = Path.join [dest, "tags", tag.name]
     fmt = state.project_info.list_title_tag
     title = fmt |> :io_lib.format([tag.name]) |> IO.iodata_to_binary
     File.mkdir_p! tagdir
-    save_list "#{tagdir}index.html", title, posts, state
+    save_list Path.join(tagdir, "index.html"), title, posts, state
   end
 
   @spec save_list(binary, binary, [Serum.PostInfo.t], state) :: :ok

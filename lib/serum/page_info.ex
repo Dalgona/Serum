@@ -25,8 +25,8 @@ defmodule Serum.PageInfo do
       label: header[:label] || header[:title],
       group: header[:group],
       order: header[:order],
-      url: state.project_info.base_url <> relname,
-      output: state.dest <> relname
+      url: Path.join(state.project_info.base_url, relname),
+      output: Path.join(state.dest, relname)
     }
   end
 

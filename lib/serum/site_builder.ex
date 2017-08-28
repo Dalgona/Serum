@@ -27,9 +27,7 @@ defmodule Serum.SiteBuilder do
   @spec start_link(binary, binary) :: {:ok, pid}
 
   def start_link(src, dest) do
-    src = String.ends_with?(src, "/") && src || src <> "/"
     dest = dest || src <> "site/"
-    dest = String.ends_with?(dest, "/") && dest || dest <> "/"
     GenServer.start_link __MODULE__, {src, dest}
   end
 

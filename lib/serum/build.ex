@@ -37,12 +37,12 @@ defmodule Serum.Build do
     with :ok <- check_dest_perm(state.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(state.dest),
-         {:ok, state2} <- Pass1.run(mode, state),
-         {:ok, state3} <- prepare_templates(state2),
-         :ok <- Pass2.run(mode, state3)
+         {:ok, state} <- Pass1.run(mode, state),
+         {:ok, state} <- prepare_templates(state),
+         :ok <- Pass2.run(mode, state)
     do
-      copy_assets state3
-      {:ok, state3}
+      copy_assets state
+      {:ok, state}
     else
       {:error, _} = error -> error
     end
@@ -51,7 +51,7 @@ defmodule Serum.Build do
   @spec check_dest_perm(binary) :: Error.result
 
   defp check_dest_perm(dest) do
-    parent = dest |> String.replace_suffix("/", "") |> :filename.dirname
+    parent = dest |> Path.join("") |> Path.dirname()
     result =
       case File.stat parent do
         {:error, reason} -> reason
@@ -85,18 +85,18 @@ defmodule Serum.Build do
     # exclude dotfiles so that git repository is not blown away
     dest
     |> File.ls!
-    |> Enum.filter(&(not String.starts_with?(&1, ".")))
-    |> Enum.map(&("#{dest}#{&1}"))
+    |> Enum.reject(&String.starts_with?(&1, "."))
+    |> Enum.map(&Path.join(dest, &1))
     |> Enum.each(&File.rm_rf!(&1))
   end
 
   @spec prepare_templates(state) :: Error.result(state)
 
   defp prepare_templates(state) do
-    with {:ok, state2} <- TemplateLoader.load_includes(state),
-         {:ok, state3} <- TemplateLoader.load_templates(state2)
+    with {:ok, state} <- TemplateLoader.load_includes(state),
+         {:ok, state} <- TemplateLoader.load_templates(state)
     do
-      {:ok, state3}
+      {:ok, state}
     else
       {:error, _} = error -> error
     end
@@ -106,8 +106,8 @@ defmodule Serum.Build do
 
   defp copy_assets(%{src: src, dest: dest}) do
     IO.puts "Copying assets and media..."
-    try_copy "#{src}assets/", "#{dest}assets/"
-    try_copy "#{src}media/", "#{dest}media/"
+    try_copy Path.join(src, "assets"), Path.join(dest, "assets")
+    try_copy Path.join(src, "media"), Path.join(dest, "media")
   end
 
   @spec try_copy(binary, binary) :: :ok

@@ -39,8 +39,8 @@ defmodule Serum.PostInfo do
       preview_text: make_preview(html, state.project_info.preview_length),
       raw_date: raw_date,
       date: date_str,
-      url: base <> relname,
-      output: state.dest <> relname
+      url: Path.join(base, relname),
+      output: Path.join(state.dest, relname)
     }
   end
 

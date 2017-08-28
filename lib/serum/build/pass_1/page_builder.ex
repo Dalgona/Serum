@@ -24,11 +24,16 @@ defmodule Serum.Build.Pass1.PageBuilder do
 
   def run(mode, state) do
     IO.puts "Collecting pages information..."
-    case scan_pages state do
-      {:ok, files} ->
-        result = launch mode, files, state
-        Error.filter_results_with_values result, :page_builder
-      {:error, _} = error -> error
+    page_dir = Path.join state.src, "pages"
+    if File.exists? page_dir do
+      files =
+        [page_dir, "**", "*.{md,html,html.eex}"]
+        |> Path.join()
+        |> Path.wildcard()
+      result = launch mode, files, state
+      Error.filter_results_with_values result, :page_builder
+    else
+      {:error, {page_dir, :enoent, 0}}
     end
   end
 
@@ -59,36 +64,5 @@ defmodule Serum.Build.Pass1.PageBuilder do
       {:error, reason} when is_atom(reason) -> {:error, {reason, fname, 0}}
       {:error, _} = error -> error
     end
-  end
-
-  @spec scan_pages(state) :: Error.result([binary])
-
-  defp scan_pages(state) do
-    %{src: src, dest: dest} = state
-    dir = src <> "pages/"
-    IO.puts "Scanning `#{dir}` directory..."
-    if File.exists? dir do
-      {:ok, List.flatten(do_scan_pages dir, src, dest)}
-    else
-      {:error, {:enoent, dir, 0}}
-    end
-  end
-
-  @spec do_scan_pages(binary, binary, binary) :: list(any)
-
-  defp do_scan_pages(path, src, dest) do
-    path
-    |> File.ls!()
-    |> Enum.reduce([], fn x, acc ->
-      f = Regex.replace ~r(/+), "#{path}/#{x}", "/"
-      cond do
-        File.dir? f ->
-          f |> String.replace_prefix("#{src}pages/", dest) |> File.mkdir_p!()
-          [do_scan_pages(f, src, dest)|acc]
-        f =~ ~r/(\.md|\.html|\.html\.eex)$/ ->
-          [f|acc]
-        :otherwise -> acc
-      end
-    end)
   end
 end

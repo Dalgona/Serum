@@ -28,6 +28,8 @@ defmodule Serum.Build.Pass2.PageBuilder do
   @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
+    pages = state.site_ctx[:pages]
+    create_dir pages, state
     result = launch mode, state.site_ctx[:pages], state
     Error.filter_results result, :page_builder
   end
@@ -44,6 +46,19 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   defp launch(:sequential, files, state) do
     files |> Enum.map(&page_task(&1, state))
+  end
+
+  @spec create_dir([PageInfo.t], state) :: :ok
+
+  defp create_dir(pages, state) do
+    page_dir = Path.join state.src, "pages"
+    pages
+    |> Stream.map(&Path.dirname(&1.file))
+    |> Stream.uniq()
+    |> Stream.reject(& &1 == page_dir)
+    |> Stream.map(&Path.relative_to(&1, page_dir))
+    |> Stream.map(&Path.absname(&1, state.dest))
+    |> Enum.each(&File.mkdir_p!/1)
   end
 
   @doc false

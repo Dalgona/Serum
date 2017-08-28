@@ -29,7 +29,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
 
   def run(mode, state) do
     IO.puts "Collecting posts information..."
-    list = load_file_list "#{state.src}posts/"
+    list = load_file_list Path.join(state.src, "posts")
     result = launch mode, list, state
     Error.filter_results_with_values result, :post_builder
   end
@@ -67,7 +67,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
   def post_task(file, state) do
     opts = [title: :string, tags: {:list, :string}, date: :datetime]
     reqs = [:title]
-    filename = "#{state.src}posts/#{file}.md"
+    filename = Path.join [state.src, "posts", file <> ".md"]
     with {:ok, file} <- File.open(filename, [:read, :utf8]),
          {:ok, header} <- HeaderParser.parse_header(file, filename, opts, reqs)
     do
