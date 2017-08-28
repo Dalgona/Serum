@@ -51,15 +51,14 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   def page_task(info, state) do
     srcpath = info.file
-    {type, destpath} = PageInfo.get_type_and_destpath srcpath, state
-    destpath = state.dest <> destpath
+    destpath = info.output
     case File.open srcpath, [:read, :utf8] do
       {:ok, file} ->
         file = HeaderParser.skip_header file
         data = IO.read file, :all
         File.close file
         new_state = Map.put state, :srcpath, srcpath
-        case render_page type, data, info.title, new_state do
+        case render_page info.type, data, info.title, new_state do
           {:ok, html} ->
             fwrite destpath, html
             IO.puts "  GEN  #{srcpath} -> #{destpath}"
@@ -73,16 +72,16 @@ defmodule Serum.Build.Pass2.PageBuilder do
   # Renders a page into a complete HTML format.
   @spec render_page(binary, binary, binary, state) :: Error.result(binary)
 
-  defp render_page("md", md, title, state) do
+  defp render_page(".md", md, title, state) do
     html = Earmark.to_html md
     Renderer.render "page", [contents: html], [page_title: title], state
   end
 
-  defp render_page("html", html, title, state) do
+  defp render_page(".html", html, title, state) do
     Renderer.render "page", [contents: html], [page_title: title], state
   end
 
-  defp render_page("eex", html, title, state) do
+  defp render_page(".html.eex", html, title, state) do
     with {:ok, ast} <- TemplateLoader.compile_template(html, state),
          {:ok, html} <- Renderer.render_stub(ast, state.site_ctx, "")
     do

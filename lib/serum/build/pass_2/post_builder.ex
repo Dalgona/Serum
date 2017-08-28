@@ -42,10 +42,7 @@ defmodule Serum.Build.Pass2.PostBuilder do
 
   def post_task(info, state) do
     srcpath = info.file
-    destpath =
-      srcpath
-      |> String.replace_prefix(state.src, state.dest)
-      |> String.replace_suffix(".md", ".html")
+    destpath = info.output
     case render_post info, state do
       {:ok, html} ->
         fwrite destpath, html

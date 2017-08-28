@@ -6,39 +6,41 @@ defmodule Serum.PageInfo do
   @type t :: %Serum.PageInfo{}
   @type state :: Build.state
 
-  defstruct [:file, :title, :label, :group, :order, :url]
+  defstruct [:file, :type, :title, :label, :group, :order, :url, :output]
 
   @doc "A helper function for creating a new PageInfo struct."
   @spec new(binary, map, state) :: t
 
   def new(filename, header, state) do
-    {_, url} = get_type_and_destpath(filename, state)
+    type = get_type filename
+    relname =
+      filename
+      |> Path.rootname(type)
+      |> Path.relative_to(state.src <> "pages/")
+      |> Kernel.<>(".html")
     %Serum.PageInfo{
       file: filename,
+      type: type,
       title: header[:title],
       label: header[:label] || header[:title],
       group: header[:group],
       order: header[:order],
-      url: state.project_info.base_url <> url
+      url: state.project_info.base_url <> relname,
+      output: state.dest <> relname
     }
   end
 
-  @doc """
-  Given a page source file name, this function extracts source file extension
-  and generates destination file name (`.html`).
-  """
-  @spec get_type_and_destpath(binary, state) :: {binary, binary}
+  @spec get_type(binary) :: binary
 
-  def get_type_and_destpath(srcpath, state) do
-    [type|temp] = srcpath |> String.split(".") |> Enum.reverse
-    temp = (type == "eex") && tl(temp) || temp
-    destpath =
-      temp
-      |> Enum.reverse
-      |> Enum.join(".")
-      |> String.replace_prefix("#{state.src}pages/", "")
-      |> Kernel.<>(".html")
-    {type, destpath}
+  defp get_type(filename) do
+    case Path.extname filename do
+      ".eex" ->
+        filename
+        |> Path.basename(".eex")
+        |> Path.extname()
+        |> Kernel.<>(".eex")
+      ext -> ext
+    end
   end
 end
 

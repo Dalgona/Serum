@@ -7,7 +7,10 @@ defmodule Serum.PostInfo do
   @type t :: %Serum.PostInfo{}
   @type state :: Build.state
 
-  defstruct [:file, :title, :date, :raw_date, :tags, :url, :preview_text, :html]
+  defstruct [
+    :file, :title, :date, :raw_date, :tags,
+    :url, :preview_text, :html, :output
+  ]
 
   @doc "A helper function for creating a new PostInfo struct."
   @spec new(binary, map, binary, state) :: t
@@ -24,10 +27,10 @@ defmodule Serum.PostInfo do
     datetime = header[:date] || Timex.to_datetime(Timex.zero(), :local)
     date_str = Timex.format! datetime, date_fmt
     raw_date = datetime |> Timex.to_erl
-    url =
+    relname =
       filename
-      |> String.replace_prefix(state.src, "")
       |> String.replace_suffix("md", "html")
+      |> Path.relative_to(state.src)
     %Serum.PostInfo{
       file: filename,
       title: title,
@@ -36,7 +39,8 @@ defmodule Serum.PostInfo do
       preview_text: make_preview(html, state.project_info.preview_length),
       raw_date: raw_date,
       date: date_str,
-      url: base <> url
+      url: base <> relname,
+      output: state.dest <> relname
     }
   end
 
