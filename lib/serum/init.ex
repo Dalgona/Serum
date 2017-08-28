@@ -16,8 +16,6 @@ defmodule Serum.Init do
   @spec init(binary, boolean) :: Error.result
 
   def init(dir, force?) do
-    dir = if String.ends_with?(dir, "/"), do: dir, else: dir <> "/"
-
     with :ok <- check_dir(dir, force?),
          :ok <- create_dir(dir)
     do
@@ -61,7 +59,7 @@ defmodule Serum.Init do
     mkdir_result =
       dirs
       |> Enum.map(fn x ->
-        dirname = dir <> x
+        dirname = Path.join dir, x
         {dirname, File.mkdir_p(dirname)}
       end)
     case Enum.reject(mkdir_result, fn {_, x} -> x == :ok end) do
@@ -69,7 +67,6 @@ defmodule Serum.Init do
         Enum.each mkdir_result, fn {dirname, _} ->
           IO.puts "Created directory `#{dirname}`."
         end
-        :ok
       [{dirname, {:error, reason}}|_] ->
         {:error, {reason, dirname, 0}}
     end
@@ -88,22 +85,24 @@ defmodule Serum.Init do
         date_format: "{WDfull}, {D} {Mshort} {YYYY}",
         preview_length: 200}
       |> Poison.encode!(pretty: true, indent: 2)
-    fwrite "#{dir}serum.json", projinfo
-    IO.puts "Generated `#{dir}serum.json`."
+    fname = Path.join dir, "serum.json"
+    fwrite fname, projinfo
+    IO.puts "Generated `#{fname}`."
   end
 
   # Generates a minimal index page for the new project.
   @spec create_index(binary) :: :ok
 
   defp create_index(dir) do
-    fwrite "#{dir}pages/index.md", """
+    fname = Path.join dir, "pages/index.md"
+    fwrite fname, """
     ---
     title: Welcome
     ---
 
     *Hello, world!*
     """
-    IO.puts "Generated `#{dir}pages/pages.json`."
+    IO.puts "Generated `#{fname}`."
   end
 
   # Generates default template files.
@@ -112,22 +111,23 @@ defmodule Serum.Init do
   defp create_templates(dir) do
     [:base, :list, :page, :post]
     |> Enum.each(fn k ->
-      fwrite "#{dir}templates/#{k}.html.eex", template(k)
+      fwrite Path.join([dir, "templates", "#{k}.html.eex"]), template(k)
     end)
-    IO.puts "Generated essential templates into `#{dir}templates/`."
+    IO.puts "Generated templates into `#{Path.join dir, "templates"}`."
 
     [:nav]
     |> Enum.each(fn k ->
-      fwrite "#{dir}includes/#{k}.html.eex", include(k)
+      fwrite Path.join([dir, "includes", "#{k}.html.eex"]), include(k)
     end)
-    IO.puts "Generated includable templates into `#{dir}includes/`."
+    IO.puts "Generated includes into `#{Path.join dir, "includes"}`."
   end
 
   # Generates the initial `.gitignore` file.
   @spec create_gitignore(binary) :: :ok
 
   defp create_gitignore(dir) do
-    fwrite "#{dir}.gitignore", "site\n"
-    IO.puts "Generated `#{dir}.gitignore`."
+    fname = Path.join dir, ".gitignore"
+    fwrite fname, "site\n"
+    IO.puts "Generated `#{fname}`."
   end
 end
