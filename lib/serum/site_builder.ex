@@ -27,7 +27,7 @@ defmodule Serum.SiteBuilder do
   @spec start_link(binary, binary) :: {:ok, pid}
 
   def start_link(src, dest) do
-    dest = dest || src <> "site/"
+    dest = dest || Path.join(src, "site")
     GenServer.start_link __MODULE__, {src, dest}
   end
 
