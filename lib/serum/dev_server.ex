@@ -21,7 +21,6 @@ defmodule Serum.DevServer do
   def run(dir, port) do
     import Supervisor.Spec
 
-    dir = String.ends_with?(dir, "/") && dir || dir <> "/"
     uniq = Base.url_encode64 <<System.monotonic_time::size(64)>>, padding: false
     site = "/tmp/serum_" <> uniq
 
@@ -47,7 +46,7 @@ defmodule Serum.DevServer do
   @spec start_watcher(binary) :: {:ok, pid}
 
   def start_watcher(dir) do
-    dir = :filename.absname dir
+    dir = Path.absname dir
     pid = spawn_link fn ->
       :fs.start_link :watcher, dir
       :fs.subscribe :watcher
