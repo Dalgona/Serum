@@ -6,15 +6,43 @@ defmodule Serum.Util do
 
   @doc "Writes `str` to a file specified by `fname`."
   @spec fwrite(binary, binary) :: :ok
-  @compile {:inline, fwrite: 2}
 
-  def fwrite(fname, str),
-    do: File.open! fname, [:write, :utf8], &IO.write(&1, str)
+  defmacro fwrite(fname, str) do
+    quote do
+      File.open! unquote(fname), [:write, :utf8], &IO.write(&1, unquote(str))
+    end
+  end
 
   @doc "Prints a warning message to stderr."
   @spec warn(binary) :: :ok
-  @compile {:inline, warn: 1}
 
-  def warn(str),
-    do: IO.puts :stderr, "\x1b[33m * #{str}\x1b[0m"
+  defmacro warn(str) do
+    quote do
+      IO.puts :stderr, "\x1b[33m * #{unquote(str)}\x1b[0m"
+    end
+  end
+
+  @doc "Displays which file is generated."
+  @spec msg_gen(binary, binary) :: :ok
+
+  defmacro msg_gen(dest) do
+    quote do
+      IO.puts "\x1b[92m  GEN  \x1b[0m#{unquote(dest)}"
+    end
+  end
+
+  defmacro msg_gen(src, dest) do
+    quote do
+      IO.puts "\x1b[92m  GEN  \x1b[0m#{unquote(src)} -> #{unquote(dest)}"
+    end
+  end
+
+  @doc "Displays which directory is created."
+  @spec msg_mkdir(binary) :: :ok
+
+  defmacro msg_mkdir(dir) do
+    quote do
+      IO.puts "\x1b[96m MKDIR \x1b[0m#{unquote(dir)}"
+    end
+  end
 end

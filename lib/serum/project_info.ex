@@ -3,6 +3,7 @@ defmodule Serum.ProjectInfo do
   This module defines a struct for storing Serum project metadata.
   """
 
+  require Serum.Util
   import Serum.Util
 
   @enforce_keys [

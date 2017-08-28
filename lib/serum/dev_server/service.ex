@@ -5,6 +5,7 @@ defmodule Serum.DevServer.Service do
   """
 
   use GenServer
+  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.SiteBuilder

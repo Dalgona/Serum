@@ -12,6 +12,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
   3. Saves the rendered page to the output directory.
   """
 
+  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
@@ -58,7 +59,10 @@ defmodule Serum.Build.Pass2.PageBuilder do
     |> Stream.reject(& &1 == page_dir)
     |> Stream.map(&Path.relative_to(&1, page_dir))
     |> Stream.map(&Path.absname(&1, state.dest))
-    |> Enum.each(&File.mkdir_p!/1)
+    |> Enum.each(fn dir ->
+      File.mkdir_p! dir
+      msg_mkdir dir
+    end)
   end
 
   @doc false
@@ -76,7 +80,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
         case render_page info.type, data, info.title, new_state do
           {:ok, html} ->
             fwrite destpath, html
-            IO.puts "  GEN  #{srcpath} -> #{destpath}"
+            msg_gen srcpath, destpath
           {:error, _} = error -> error
         end
       {:error, reason} ->

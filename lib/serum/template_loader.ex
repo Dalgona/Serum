@@ -3,10 +3,11 @@ defmodule Serum.TemplateLoader do
   This module handles template loading and preprocessing.
   """
 
+  require Serum.Util
+  import Serum.Util
   alias Serum.Build
   alias Serum.Error
   alias Serum.Renderer
-  import Serum.Util
 
   @type state :: Build.state
 

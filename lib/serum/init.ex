@@ -3,6 +3,7 @@ defmodule Serum.Init do
   This module contains functions required to initialize a new Serum project.
   """
 
+  require Serum.Util
   import Serum.Payload
   import Serum.Util
   alias Serum.Error
@@ -64,9 +65,7 @@ defmodule Serum.Init do
       end)
     case Enum.reject(mkdir_result, fn {_, x} -> x == :ok end) do
       [] ->
-        Enum.each mkdir_result, fn {dirname, _} ->
-          IO.puts "Created directory `#{dirname}`."
-        end
+        Enum.each mkdir_result, fn {dirname, _} -> msg_mkdir dirname end
       [{dirname, {:error, reason}}|_] ->
         {:error, {reason, dirname, 0}}
     end
@@ -87,7 +86,7 @@ defmodule Serum.Init do
       |> Poison.encode!(pretty: true, indent: 2)
     fname = Path.join dir, "serum.json"
     fwrite fname, projinfo
-    IO.puts "Generated `#{fname}`."
+    msg_gen fname
   end
 
   # Generates a minimal index page for the new project.
@@ -102,7 +101,7 @@ defmodule Serum.Init do
 
     *Hello, world!*
     """
-    IO.puts "Generated `#{fname}`."
+    msg_gen fname
   end
 
   # Generates default template files.
@@ -111,15 +110,17 @@ defmodule Serum.Init do
   defp create_templates(dir) do
     [:base, :list, :page, :post]
     |> Enum.each(fn k ->
-      fwrite Path.join([dir, "templates", "#{k}.html.eex"]), template(k)
+      fname = Path.join([dir, "templates", "#{k}.html.eex"])
+      fwrite fname, template(k)
+      msg_gen fname
     end)
-    IO.puts "Generated templates into `#{Path.join dir, "templates"}`."
 
     [:nav]
     |> Enum.each(fn k ->
-      fwrite Path.join([dir, "includes", "#{k}.html.eex"]), include(k)
+      fname = Path.join([dir, "includes", "#{k}.html.eex"])
+      fwrite fname, include(k)
+      msg_gen fname
     end)
-    IO.puts "Generated includes into `#{Path.join dir, "includes"}`."
   end
 
   # Generates the initial `.gitignore` file.
@@ -128,6 +129,6 @@ defmodule Serum.Init do
   defp create_gitignore(dir) do
     fname = Path.join dir, ".gitignore"
     fwrite fname, "site\n"
-    IO.puts "Generated `#{fname}`."
+    msg_gen fname
   end
 end

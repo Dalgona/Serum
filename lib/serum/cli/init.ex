@@ -24,7 +24,7 @@ defmodule Serum.CLI.Init do
       IO.puts """
 
       \x1b[1mSuccessfully initialized a new Serum project!
-      try `serum build #{dir}` to build the site.\x1b[0m
+      Try `serum build #{dir}` to build the site.\x1b[0m
       """
       {:cli_exit, 0}
     else

@@ -14,6 +14,7 @@ defmodule Serum.CLI do
   (`Serum.CLI.main/1`).
   """
 
+  require Serum.Util
   import Serum.Util
 
   @behaviour Serum.CLI.Task

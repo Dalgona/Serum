@@ -6,6 +6,7 @@ defmodule Serum.Build.Pass2.PostBuilder do
     blog post for each `Serum.PostInfo` object in the list.
   """
 
+  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
@@ -20,7 +21,9 @@ defmodule Serum.Build.Pass2.PostBuilder do
   @spec run(Build.mode, state) :: Error.result
 
   def run(mode, state) do
-    File.mkdir_p! Path.join(state.dest, "posts")
+    postdir = Path.join state.dest, "posts"
+    File.mkdir_p! postdir
+    msg_mkdir postdir
     result = launch mode, state.site_ctx[:posts], state
     Error.filter_results result, :post_builder
   end
@@ -46,7 +49,7 @@ defmodule Serum.Build.Pass2.PostBuilder do
     case render_post info, state do
       {:ok, html} ->
         fwrite destpath, html
-        IO.puts "  GEN  #{srcpath} -> #{destpath}"
+        msg_gen srcpath, destpath
         :ok
       {:error, _} = error -> error
     end

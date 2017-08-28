@@ -3,6 +3,7 @@ defmodule Serum.Build do
   This module contains functions for actually building a Serum project.
   """
 
+  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build.Pass1
@@ -79,8 +80,8 @@ defmodule Serum.Build do
   @spec clean_dest(binary) :: :ok
 
   defp clean_dest(dest) do
-    File.mkdir_p! "#{dest}"
-    IO.puts "Created directory `#{dest}`."
+    File.mkdir_p! dest
+    msg_mkdir dest
 
     # exclude dotfiles so that git repository is not blown away
     dest

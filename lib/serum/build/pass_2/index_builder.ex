@@ -8,6 +8,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     blog posts filtered by each tag.
   """
 
+  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
@@ -25,6 +26,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
 
     postdir = Path.join state.dest, "posts"
     File.mkdir_p! postdir
+    msg_mkdir postdir
     all_posts = state.site_ctx[:posts]
     title = state.project_info.list_title_all
     save_list Path.join(postdir, "index.html"), title, all_posts, state
@@ -57,6 +59,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     fmt = state.project_info.list_title_tag
     title = fmt |> :io_lib.format([tag.name]) |> IO.iodata_to_binary
     File.mkdir_p! tagdir
+    msg_mkdir tagdir
     save_list Path.join(tagdir, "index.html"), title, posts, state
   end
 
@@ -67,7 +70,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     case Renderer.render "list", list_ctx, [page_title: title], state do
       {:ok, html} ->
         fwrite path, html
-        IO.puts "  GEN  #{path}"
+        msg_gen path
       error -> error
     end
   end
