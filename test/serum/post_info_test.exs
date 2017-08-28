@@ -31,6 +31,7 @@ defmodule PostInfoTest do
         <> "The quick brown fox jumps over the lazy dog. "
         <> "The quick brown fox jumps over the lazy dog."
       assert info.html == html()
+      assert info.output == output()
     end
 
     test "empty html" do
@@ -46,6 +47,7 @@ defmodule PostInfoTest do
       assert info.url == "/test_base/posts/2017-06-24-test-post.html"
       assert info.preview_text == ""
       assert info.html == ""
+      assert info.output == output()
     end
 
     test "untagged" do
@@ -61,6 +63,7 @@ defmodule PostInfoTest do
         <> "The quick brown fox jumps over the lazy dog. "
         <> "The quick brown fox jumps over the lazy dog."
       assert info.html == html()
+      assert info.output == output()
     end
 
     test "truely useless post" do
@@ -73,6 +76,7 @@ defmodule PostInfoTest do
       assert info.url == "/test_base/posts/2017-06-24-test-post.html"
       assert info.preview_text == ""
       assert info.html == ""
+      assert info.output == output()
     end
 
     test "truncated preview" do
@@ -88,6 +92,7 @@ defmodule PostInfoTest do
       assert info.url == "/test_base/posts/2017-06-24-test-post.html"
       assert info.preview_text == "Lorem ipsu"
       assert info.html == html()
+      assert info.output == output()
     end
   end
 
@@ -98,6 +103,7 @@ defmodule PostInfoTest do
   # We assume that all input data are distilled on the way to this function.
 
   defp filename, do: "/project/test_site/posts/2017-06-24-test-post.md"
+  defp output, do: "/project/test_site/site/posts/2017-06-24-test-post.html"
 
   defp header, do: %{
     title: "Test Post",
@@ -125,7 +131,8 @@ defmodule PostInfoTest do
       date_format: "{YYYY}-{0M}-{0D}",
       preview_length: 200
     },
-    src: "/project/test_site/"
+    src: "/project/test_site/",
+    dest: "/project/test_site/site/"
   }
 
   defp state(:short_preview), do: %{
@@ -134,6 +141,7 @@ defmodule PostInfoTest do
       date_format: "{YYYY}-{0M}-{0D}",
       preview_length: 10
     },
-    src: "/project/test_site/"
+    src: "/project/test_site/",
+    dest: "/project/test_site/site/"
   }
 end
