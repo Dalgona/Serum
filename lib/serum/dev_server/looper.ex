@@ -3,7 +3,6 @@ defmodule Serum.DevServer.Looper do
   A looper which accepts user inputs as server commands and processes them.
   """
 
-  require Serum.Util
   import Serum.Util
   alias Serum.DevServer.Service
 

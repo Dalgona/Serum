@@ -3,7 +3,6 @@ defmodule Serum.Build do
   This module contains functions for actually building a Serum project.
   """
 
-  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build.Pass1

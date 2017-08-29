@@ -8,7 +8,6 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     blog posts filtered by each tag.
   """
 
-  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build

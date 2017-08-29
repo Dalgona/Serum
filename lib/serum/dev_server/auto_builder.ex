@@ -6,7 +6,6 @@ defmodule Serum.DevServer.AutoBuilder do
 
   @behaviour Microscope.Callback
 
-  require Serum.Util
   import Serum.Util
   alias Serum.DevServer.Service
 

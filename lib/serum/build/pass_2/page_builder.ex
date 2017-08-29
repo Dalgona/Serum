@@ -12,7 +12,6 @@ defmodule Serum.Build.Pass2.PageBuilder do
   3. Saves the rendered page to the output directory.
   """
 
-  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build

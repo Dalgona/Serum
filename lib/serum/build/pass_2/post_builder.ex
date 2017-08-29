@@ -6,7 +6,6 @@ defmodule Serum.Build.Pass2.PostBuilder do
     blog post for each `Serum.PostInfo` object in the list.
   """
 
-  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build

@@ -3,7 +3,6 @@ defmodule Serum.Init do
   This module contains functions required to initialize a new Serum project.
   """
 
-  require Serum.Util
   import Serum.Payload
   import Serum.Util
   alias Serum.Error

@@ -11,7 +11,6 @@ defmodule Serum.Build.Pass1.PostBuilder do
     use in the second pass.
   """
 
-  require Serum.Util
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
