@@ -24,7 +24,9 @@ defmodule Serum.Validation do
         "date_format": { "type": "string" },
         "preview_length": { "type": "integer", "minimum": 0 },
         "list_title_all": { "type": "string" },
-        "list_title_tag": { "type": "string" }
+        "list_title_tag": { "type": "string" },
+        "pagination": { "type": "boolean" },
+        "posts_per_page": { "type": "integer", "minimum": 1 }
       },
       "additionalProperties": false,
       "required": [

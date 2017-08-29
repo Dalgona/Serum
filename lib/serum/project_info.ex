@@ -5,19 +5,17 @@ defmodule Serum.ProjectInfo do
 
   import Serum.Util
 
-  @enforce_keys [
-    :site_name, :site_description, :base_url, :author, :author_email
-  ]
-
   @accepted_keys [
     "site_name", "site_description", "base_url", "author", "author_email",
-    "date_format", "preview_length", "list_title_all", "list_title_tag"
+    "date_format", "preview_length", "list_title_all", "list_title_tag",
+    "pagination", "posts_per_page"
   ]
 
   defstruct [
-    :site_name, :site_description, :base_url, :author, :author_email,
-    date_format: "{YYYY}-{0M}-{0D}", preview_length: 200,
-    list_title_all: "All Posts", list_title_tag: "Posts Tagged ~s"
+    site_name: "", site_description: "", base_url: "", author: "",
+    author_email: "", date_format: "{YYYY}-{0M}-{0D}", preview_length: 200,
+    list_title_all: "All Posts", list_title_tag: "Posts Tagged ~s",
+    pagination: false, posts_per_page: 5
   ]
 
   @type t :: %Serum.ProjectInfo{}
@@ -26,10 +24,7 @@ defmodule Serum.ProjectInfo do
   @spec new(map) :: t
 
   def new(map) do
-    default = %Serum.ProjectInfo{
-      site_name: "", site_description: "", base_url: "",
-      author: "", author_email: ""
-    }
+    default = %Serum.ProjectInfo{}
     map_checked =
       map |> check_date_format() |> check_list_title_format()
     map_new =
