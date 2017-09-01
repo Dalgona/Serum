@@ -28,21 +28,21 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     tags = state.tag_map
     case index_task({nil, state.site_ctx[:posts]}, state) do
       :ok ->
-        result = launch_tag mode, tags, state
+        result = launch mode, tags, state
         Error.filter_results result, :index_builder
       {:error, _} = error -> error
     end
   end
 
-  @spec launch_tag(Build.mode, map, state) :: [Error.result]
+  @spec launch(Build.mode, map, state) :: [Error.result]
 
-  defp launch_tag(:parallel, tagmap, state) do
+  defp launch(:parallel, tagmap, state) do
     tagmap
     |> Task.async_stream(__MODULE__, :index_task, [state], @async_opt)
     |> Enum.map(&elem(&1, 1))
   end
 
-  defp launch_tag(:sequential, tagmap, state) do
+  defp launch(:sequential, tagmap, state) do
     tagmap
     |> Enum.map(&index_task(&1, state))
   end
@@ -74,42 +74,23 @@ defmodule Serum.Build.Pass2.IndexBuilder do
       |> Map.put(:list_title, list_title)
       |> Map.put(:max_page, length(posts))
 
-    case render_lists posts, 1, [], new_state do
+    case render_lists posts, new_state do
       {:ok, htmls} -> save_lists htmls, list_dir
       {:error, _} = error -> error
     end
   end
 
-  @spec render_lists([[PostInfo.t]], integer, [Error.result(binary)], state)
-    :: Error.result([binary])
+  @spec render_lists([[PostInfo.t]], state) :: Error.result([binary])
 
-  defp render_lists(paginated_posts, page_num, acc, state)
-
-  defp render_lists([page], 1, _acc, state) do
-    # The only page
-    rendered = render_list page, 1, true, true, state
-    [rendered]
+  defp render_lists(paginated_posts, state) do
+    paginated_posts
+    |> Enum.with_index(1)
+    |> Enum.map(fn {page, page_num} ->
+      first? = page_num == 1
+      last? = page_num == state.max_page
+      render_list page, page_num, first?, last?, state
+    end)
     |> Error.filter_results_with_values(:render_lists)
-  end
-
-  defp render_lists([page], page_num, acc, state) do
-    # The last page
-    rendered = render_list page, page_num, false, true, state
-    [rendered|acc]
-    |> Enum.reverse()
-    |> Error.filter_results_with_values(:render_lists)
-  end
-
-  defp render_lists([page|rest], 1, acc, state) do
-    # The first page
-    rendered = render_list page, 1, true, false, state
-    render_lists rest, 2, [rendered|acc], state
-  end
-
-  defp render_lists([page|rest], page_num, acc, state) do
-    # Other pages
-    rendered = render_list page, page_num, false, false, state
-    render_lists rest, page_num + 1, [rendered|acc], state
   end
 
   @spec render_list([PostInfo.t], integer, boolean, boolean, state)
