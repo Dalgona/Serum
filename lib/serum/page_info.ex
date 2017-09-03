@@ -13,10 +13,11 @@ defmodule Serum.PageInfo do
 
   def new(filename, header, state) do
     type = get_type filename
+    page_dir = state.src == "." && "pages" || Path.join(state.src, "pages")
     relname =
       filename
       |> Path.rootname(type)
-      |> Path.relative_to(Path.join state.src, "pages/")
+      |> Path.relative_to(page_dir)
       |> Kernel.<>(".html")
     %Serum.PageInfo{
       file: filename,

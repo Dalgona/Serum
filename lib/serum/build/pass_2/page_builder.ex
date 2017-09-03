@@ -51,7 +51,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
   @spec create_dir([PageInfo.t], state) :: :ok
 
   defp create_dir(pages, state) do
-    page_dir = Path.join state.src, "pages"
+    page_dir = state.src == "." && "pages" || Path.join(state.src, "pages")
     pages
     |> Stream.map(&Path.dirname(&1.file))
     |> Stream.uniq()
