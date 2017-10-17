@@ -184,13 +184,13 @@ defmodule Serum.HeaderParser do
     case Timex.parse(valstr, @date_format1) do
       {:ok, dt} ->
         dt |> Timex.to_erl |> Timex.to_datetime(:local)
-      {:error, msg} ->
+      {:error, _msg} ->
         case Timex.parse(valstr, @date_format2) do
-	  {:ok, dt} ->
+          {:ok, dt} ->
             dt |> Timex.to_erl |> Timex.to_datetime(:local)
-	  {:error, msg} -> 
-	    {:error, "`#{key}`: " <> msg}
-	end
+          {:error, msg} ->
+            {:error, "`#{key}`: " <> msg}
+        end
     end
   end
 
