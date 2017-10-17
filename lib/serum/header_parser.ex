@@ -20,7 +20,8 @@ defmodule Serum.HeaderParser do
 
   alias Serum.Error
 
-  @date_format "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
+  @date_format1 "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
+  @date_format2 "{YYYY}-{0M}-{0D}"
 
   @type options :: [{atom, value_type}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type}
@@ -180,13 +181,19 @@ defmodule Serum.HeaderParser do
   end
 
   defp transform_value(key, valstr, :datetime) do
-    case Timex.parse(valstr, @date_format) do
+    case Timex.parse(valstr, @date_format1) do
       {:ok, dt} ->
         dt |> Timex.to_erl |> Timex.to_datetime(:local)
       {:error, msg} ->
-        {:error, "`#{key}`: " <> msg}
+        case Timex.parse(valstr, @date_format2) do
+	  {:ok, dt} ->
+            dt |> Timex.to_erl |> Timex.to_datetime(:local)
+	  {:error, msg} -> 
+	    {:error, "`#{key}`: " <> msg}
+	end
     end
   end
+
 
   defp transform_value(key, _valstr, {:list, {:list, _type}}) do
     {:error, "`#{key}`: \"list of lists\" type is not supported"}
