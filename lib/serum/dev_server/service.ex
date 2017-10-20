@@ -107,7 +107,7 @@ defmodule Serum.DevServer.Service do
     do
       :ok
     else
-      {:error, _, _} = error -> build_failed error
+      {:error, _} = error -> build_failed error
     end
   end
 
