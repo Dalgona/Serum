@@ -15,6 +15,7 @@ defmodule Serum.CLI do
   """
 
   import Serum.Util
+  alias Serum.SiteBuilder
 
   @behaviour Serum.CLI.Task
 
@@ -114,6 +115,23 @@ defmodule Serum.CLI do
     |> Enum.map(&{&1, &1.tasks()})
     |> Enum.map(fn {mod, l} -> Enum.map l, &{&1, mod.short_help(&1)} end)
     |> List.flatten
+  end
+
+  @spec in_project_dir?() :: boolean
+
+  defp in_project_dir? do
+    cwd = System.cwd()
+    with {:ok, null} <- StringIO.open(""),
+         {:ok, builder} <- SiteBuilder.start_link(cwd, ""),
+         Process.group_leader(builder, null),
+         {:ok, _proj} <- SiteBuilder.load_info(builder),
+         :ok <- SiteBuilder.stop(builder),
+         _ <- StringIO.close(null)
+    do
+      true
+    else
+      _ -> false
+    end
   end
 
   #
