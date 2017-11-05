@@ -34,6 +34,11 @@ defmodule Serum.CLI do
     __MODULE__
   ]
 
+  @proj_task_providers [
+    Serum.CLI.NewPage,
+    Serum.CLI.NewPost
+  ]
+
   @doc "The entry point for Serum command-line program."
   @spec main(args :: [binary]) :: any
 
@@ -64,7 +69,12 @@ defmodule Serum.CLI do
   @spec task_map() :: %{required(binary) => {atom, binary}}
 
   defp task_map do
-    providers = @main_task_providers
+    providers =
+      if in_project_dir?() do
+        @main_task_providers ++ @proj_task_providers
+      else
+        @main_task_providers
+      end
     Enum.reduce providers, %{}, fn module, acc ->
       temp =
         for task when is_binary(task) <- module.tasks(), into: %{} do
@@ -93,6 +103,14 @@ defmodule Serum.CLI do
       (run "serum help TASK" to read detailed description for each TASK)
     """
     display_tasks @main_task_providers
+    if in_project_dir?() do
+      IO.puts """
+
+      You are in a valid Serum project directory.
+      You can use these additional tasks:
+      """
+      display_tasks @proj_task_providers
+    end
     IO.puts """
 
     Visit http://dalgona.hontou.moe/Serum for the getting started guide,
