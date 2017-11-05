@@ -1,11 +1,8 @@
 defmodule Serum.CLI.Server do
   @moduledoc false
 
-  alias Serum.CLI
-  alias Serum.CLI.Task, as: CLITask
+  use Serum.CLI.Task
   alias Serum.DevServer
-
-  @behaviour CLITask
 
   @strict  [port: :integer]
   @aliases [p: :port]

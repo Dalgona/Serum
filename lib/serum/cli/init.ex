@@ -1,12 +1,8 @@
 defmodule Serum.CLI.Init do
   @moduledoc false
 
-  alias Serum.CLI
-  alias Serum.CLI.Task, as: CLITask
-  alias Serum.Error
+  use Serum.CLI.Task
   alias Serum.Init
-
-  @behaviour CLITask
 
   @strict  [force: :boolean]
   @aliases [f: :force]

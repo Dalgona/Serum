@@ -1,6 +1,15 @@
 defmodule Serum.CLI.Task do
   @moduledoc false
 
+  defmacro __using__(_opts) do
+    quote do
+      @behaviour unquote(__MODULE__)
+
+      alias Serum.CLI
+      alias Serum.Error
+    end
+  end
+
   @callback tasks() :: [binary]
   @callback run(task_name :: binary, args :: [binary]) :: {:cli_exit, integer}
   @callback short_help(task_name :: binary) :: binary
@@ -14,10 +23,9 @@ defmodule Serum.CLI do
   (`Serum.CLI.main/1`).
   """
 
+  use Serum.CLI.Task
   import Serum.Util
   alias Serum.SiteBuilder
-
-  @behaviour Serum.CLI.Task
 
   @main_task_providers [
     Serum.CLI.Init,

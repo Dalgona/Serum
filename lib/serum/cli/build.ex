@@ -1,12 +1,8 @@
 defmodule Serum.CLI.Build do
   @moduledoc false
 
-  alias Serum.CLI
-  alias Serum.CLI.Task, as: CLITask
-  alias Serum.Error
+  use Serum.CLI.Task
   alias Serum.SiteBuilder
-
-  @behaviour CLITask
 
   @strict  [parallel: :boolean, output: :string]
   @aliases [p: :parallel, o: :output]
