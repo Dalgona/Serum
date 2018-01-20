@@ -151,7 +151,7 @@ defmodule Serum.SiteBuilder do
   @spec validate(map) :: Error.result(ProjectInfo.t)
 
   defp validate(proj) do
-    case Validation.validate "serum.json", proj do
+    case Validation.validate "project_info", proj do
       :ok -> {:ok, ProjectInfo.new(proj)}
       error -> error
     end
