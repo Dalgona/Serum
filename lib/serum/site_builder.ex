@@ -9,10 +9,9 @@ defmodule Serum.SiteBuilder do
   alias Serum.Error
   alias Serum.Build
   alias Serum.ProjectInfo
-  alias Serum.Validation
 
   #
-  # GenServer Implementation - Client
+  # Client Functions
   #
 
   @doc """
@@ -82,21 +81,18 @@ defmodule Serum.SiteBuilder do
   end
 
   #
-  # GenServer Implementation - Server
+  # GenServer Callbacks
   #
-
-  @doc false
 
   def init({src, dest}) do
     {:ok, %{src: src, dest: dest, project_info: nil}}
   end
 
-  @doc false
-
   def handle_call(msg, from, state)
 
   def handle_call(:load_info, _from, state) do
-    case do_load_info state.src do
+    path = Path.join(state.src, "serum.json")
+    case ProjectInfo.load(path) do
       {:ok, proj} ->
         {:reply, {:ok, proj}, Map.put(state, :project_info, proj)}
       {:error, _} = error ->
@@ -115,45 +111,7 @@ defmodule Serum.SiteBuilder do
     end
   end
 
-  @doc false
-
   def handle_cast(:stop, _state) do
     exit :normal
-  end
-
-  #
-  # Internal Functions
-  #
-
-  @spec do_load_info(binary) :: Error.result(ProjectInfo.t)
-
-  defp do_load_info(dir) do
-    path = Path.join dir, "serum.json"
-    IO.puts "Reading project metadata `#{path}'..."
-    case File.read path do
-      {:ok, data} -> decode_json path, data
-      {:error, reason} -> {:error, {reason, path, 0}}
-    end
-  end
-
-  @spec decode_json(binary, binary) :: Error.result(ProjectInfo.t)
-
-  defp decode_json(path, data) do
-    case Poison.decode data do
-      {:ok, proj} -> validate proj
-      {:error, :invalid, pos} ->
-        {:error, {"parse error at position #{pos}", path, 0}}
-      {:error, {:invalid, token, pos}} ->
-        {:error, {"parse error near `#{token}' at position #{pos}", path, 0}}
-    end
-  end
-
-  @spec validate(map) :: Error.result(ProjectInfo.t)
-
-  defp validate(proj) do
-    case Validation.validate "project_info", proj do
-      :ok -> {:ok, ProjectInfo.new(proj)}
-      error -> error
-    end
   end
 end

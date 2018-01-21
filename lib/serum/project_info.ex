@@ -4,6 +4,7 @@ defmodule Serum.ProjectInfo do
   """
 
   import Serum.Util
+  alias Serum.Validation
 
   @accepted_keys [
     "site_name", "site_description", "base_url", "author", "author_email",
@@ -18,13 +19,25 @@ defmodule Serum.ProjectInfo do
     pagination: false, posts_per_page: 5
   ]
 
-  @type t :: %Serum.ProjectInfo{}
+  @type t :: %__MODULE__{
+    site_name: binary,
+    site_description: binary,
+    base_url: binary,
+    author: binary,
+    author_email: binary,
+    date_format: binary,
+    preview_length: non_neg_integer,
+    list_title_all: binary,
+    list_title_tag: binary,
+    pagination: boolean,
+    posts_per_page: pos_integer
+  }
 
   @doc "A helper function for creating a new ProjectInfo struct."
   @spec new(map) :: t
 
   def new(map) do
-    default = %Serum.ProjectInfo{}
+    default = %__MODULE__{}
     map_checked =
       map |> check_date_format() |> check_list_title_format()
     map_new =
@@ -32,6 +45,31 @@ defmodule Serum.ProjectInfo do
         {String.to_atom(k), v}
       end
     Map.merge default, map_new
+  end
+
+  @doc """
+  Loads a Serum project info from the given file `path`.
+  """
+
+  def load(path) do
+    with {:ok, text} <- File.read(path),
+         {:ok, json} <- Poison.decode(text),
+         :ok <- Validation.validate("project_info", json) do
+      {:ok, new(json)}
+    else
+      # From File.read/1:
+      {:error, reason} -> {:error, {reason, path, 0}}
+
+      # From Poison.decode/1:
+      {:error, :invalid, pos} ->
+        {:error, {"parse error at position #{pos}", path, 0}}
+
+      {:error, {:invalid, token, pos}} ->
+        {:error, {"parse error near `#{token}' at position #{pos}", path, 0}}
+
+      # From Validation.validate/2:
+      {:error, _} = error -> error
+    end
   end
 
   @spec check_date_format(map) :: map
