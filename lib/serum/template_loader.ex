@@ -6,7 +6,6 @@ defmodule Serum.TemplateLoader do
   import Serum.Util
   alias Serum.Build
   alias Serum.Error
-  alias Serum.Renderer
 
   @type state :: Build.state
 
@@ -44,9 +43,9 @@ defmodule Serum.TemplateLoader do
   end
 
   @doc """
-  Reads, compiles, preprocesses, and renders the includable templates.
+  Reads, compiles and preprocesses the includable templates.
 
-  May return a new state object with rendered HTML stub of includable templates.
+  May return a new state object with compiled includable templates.
   """
   @spec load_includes(state) :: Error.result(state)
 
@@ -60,7 +59,6 @@ defmodule Serum.TemplateLoader do
         |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
         |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
         |> Stream.map(&do_load_includes(&1, state))
-        |> Enum.map(&render_includes(&1, state))
         |> Error.filter_results_with_values(:load_includes)
       case result do
         {:ok, list} -> {:ok, Map.put(state, :includes, Map.new(list))}
@@ -83,20 +81,6 @@ defmodule Serum.TemplateLoader do
       {:error, reason} -> {:error, {reason, path, 0}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
-  end
-
-  @spec render_includes(Error.result({binary, Macro.t}), state)
-    :: Error.result({binary, binary})
-
-  defp render_includes({:ok, {name, ast}}, state) do
-    case Renderer.render_stub ast, state.site_ctx, name do
-      {:ok, html} -> {:ok, {name, html}}
-      {:error, _} = error -> error
-    end
-  end
-
-  defp render_includes(error = {:error, _}, _state) do
-    error
   end
 
   @doc """
@@ -161,8 +145,8 @@ defmodule Serum.TemplateLoader do
     case state.includes[arg] do
       nil ->
         warn "There is no includable named `#{arg}'."
-        ""
-      stub when is_binary(stub) -> stub
+        nil
+      stub -> stub
     end
   end
 
