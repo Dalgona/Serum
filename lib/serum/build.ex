@@ -37,8 +37,8 @@ defmodule Serum.Build do
     with :ok <- check_dest_perm(state.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(state.dest),
-         {:ok, state} <- Pass1.run(mode, state),
          {:ok, state} <- prepare_templates(state),
+         {:ok, state} <- Pass1.run(mode, state),
          :ok <- Pass2.run(mode, state)
     do
       copy_assets state
@@ -48,6 +48,8 @@ defmodule Serum.Build do
     end
   end
 
+  # Checks if the effective user have a write
+  # permission on the destination directory.
   @spec check_dest_perm(binary) :: Error.result
 
   defp check_dest_perm(dest) do
@@ -65,6 +67,7 @@ defmodule Serum.Build do
     end
   end
 
+  # Checks if the system timezone is set and valid.
   @spec check_tz() :: Error.result
 
   defp check_tz() do
@@ -76,13 +79,14 @@ defmodule Serum.Build do
     end
   end
 
+  # Removes all files and directories in the destination directory,
+  # excluding dotfiles so that git repository is not blown away.
   @spec clean_dest(binary) :: :ok
 
   defp clean_dest(dest) do
     File.mkdir_p! dest
     msg_mkdir dest
 
-    # exclude dotfiles so that git repository is not blown away
     dest
     |> File.ls!
     |> Enum.reject(&String.starts_with?(&1, "."))
