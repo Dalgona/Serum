@@ -15,7 +15,6 @@ defmodule Serum.CLI.NewPost do
     o: :output,
   ]
   @required [:title, :output]
-  @in_header [:title, :tag, :order]
 
   def tasks, do: ["newpost"]
 
@@ -38,7 +37,7 @@ defmodule Serum.CLI.NewPost do
          path = full_path(opts[:output], now),
          {:ok, file} <- create_file(path)
     do
-      # do some work here
+      IO.write(file, generate_contents(opts, now))
       File.close(file)
       msg_gen(path)
       {:cli_exit, 0}
@@ -68,7 +67,7 @@ defmodule Serum.CLI.NewPost do
 
   @spec current_datetime() :: {:ok, DateTime.t()} | :error
   defp current_datetime do
-    Timex.local()
+    {:ok, Timex.local()}
   rescue
     _ -> :error
   end
@@ -92,6 +91,19 @@ defmodule Serum.CLI.NewPost do
     end
 
     File.open(path, [:write, :exclusive, :utf8])
+  end
+
+  @spec generate_contents(keyword(), DateTime.t()) :: binary()
+  defp generate_contents(opts, now) do
+    """
+    ---
+    title: #{opts[:title]}
+    date: #{Timex.format!(now, "{YYYY}-{0M}-{0D} {h24}:{m}:{s}")}
+    tags: #{opts |> Keyword.get_values(:tag) |> Enum.join(", ")}
+    ---
+
+    TODO: Write some text here!
+    """
   end
 
   def short_help(_task), do: "Add a new blog post to the current project"
