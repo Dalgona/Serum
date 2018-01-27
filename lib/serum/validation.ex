@@ -6,48 +6,25 @@ defmodule Serum.Validation do
   alias ExJsonSchema.Validator
   alias ExJsonSchema.Schema
 
-  @spec schema(schema_name :: binary) :: binary
+  @spec schema(schema_name :: binary) :: map
 
-  defp schema("*") do
-    "{}"
-  end
+  schema_files =
+    :serum
+    |> :code.priv_dir()
+    |> Path.join("json_schema/*.json")
+    |> Path.wildcard()
 
-  defp schema("serum.json") do """
-    {
-      "type": "object",
-      "properties": {
-        "site_name": { "type": "string" },
-        "site_description": { "type": "string" },
-        "author": { "type": "string" },
-        "author_email": { "type": "string" },
-        "base_url": { "type": "string", "pattern": ".*/$" },
-        "date_format": { "type": "string" },
-        "preview_length": { "type": "integer", "minimum": 0 },
-        "list_title_all": { "type": "string" },
-        "list_title_tag": { "type": "string" },
-        "pagination": { "type": "boolean" },
-        "posts_per_page": { "type": "integer", "minimum": 1 }
-      },
-      "additionalProperties": false,
-      "required": [
-        "site_name", "site_description",
-        "author", "author_email",
-        "base_url"
-      ]
-    }
-  """ end
+  for path <- schema_files do
+    basename = Path.basename(path, ".json")
+    schema_data =
+      path
+      |> File.read!()
+      |> Poison.decode!()
+      |> Schema.resolve()
 
-  @doc """
-  Loads JSON schemas onto `Serum.Schema` agent.
-  """
-  @spec load_schema() :: :ok
-
-  def load_schema do
-    ["*", "serum.json"]
-    |> Enum.each(fn x ->
-      sch = x |> schema |> Poison.decode! |> Schema.resolve
-      Agent.update Serum.Schema, &Map.put(&1, "schema__#{x}", sch)
-    end)
+    def schema(unquote(basename)) do
+      unquote(Macro.escape(schema_data))
+    end
   end
 
   @doc """
@@ -56,9 +33,7 @@ defmodule Serum.Validation do
   @spec validate(binary, map) :: Error.result
 
   def validate(schema_name, data) do
-    schema =
-      Agent.get(Serum.Schema, &(&1["schema__#{schema_name}"]))
-      || Agent.get(Serum.Schema, &(&1["schema__*"]))
+    schema = schema(schema_name)
     case Validator.validate schema, data do
       :ok -> :ok
       {:error, errors} ->

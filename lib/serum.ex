@@ -1,6 +1,5 @@
 defmodule Serum do
   use Application
-  alias Serum.Validation
 
   @moduledoc """
   Defines Serum OTP application.
@@ -15,11 +14,8 @@ defmodule Serum do
   def start(_type, _args) do
     import Supervisor.Spec
     children = [
-      worker(Agent, [fn -> %{} end, [name: Serum.Schema]])
     ]
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
-    {:ok, pid} = Supervisor.start_link children, opts
-    Validation.load_schema()
-    {:ok, pid}
+    {:ok, _pid} = Supervisor.start_link children, opts
   end
 end
