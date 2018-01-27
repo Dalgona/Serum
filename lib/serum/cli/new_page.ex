@@ -35,7 +35,7 @@ defmodule Serum.CLI.NewPage do
     end
   end
 
-  @spec do_run(keyword()) :: {:cli_exit, non_neg_integer}
+  @spec do_run(keyword()) :: {:cli_exit, non_neg_integer()}
   defp do_run(opts) do
     with [] <- check_required(opts),
          {:ok, type} <- check_type(opts[:output]),
@@ -46,7 +46,7 @@ defmodule Serum.CLI.NewPage do
       io_items = [generate_header(opts), generate_title(opts[:title], type)]
       IO.write(file, io_items)
       File.close(file)
-      msg_gen(opts[:output])
+      msg_gen(output)
       {:cli_exit, 0}
     else
       # From check_required/1:
