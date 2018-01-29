@@ -86,11 +86,8 @@ defmodule Serum.TemplateLoader do
     compiled = EEx.compile_string(data)
     ast =
       case kind do
-        :template ->
-          preprocess_template(compiled, args[:includes])
-
-        :include ->
-          preprocess_include(compiled)
+        :template -> preprocess_template(compiled, args[:includes])
+        :include -> compiled
       end
     {:ok, ast}
   rescue
@@ -107,11 +104,6 @@ defmodule Serum.TemplateLoader do
     ast
     |> Macro.postwalk(&expand_includes(&1, includes))
     |> Macro.postwalk(&eval_helpers/1)
-  end
-
-  @spec preprocess_include(Macro.t()) :: Macro.t()
-  defp preprocess_include(ast) do
-    Macro.postwalk(ast, &eval_helpers/1)
   end
 
   @spec expand_includes(Macro.t(), templates()) :: Macro.t()
