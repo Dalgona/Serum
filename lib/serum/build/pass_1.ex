@@ -64,7 +64,7 @@ defmodule Serum.Build.Pass1 do
     site_ctx = [
       site_name: proj.site_name, site_description: proj.site_description,
       author: proj.author, author_email: proj.author_email,
-      pages: pages, posts: posts, tags: tags
+      pages: pages, posts: posts, tags: tags, base_url: proj.base_url
     ]
     state
     |> Map.put(:site_ctx, site_ctx)

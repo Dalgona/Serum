@@ -4,36 +4,34 @@ defmodule Serum.TemplateLoader do
   """
 
   import Serum.Util
-  alias Serum.Build
   alias Serum.Error
 
-  @type state :: Build.state
+  @type templates() :: %{optional(binary()) => Macro.t()}
 
   @doc """
   Reads, compiles, and preprocesses the site templates.
 
-  May return a new state object with loaded template AST objects.
+  May return a map with loaded template ASTs.
   """
-  @spec load_templates(state) :: Error.result(state)
-
-  def load_templates(state) do
+  @spec load_templates(binary(), templates()) :: Error.result(templates())
+  def load_templates(src, includes) do
     IO.puts "Loading templates..."
     result =
       ["base", "list", "page", "post"]
-      |> Enum.map(&do_load_templates(&1, state))
+      |> Enum.map(&do_load_templates(&1, src, includes))
       |> Error.filter_results_with_values(:load_templates)
     case result do
-      {:ok, list} -> {:ok, Map.put(state, :templates, Map.new(list))}
+      {:ok, list} -> {:ok, Map.new(list)}
       {:error, _} = error -> error
     end
   end
 
-  @spec do_load_templates(binary, state) :: Error.result({binary, Macro.t})
-
-  defp do_load_templates(name, state) do
-    path = Path.join [state.src, "templates", name <> ".html.eex"]
+  @spec do_load_templates(binary(), binary(), binary())
+    :: Error.result({binary(), Macro.t()})
+  defp do_load_templates(name, src, includes) do
+    path = Path.join [src, "templates", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
-         {:ok, ast} <- compile_template(data, state)
+         {:ok, ast} <- compile(data, :template, includes: includes)
     do
       {:ok, {name, ast}}
     else
@@ -45,36 +43,34 @@ defmodule Serum.TemplateLoader do
   @doc """
   Reads, compiles and preprocesses the includable templates.
 
-  May return a new state object with compiled includable templates.
+  May return a map with compiled includable templates.
   """
-  @spec load_includes(state) :: Error.result(state)
-
-  def load_includes(state) do
+  @spec load_includes(binary()) :: Error.result(templates())
+  def load_includes(src) do
     IO.puts "Loading includes..."
-    includes_dir = Path.join state.src, "includes"
+    includes_dir = Path.join src, "includes"
     if File.exists? includes_dir do
       result =
         includes_dir
         |> File.ls!
         |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
         |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
-        |> Stream.map(&do_load_includes(&1, state))
+        |> Stream.map(&do_load_includes(&1, src))
         |> Error.filter_results_with_values(:load_includes)
       case result do
-        {:ok, list} -> {:ok, Map.put(state, :includes, Map.new(list))}
+        {:ok, list} -> {:ok, Map.new(list)}
         {:error, _} = error -> error
       end
     else
-      {:ok, Map.put(state, :includes, %{})}
+      {:ok, %{}}
     end
   end
 
-  @spec do_load_includes(binary, state) :: Error.result({binary, Macro.t})
-
-  defp do_load_includes(name, state) do
-    path = Path.join [state.src, "includes", name <> ".html.eex"]
+  @spec do_load_includes(binary(), binary()) :: Error.result({binary(), Macro.t()})
+  defp do_load_includes(name, src) do
+    path = Path.join [src, "includes", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
-         {:ok, ast} <- compile_template(data, state)
+         {:ok, ast} <- compile(data, :include)
     do
       {:ok, {name, ast}}
     else
@@ -83,80 +79,81 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @doc """
-  Compiles a given EEx string into an Elixir AST and preprocesses Serum template
-  helper macros.
-
-  Returns `{:ok, template_ast}` if there is no error.
-  """
-  @spec compile_template(binary, state)
+  @spec compile(binary(), :template | :include, keyword())
     :: {:ok, Macro.t}
      | {:ct_error, binary, integer}
+  def compile(data, kind, args \\ []) do
+    compiled = EEx.compile_string(data)
+    ast =
+      case kind do
+        :template ->
+          preprocess_template(compiled, args[:includes])
 
-  def compile_template(data, state) do
-    try do
-      ast = data |> EEx.compile_string() |> preprocess_template(state)
-      {:ok, ast}
-    rescue
-      e in EEx.SyntaxError ->
-        {:ct_error, e.message, e.line}
-      e in SyntaxError ->
-        {:ct_error, e.description, e.line}
-      e in TokenMissingError ->
-        {:ct_error, e.description, e.line}
-    end
+        :include ->
+          preprocess_include(compiled)
+      end
+    {:ok, ast}
+  rescue
+    e in EEx.SyntaxError ->
+      {:ct_error, e.message, e.line}
+    e in SyntaxError ->
+      {:ct_error, e.description, e.line}
+    e in TokenMissingError ->
+      {:ct_error, e.description, e.line}
   end
 
-  @spec preprocess_template(Macro.t, state) :: Macro.t
-
-  defp preprocess_template(ast, state) do
-    Macro.postwalk ast, fn
-      {name, meta, children} when not is_nil(children) ->
-        eval_helpers {name, meta, children}, state
-      x -> x
-    end
+  @spec preprocess_template(Macro.t(), templates()) :: Macro.t()
+  defp preprocess_template(ast, includes) do
+    ast
+    |> Macro.postwalk(&expand_includes(&1, includes))
+    |> Macro.postwalk(&eval_helpers/1)
   end
 
-  defp eval_helpers({:base, _meta, children}, state) do
-    arg = extract_arg children
-    case arg do
-      nil -> state.project_info.base_url
-      path -> Path.join state.project_info.base_url, path
-    end
+  @spec preprocess_include(Macro.t()) :: Macro.t()
+  defp preprocess_include(ast) do
+    Macro.postwalk(ast, &eval_helpers/1)
   end
 
-  defp eval_helpers({:page, _meta, children}, state) do
-    arg = extract_arg children
-    Path.join state.project_info.base_url, arg <> ".html"
-  end
+  @spec expand_includes(Macro.t(), templates()) :: Macro.t()
+  defp expand_includes(ast, includes)
 
-  defp eval_helpers({:post, _meta, children}, state) do
-    arg = extract_arg children
-    Path.join [state.project_info.base_url, "posts", arg <> ".html"]
-  end
-
-  defp eval_helpers({:asset, _meta, children}, state) do
-    arg = extract_arg children
-    Path.join [state.project_info.base_url, "assets", arg]
-  end
-
-  defp eval_helpers({:include, _meta, children}, state) do
-    arg = extract_arg children
-    case state.includes[arg] do
+  defp expand_includes({:include, _, [arg]}, includes) do
+    case includes[arg] do
       nil ->
-        warn "There is no includable named `#{arg}'."
+        warn "There is no includable template named `#{arg}`."
         nil
-      stub -> stub
+      ast -> ast
     end
   end
 
-  defp eval_helpers({x, y, z}, _) do
-    {x, y, z}
+  defp expand_includes(anything_else, _) do
+    anything_else
   end
 
-  @spec extract_arg(Macro.t) :: [term]
+  @spec eval_helpers(Macro.t()) :: Macro.t()
+  defp eval_helpers(ast)
 
-  defp extract_arg(children) do
-    children |> Code.eval_quoted |> elem(0) |> List.first
+  defp eval_helpers({:base, _, []}) do
+    quote do: var!(base_url)
+  end
+
+  defp eval_helpers({:base, _, [arg]}) do
+    quote do: Path.join(var!(base_url), unquote(arg))
+  end
+
+  defp eval_helpers({:page, _, [arg]}) do
+    quote do: Path.join(var!(base_url), unquote(arg) <> ".html")
+  end
+
+  defp eval_helpers({:post, _, [arg]}) do
+    quote do: Path.join([var!(base_url), "posts", unquote(arg) <> ".html"])
+  end
+
+  defp eval_helpers({:asset, _, [arg]}) do
+    quote do: Path.join([var!(base_url), "assets", unquote(arg)])
+  end
+
+  defp eval_helpers(anything_else) do
+    anything_else
   end
 end

@@ -37,7 +37,8 @@ defmodule Serum.Build do
     with :ok <- check_dest_perm(state.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(state.dest),
-         {:ok, state} <- prepare_templates(state),
+         {:ok, map} <- prepare_templates(state.src),
+         state = Map.merge(state, map),
          {:ok, state} <- Pass1.run(mode, state),
          :ok <- Pass2.run(mode, state)
     do
@@ -94,13 +95,13 @@ defmodule Serum.Build do
     |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec prepare_templates(state) :: Error.result(state)
+  @spec prepare_templates(binary()) :: Error.result(map())
 
-  defp prepare_templates(state) do
-    with {:ok, state} <- TemplateLoader.load_includes(state),
-         {:ok, state} <- TemplateLoader.load_templates(state)
+  defp prepare_templates(src) do
+    with {:ok, includes} <- TemplateLoader.load_includes(src),
+         {:ok, templates} <- TemplateLoader.load_templates(src, includes)
     do
-      {:ok, state}
+      {:ok, %{templates: templates, includes: includes}}
     else
       {:error, _} = error -> error
     end

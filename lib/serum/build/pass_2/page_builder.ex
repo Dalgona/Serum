@@ -100,7 +100,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
   end
 
   defp render_page(".html.eex", html, title, state) do
-    with {:ok, ast} <- TemplateLoader.compile_template(html, state),
+    with {:ok, ast} <- TemplateLoader.compile(html, :template, includes: state.includes),
          {:ok, html} <- Renderer.render_stub(ast, state.site_ctx, "")
     do
       Renderer.render "page", [contents: html], [page_title: title], state
