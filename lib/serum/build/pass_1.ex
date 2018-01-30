@@ -31,7 +31,7 @@ defmodule Serum.Build.Pass1 do
 
   def run(:parallel, state) do
     IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
-    t1 = Task.async fn -> PageBuilder.run :parallel, state end
+    t1 = Task.async fn -> PageBuilder.run :parallel, state.src, state.dest, state.project_info end
     t2 = Task.async fn -> PostBuilder.run :parallel, state end
     with {:ok, pages} <- Task.await(t1),
          {:ok, posts} <- Task.await(t2)
@@ -44,8 +44,8 @@ defmodule Serum.Build.Pass1 do
 
   def run(:sequential, state) do
     IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
-    with {:ok, pages} <- PageBuilder.run(:parallel, state),
-         {:ok, posts} <- PostBuilder.run(:parallel, state)
+    with {:ok, pages} <- PageBuilder.run(:sequential, state.src, state.dest, state.project_info),
+         {:ok, posts} <- PostBuilder.run(:sequential, state)
     do
       {:ok, update_state(pages, posts, state)}
     else

@@ -12,57 +12,40 @@ defmodule Serum.Build.Pass1.PageBuilder do
 
   alias Serum.Error
   alias Serum.Build
-  alias Serum.HeaderParser
-  alias Serum.PageInfo
-
-  @type state :: Build.state
+  alias Serum.Page
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts the first pass of PageBuilder."
-  @spec run(Build.mode, state) :: Error.result([PageInfo.t])
+  @spec run(Build.mode, binary(), binary(), map()) :: Error.result([PageInfo.t])
 
-  def run(mode, state) do
+  def run(mode, src, dest, proj) do
     IO.puts "Collecting pages information..."
-    page_dir = Path.join state.src, "pages"
+    page_dir = src == "." && "pages" || Path.join(src, "pages")
     if File.exists? page_dir do
       files =
         [page_dir, "**", "*.{md,html,html.eex}"]
         |> Path.join()
         |> Path.wildcard()
-      result = launch mode, files, state
+        |> Enum.map(&Path.relative_to(&1, page_dir))
+      result = launch mode, files, src, dest, proj
       Error.filter_results_with_values result, :page_builder
     else
       {:error, {page_dir, :enoent, 0}}
     end
   end
 
-  @spec launch(Build.mode, [binary], state) :: [Error.result(PageInfo.t)]
+  @spec launch(Build.mode, [binary], binary(), binary(), map())
+    :: [Error.result(PageInfo.t)]
+  defp launch(mode, files, src, dest, proj)
 
-  defp launch(:parallel, files, state) do
+  defp launch(:parallel, files, src, dest, proj) do
     files
-    |> Task.async_stream(__MODULE__, :page_task, [state], @async_opt)
+    |> Task.async_stream(Page, :load, [src, dest, proj], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, files, state) do
-    files |> Enum.map(&page_task(&1, state))
-  end
-
-  @doc false
-  @spec page_task(binary, state) :: Error.result(PageInfo.t)
-
-  def page_task(fname, state) do
-    opts = [title: :string, label: :string, group: :string, order: :integer]
-    reqs = [:title]
-    with {:ok, file} <- File.open(fname, [:read, :utf8]),
-         {:ok, header} <- HeaderParser.parse_header(file, fname, opts, reqs)
-    do
-      File.close file
-      {:ok, PageInfo.new(fname, header, state)}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, fname, 0}}
-      {:error, _} = error -> error
-    end
+  defp launch(:sequential, files, src, dest, proj) do
+    files |> Enum.map(&Page.load(&1, src, dest, proj))
   end
 end
