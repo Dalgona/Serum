@@ -19,14 +19,7 @@ defmodule Serum.PostInfo do
     base = state.project_info.base_url
     date_fmt = state.project_info.date_format
     title = header.title
-    tags =
-      header
-      |> Map.get(:tags, [])
-      |> Enum.sort
-      |> Enum.map(&%Tag{
-        name: &1,
-        list_url: Path.join([base, "tags", &1, "index.html"])
-      })
+    tags = Tag.batch_create(header[:tags], state.project_info)
     datetime = header[:date] || Timex.to_datetime(Timex.zero(), :local)
     date_str = Timex.format! datetime, date_fmt
     raw_date = datetime |> Timex.to_erl
