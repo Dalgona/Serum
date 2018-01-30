@@ -3,7 +3,7 @@ defmodule Serum.PageInfo do
 
   alias Serum.Build
 
-  @type t :: %Serum.PageInfo{}
+  @type t :: %__MODULE__{}
   @type state :: Build.state
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output]
@@ -19,7 +19,7 @@ defmodule Serum.PageInfo do
       |> Path.rootname(type)
       |> Path.relative_to(page_dir)
       |> Kernel.<>(".html")
-    %Serum.PageInfo{
+    %__MODULE__{
       file: filename,
       type: type,
       title: header[:title],

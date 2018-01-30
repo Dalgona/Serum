@@ -1,7 +1,7 @@
 defmodule Serum.Tag do
   @moduledoc "This module defines Tag struct."
 
-  @type t :: %Serum.Tag{}
+  @type t :: %__MODULE__{}
 
   defstruct [:name, :list_url]
 end

@@ -4,7 +4,7 @@ defmodule Serum.PostInfo do
   alias Serum.Build
   alias Serum.Tag
 
-  @type t :: %Serum.PostInfo{}
+  @type t :: %__MODULE__{}
   @type state :: Build.state
 
   defstruct [
@@ -34,7 +34,7 @@ defmodule Serum.PostInfo do
       filename
       |> String.replace_suffix("md", "html")
       |> Path.relative_to(state.src)
-    %Serum.PostInfo{
+    %__MODULE__{
       file: filename,
       title: title,
       tags: tags,
