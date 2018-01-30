@@ -42,7 +42,7 @@ defmodule Serum.Build do
          {:ok, state} <- Pass1.run(mode, state),
          :ok <- Pass2.run(mode, state)
     do
-      copy_assets state
+      copy_assets(state.src, state.dest)
       {:ok, state}
     else
       {:error, _} = error -> error
@@ -107,9 +107,9 @@ defmodule Serum.Build do
     end
   end
 
-  @spec copy_assets(state) :: :ok
+  @spec copy_assets(binary(), binary()) :: :ok
 
-  defp copy_assets(%{src: src, dest: dest}) do
+  defp copy_assets(src, dest) do
     IO.puts "Copying assets and media..."
     try_copy Path.join(src, "assets"), Path.join(dest, "assets")
     try_copy Path.join(src, "media"), Path.join(dest, "media")
