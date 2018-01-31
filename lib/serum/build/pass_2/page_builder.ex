@@ -16,7 +16,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
   alias Serum.Error
   alias Serum.Build
   alias Serum.HeaderParser
-  alias Serum.PageInfo
+  alias Serum.Page
   alias Serum.Renderer
   alias Serum.TemplateLoader
 
@@ -36,7 +36,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   # Launches individual page build tasks if the program is running in `parallel`
   # mode, otherwise performs the tasks one by one.
-  @spec launch(Build.mode, [PageInfo.t], state) :: [Error.result]
+  @spec launch(Build.mode, [Page.t], state) :: [Error.result]
 
   defp launch(:parallel, files, state) do
     files
@@ -48,7 +48,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
     files |> Enum.map(&page_task(&1, state))
   end
 
-  @spec create_dir([PageInfo.t], state) :: :ok
+  @spec create_dir([Page.t], state) :: :ok
 
   defp create_dir(pages, state) do
     page_dir = state.src == "." && "pages" || Path.join(state.src, "pages")
@@ -65,25 +65,18 @@ defmodule Serum.Build.Pass2.PageBuilder do
   end
 
   @doc false
-  @spec page_task(PageInfo.t, state) :: Error.result
+  @spec page_task(Page.t, state) :: Error.result
 
-  def page_task(info, state) do
-    srcpath = info.file
-    destpath = info.output
-    case File.open srcpath, [:read, :utf8] do
-      {:ok, file} ->
-        file = HeaderParser.skip_header file
-        data = IO.read file, :all
-        File.close file
-        new_state = Map.put state, :srcpath, srcpath
-        case render_page info.type, data, info.title, new_state do
-          {:ok, html} ->
-            fwrite destpath, html
-            msg_gen srcpath, destpath
-          {:error, _} = error -> error
-        end
-      {:error, reason} ->
-        {:error, {reason, srcpath, 0}}
+  def page_task(page, state) do
+    srcpath = page.file
+    destpath = page.output
+
+    new_state = Map.put state, :srcpath, srcpath
+    case render_page page.type, page.data, page.title, new_state do
+      {:ok, html} ->
+        fwrite destpath, html
+        msg_gen srcpath, destpath
+      {:error, _} = error -> error
     end
   end
 

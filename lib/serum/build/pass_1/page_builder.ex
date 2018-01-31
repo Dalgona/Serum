@@ -27,7 +27,6 @@ defmodule Serum.Build.Pass1.PageBuilder do
         [page_dir, "**", "*.{md,html,html.eex}"]
         |> Path.join()
         |> Path.wildcard()
-        |> Enum.map(&Path.relative_to(&1, page_dir))
       result = launch mode, files, src, dest, proj
       Error.filter_results_with_values result, :page_builder
     else

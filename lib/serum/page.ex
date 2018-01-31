@@ -2,6 +2,7 @@ defmodule Serum.Page do
   @moduledoc "This module defines Page struct."
 
   @type t :: %__MODULE__{
+    file: binary(),
     type: binary(),
     title: binary(),
     label: binary(),
@@ -14,17 +15,15 @@ defmodule Serum.Page do
 
   alias Serum.HeaderParser
 
-  defstruct [:type, :title, :label, :group, :order, :url, :output, :data]
+  defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
   @spec load(binary(), binary(), binary(), map()) :: Error.result(t())
-  def load(filename, src, dest, proj) do
-    path = Path.join([src, "pages", filename])
-
+  def load(path, src, dest, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
          {:ok, {header, data}} <- get_contents(file, path)
     do
       File.close(file)
-      {:ok, create_struct(filename, header, data, dest, proj)}
+      {:ok, create_struct(path, header, data, src, dest, proj)} # TODO: refactor
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
       {:error, _} = error -> error
@@ -52,15 +51,21 @@ defmodule Serum.Page do
     end
   end
 
-  @spec create_struct(binary(), map(), binary(), binary(), map()) :: t()
-  defp create_struct(filename, header, data, dest, proj) do
+  # TODO: Refactor parameters
+  @spec create_struct(binary(), map(), binary(), binary(), binary(), map()) :: t()
+  defp create_struct(path, header, data, src, dest, proj) do
+    page_dir = src == "." && "pages" || Path.join(src, "pages")
+    filename = Path.relative_to(path, page_dir)
     type = get_type filename
-    url = Path.join(proj.base_url, filename)
-    output = Path.join(dest, Path.rootname(filename, type)) <> ".html"
+    {url, output} =
+      with name <- String.replace_suffix(filename, type, ".html") do
+        {Path.join(proj.base_url, name), Path.join(dest, name)}
+      end
 
     __MODULE__
     |> struct(header)
     |> Map.merge(%{
+      file: path,
       type: type,
       url: url,
       output: output,
