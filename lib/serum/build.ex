@@ -34,19 +34,33 @@ defmodule Serum.Build do
   @spec build(mode, state) :: Error.result(binary)
 
   def build(mode, state) do
-    with :ok <- check_dest_perm(state.dest),
+    with :ok <- check_dest_perm(state.project_info.dest),
          :ok <- check_tz(),
-         :ok <- clean_dest(state.dest),
-         {:ok, map} <- prepare_templates(state.src),
+         :ok <- clean_dest(state.project_info.dest),
+         {:ok, map} <- prepare_templates(state.project_info.src),
+         {:ok, output} <- Pass1.run(mode, state.project_info),
          state = Map.merge(state, map),
-         {:ok, state} <- Pass1.run(mode, state),
+         state = wip_update_state(state, output),
          :ok <- Pass2.run(mode, state)
     do
-      copy_assets(state.src, state.dest)
+      copy_assets(state.project_info.src, state.project_info.dest)
       {:ok, state}
     else
       {:error, _} = error -> error
     end
+  end
+
+  defp wip_update_state(state, output) do
+    site_ctx =
+      state.project_info
+      |> Map.from_struct()
+      |> Keyword.new()
+      |> Keyword.put(:pages, output.pages)
+      |> Keyword.put(:posts, output.posts)
+      |> Keyword.put(:tags, output.tag_counts)
+    state
+    |> Map.put(:site_ctx, site_ctx)
+    |> Map.put(:tag_map, output.tag_map)
   end
 
   # Checks if the effective user have a write
