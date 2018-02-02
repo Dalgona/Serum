@@ -16,21 +16,23 @@ defmodule Serum.ProjectInfo do
     site_name: "", site_description: "", base_url: "", author: "",
     author_email: "", date_format: "{YYYY}-{0M}-{0D}", preview_length: 200,
     list_title_all: "All Posts", list_title_tag: "Posts Tagged ~s",
-    pagination: false, posts_per_page: 5
+    pagination: false, posts_per_page: 5, src: nil, dest: nil
   ]
 
   @type t :: %__MODULE__{
-    site_name: binary,
-    site_description: binary,
-    base_url: binary,
-    author: binary,
-    author_email: binary,
-    date_format: binary,
-    preview_length: non_neg_integer,
-    list_title_all: binary,
-    list_title_tag: binary,
-    pagination: boolean,
-    posts_per_page: pos_integer
+    src: binary(),
+    dest: binary(),
+    site_name: binary(),
+    site_description: binary(),
+    base_url: binary(),
+    author: binary(),
+    author_email: binary(),
+    date_format: binary(),
+    preview_length: non_neg_integer(),
+    list_title_all: binary(),
+    list_title_tag: binary(),
+    pagination: boolean(),
+    posts_per_page: pos_integer()
   }
 
   @doc "A helper function for creating a new ProjectInfo struct."
@@ -50,12 +52,14 @@ defmodule Serum.ProjectInfo do
   @doc """
   Loads a Serum project info from the given file `path`.
   """
-
-  def load(path) do
+  @spec load(binary(), binary()) :: Error.result(t())
+  def load(src, dest) do
+    path = Path.join(src, "serum.json")
     with {:ok, text} <- File.read(path),
          {:ok, json} <- Poison.decode(text),
          :ok <- Validation.validate("project_info", json) do
-      {:ok, new(json)}
+      proj = new(json)
+      {:ok, %__MODULE__{proj | src: src, dest: dest}}
     else
       # From File.read/1:
       {:error, reason} -> {:error, {reason, path, 0}}

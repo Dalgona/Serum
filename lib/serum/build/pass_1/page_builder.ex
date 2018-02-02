@@ -6,7 +6,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
     files. All files which name ends with `.md`, `.html` or `.html.eex` will be
     registered.
   2. Parses headers of all scanned page source files.
-  3. Generates `Serum.PageInfo` objects for all pages and stores them for later
+  3. Generates `Serum.Page` objects for all pages and stores them for later
    use in the second pass.
   """
 
@@ -17,34 +17,33 @@ defmodule Serum.Build.Pass1.PageBuilder do
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts the first pass of PageBuilder."
-  @spec run(Build.mode, binary(), binary(), map()) :: Error.result([PageInfo.t])
+  @spec run(Build.mode, map()) :: Error.result([Page.t])
 
-  def run(mode, src, dest, proj) do
+  def run(mode, proj) do
     IO.puts "Collecting pages information..."
-    page_dir = src == "." && "pages" || Path.join(src, "pages")
+    page_dir = proj.src == "." && "pages" || Path.join(proj.src, "pages")
     if File.exists? page_dir do
       files =
         [page_dir, "**", "*.{md,html,html.eex}"]
         |> Path.join()
         |> Path.wildcard()
-      result = launch mode, files, src, dest, proj
+      result = launch mode, files, proj
       Error.filter_results_with_values result, :page_builder
     else
       {:error, {page_dir, :enoent, 0}}
     end
   end
 
-  @spec launch(Build.mode, [binary], binary(), binary(), map())
-    :: [Error.result(PageInfo.t)]
-  defp launch(mode, files, src, dest, proj)
+  @spec launch(Build.mode, [binary], map()) :: [Error.result(Page.t)]
+  defp launch(mode, files, proj)
 
-  defp launch(:parallel, files, src, dest, proj) do
+  defp launch(:parallel, files, proj) do
     files
-    |> Task.async_stream(Page, :load, [src, dest, proj], @async_opt)
+    |> Task.async_stream(Page, :load, [proj], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, files, src, dest, proj) do
-    files |> Enum.map(&Page.load(&1, src, dest, proj))
+  defp launch(:sequential, files, proj) do
+    files |> Enum.map(&Page.load(&1, proj))
   end
 end

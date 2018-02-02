@@ -17,19 +17,20 @@ defmodule Serum.Page do
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
-  @spec load(binary(), binary(), binary(), map()) :: Error.result(t())
-  def load(path, src, dest, proj) do
+  @spec load(binary(), map()) :: Error.result(t())
+  def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
          {:ok, {header, data}} <- get_contents(file, path)
     do
       File.close(file)
-      {:ok, create_struct(path, header, data, src, dest, proj)} # TODO: refactor
+      {:ok, create_struct(path, header, data, proj)}
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
       {:error, _} = error -> error
     end
   end
 
+  # TODO: Almost the same as Serum.Post.get_contents/2
   @spec get_contents(pid(), binary()) :: Error.result(map())
   defp get_contents(file, path) do
     opts = [
@@ -43,7 +44,7 @@ defmodule Serum.Page do
     with {:ok, header} <- HeaderParser.parse_header(file, path, opts, required),
          data when is_binary(data) <- IO.read(file, :all)
     do
-      header = %{header | label: header[:label] || header.title}
+      header = Map.put(header, :label, header[:label] || header.title)
       {:ok, {header, data}}
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
@@ -51,15 +52,14 @@ defmodule Serum.Page do
     end
   end
 
-  # TODO: Refactor parameters
-  @spec create_struct(binary(), map(), binary(), binary(), binary(), map()) :: t()
-  defp create_struct(path, header, data, src, dest, proj) do
-    page_dir = src == "." && "pages" || Path.join(src, "pages")
+  @spec create_struct(binary(), map(), binary(), map()) :: t()
+  defp create_struct(path, header, data, proj) do
+    page_dir = proj.src == "." && "pages" || Path.join(proj.src, "pages")
     filename = Path.relative_to(path, page_dir)
     type = get_type filename
     {url, output} =
       with name <- String.replace_suffix(filename, type, ".html") do
-        {Path.join(proj.base_url, name), Path.join(dest, name)}
+        {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
       end
 
     __MODULE__

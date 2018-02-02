@@ -91,8 +91,7 @@ defmodule Serum.SiteBuilder do
   def handle_call(msg, from, state)
 
   def handle_call(:load_info, _from, state) do
-    path = Path.join(state.src, "serum.json")
-    case ProjectInfo.load(path) do
+    case ProjectInfo.load(state.src, state.dest) do
       {:ok, proj} ->
         {:reply, {:ok, proj}, Map.put(state, :project_info, proj)}
       {:error, _} = error ->
