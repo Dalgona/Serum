@@ -14,25 +14,25 @@ defmodule Serum.TemplateLoader do
 
   May return a map with loaded template ASTs.
   """
-  @spec load_templates(binary(), templates()) :: Error.result(templates())
-  def load_templates(src, includes) do
+  @spec load_templates(binary()) :: Error.result()
+  def load_templates(src) do
     IO.puts "Loading templates..."
     result =
       ["base", "list", "page", "post"]
-      |> Enum.map(&do_load_templates(&1, src, includes))
+      |> Enum.map(&do_load_templates(&1, src))
       |> Error.filter_results_with_values(:load_templates)
     case result do
-      {:ok, list} -> {:ok, Map.new(list)}
+      {:ok, list} -> list |> Map.new() |> Template.load(:template)
       {:error, _} = error -> error
     end
   end
 
-  @spec do_load_templates(binary(), binary(), binary())
+  @spec do_load_templates(binary(), binary())
     :: Error.result({binary(), Template.t()})
-  defp do_load_templates(name, src, includes) do
+  defp do_load_templates(name, src) do
     path = Path.join [src, "templates", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
-         {:ok, ast} <- compile(data, :template, includes: includes)
+         {:ok, ast} <- compile(data, :template)
     do
       {:ok, {name, Template.new(ast, :template, path)}}
     else
@@ -59,7 +59,7 @@ defmodule Serum.TemplateLoader do
         |> Stream.map(&do_load_includes(&1, src))
         |> Error.filter_results_with_values(:load_includes)
       case result do
-        {:ok, list} -> {:ok, Map.new(list)}
+        {:ok, list} -> list |> Map.new() |> Template.load(:include)
         {:error, _} = error -> error
       end
     else
@@ -80,14 +80,14 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec compile(binary(), :template | :include, keyword())
+  @spec compile(binary(), Template.template_type())
     :: {:ok, Macro.t}
      | {:ct_error, binary, integer}
-  def compile(data, kind, args \\ []) do
+  def compile(data, kind) do
     compiled = EEx.compile_string(data)
     ast =
       case kind do
-        :template -> preprocess_template(compiled, args[:includes])
+        :template -> preprocess_template(compiled)
         :include -> compiled
       end
     {:ok, ast}
@@ -100,18 +100,18 @@ defmodule Serum.TemplateLoader do
       {:ct_error, e.description, e.line}
   end
 
-  @spec preprocess_template(Macro.t(), templates()) :: Macro.t()
-  defp preprocess_template(ast, includes) do
+  @spec preprocess_template(Macro.t()) :: Macro.t()
+  defp preprocess_template(ast) do
     ast
-    |> Macro.postwalk(&expand_includes(&1, includes))
+    |> Macro.postwalk(&expand_includes/1)
     |> Macro.postwalk(&eval_helpers/1)
   end
 
-  @spec expand_includes(Macro.t(), templates()) :: Macro.t()
-  defp expand_includes(ast, includes)
+  @spec expand_includes(Macro.t()) :: Macro.t()
+  defp expand_includes(ast)
 
-  defp expand_includes({:include, _, [arg]}, includes) do
-    case includes[arg] do
+  defp expand_includes({:include, _, [arg]}) do
+    case Template.get(arg, :include) do
       nil ->
         warn "There is no includable template named `#{arg}`."
         nil
@@ -119,9 +119,7 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  defp expand_includes(anything_else, _) do
-    anything_else
-  end
+  defp expand_includes(anything_else), do: anything_else
 
   @spec eval_helpers(Macro.t()) :: Macro.t()
   defp eval_helpers(ast)

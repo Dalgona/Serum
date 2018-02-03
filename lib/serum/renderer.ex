@@ -28,17 +28,14 @@ defmodule Serum.Renderer do
 
   # render full page
   def render(template_name, stub_ctx, page_ctx, state) do
-    %{project_info: proj,
-      templates: templates} = state
+    proj = state.project_info
     site_ctx = state.site_ctx
-    page_template = templates[template_name]
-    base_template = templates["base"]
     tmp = Keyword.merge(stub_ctx, site_ctx, fn _k, v, _ -> v end)
-    case render_stub page_template, tmp do
+    case render_stub Template.get(template_name), tmp do
       {:ok, stub} ->
         contents = process_links stub, proj.base_url
         ctx = [contents: contents] ++ page_ctx
-        render_stub base_template, ctx ++ site_ctx
+        render_stub Template.get("base"), ctx ++ site_ctx
       error -> error
     end
   end

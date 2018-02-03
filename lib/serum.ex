@@ -1,5 +1,6 @@
 defmodule Serum do
   use Application
+  alias Serum.Template
 
   @moduledoc """
   Defines Serum OTP application.
@@ -14,6 +15,7 @@ defmodule Serum do
   def start(_type, _args) do
     import Supervisor.Spec
     children = [
+      Template
     ]
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
     {:ok, _pid} = Supervisor.start_link children, opts

@@ -103,7 +103,7 @@ defmodule Serum.Page do
   end
 
   def render(%__MODULE__{type: ".html.eex"} = page, state) do
-    with {:ok, ast} <- TemplateLoader.compile(page.data, :template, includes: state.includes),
+    with {:ok, ast} <- TemplateLoader.compile(page.data, :template),
          template = Template.new(ast, :template, page.file),
          {:ok, html} <- Renderer.render_stub(template, state.site_ctx)
     do

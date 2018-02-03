@@ -7,10 +7,10 @@ defmodule Serum.Build do
   alias Serum.Error
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
+  alias Serum.Template
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
-  @type template_ast :: Macro.t | nil
   @type state :: map
 
   @doc """
@@ -37,9 +37,8 @@ defmodule Serum.Build do
     with :ok <- check_dest_perm(state.project_info.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(state.project_info.dest),
-         {:ok, map} <- prepare_templates(state.project_info.src),
+         :ok <- prepare_templates(state.project_info.src),
          {:ok, output} <- Pass1.run(mode, state.project_info),
-         state = Map.merge(state, map),
          state = wip_update_state(state, output),
          :ok <- Pass2.run(mode, state)
     do
@@ -109,13 +108,13 @@ defmodule Serum.Build do
     |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec prepare_templates(binary()) :: Error.result(map())
+  @spec prepare_templates(binary()) :: Error.result()
 
   defp prepare_templates(src) do
-    with {:ok, includes} <- TemplateLoader.load_includes(src),
-         {:ok, templates} <- TemplateLoader.load_templates(src, includes)
+    with :ok <- TemplateLoader.load_includes(src),
+         :ok <- TemplateLoader.load_templates(src)
     do
-      {:ok, %{templates: templates, includes: includes}}
+      :ok
     else
       {:error, _} = error -> error
     end
