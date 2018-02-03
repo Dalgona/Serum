@@ -29,13 +29,11 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   def run(mode, state) do
     pages = state.site_ctx[:pages]
-    create_dir pages, state
-    result = launch mode, state.site_ctx[:pages], state
+    create_dir pages, state.project_info.src, state.project_info.dest
+    result = launch mode, pages, state
     Error.filter_results result, :page_builder
   end
 
-  # Launches individual page build tasks if the program is running in `parallel`
-  # mode, otherwise performs the tasks one by one.
   @spec launch(Build.mode, [Page.t], state) :: [Error.result]
 
   defp launch(:parallel, files, state) do
@@ -48,16 +46,16 @@ defmodule Serum.Build.Pass2.PageBuilder do
     files |> Enum.map(&page_task(&1, state))
   end
 
-  @spec create_dir([Page.t], state) :: :ok
+  @spec create_dir([Page.t], binary(), binary()) :: :ok
 
-  defp create_dir(pages, state) do
-    page_dir = state.src == "." && "pages" || Path.join(state.src, "pages")
+  defp create_dir(pages, src, dest) do
+    page_dir = src == "." && "pages" || Path.join(src, "pages")
     pages
     |> Stream.map(&Path.dirname(&1.file))
     |> Stream.uniq()
     |> Stream.reject(& &1 == page_dir)
     |> Stream.map(&Path.relative_to(&1, page_dir))
-    |> Stream.map(&Path.absname(&1, state.dest))
+    |> Stream.map(&Path.absname(&1, dest))
     |> Enum.each(fn dir ->
       File.mkdir_p! dir
       msg_mkdir dir
@@ -71,35 +69,10 @@ defmodule Serum.Build.Pass2.PageBuilder do
     srcpath = page.file
     destpath = page.output
 
-    new_state = Map.put state, :srcpath, srcpath
-    case render_page page.type, page.data, page.title, new_state do
+    case Page.render(page, state) do
       {:ok, html} ->
         fwrite destpath, html
         msg_gen srcpath, destpath
-      {:error, _} = error -> error
-    end
-  end
-
-  # Renders a page into a complete HTML format.
-  @spec render_page(binary, binary, binary, state) :: Error.result(binary)
-
-  defp render_page(".md", md, title, state) do
-    html = Earmark.to_html md
-    Renderer.render "page", [contents: html], [page_title: title], state
-  end
-
-  defp render_page(".html", html, title, state) do
-    Renderer.render "page", [contents: html], [page_title: title], state
-  end
-
-  defp render_page(".html.eex", html, title, state) do
-    with {:ok, ast} <- TemplateLoader.compile(html, :template, includes: state.includes),
-         {:ok, html} <- Renderer.render_stub(ast, state.site_ctx, "")
-    do
-      Renderer.render "page", [contents: html], [page_title: title], state
-    else
-      {:ct_error, msg, line} ->
-        {:error, {msg, state.srcpath, line}}
       {:error, _} = error -> error
     end
   end

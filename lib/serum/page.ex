@@ -14,6 +14,8 @@ defmodule Serum.Page do
   }
 
   alias Serum.HeaderParser
+  alias Serum.Renderer
+  alias Serum.TemplateLoader
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
@@ -83,6 +85,31 @@ defmodule Serum.Page do
         |> Path.extname()
         |> Kernel.<>(".eex")
       ext -> ext
+    end
+  end
+
+  @spec render(t(), map()) :: Error.result(binary())
+  def render(page, state)
+
+  def render(%__MODULE__{type: ".md"} = page, state) do
+    html = Earmark.to_html(page.data)
+    Renderer.render "page", [contents: html], [page_title: page.title], state
+  end
+
+  def render(%__MODULE__{type: ".html"} = page, state) do
+    html = page.data
+    Renderer.render "page", [contents: html], [page_title: page.title], state
+  end
+
+  def render(%__MODULE__{type: ".html.eex"} = page, state) do
+    with {:ok, ast} <- TemplateLoader.compile(page.data, :template, includes: state.includes),
+         {:ok, html} <- Renderer.render_stub(ast, state.site_ctx, "")
+    do
+      Renderer.render "page", [contents: html], [page_title: page.title], state
+    else
+      {:ct_error, msg, line} ->
+        {:error, {msg, page.file, line}}
+      {:error, _} = error -> error
     end
   end
 end
