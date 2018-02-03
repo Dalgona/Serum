@@ -5,8 +5,9 @@ defmodule Serum.TemplateLoader do
 
   import Serum.Util
   alias Serum.Error
+  alias Serum.Template
 
-  @type templates() :: %{optional(binary()) => Macro.t()}
+  @type templates() :: %{optional(binary()) => Template.t()}
 
   @doc """
   Reads, compiles, and preprocesses the site templates.
@@ -27,13 +28,13 @@ defmodule Serum.TemplateLoader do
   end
 
   @spec do_load_templates(binary(), binary(), binary())
-    :: Error.result({binary(), Macro.t()})
+    :: Error.result({binary(), Template.t()})
   defp do_load_templates(name, src, includes) do
     path = Path.join [src, "templates", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
          {:ok, ast} <- compile(data, :template, includes: includes)
     do
-      {:ok, {name, ast}}
+      {:ok, {name, Template.new(ast, :template, path)}}
     else
       {:error, reason} -> {:error, {reason, path, 0}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
@@ -66,13 +67,13 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec do_load_includes(binary(), binary()) :: Error.result({binary(), Macro.t()})
+  @spec do_load_includes(binary(), binary()) :: Error.result({binary(), Template.t()})
   defp do_load_includes(name, src) do
     path = Path.join [src, "includes", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
          {:ok, ast} <- compile(data, :include)
     do
-      {:ok, {name, ast}}
+      {:ok, {name, Template.new(ast, :include, path)}}
     else
       {:error, reason} -> {:error, {reason, path, 0}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
@@ -114,7 +115,7 @@ defmodule Serum.TemplateLoader do
       nil ->
         warn "There is no includable template named `#{arg}`."
         nil
-      ast -> ast
+      include -> include.ast
     end
   end
 

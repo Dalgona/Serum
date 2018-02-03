@@ -15,6 +15,7 @@ defmodule Serum.Page do
 
   alias Serum.HeaderParser
   alias Serum.Renderer
+  alias Serum.Template
   alias Serum.TemplateLoader
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
@@ -103,7 +104,8 @@ defmodule Serum.Page do
 
   def render(%__MODULE__{type: ".html.eex"} = page, state) do
     with {:ok, ast} <- TemplateLoader.compile(page.data, :template, includes: state.includes),
-         {:ok, html} <- Renderer.render_stub(ast, state.site_ctx, "")
+         template = Template.new(ast, :template, page.file),
+         {:ok, html} <- Renderer.render_stub(template, state.site_ctx)
     do
       Renderer.render "page", [contents: html], [page_title: page.title], state
     else

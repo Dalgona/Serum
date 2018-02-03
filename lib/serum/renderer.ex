@@ -6,6 +6,7 @@ defmodule Serum.Renderer do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
+  alias Serum.Template
 
   @type state :: Build.state
 
@@ -33,11 +34,11 @@ defmodule Serum.Renderer do
     page_template = templates[template_name]
     base_template = templates["base"]
     tmp = Keyword.merge(stub_ctx, site_ctx, fn _k, v, _ -> v end)
-    case render_stub page_template, tmp, template_name do
+    case render_stub page_template, tmp do
       {:ok, stub} ->
         contents = process_links stub, proj.base_url
         ctx = [contents: contents] ++ page_ctx
-        render_stub base_template, ctx ++ site_ctx, "base"
+        render_stub base_template, ctx ++ site_ctx
       error -> error
     end
   end
@@ -45,36 +46,15 @@ defmodule Serum.Renderer do
   @doc """
   Renders contents into a (partial) HTML stub.
   """
-  @spec render_stub(Build.template_ast, keyword, binary) :: Error.result(binary)
-
-  def render_stub(template, context, name \\ "")
-
-  def render_stub(nil, _ctx, name) do
-    filename = to_filename name
-    {:error, {"template was not compiled successfully", filename, 0}}
-  end
-
-  def render_stub(template, context, name) do
-    filename = to_filename name
-    try do
-      {html, _} = Code.eval_quoted template, context
-      {:ok, html}
-    rescue
-      e in CompileError ->
-        {:error, {e.description, filename, e.line}}
-      e ->
-        {:error, {Exception.message(e), filename, 0}}
-    end
-  end
-
-  @spec to_filename(binary) :: binary
-
-  defp to_filename(name) do
-    case name do
-      "" -> "nofile"
-      s when is_binary(s) -> s <> ".html.eex"
-      _ -> "nofile"
-    end
+  @spec render_stub(Template.t(), keyword()) :: Error.result(binary())
+  def render_stub(template, context) do
+    {html, _} = Code.eval_quoted template.ast, context
+    {:ok, html}
+  rescue
+    e in CompileError ->
+      {:error, {e.description, template.file, e.line}}
+    e ->
+      {:error, {Exception.message(e), template.file, 0}}
   end
 
   @spec process_links(binary, binary) :: binary
