@@ -91,26 +91,23 @@ defmodule Serum.Page do
   end
 
   @spec to_html(t(), map()) :: Error.result(binary())
-  def to_html(page, state)
+  def to_html(page, proj)
 
-  def to_html(%__MODULE__{type: ".md"} = page, state) do
-    proj = state.project_info
-    html = Earmark.to_html(page.data)
-    render(html, proj)
+  def to_html(%__MODULE__{type: ".md"} = page, proj) do
+    page.data
+    |> Earmark.to_html()
+    |> render(proj)
   end
 
-  def to_html(%__MODULE__{type: ".html"} = page, state) do
-    proj = state.project_info
-    html = page.data
-    render(html, proj)
+  def to_html(%__MODULE__{type: ".html"} = page, proj) do
+    render(page.data, proj)
   end
 
-  def to_html(%__MODULE__{type: ".html.eex"} = page, state) do
+  def to_html(%__MODULE__{type: ".html.eex"} = page, proj) do
     with {:ok, ast} <- TemplateLoader.compile(page.data, :template),
          template = Template.new(ast, :template, page.file),
          {:ok, html} <- Renderer.render_stub(template, GlobalBindings.as_keyword())
     do
-      proj = state.project_info
       render(html, proj)
     else
       {:ct_error, msg, line} ->
