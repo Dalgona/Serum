@@ -1,5 +1,6 @@
 defmodule Serum do
   use Application
+  alias Serum.GlobalBindings
   alias Serum.Template
 
   @moduledoc """
@@ -13,9 +14,9 @@ defmodule Serum do
   JSON schema for `serum.json` file.
   """
   def start(_type, _args) do
-    import Supervisor.Spec
     children = [
-      Template
+      Template,
+      GlobalBindings
     ]
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
     {:ok, _pid} = Supervisor.start_link children, opts
