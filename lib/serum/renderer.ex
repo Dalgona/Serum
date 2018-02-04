@@ -11,8 +11,6 @@ defmodule Serum.Renderer do
   @type state :: Build.state
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
-  @re_old_post ~r/(?<type>href|src)="(?:%|%25)posts:(?<url>[^"]*)"/
-  @re_old_page ~r/(?<type>href|src)="(?:%|%25)pages:(?<url>[^"]*)"/
   @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
   @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
 
@@ -57,18 +55,8 @@ defmodule Serum.Renderer do
   @spec process_links(binary, binary) :: binary
 
   defp process_links(text, base) do
-    if Regex.match? @re_old_page, text do
-      warn "\"%pages:\" notation is deprecated, and will be removed in the "
-        <> "future release. Please use \"%page:\" instead"
-    end
-    if Regex.match? @re_old_post, text do
-      warn "\"%posts:\" notation is deprecated, and will be removed in the "
-        <> "future release. Please use \"%post:\" instead"
-    end
     text
     |> regex_replace(@re_media, ~s(\\1="#{base}media/\\2"))
-    |> regex_replace(@re_old_page, ~s(\\1="#{base}\\2.html"))
-    |> regex_replace(@re_old_post, ~s(\\1="#{base}posts/\\2.html"))
     |> regex_replace(@re_page, ~s(\\1="#{base}\\2.html"))
     |> regex_replace(@re_post, ~s(\\1="#{base}posts/\\2.html"))
   end
