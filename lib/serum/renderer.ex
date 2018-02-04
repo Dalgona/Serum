@@ -5,6 +5,7 @@ defmodule Serum.Renderer do
 
   import Serum.Util
   alias Serum.Error
+  alias Serum.GlobalBindings
   alias Serum.Build
   alias Serum.Template
 
@@ -27,13 +28,13 @@ defmodule Serum.Renderer do
   # render full page
   def render(template_name, stub_ctx, page_ctx, state) do
     proj = state.project_info
-    site_ctx = state.site_ctx
-    tmp = Keyword.merge(stub_ctx, site_ctx, fn _k, v, _ -> v end)
+    global_bindings = GlobalBindings.as_keyword()
+    tmp = Keyword.merge(stub_ctx, global_bindings, fn _k, v, _ -> v end)
     case render_stub Template.get(template_name), tmp do
       {:ok, stub} ->
         contents = process_links stub, proj.base_url
         ctx = [contents: contents] ++ page_ctx
-        render_stub Template.get("base"), ctx ++ site_ctx
+        render_stub Template.get("base"), ctx ++ global_bindings
       error -> error
     end
   end
@@ -42,8 +43,8 @@ defmodule Serum.Renderer do
   Renders contents into a (partial) HTML stub.
   """
   @spec render_stub(Template.t(), keyword()) :: Error.result(binary())
-  def render_stub(template, context) do
-    {html, _} = Code.eval_quoted template.ast, context
+  def render_stub(template, bindings) do
+    {html, _} = Code.eval_quoted template.ast, bindings
     {:ok, html}
   rescue
     e in CompileError ->
@@ -53,8 +54,7 @@ defmodule Serum.Renderer do
   end
 
   @spec process_links(binary, binary) :: binary
-
-  defp process_links(text, base) do
+  def process_links(text, base) do
     text
     |> regex_replace(@re_media, ~s(\\1="#{base}media/\\2"))
     |> regex_replace(@re_page, ~s(\\1="#{base}\\2.html"))
@@ -62,7 +62,6 @@ defmodule Serum.Renderer do
   end
 
   @spec regex_replace(binary, Regex.t, binary) :: binary
-
   defp regex_replace(text, pattern, replacement) do
     Regex.replace pattern, text, replacement
   end

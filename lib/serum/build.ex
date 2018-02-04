@@ -7,6 +7,7 @@ defmodule Serum.Build do
   alias Serum.Error
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
+  alias Serum.GlobalBindings
   alias Serum.Template
   alias Serum.TemplateLoader
 
@@ -40,7 +41,7 @@ defmodule Serum.Build do
          :ok <- prepare_templates(state.project_info.src),
          {:ok, output} <- Pass1.run(mode, state.project_info),
          state = wip_update_state(state, output),
-         :ok <- Pass2.run(mode, state)
+         :ok <- Pass2.run(mode, output.pages, output.posts, output.tag_map, state)
     do
       copy_assets(state.project_info.src, state.project_info.dest)
       {:ok, state}
@@ -50,15 +51,11 @@ defmodule Serum.Build do
   end
 
   defp wip_update_state(state, output) do
-    site_ctx =
-      state.project_info
-      |> Map.from_struct()
-      |> Keyword.new()
-      |> Keyword.put(:pages, output.pages)
-      |> Keyword.put(:posts, output.posts)
-      |> Keyword.put(:tags, output.tag_counts)
+    state.project_info
+    |> Map.from_struct()
+    |> Map.merge(output)
+    |> GlobalBindings.load()
     state
-    |> Map.put(:site_ctx, site_ctx)
     |> Map.put(:tag_map, output.tag_map)
   end
 

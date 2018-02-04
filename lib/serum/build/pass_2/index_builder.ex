@@ -11,7 +11,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   import Serum.Util
   alias Serum.Error
   alias Serum.Build
-  alias Serum.PostInfo
+  alias Serum.Post
   alias Serum.Renderer
   alias Serum.Tag
 
@@ -20,15 +20,14 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts the IndexBuilder."
-  @spec run(Build.mode, state) :: Error.result
+  @spec run(Build.mode, [Post.t()], map(), state) :: Error.result
 
-  def run(mode, state) do
+  def run(mode, posts, tag_map, state) do
     IO.puts "Generating posts index..."
 
-    tags = state.tag_map
-    case index_task({nil, state.site_ctx[:posts]}, state) do
+    case index_task({nil, posts}, state) do
       :ok ->
-        result = launch mode, tags, state
+        result = launch mode, tag_map, state
         Error.filter_results result, :index_builder
       {:error, _} = error -> error
     end

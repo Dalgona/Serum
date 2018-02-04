@@ -25,25 +25,26 @@ defmodule Serum.Build.Pass2.PageBuilder do
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts the second pass of PageBuilder."
-  @spec run(Build.mode, state) :: Error.result
+  @spec run(Build.mode, [Page.t()], state) :: Error.result
 
-  def run(mode, state) do
-    pages = state.site_ctx[:pages]
-    create_dir pages, state.project_info.src, state.project_info.dest
+  def run(mode, pages, state) do
+    proj = state.project_info
+    create_dir pages, proj.src, proj.dest
     result = launch mode, pages, state
     Error.filter_results result, :page_builder
   end
 
   @spec launch(Build.mode, [Page.t], state) :: [Error.result]
+  defp launch(mode, pages, state)
 
-  defp launch(:parallel, files, state) do
-    files
+  defp launch(:parallel, pages, state) do
+    pages
     |> Task.async_stream(__MODULE__, :page_task, [state], @async_opt)
     |> Enum.map(&(elem &1, 1))
   end
 
-  defp launch(:sequential, files, state) do
-    files |> Enum.map(&page_task(&1, state))
+  defp launch(:sequential, pages, state) do
+    pages |> Enum.map(&page_task(&1, state))
   end
 
   @spec create_dir([Page.t], binary(), binary()) :: :ok
@@ -69,7 +70,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
     srcpath = page.file
     destpath = page.output
 
-    case Page.render(page, state) do
+    case Page.to_html(page, state) do
       {:ok, html} ->
         fwrite destpath, html
         msg_gen srcpath, destpath

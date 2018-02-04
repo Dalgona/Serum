@@ -15,22 +15,29 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Build.Pass2.PostBuilder
   alias Serum.Build.Pass2.IndexBuilder
   alias Serum.Error
+  alias Serum.Page
+  alias Serum.Post
 
   @doc "Starts the second pass of the building process in given build mode."
-  @spec run(Build.mode, Build.state) :: Error.result
+  @spec run(Build.mode, [Page.t()], [Post.t()], map(), Build.state) :: Error.result
+  def run(build_mode, pages, posts, tag_map, state)
 
-  def run(build_mode, state)
-
-  def run(:parallel, state) do
-    [PageBuilder, PostBuilder, IndexBuilder]
-    |> Enum.map(&Task.async(&1, :run, [:parallel, state]))
+  def run(:parallel, pages, posts, tag_map, state) do
+    proj = state.project_info
+    t1 = Task.async(PageBuilder, :run, [:parallel, pages, state])
+    t2 = Task.async(PostBuilder, :run, [:parallel, posts, proj])
+    t3 = Task.async(IndexBuilder, :run, [:parallel, posts, tag_map, state])
+    [t1, t2, t3]
     |> Enum.map(&Task.await/1)
     |> Error.filter_results(:build_pass2)
   end
 
-  def run(:sequential, state) do
-    [PageBuilder, PostBuilder, IndexBuilder]
-    |> Enum.map(& &1.run(:sequential, state))
+  def run(:sequential, pages, posts, tag_map, state) do
+    proj = state.project_info
+    r1 = PageBuilder.run(:sequential, pages, state)
+    r2 = PostBuilder.run(:sequential, posts, proj)
+    r3 = IndexBuilder.run(:sequential, posts, tag_map, state)
+    [r1, r2, r3]
     |> Error.filter_results(:build_pass2)
   end
 end

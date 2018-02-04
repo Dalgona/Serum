@@ -13,6 +13,7 @@ defmodule Serum.Page do
     data: binary()
   }
 
+  alias Serum.GlobalBindings
   alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.Template
@@ -89,28 +90,42 @@ defmodule Serum.Page do
     end
   end
 
-  @spec render(t(), map()) :: Error.result(binary())
-  def render(page, state)
+  @spec to_html(t(), map()) :: Error.result(binary())
+  def to_html(page, state)
 
-  def render(%__MODULE__{type: ".md"} = page, state) do
+  def to_html(%__MODULE__{type: ".md"} = page, state) do
+    proj = state.project_info
     html = Earmark.to_html(page.data)
-    Renderer.render "page", [contents: html], [page_title: page.title], state
+    render(html, proj)
   end
 
-  def render(%__MODULE__{type: ".html"} = page, state) do
+  def to_html(%__MODULE__{type: ".html"} = page, state) do
+    proj = state.project_info
     html = page.data
-    Renderer.render "page", [contents: html], [page_title: page.title], state
+    render(html, proj)
   end
 
-  def render(%__MODULE__{type: ".html.eex"} = page, state) do
+  def to_html(%__MODULE__{type: ".html.eex"} = page, state) do
     with {:ok, ast} <- TemplateLoader.compile(page.data, :template),
          template = Template.new(ast, :template, page.file),
-         {:ok, html} <- Renderer.render_stub(template, state.site_ctx)
+         {:ok, html} <- Renderer.render_stub(template, GlobalBindings.as_keyword())
     do
-      Renderer.render "page", [contents: html], [page_title: page.title], state
+      proj = state.project_info
+      render(html, proj)
     else
       {:ct_error, msg, line} ->
         {:error, {msg, page.file, line}}
+      {:error, _} = error -> error
+    end
+  end
+
+  @spec render(binary(), map()) :: Error.result(binary())
+  defp render(html, proj) do
+    bindings = [contents: html]
+    template = Template.get("page")
+    case Renderer.render_stub(template, bindings) do
+      {:ok, rendered} ->
+        {:ok, Renderer.process_links(rendered, proj.base_url)}
       {:error, _} = error -> error
     end
   end

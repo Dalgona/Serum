@@ -2,7 +2,9 @@ defmodule Serum.Post do
   @moduledoc "This module defines Post struct."
 
   alias Serum.HeaderParser
+  alias Serum.Renderer
   alias Serum.Tag
+  alias Serum.Template
 
   @type t :: %__MODULE__{
     file: binary(),
@@ -101,8 +103,23 @@ defmodule Serum.Post do
         |> String.slice(0, x)
     end
   end
+
+  @spec to_html(t(), map()) :: Error.result(binary())
+  def to_html(%__MODULE__{} = post, proj) do
+    bindings = [
+      title: post.title, date: post.date, raw_date: post.raw_date,
+      tags: post.tags, contents: post.html
+    ]
+    template = Template.get("post")
+
+    case Renderer.render_stub(template, bindings) do
+      {:ok, rendered} ->
+        {:ok, Renderer.process_links(rendered, proj.base_url)}
+      {:error, _} = error -> error
+    end
+  end
 end
 
 defimpl Inspect, for: Serum.Post do
-  def inspect(info, _opts), do: ~s(#Serum.Post<"#{info.title}">)
+  def inspect(post, _opts), do: ~s(#Serum.Post<"#{post.title}">)
 end
