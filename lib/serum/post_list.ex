@@ -51,9 +51,9 @@ defmodule Serum.PostList do
     Enum.chunk_every(posts, num_posts)
   end
 
-  @spec to_fragment([t()], map()) :: Error.result([Fragment.t()])
-  def to_fragment(post_lists, proj) do
-    case to_html(post_lists, proj) do
+  @spec to_fragment([t()]) :: Error.result([Fragment.t()])
+  def to_fragment(post_lists) do
+    case to_html(post_lists) do
       {:ok, htmls} ->
         fragments =
           post_lists
@@ -72,8 +72,8 @@ defmodule Serum.PostList do
     end
   end
 
-  @spec to_html([t()], map()) :: Error.result(binary())
-  def to_html([h | _] = post_lists, proj) do
+  @spec to_html([t()]) :: Error.result(binary())
+  def to_html(post_lists) do
     template = Template.get("list")
     render([nil | post_lists], [], template)
   end

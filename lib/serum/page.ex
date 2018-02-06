@@ -15,7 +15,6 @@ defmodule Serum.Page do
 
   alias Serum.Error
   alias Serum.Fragment
-  alias Serum.GlobalBindings
   alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.Template

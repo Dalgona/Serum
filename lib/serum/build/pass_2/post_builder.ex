@@ -6,11 +6,9 @@ defmodule Serum.Build.Pass2.PostBuilder do
     blog post for each `Serum.Post` object in the list.
   """
 
-  import Serum.Util
   alias Serum.Error
   alias Serum.Fragment
   alias Serum.Build
-  alias Serum.Renderer
   alias Serum.Post
 
   @doc "Starts the second pass of PostBuilder."

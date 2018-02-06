@@ -12,14 +12,10 @@ defmodule Serum.Build.Pass2.PageBuilder do
   3. Saves the rendered page to the output directory.
   """
 
-  import Serum.Util
   alias Serum.Error
   alias Serum.Fragment
   alias Serum.Build
-  alias Serum.HeaderParser
   alias Serum.Page
-  alias Serum.Renderer
-  alias Serum.TemplateLoader
 
   @doc "Starts the second pass of PageBuilder."
   @spec run(Build.mode, [Page.t()], map()) :: Error.result

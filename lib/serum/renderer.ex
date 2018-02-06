@@ -3,7 +3,6 @@ defmodule Serum.Renderer do
   This module provides functions for rendering pages into HTML.
   """
 
-  import Serum.Util
   alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Build

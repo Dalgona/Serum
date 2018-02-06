@@ -13,7 +13,6 @@ defmodule Serum.Build.Pass1.PostBuilder do
 
   import Serum.Util
   alias Serum.Error
-  alias Serum.HeaderParser
   alias Serum.Post
 
   @async_opt [max_concurrency: System.schedulers_online * 10]

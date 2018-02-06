@@ -8,12 +8,10 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     blog posts filtered by each tag.
   """
 
-  import Serum.Util
   alias Serum.Error
   alias Serum.Build
   alias Serum.Post
   alias Serum.PostList
-  alias Serum.Renderer
   alias Serum.Tag
 
   @doc "Starts the IndexBuilder."
@@ -47,6 +45,6 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   def index_task({tag, posts}, proj) do
     tag
     |> PostList.generate(posts, proj)
-    |> PostList.to_fragment(proj)
+    |> PostList.to_fragment()
   end
 end

@@ -8,7 +8,6 @@ defmodule Serum.Build do
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
   alias Serum.GlobalBindings
-  alias Serum.Template
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
