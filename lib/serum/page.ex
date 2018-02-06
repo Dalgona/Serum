@@ -106,7 +106,7 @@ defmodule Serum.Page do
   def to_html(%__MODULE__{type: ".html.eex"} = page, proj) do
     with {:ok, ast} <- TemplateLoader.compile(page.data, :template),
          template = Template.new(ast, :template, page.file),
-         {:ok, html} <- Renderer.render_stub(template, GlobalBindings.as_keyword())
+         {:ok, html} <- Renderer.render_fragment(template, [])
     do
       render(html, proj)
     else
@@ -120,7 +120,7 @@ defmodule Serum.Page do
   defp render(html, proj) do
     bindings = [contents: html]
     template = Template.get("page")
-    case Renderer.render_stub(template, bindings) do
+    case Renderer.render_fragment(template, bindings) do
       {:ok, rendered} ->
         {:ok, Renderer.process_links(rendered, proj.base_url)}
       {:error, _} = error -> error

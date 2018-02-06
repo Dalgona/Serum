@@ -74,7 +74,7 @@ defmodule Serum.PostList do
       prev_page: prev && prev.list_url,
       next_page: next && next.list_url
     ]
-    rendered = Renderer.render_stub(template, bindings)
+    rendered = Renderer.render_fragment(template, bindings)
 
     render([curr | rest], [rendered | acc], template, header)
   end

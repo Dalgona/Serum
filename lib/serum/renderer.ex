@@ -29,12 +29,11 @@ defmodule Serum.Renderer do
   def render(template_name, stub_ctx, page_ctx, state) do
     proj = state.project_info
     global_bindings = GlobalBindings.as_keyword()
-    tmp = Keyword.merge(stub_ctx, global_bindings, fn _k, v, _ -> v end)
-    case render_stub Template.get(template_name), tmp do
+    case render_fragment Template.get(template_name), stub_ctx do
       {:ok, stub} ->
         contents = process_links stub, proj.base_url
         ctx = [contents: contents] ++ page_ctx
-        render_stub Template.get("base"), ctx ++ global_bindings
+        render_fragment Template.get("base"), ctx ++ global_bindings
       error -> error
     end
   end
@@ -42,8 +41,8 @@ defmodule Serum.Renderer do
   @doc """
   Renders contents into a (partial) HTML stub.
   """
-  @spec render_stub(Template.t(), keyword()) :: Error.result(binary())
-  def render_stub(template, bindings) do
+  @spec render_fragment(Template.t(), keyword()) :: Error.result(binary())
+  def render_fragment(template, bindings) do
     global_bindings = GlobalBindings.as_keyword()
     bindings2 = Keyword.merge(bindings, global_bindings, fn _k, v, _ -> v end)
     {html, _} = Code.eval_quoted template.ast, bindings2

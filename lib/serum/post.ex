@@ -112,7 +112,7 @@ defmodule Serum.Post do
     ]
     template = Template.get("post")
 
-    case Renderer.render_stub(template, bindings) do
+    case Renderer.render_fragment(template, bindings) do
       {:ok, rendered} ->
         {:ok, Renderer.process_links(rendered, proj.base_url)}
       {:error, _} = error -> error
