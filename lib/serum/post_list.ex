@@ -1,5 +1,6 @@
 defmodule Serum.PostList do
   alias Serum.Error
+  alias Serum.Fragment
   alias Serum.Post
   alias Serum.Renderer
   alias Serum.Tag
@@ -48,6 +49,27 @@ defmodule Serum.PostList do
 
   defp make_chunks(posts, true, num_posts) do
     Enum.chunk_every(posts, num_posts)
+  end
+
+  @spec to_fragment([t()], map()) :: Error.result([Fragment.t()])
+  def to_fragment(post_lists, proj) do
+    case to_html(post_lists, proj) do
+      {:ok, htmls} ->
+        fragments =
+          post_lists
+          |> Stream.zip(htmls)
+          |> Enum.map(fn {list, html} ->
+            %Fragment{
+              file: nil,
+              output: list.output,
+              title: list.title,
+              type: :list,
+              data: html
+            }
+          end)
+        {:ok, fragments}
+      {:error, _} = error -> error
+    end
   end
 
   @spec to_html([t()], map()) :: Error.result(binary())

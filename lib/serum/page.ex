@@ -13,6 +13,8 @@ defmodule Serum.Page do
     data: binary()
   }
 
+  alias Serum.Error
+  alias Serum.Fragment
   alias Serum.GlobalBindings
   alias Serum.HeaderParser
   alias Serum.Renderer
@@ -87,6 +89,22 @@ defmodule Serum.Page do
         |> Path.extname()
         |> Kernel.<>(".eex")
       ext -> ext
+    end
+  end
+
+  @spec to_fragment(t(), map()) :: Error.result(Fragment.t())
+  def to_fragment(page, proj) do
+    case to_html(page, proj) do
+      {:ok, html} ->
+        {:ok,
+          %Fragment{
+            file: page.file,
+            output: page.output,
+            title: page.title,
+            type: :page,
+            data: html
+          }}
+      {:error, _} = error -> error
     end
   end
 

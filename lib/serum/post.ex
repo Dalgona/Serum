@@ -1,6 +1,8 @@
 defmodule Serum.Post do
   @moduledoc "This module defines Post struct."
 
+  alias Serum.Error
+  alias Serum.Fragment
   alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.Tag
@@ -101,6 +103,22 @@ defmodule Serum.Post do
         |> Enum.map(&Floki.text/1)
         |> Enum.join(" ")
         |> String.slice(0, x)
+    end
+  end
+
+  @spec to_fragment(t(), map()) :: Error.result(Fragment.t())
+  def to_fragment(post, proj) do
+    case to_html(post, proj) do
+      {:ok, html} ->
+        {:ok,
+          %Fragment{
+            file: post.file,
+            output: post.output,
+            title: post.title,
+            type: :post,
+            data: html
+          }}
+      {:error, error} = error -> error
     end
   end
 
