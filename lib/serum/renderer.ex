@@ -44,7 +44,9 @@ defmodule Serum.Renderer do
   """
   @spec render_stub(Template.t(), keyword()) :: Error.result(binary())
   def render_stub(template, bindings) do
-    {html, _} = Code.eval_quoted template.ast, bindings
+    global_bindings = GlobalBindings.as_keyword()
+    bindings2 = Keyword.merge(bindings, global_bindings, fn _k, v, _ -> v end)
+    {html, _} = Code.eval_quoted template.ast, bindings2
     {:ok, html}
   rescue
     e in CompileError ->
