@@ -14,64 +14,31 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   import Serum.Util
   alias Serum.Error
+  alias Serum.Fragment
   alias Serum.Build
   alias Serum.HeaderParser
   alias Serum.Page
   alias Serum.Renderer
   alias Serum.TemplateLoader
 
-  @async_opt [max_concurrency: System.schedulers_online * 10]
-
   @doc "Starts the second pass of PageBuilder."
   @spec run(Build.mode, [Page.t()], map()) :: Error.result
 
   def run(mode, pages, proj) do
-    create_dir pages, proj.src, proj.dest
     result = launch mode, pages, proj
     Error.filter_results result, :page_builder
   end
 
-  @spec launch(Build.mode, [Page.t], map()) :: [Error.result]
+  @spec launch(Build.mode, [Page.t], map()) :: [Error.result(Fragment.t())]
   defp launch(mode, pages, proj)
 
   defp launch(:parallel, pages, proj) do
     pages
-    |> Task.async_stream(__MODULE__, :page_task, [proj], @async_opt)
+    |> Task.async_stream(Page, :to_fragment, [proj])
     |> Enum.map(&(elem &1, 1))
   end
 
   defp launch(:sequential, pages, proj) do
-    pages |> Enum.map(&page_task(&1, proj))
-  end
-
-  @spec create_dir([Page.t], binary(), binary()) :: :ok
-
-  defp create_dir(pages, src, dest) do
-    page_dir = src == "." && "pages" || Path.join(src, "pages")
-    pages
-    |> Stream.map(&Path.dirname(&1.file))
-    |> Stream.uniq()
-    |> Stream.reject(& &1 == page_dir)
-    |> Stream.map(&Path.relative_to(&1, page_dir))
-    |> Stream.map(&Path.absname(&1, dest))
-    |> Enum.each(fn dir ->
-      File.mkdir_p! dir
-      msg_mkdir dir
-    end)
-  end
-
-  @doc false
-  @spec page_task(Page.t, map()) :: Error.result
-
-  def page_task(page, proj) do
-    srcpath = page.file
-    destpath = page.output
-
-    case Page.to_html(page, proj) do
-      {:ok, html} ->
-        fwrite destpath, html
-        msg_gen srcpath, destpath
-      {:error, _} = error -> error
-    end
+    pages |> Enum.map(&Page.to_fragment(&1, proj))
   end
 end

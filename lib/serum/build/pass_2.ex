@@ -26,7 +26,7 @@ defmodule Serum.Build.Pass2 do
     proj = state.project_info
     t1 = Task.async(PageBuilder, :run, [:parallel, pages, proj])
     t2 = Task.async(PostBuilder, :run, [:parallel, posts, proj])
-    t3 = Task.async(IndexBuilder, :run, [:parallel, posts, tag_map, state])
+    t3 = Task.async(IndexBuilder, :run, [:parallel, posts, tag_map, proj])
     [t1, t2, t3]
     |> Enum.map(&Task.await/1)
     |> Error.filter_results(:build_pass2)
@@ -36,7 +36,7 @@ defmodule Serum.Build.Pass2 do
     proj = state.project_info
     r1 = PageBuilder.run(:sequential, pages, proj)
     r2 = PostBuilder.run(:sequential, posts, proj)
-    r3 = IndexBuilder.run(:sequential, posts, tag_map, state)
+    r3 = IndexBuilder.run(:sequential, posts, tag_map, proj)
     [r1, r2, r3]
     |> Error.filter_results(:build_pass2)
   end

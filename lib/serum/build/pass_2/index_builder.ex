@@ -16,62 +16,37 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   alias Serum.Renderer
   alias Serum.Tag
 
-  @type state :: Build.state
-
-  @async_opt [max_concurrency: System.schedulers_online * 10]
-
   @doc "Starts the IndexBuilder."
-  @spec run(Build.mode, [Post.t()], map(), state) :: Error.result
-
-  def run(mode, posts, tag_map, state) do
-    IO.puts "Generating posts index..."
-
-    case index_task({nil, posts}, state) do
-      :ok ->
-        result = launch mode, tag_map, state
-        Error.filter_results result, :index_builder
+  @spec run(Build.mode, [Post.t()], map(), map()) :: Error.result
+  def run(mode, posts, tag_map, proj) do
+    with {:ok, frags1} <- index_task({nil, posts}, proj),
+         result = launch(mode, tag_map, proj),
+         {:ok, frags2} <- Error.filter_results_with_values(result, :index_builder)
+    do
+      {:ok, frags1 ++ frags2}
+    else
       {:error, _} = error -> error
     end
   end
 
-  @spec launch(Build.mode, map, state) :: [Error.result]
+  @spec launch(Build.mode, map(), map()) :: [Error.result(Fragment.t())]
+  defp launch(mode, tag_map, proj)
 
-  defp launch(:parallel, tag_map, state) do
+  defp launch(:parallel, tag_map, proj) do
     tag_map
-    |> Task.async_stream(__MODULE__, :index_task, [state], @async_opt)
+    |> Task.async_stream(__MODULE__, :index_task, [proj])
     |> Enum.map(&elem(&1, 1))
   end
 
-  defp launch(:sequential, tag_map, state) do
+  defp launch(:sequential, tag_map, proj) do
     tag_map
-    |> Enum.map(&index_task(&1, state))
+    |> Enum.map(&index_task(&1, proj))
   end
 
-  @doc false
-  @spec index_task({nil | Tag.t, [PostInfo.t]}, state) :: Error.result
-
-  def index_task({tag, posts}, state) do
-    proj = state.project_info
-    lists = PostList.generate(tag, posts, proj)
-
-    case PostList.to_html(lists, proj) do
-      {:ok, htmls} -> :ok
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec save_lists([binary], binary) :: :ok
-
-  defp save_lists([first|_] = htmls, list_dir) do
-    path_index = Path.join list_dir, "index.html"
-    fwrite path_index, first
-    msg_gen path_index
-    htmls
-    |> Enum.with_index(1)
-    |> Enum.each(fn {html, page_num} ->
-      path = Path.join list_dir, "page-#{page_num}.html"
-      fwrite path, html
-      msg_gen path
-    end)
+  @spec index_task({nil | Tag.t, [Post.t]}, map()) :: Error.result(Fragment.t())
+  def index_task({tag, posts}, proj) do
+    tag
+    |> PostList.generate(posts, proj)
+    |> PostList.to_fragment(proj)
   end
 end
