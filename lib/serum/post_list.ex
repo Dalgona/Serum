@@ -9,13 +9,14 @@ defmodule Serum.PostList do
     tag: maybe_tag(),
     page: pos_integer(),
     max_page: pos_integer(),
+    title: binary(),
     posts: [Post.t()],
     list_url: binary(),
     output: binary()
   }
   @type maybe_tag :: Tag.t() | nil
 
-  defstruct [:tag, :page, :max_page, :posts, :list_url, :output]
+  defstruct [:tag, :page, :max_page, :title, :posts, :list_url, :output]
 
   @spec generate(maybe_tag(), [Post.t()], map()) :: [t()]
   def generate(tag, posts, proj) do
@@ -33,6 +34,7 @@ defmodule Serum.PostList do
         tag: tag,
         page: page,
         max_page: max_page,
+        title: list_title(tag, proj),
         posts: posts,
         list_url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
         output: Path.join([proj.dest, list_dir, "page-#{page}.html"])
@@ -51,23 +53,22 @@ defmodule Serum.PostList do
   @spec to_html([t()], map()) :: Error.result(binary())
   def to_html([h | _] = post_lists, proj) do
     template = Template.get("list")
-    header = list_title(h.tag, proj)
-    render([nil | post_lists], [], template, header)
+    render([nil | post_lists], [], template)
   end
 
-  @spec render([t()], [Error.result(binary())], Template.t(), binary()) ::
+  @spec render([t()], [Error.result(binary())], Template.t()) ::
     Error.result([binary()])
 
-  defp render([_last], acc, _template, _header) do
+  defp render([_last], acc, _template) do
     acc
     |> Enum.reverse()
     |> Error.filter_results_with_values(:render)
   end
 
-  defp render([prev, curr | rest], acc, template, header) do
+  defp render([prev, curr | rest], acc, template) do
     next = List.first(rest)
     bindings = [
-      header: header,
+      header: curr.title,
       posts: curr.posts,
       current_page: curr.page,
       max_page: curr.max_page,
@@ -76,7 +77,7 @@ defmodule Serum.PostList do
     ]
     rendered = Renderer.render_fragment(template, bindings)
 
-    render([curr | rest], [rendered | acc], template, header)
+    render([curr | rest], [rendered | acc], template)
   end
 
   @spec list_title(maybe_tag(), map()) :: binary()
