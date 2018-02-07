@@ -10,14 +10,14 @@ defmodule Serum.Build.Pass1.PageBuilder do
    use in the second pass.
   """
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Build
   alias Serum.Page
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts the first pass of PageBuilder."
-  @spec run(Build.mode, map()) :: Error.result([Page.t])
+  @spec run(Build.mode, map()) :: Result.t([Page.t])
 
   def run(mode, proj) do
     IO.puts "Collecting pages information..."
@@ -28,13 +28,13 @@ defmodule Serum.Build.Pass1.PageBuilder do
         |> Path.join()
         |> Path.wildcard()
       result = launch mode, files, proj
-      Error.filter_results_with_values result, :page_builder
+      Result.aggregate_values result, :page_builder
     else
       {:error, {page_dir, :enoent, 0}}
     end
   end
 
-  @spec launch(Build.mode, [binary], map()) :: [Error.result(Page.t)]
+  @spec launch(Build.mode, [binary], map()) :: [Result.t(Page.t)]
   defp launch(mode, files, proj)
 
   defp launch(:parallel, files, proj) do

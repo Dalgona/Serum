@@ -8,18 +8,18 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     blog posts filtered by each tag.
   """
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Build
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Tag
 
   @doc "Starts the IndexBuilder."
-  @spec run(Build.mode, [Post.t()], map(), map()) :: Error.result
+  @spec run(Build.mode, [Post.t()], map(), map()) :: Result.t()
   def run(mode, posts, tag_map, proj) do
     with {:ok, frags1} <- index_task({nil, posts}, proj),
          result = launch(mode, tag_map, proj),
-         {:ok, frags2} <- Error.filter_results_with_values(result, :index_builder)
+         {:ok, frags2} <- Result.aggregate_values(result, :index_builder)
     do
       {:ok, frags1 ++ frags2}
     else
@@ -27,7 +27,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     end
   end
 
-  @spec launch(Build.mode, map(), map()) :: [Error.result(Fragment.t())]
+  @spec launch(Build.mode, map(), map()) :: [Result.t(Fragment.t())]
   defp launch(mode, tag_map, proj)
 
   defp launch(:parallel, tag_map, proj) do
@@ -41,7 +41,7 @@ defmodule Serum.Build.Pass2.IndexBuilder do
     |> Enum.map(&index_task(&1, proj))
   end
 
-  @spec index_task({nil | Tag.t, [Post.t]}, map()) :: Error.result(Fragment.t())
+  @spec index_task({nil | Tag.t, [Post.t]}, map()) :: Result.t(Fragment.t())
   def index_task({tag, posts}, proj) do
     tag
     |> PostList.generate(posts, proj)

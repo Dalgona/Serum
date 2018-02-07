@@ -3,7 +3,7 @@ defmodule Serum.DevServer do
   This module provides functions for starting the Serum development server.
   """
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.DevServer.{Service, AutoBuilder, Looper}
   alias Serum.SiteBuilder
 
@@ -26,7 +26,7 @@ defmodule Serum.DevServer do
 
     {:ok, pid_builder} = SiteBuilder.start_link dir, site
     case SiteBuilder.load_info pid_builder do
-      {:error, _} = error -> Error.show error
+      {:error, _} = error -> Result.show error
       {:ok, proj} ->
         base = proj.base_url
         ms_callbacks = [Microscope.Logger, AutoBuilder]

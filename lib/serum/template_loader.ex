@@ -4,7 +4,7 @@ defmodule Serum.TemplateLoader do
   """
 
   import Serum.Util
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Template
 
   @type templates() :: %{optional(binary()) => Template.t()}
@@ -14,13 +14,13 @@ defmodule Serum.TemplateLoader do
 
   May return a map with loaded template ASTs.
   """
-  @spec load_templates(binary()) :: Error.result()
+  @spec load_templates(binary()) :: Result.t()
   def load_templates(src) do
     IO.puts "Loading templates..."
     result =
       ["base", "list", "page", "post"]
       |> Enum.map(&do_load_templates(&1, src))
-      |> Error.filter_results_with_values(:load_templates)
+      |> Result.aggregate_values(:load_templates)
     case result do
       {:ok, list} -> list |> Map.new() |> Template.load(:template)
       {:error, _} = error -> error
@@ -28,7 +28,7 @@ defmodule Serum.TemplateLoader do
   end
 
   @spec do_load_templates(binary(), binary())
-    :: Error.result({binary(), Template.t()})
+    :: Result.t({binary(), Template.t()})
   defp do_load_templates(name, src) do
     path = Path.join [src, "templates", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),
@@ -46,7 +46,7 @@ defmodule Serum.TemplateLoader do
 
   May return a map with compiled includable templates.
   """
-  @spec load_includes(binary()) :: Error.result(templates())
+  @spec load_includes(binary()) :: Result.t(templates())
   def load_includes(src) do
     IO.puts "Loading includes..."
     includes_dir = Path.join src, "includes"
@@ -57,7 +57,7 @@ defmodule Serum.TemplateLoader do
         |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
         |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
         |> Stream.map(&do_load_includes(&1, src))
-        |> Error.filter_results_with_values(:load_includes)
+        |> Result.aggregate_values(:load_includes)
       case result do
         {:ok, list} -> list |> Map.new() |> Template.load(:include)
         {:error, _} = error -> error
@@ -67,7 +67,7 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec do_load_includes(binary(), binary()) :: Error.result({binary(), Template.t()})
+  @spec do_load_includes(binary(), binary()) :: Result.t({binary(), Template.t()})
   defp do_load_includes(name, src) do
     path = Path.join [src, "includes", name <> ".html.eex"]
     with {:ok, data} <- File.read(path),

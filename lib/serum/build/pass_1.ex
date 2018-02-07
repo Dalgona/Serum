@@ -20,7 +20,7 @@ defmodule Serum.Build.Pass1 do
   alias Serum.Build
   alias Serum.Build.Pass1.PageBuilder
   alias Serum.Build.Pass1.PostBuilder
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Page
   alias Serum.Post
   alias Serum.Tag
@@ -33,7 +33,7 @@ defmodule Serum.Build.Pass1 do
   }
 
   @doc "Starts the first pass of the building process in given build mode."
-  @spec run(Build.mode(), map()) :: Error.result(result())
+  @spec run(Build.mode(), map()) :: Result.t(result())
   def run(build_mode, proj)
 
   def run(:parallel, proj) do

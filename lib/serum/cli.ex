@@ -6,7 +6,7 @@ defmodule Serum.CLI.Task do
       @behaviour unquote(__MODULE__)
 
       alias Serum.CLI
-      alias Serum.Error
+      alias Serum.Result
     end
   end
 

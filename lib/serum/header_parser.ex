@@ -18,7 +18,7 @@ defmodule Serum.HeaderParser do
   actual value of a metadata.
   """
 
-  alias Serum.Error
+  alias Serum.Result
 
   @date_format1 "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
   @date_format2 "{YYYY}-{0M}-{0D}"
@@ -57,7 +57,7 @@ defmodule Serum.HeaderParser do
     value must have the same type, either `:string`, `:integer`, or `:datetime`.
     You cannot make a list of lists.
   """
-  @spec parse_header(IO.device, binary, options, [atom]) :: Error.result(map)
+  @spec parse_header(IO.device, binary, options, [atom]) :: Result.t(map)
 
   def parse_header(device, fname, options, required \\ []) do
     case extract_header device, [], false do
@@ -78,7 +78,7 @@ defmodule Serum.HeaderParser do
     end
   end
 
-  @spec handle_error(term, binary) :: Error.result
+  @spec handle_error(term, binary) :: Result.t()
 
   defp handle_error([missing], fname) do
     {:error, {"`#{missing}` is required, but it's missing", fname, 0}}

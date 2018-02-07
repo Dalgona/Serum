@@ -3,6 +3,7 @@ defmodule Serum.CLI.Init do
 
   use Serum.CLI.Task
   alias Serum.Init
+  alias Serum.Result
 
   @strict  [force: :boolean]
   @aliases [f: :force]
@@ -28,7 +29,7 @@ defmodule Serum.CLI.Init do
         CLI.usage()
         {:cli_exit, 2}
       {:error, _} = error ->
-        Error.show error
+        Result.show error
         IO.puts """
 
         Could not initialize a new project.

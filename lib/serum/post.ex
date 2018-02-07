@@ -1,7 +1,7 @@
 defmodule Serum.Post do
   @moduledoc "This module defines Post struct."
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Fragment
   alias Serum.HeaderParser
   alias Serum.Renderer
@@ -25,7 +25,7 @@ defmodule Serum.Post do
     :url, :preview_text, :html, :output
   ]
 
-  @spec load(binary(), map()) :: Error.result(t())
+  @spec load(binary(), map()) :: Result.t(t())
   def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
          {:ok, {header, data}} <- get_contents(file, path)
@@ -40,7 +40,7 @@ defmodule Serum.Post do
   end
 
   # TODO: Almost the same as Serum.Page.get_contents/2
-  @spec get_contents(pid(), binary()) :: Error.result(map())
+  @spec get_contents(pid(), binary()) :: Result.t(map())
   defp get_contents(file, path) do
     opts = [
       title: :string,
@@ -106,7 +106,7 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_fragment(t(), map()) :: Error.result(Fragment.t())
+  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, proj) do
     case to_html(post, proj) do
       {:ok, html} ->
@@ -122,7 +122,7 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_html(t(), map()) :: Error.result(binary())
+  @spec to_html(t(), map()) :: Result.t(binary())
   def to_html(%__MODULE__{} = post, proj) do
     bindings = [
       title: post.title, date: post.date, raw_date: post.raw_date,

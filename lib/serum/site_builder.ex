@@ -6,7 +6,7 @@ defmodule Serum.SiteBuilder do
   """
 
   use GenServer
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Build
   alias Serum.ProjectInfo
 
@@ -38,7 +38,7 @@ defmodule Serum.SiteBuilder do
 
   Returns an error object otherwise.
   """
-  @spec load_info(pid) :: Error.result(ProjectInfo.t)
+  @spec load_info(pid) :: Result.t(ProjectInfo.t)
 
   def load_info(server) do
     GenServer.call server, :load_info
@@ -56,7 +56,7 @@ defmodule Serum.SiteBuilder do
   Returns an error object if the project metadata is not loaded (i.e.
   `load_info/1` is not called yet), or other error occurs.
   """
-  @spec build(pid, Build.mode) :: Error.result(binary)
+  @spec build(pid, Build.mode) :: Result.t(binary)
 
   def build(server, mode) do
     {time, result} =

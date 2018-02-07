@@ -13,7 +13,7 @@ defmodule Serum.Page do
     data: binary()
   }
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Fragment
   alias Serum.HeaderParser
   alias Serum.Renderer
@@ -22,7 +22,7 @@ defmodule Serum.Page do
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
-  @spec load(binary(), map()) :: Error.result(t())
+  @spec load(binary(), map()) :: Result.t(t())
   def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
          {:ok, {header, data}} <- get_contents(file, path)
@@ -36,7 +36,7 @@ defmodule Serum.Page do
   end
 
   # TODO: Almost the same as Serum.Post.get_contents/2
-  @spec get_contents(pid(), binary()) :: Error.result(map())
+  @spec get_contents(pid(), binary()) :: Result.t(map())
   defp get_contents(file, path) do
     opts = [
       title: :string,
@@ -91,7 +91,7 @@ defmodule Serum.Page do
     end
   end
 
-  @spec to_fragment(t(), map()) :: Error.result(Fragment.t())
+  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(page, proj) do
     case to_html(page, proj) do
       {:ok, html} ->
@@ -107,7 +107,7 @@ defmodule Serum.Page do
     end
   end
 
-  @spec to_html(t(), map()) :: Error.result(binary())
+  @spec to_html(t(), map()) :: Result.t(binary())
   def to_html(page, proj)
 
   def to_html(%__MODULE__{type: ".md"} = page, proj) do
@@ -133,7 +133,7 @@ defmodule Serum.Page do
     end
   end
 
-  @spec render(binary(), map()) :: Error.result(binary())
+  @spec render(binary(), map()) :: Result.t(binary())
   defp render(html, proj) do
     bindings = [contents: html]
     template = Template.get("page")

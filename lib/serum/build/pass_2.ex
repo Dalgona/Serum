@@ -14,12 +14,12 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Build.Pass2.PageBuilder
   alias Serum.Build.Pass2.PostBuilder
   alias Serum.Build.Pass2.IndexBuilder
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Page
   alias Serum.Post
 
   @doc "Starts the second pass of the building process in given build mode."
-  @spec run(Build.mode, [Page.t()], [Post.t()], map(), Build.state) :: Error.result
+  @spec run(Build.mode, [Page.t()], [Post.t()], map(), Build.state) :: Result.t()
   def run(build_mode, pages, posts, tag_map, state)
 
   def run(:parallel, pages, posts, tag_map, state) do
@@ -29,7 +29,7 @@ defmodule Serum.Build.Pass2 do
     t3 = Task.async(IndexBuilder, :run, [:parallel, posts, tag_map, proj])
     [t1, t2, t3]
     |> Enum.map(&Task.await/1)
-    |> Error.filter_results(:build_pass2)
+    |> Result.aggregate(:build_pass2)
   end
 
   def run(:sequential, pages, posts, tag_map, state) do
@@ -38,6 +38,6 @@ defmodule Serum.Build.Pass2 do
     r2 = PostBuilder.run(:sequential, posts, proj)
     r3 = IndexBuilder.run(:sequential, posts, tag_map, proj)
     [r1, r2, r3]
-    |> Error.filter_results(:build_pass2)
+    |> Result.aggregate(:build_pass2)
   end
 end

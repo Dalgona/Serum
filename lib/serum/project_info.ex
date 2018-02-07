@@ -4,6 +4,7 @@ defmodule Serum.ProjectInfo do
   """
 
   import Serum.Util
+  alias Serum.Result
   alias Serum.Validation
 
   @accepted_keys [
@@ -52,7 +53,7 @@ defmodule Serum.ProjectInfo do
   @doc """
   Loads a Serum project info from the given file `path`.
   """
-  @spec load(binary(), binary()) :: Error.result(t())
+  @spec load(binary(), binary()) :: Result.t(t())
   def load(src, dest) do
     path = Path.join(src, "serum.json")
     with {:ok, text} <- File.read(path),

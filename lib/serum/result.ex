@@ -1,23 +1,23 @@
-defmodule Serum.Error do
+defmodule Serum.Result do
   @moduledoc """
   This module defines types for positive results or errors returned by
   functions in this project.
   """
 
-  @type result       :: :ok | error
-  @type result(type) :: {:ok, type} | error
+  @type t       :: :ok | error()
+  @type t(type) :: {:ok, type} | error()
 
-  @type error :: {:error, err_details}
+  @type error :: {:error, err_details()}
 
-  @type err_details :: msg_detail | full_detail | nest_detail
+  @type err_details :: msg_detail() | full_detail() | nest_detail()
 
-  @type msg_detail  :: message
-  @type full_detail :: {message, file, line}
-  @type nest_detail :: {term, [error]}
+  @type msg_detail  :: message()
+  @type full_detail :: {message(), file(), line()}
+  @type nest_detail :: {term(), [error()]}
 
-  @type message :: binary
-  @type file    :: binary
-  @type line    :: non_neg_integer
+  @type message :: binary()
+  @type file    :: binary()
+  @type line    :: non_neg_integer()
 
   @doc """
   Takes a list of result objects (without returned values) and checks if there
@@ -27,9 +27,8 @@ defmodule Serum.Error do
 
   Returns an aggregated error object if there is one or more errors.
   """
-  @spec filter_results([result], term) :: result
-
-  def filter_results(results, from) do
+  @spec aggregate([t()], term()) :: t()
+  def aggregate(results, from) do
     case Enum.reject results, &succeeded?/1 do
       [] -> :ok
       errors when is_list(errors) -> {:error, {from, errors}}
@@ -45,24 +44,22 @@ defmodule Serum.Error do
 
   Returns an aggregated error object if there is one or more errors.
   """
-  @spec filter_results_with_values([result(term)], term) :: result([term])
-
-  def filter_results_with_values(results, from) do
+  @spec aggregate_values([t(term)], term()) :: t([term()])
+  def aggregate_values(results, from) do
     case Enum.reject results, &succeeded?/1 do
       [] -> {:ok, Enum.map(results, &elem(&1, 1))}
       errors when is_list(errors) -> {:error, {from, errors}}
     end
   end
 
-  @spec succeeded?(result | result(term)) :: boolean
-
+  @spec succeeded?(t() | t(term)) :: boolean()
+  defp succeeded?(result)
   defp succeeded?(:ok),         do: true
   defp succeeded?({:ok, _}),    do: true
   defp succeeded?({:error, _}), do: false
 
   @doc "Prints an error object in a beautiful format."
-  @spec show(result, non_neg_integer) :: :ok
-
+  @spec show(t(), non_neg_integer()) :: :ok
   def show(result, indent \\ 0)
 
   def show(:ok, indent) do

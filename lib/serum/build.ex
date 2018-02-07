@@ -4,7 +4,7 @@ defmodule Serum.Build do
   """
 
   import Serum.Util
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
   alias Serum.GlobalBindings
@@ -31,7 +31,7 @@ defmodule Serum.Build do
   5. Finally copies `assets/` and `media/` directory to the output directory
     (if any).
   """
-  @spec build(mode, state) :: Error.result(binary)
+  @spec build(mode, state) :: Result.t(binary)
 
   def build(mode, state) do
     with :ok <- check_dest_perm(state.project_info.dest),
@@ -60,7 +60,7 @@ defmodule Serum.Build do
 
   # Checks if the effective user have a write
   # permission on the destination directory.
-  @spec check_dest_perm(binary) :: Error.result
+  @spec check_dest_perm(binary) :: Result.t()
 
   defp check_dest_perm(dest) do
     parent = dest |> Path.join("") |> Path.dirname()
@@ -78,7 +78,7 @@ defmodule Serum.Build do
   end
 
   # Checks if the system timezone is set and valid.
-  @spec check_tz() :: Error.result
+  @spec check_tz() :: Result.t()
 
   defp check_tz() do
     try do
@@ -104,7 +104,7 @@ defmodule Serum.Build do
     |> Enum.each(&File.rm_rf!(&1))
   end
 
-  @spec prepare_templates(binary()) :: Error.result()
+  @spec prepare_templates(binary()) :: Result.t()
 
   defp prepare_templates(src) do
     with :ok <- TemplateLoader.load_includes(src),

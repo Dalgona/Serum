@@ -12,18 +12,18 @@ defmodule Serum.Build.Pass1.PostBuilder do
   """
 
   import Serum.Util
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Post
 
   @async_opt [max_concurrency: System.schedulers_online * 10]
 
   @doc "Starts the first pass of PostBuilder."
-  @spec run(Build.mode, map()) :: Error.result([Post.t])
+  @spec run(Build.mode, map()) :: Result.t([Post.t])
 
   def run(mode, proj) do
     files = load_file_list(proj.src)
     result = launch mode, files, proj
-    Error.filter_results_with_values result, :post_builder
+    Result.aggregate_values result, :post_builder
   end
 
   @spec load_file_list(binary()) :: [binary()]
@@ -42,7 +42,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
     end
   end
 
-  @spec launch(Build.mode, [binary], map()) :: [Error.result(Post.t)]
+  @spec launch(Build.mode, [binary], map()) :: [Result.t(Post.t)]
   defp launch(mode, files, proj)
 
   defp launch(:parallel, files, proj) do

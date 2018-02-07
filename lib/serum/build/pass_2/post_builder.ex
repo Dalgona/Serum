@@ -6,19 +6,19 @@ defmodule Serum.Build.Pass2.PostBuilder do
     blog post for each `Serum.Post` object in the list.
   """
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.Fragment
   alias Serum.Build
   alias Serum.Post
 
   @doc "Starts the second pass of PostBuilder."
-  @spec run(Build.mode(), [Post.t()], map()) :: Error.result()
+  @spec run(Build.mode(), [Post.t()], map()) :: Result.t()
   def run(mode, posts, proj) do
     result = launch mode, posts, proj
-    Error.filter_results result, :post_builder
+    Result.aggregate result, :post_builder
   end
 
-  @spec launch(Build.mode, [Post.t], map()) :: [Error.result(Fragment.t())]
+  @spec launch(Build.mode, [Post.t], map()) :: [Result.t(Fragment.t())]
   defp launch(mode, files, proj)
 
   defp launch(:parallel, files, proj) do

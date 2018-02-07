@@ -2,6 +2,7 @@ defmodule Serum.CLI.Build do
   @moduledoc false
 
   use Serum.CLI.Task
+  alias Serum.Result
   alias Serum.SiteBuilder
 
   @strict  [parallel: :boolean, output: :string]
@@ -55,10 +56,10 @@ defmodule Serum.CLI.Build do
     """
   end
 
-  @spec on_error(Error.error) :: :ok
+  @spec on_error(Result.error()) :: :ok
 
   defp on_error(error) do
-    Error.show(error)
+    Result.show(error)
     IO.puts """
 
     Could not build the website due to error(s).

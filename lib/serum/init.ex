@@ -5,7 +5,7 @@ defmodule Serum.Init do
 
   import Serum.Payload
   import Serum.Util
-  alias Serum.Error
+  alias Serum.Result
 
   @doc """
   Initializes a new Serum project into the given directory `dir`.
@@ -13,7 +13,7 @@ defmodule Serum.Init do
   This function will create a minimal required directory structure, and
   generate metadata files and templates.
   """
-  @spec init(binary, boolean) :: Error.result
+  @spec init(binary, boolean) :: Result.t()
 
   def init(dir, force?) do
     with :ok <- check_dir(dir, force?),
@@ -31,7 +31,7 @@ defmodule Serum.Init do
 
   # Checks if the specified directory already exists.
   # Prints a warning message if so.
-  @spec check_dir(binary, boolean) :: Error.result
+  @spec check_dir(binary, boolean) :: Result.t()
 
   defp check_dir(dir, force?) do
     with true <- File.exists?(dir),
@@ -50,7 +50,7 @@ defmodule Serum.Init do
   end
 
   # Creates necessary directory structure under the specified directory.
-  @spec create_dir(binary) :: Error.result
+  @spec create_dir(binary) :: Result.t()
 
   defp create_dir(dir) do
     dirs =

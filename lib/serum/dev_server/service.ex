@@ -6,7 +6,7 @@ defmodule Serum.DevServer.Service do
 
   use GenServer
   import Serum.Util
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.SiteBuilder
 
   #
@@ -112,7 +112,7 @@ defmodule Serum.DevServer.Service do
   end
 
   defp build_failed(error) do
-    Error.show error
+    Result.show error
     warn "Error occurred while building the website."
     warn "The website may not be displayed correctly."
   end

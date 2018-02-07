@@ -3,7 +3,7 @@ defmodule Serum.Renderer do
   This module provides functions for rendering pages into HTML.
   """
 
-  alias Serum.Error
+  alias Serum.Result
   alias Serum.GlobalBindings
   alias Serum.Build
   alias Serum.Template
@@ -22,7 +22,7 @@ defmodule Serum.Renderer do
   of variable bindings which is then fed into `templates/base.html.eex` template
   file.
   """
-  @spec render(binary, keyword, keyword, state) :: Error.result(binary)
+  @spec render(binary, keyword, keyword, state) :: Result.t(binary)
 
   # render full page
   def render(template_name, stub_ctx, page_ctx, state) do
@@ -40,7 +40,7 @@ defmodule Serum.Renderer do
   @doc """
   Renders contents into a (partial) HTML stub.
   """
-  @spec render_fragment(Template.t(), keyword()) :: Error.result(binary())
+  @spec render_fragment(Template.t(), keyword()) :: Result.t(binary())
   def render_fragment(template, bindings) do
     global_bindings = GlobalBindings.as_keyword()
     bindings2 = Keyword.merge(bindings, global_bindings, fn _k, v, _ -> v end)
