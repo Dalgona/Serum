@@ -58,15 +58,7 @@ defmodule Serum.PostList do
         fragments =
           post_lists
           |> Stream.zip(htmls)
-          |> Enum.map(fn {list, html} ->
-            %Fragment{
-              file: nil,
-              output: list.output,
-              title: list.title,
-              type: :list,
-              data: html
-            }
-          end)
+          |> Enum.map(fn {list, html} -> Fragment.new(:list, list, html) end)
         {:ok, fragments}
       {:error, _} = error -> error
     end

@@ -8,4 +8,15 @@ defmodule Serum.Fragment do
   }
 
   defstruct [:file, :output, :title, :type, :data]
+
+  @spec new(atom(), struct(), binary()) :: t()
+  def new(type, struct, data) do
+    %__MODULE__{
+      file: Map.get(struct, :file),
+      output: struct.output,
+      title: struct.title,
+      type: type,
+      data: data
+    }
+  end
 end

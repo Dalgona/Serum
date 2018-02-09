@@ -39,7 +39,6 @@ defmodule Serum.Post do
     end
   end
 
-  # TODO: Almost the same as Serum.Page.get_contents/2
   @spec get_contents(pid(), binary()) :: Result.t(map())
   defp get_contents(file, path) do
     opts = [
@@ -109,15 +108,7 @@ defmodule Serum.Post do
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, proj) do
     case to_html(post, proj) do
-      {:ok, html} ->
-        {:ok,
-          %Fragment{
-            file: post.file,
-            output: post.output,
-            title: post.title,
-            type: :post,
-            data: html
-          }}
+      {:ok, html} -> {:ok, Fragment.new(:post, post, html)}
       {:error, error} = error -> error
     end
   end
