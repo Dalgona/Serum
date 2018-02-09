@@ -22,7 +22,7 @@ defmodule Serum.Build.Pass2.PageBuilder do
 
   def run(mode, pages, proj) do
     result = launch mode, pages, proj
-    Result.aggregate result, :page_builder
+    Result.aggregate_values result, :page_builder
   end
 
   @spec launch(Build.mode, [Page.t], map()) :: [Result.t(Fragment.t())]

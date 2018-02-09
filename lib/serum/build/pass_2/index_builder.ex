@@ -15,13 +15,13 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   alias Serum.Tag
 
   @doc "Starts the IndexBuilder."
-  @spec run(Build.mode, [Post.t()], map(), map()) :: Result.t()
+  @spec run(Build.mode, [Post.t()], map(), map()) :: Result.t([Fragment.t()])
   def run(mode, posts, tag_map, proj) do
     with {:ok, frags1} <- index_task({nil, posts}, proj),
          result = launch(mode, tag_map, proj),
          {:ok, frags2} <- Result.aggregate_values(result, :index_builder)
     do
-      {:ok, frags1 ++ frags2}
+      {:ok, List.flatten([frags1 | frags2])}
     else
       {:error, _} = error -> error
     end

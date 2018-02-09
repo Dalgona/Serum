@@ -15,7 +15,7 @@ defmodule Serum.Build.Pass2.PostBuilder do
   @spec run(Build.mode(), [Post.t()], map()) :: Result.t()
   def run(mode, posts, proj) do
     result = launch mode, posts, proj
-    Result.aggregate result, :post_builder
+    Result.aggregate_values result, :post_builder
   end
 
   @spec launch(Build.mode, [Post.t], map()) :: [Result.t(Fragment.t())]

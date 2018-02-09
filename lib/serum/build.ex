@@ -34,15 +34,16 @@ defmodule Serum.Build do
   @spec build(mode, state) :: Result.t(binary)
 
   def build(mode, state) do
-    with :ok <- check_dest_perm(state.project_info.dest),
+    proj = state.project_info
+    with :ok <- check_dest_perm(proj.dest),
          :ok <- check_tz(),
-         :ok <- clean_dest(state.project_info.dest),
-         :ok <- prepare_templates(state.project_info.src),
-         {:ok, output} <- Pass1.run(mode, state.project_info),
+         :ok <- clean_dest(proj.dest),
+         :ok <- prepare_templates(proj.src),
+         {:ok, output} <- Pass1.run(mode, proj),
          state = wip_update_state(state, output),
-         :ok <- Pass2.run(mode, output.pages, output.posts, output.tag_map, state)
+         :ok <- Pass2.run(mode, output.pages, output.posts, output.tag_map, proj)
     do
-      copy_assets(state.project_info.src, state.project_info.dest)
+      copy_assets(proj.src, proj.dest)
       {:ok, state}
     else
       {:error, _} = error -> error

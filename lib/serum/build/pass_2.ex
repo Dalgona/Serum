@@ -14,30 +14,39 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Build.Pass2.PageBuilder
   alias Serum.Build.Pass2.PostBuilder
   alias Serum.Build.Pass2.IndexBuilder
+  alias Serum.Fragment
   alias Serum.Result
   alias Serum.Page
   alias Serum.Post
 
   @doc "Starts the second pass of the building process in given build mode."
-  @spec run(Build.mode, [Page.t()], [Post.t()], map(), Build.state) :: Result.t()
-  def run(build_mode, pages, posts, tag_map, state)
+  @spec run(Build.mode(), [Page.t()], [Post.t()], map(), map()) ::
+    Result.t(Fragment.t())
 
-  def run(:parallel, pages, posts, tag_map, state) do
-    proj = state.project_info
+  def run(build_mode, pages, posts, tag_map, proj)
+
+  def run(:parallel, pages, posts, tag_map, proj) do
     t1 = Task.async(PageBuilder, :run, [:parallel, pages, proj])
     t2 = Task.async(PostBuilder, :run, [:parallel, posts, proj])
     t3 = Task.async(IndexBuilder, :run, [:parallel, posts, tag_map, proj])
     [t1, t2, t3]
     |> Enum.map(&Task.await/1)
-    |> Result.aggregate(:build_pass2)
+    |> Result.aggregate_values(:build_pass2)
+    |> case do
+      {:ok, results} -> {:ok, List.flatten(results)}
+      {:error, _} = error -> error
+    end
   end
 
-  def run(:sequential, pages, posts, tag_map, state) do
-    proj = state.project_info
+  def run(:sequential, pages, posts, tag_map, proj) do
     r1 = PageBuilder.run(:sequential, pages, proj)
     r2 = PostBuilder.run(:sequential, posts, proj)
     r3 = IndexBuilder.run(:sequential, posts, tag_map, proj)
     [r1, r2, r3]
-    |> Result.aggregate(:build_pass2)
+    |> Result.aggregate_values(:build_pass2)
+    |> case do
+      {:ok, results} -> {:ok, List.flatten(results)}
+      {:error, _} = error -> error
+    end
   end
 end
