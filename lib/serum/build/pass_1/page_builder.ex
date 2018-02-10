@@ -14,8 +14,6 @@ defmodule Serum.Build.Pass1.PageBuilder do
   alias Serum.Build
   alias Serum.Page
 
-  @async_opt [max_concurrency: System.schedulers_online() * 10]
-
   @doc "Starts the first pass of PageBuilder."
   @spec run(Build.mode(), map()) :: Result.t([Page.t()])
 
@@ -41,7 +39,7 @@ defmodule Serum.Build.Pass1.PageBuilder do
 
   defp launch(:parallel, files, proj) do
     files
-    |> Task.async_stream(Page, :load, [proj], @async_opt)
+    |> Task.async_stream(Page, :load, [proj])
     |> Enum.map(&elem(&1, 1))
   end
 

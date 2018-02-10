@@ -15,8 +15,6 @@ defmodule Serum.Build.Pass1.PostBuilder do
   alias Serum.Result
   alias Serum.Post
 
-  @async_opt [max_concurrency: System.schedulers_online() * 10]
-
   @doc "Starts the first pass of PostBuilder."
   @spec run(Build.mode(), map()) :: Result.t([Post.t()])
 
@@ -48,7 +46,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
 
   defp launch(:parallel, files, proj) do
     files
-    |> Task.async_stream(Post, :load, [proj], @async_opt)
+    |> Task.async_stream(Post, :load, [proj])
     |> Enum.map(&elem(&1, 1))
   end
 
