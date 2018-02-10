@@ -27,7 +27,7 @@ defmodule Serum.SiteBuilder do
 
   def start_link(src, dest) do
     dest = dest || Path.join(src, "site")
-    GenServer.start_link __MODULE__, {src, dest}
+    GenServer.start_link(__MODULE__, {src, dest})
   end
 
   @doc """
@@ -38,10 +38,10 @@ defmodule Serum.SiteBuilder do
 
   Returns an error object otherwise.
   """
-  @spec load_info(pid) :: Result.t(ProjectInfo.t)
+  @spec load_info(pid) :: Result.t(ProjectInfo.t())
 
   def load_info(server) do
-    GenServer.call server, :load_info
+    GenServer.call(server, :load_info)
   end
 
   @doc """
@@ -56,18 +56,21 @@ defmodule Serum.SiteBuilder do
   Returns an error object if the project metadata is not loaded (i.e.
   `load_info/1` is not called yet), or other error occurs.
   """
-  @spec build(pid, Build.mode) :: Result.t(binary)
+  @spec build(pid, Build.mode()) :: Result.t(binary)
 
   def build(server, mode) do
     {time, result} =
-      :timer.tc fn ->
-        GenServer.call server, {:build, mode}
-      end
+      :timer.tc(fn ->
+        GenServer.call(server, {:build, mode})
+      end)
+
     case result do
       {:ok, dest} ->
-        IO.puts "Build process took #{time/1000}ms."
+        IO.puts("Build process took #{time / 1000}ms.")
         {:ok, dest}
-      {:error, _} = error -> error
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -77,7 +80,7 @@ defmodule Serum.SiteBuilder do
   @spec stop(pid) :: :ok
 
   def stop(server) do
-    GenServer.cast server, :stop
+    GenServer.cast(server, :stop)
   end
 
   #
@@ -94,6 +97,7 @@ defmodule Serum.SiteBuilder do
     case ProjectInfo.load(state.src, state.dest) do
       {:ok, proj} ->
         {:reply, {:ok, proj}, %{state | project_info: proj}}
+
       {:error, _} = error ->
         {:reply, error, state}
     end
@@ -104,13 +108,13 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call({:build, mode}, _from, state) do
-    case Build.build mode, state.project_info do
+    case Build.build(mode, state.project_info) do
       {:ok, dest} -> {:reply, {:ok, dest}, state}
       {:error, _} = error -> {:reply, error, state}
     end
   end
 
   def handle_cast(:stop, _state) do
-    exit :normal
+    exit(:normal)
   end
 end

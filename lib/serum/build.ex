@@ -37,8 +37,7 @@ defmodule Serum.Build do
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
          :ok <- prepare_templates(proj.src),
-         :ok <- do_build(proj, mode)
-    do
+         :ok <- do_build(proj, mode) do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
     else
@@ -72,13 +71,15 @@ defmodule Serum.Build do
 
   defp check_dest_perm(dest) do
     parent = dest |> Path.join("") |> Path.dirname()
+
     result =
-      case File.stat parent do
+      case File.stat(parent) do
         {:error, reason} -> reason
         {:ok, %File.Stat{access: :none}} -> :eacces
         {:ok, %File.Stat{access: :read}} -> :eacces
         {:ok, _} -> :ok
       end
+
     case result do
       :ok -> :ok
       err -> {:error, {err, dest, 0}}
@@ -90,11 +91,11 @@ defmodule Serum.Build do
   @spec clean_dest(binary) :: :ok
 
   defp clean_dest(dest) do
-    File.mkdir_p! dest
-    msg_mkdir dest
+    File.mkdir_p!(dest)
+    msg_mkdir(dest)
 
     dest
-    |> File.ls!
+    |> File.ls!()
     |> Enum.reject(&String.starts_with?(&1, "."))
     |> Enum.map(&Path.join(dest, &1))
     |> Enum.each(&File.rm_rf!(&1))
@@ -104,8 +105,7 @@ defmodule Serum.Build do
 
   defp prepare_templates(src) do
     with :ok <- TemplateLoader.load_includes(src),
-         :ok <- TemplateLoader.load_templates(src)
-    do
+         :ok <- TemplateLoader.load_templates(src) do
       :ok
     else
       {:error, _} = error -> error
@@ -115,18 +115,20 @@ defmodule Serum.Build do
   @spec copy_assets(binary(), binary()) :: :ok
 
   defp copy_assets(src, dest) do
-    IO.puts "Copying assets and media..."
-    try_copy Path.join(src, "assets"), Path.join(dest, "assets")
-    try_copy Path.join(src, "media"), Path.join(dest, "media")
+    IO.puts("Copying assets and media...")
+    try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
+    try_copy(Path.join(src, "media"), Path.join(dest, "media"))
   end
 
   @spec try_copy(binary, binary) :: :ok
 
   defp try_copy(src, dest) do
-    case File.cp_r src, dest do
+    case File.cp_r(src, dest) do
       {:error, reason, _} ->
-        warn "Cannot copy #{src}: #{:file.format_error(reason)}. Skipping."
-      {:ok, _} -> :ok
+        warn("Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
+
+      {:ok, _} ->
+        :ok
     end
   end
 end

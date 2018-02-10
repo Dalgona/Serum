@@ -40,8 +40,7 @@ defmodule Serum.Build.Pass2 do
     end
   end
 
-  @spec do_run([Page.t()], [Post.t()], map(), map(), Build.mode()) ::
-    Result.t([[Fragment.t()]])
+  @spec do_run([Page.t()], [Post.t()], map(), map(), Build.mode()) :: Result.t([[Fragment.t()]])
 
   defp do_run(pages, posts, tag_map, proj, build_mode)
 

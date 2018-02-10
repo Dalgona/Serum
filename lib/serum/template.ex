@@ -7,13 +7,13 @@ defmodule Serum.Template do
   """
 
   @type t() :: %__MODULE__{
-    type: template_type(),
-    file: binary(),
-    ast: Macro.t()
-  }
+          type: template_type(),
+          file: binary(),
+          ast: Macro.t()
+        }
   @type template_type() :: :template | :include
 
-  defstruct [type: :template, file: nil, ast: nil]
+  defstruct type: :template, file: nil, ast: nil
 
   @spec new(Macro.t(), template_type(), binary()) :: t()
   def new(ast, type, path) do

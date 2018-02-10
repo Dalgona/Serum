@@ -17,12 +17,11 @@ defmodule Serum.Init do
 
   def init(dir, force?) do
     with :ok <- check_dir(dir, force?),
-         :ok <- create_dir(dir)
-    do
-      create_info dir
-      create_index dir
-      create_templates dir
-      create_gitignore dir
+         :ok <- create_dir(dir) do
+      create_info(dir)
+      create_index(dir)
+      create_templates(dir)
+      create_gitignore(dir)
       :ok
     else
       {:error, _} = error -> error
@@ -35,11 +34,9 @@ defmodule Serum.Init do
 
   defp check_dir(dir, force?) do
     with true <- File.exists?(dir),
-         {:ok, list} <- File.ls(dir)
-    do
+         {:ok, list} <- File.ls(dir) do
       if not Enum.empty?(list) and not force? do
-        {:error,
-         {"directory is not empty. use -f (--force) to proceed anyway", dir, 0}}
+        {:error, {"directory is not empty. use -f (--force) to proceed anyway", dir, 0}}
       else
         :ok
       end
@@ -53,19 +50,29 @@ defmodule Serum.Init do
   @spec create_dir(binary) :: Result.t()
 
   defp create_dir(dir) do
-    dirs =
-      ["posts", "pages", "media", "templates", "includes",
-       "assets/css", "assets/js", "assets/images"]
+    dirs = [
+      "posts",
+      "pages",
+      "media",
+      "templates",
+      "includes",
+      "assets/css",
+      "assets/js",
+      "assets/images"
+    ]
+
     mkdir_result =
       dirs
       |> Enum.map(fn x ->
-        dirname = Path.join dir, x
+        dirname = Path.join(dir, x)
         {dirname, File.mkdir_p(dirname)}
       end)
+
     case Enum.reject(mkdir_result, fn {_, x} -> x == :ok end) do
       [] ->
-        Enum.each mkdir_result, fn {dirname, _} -> msg_mkdir dirname end
-      [{dirname, {:error, reason}}|_] ->
+        Enum.each(mkdir_result, fn {dirname, _} -> msg_mkdir(dirname) end)
+
+      [{dirname, {:error, reason}} | _] ->
         {:error, {reason, dirname, 0}}
     end
   end
@@ -75,32 +82,37 @@ defmodule Serum.Init do
 
   defp create_info(dir) do
     projinfo =
-      %{site_name: "New Website",
+      %{
+        site_name: "New Website",
         site_description: "Welcome to my website!",
         author: "Somebody",
         author_email: "somebody@example.com",
         base_url: "/",
         date_format: "{WDfull}, {D} {Mshort} {YYYY}",
-        preview_length: 200}
+        preview_length: 200
+      }
       |> Poison.encode!(pretty: true, indent: 2)
-    fname = Path.join dir, "serum.json"
-    fwrite fname, projinfo
-    msg_gen fname
+
+    fname = Path.join(dir, "serum.json")
+    fwrite(fname, projinfo)
+    msg_gen(fname)
   end
 
   # Generates a minimal index page for the new project.
   @spec create_index(binary) :: :ok
 
   defp create_index(dir) do
-    fname = Path.join dir, "pages/index.md"
-    fwrite fname, """
+    fname = Path.join(dir, "pages/index.md")
+
+    fwrite(fname, """
     ---
     title: Welcome
     ---
 
     *Hello, world!*
-    """
-    msg_gen fname
+    """)
+
+    msg_gen(fname)
   end
 
   # Generates default template files.
@@ -110,15 +122,15 @@ defmodule Serum.Init do
     [:base, :list, :page, :post]
     |> Enum.each(fn k ->
       fname = Path.join([dir, "templates", "#{k}.html.eex"])
-      fwrite fname, template(k)
-      msg_gen fname
+      fwrite(fname, template(k))
+      msg_gen(fname)
     end)
 
     [:nav]
     |> Enum.each(fn k ->
       fname = Path.join([dir, "includes", "#{k}.html.eex"])
-      fwrite fname, include(k)
-      msg_gen fname
+      fwrite(fname, include(k))
+      msg_gen(fname)
     end)
   end
 
@@ -126,8 +138,8 @@ defmodule Serum.Init do
   @spec create_gitignore(binary) :: :ok
 
   defp create_gitignore(dir) do
-    fname = Path.join dir, ".gitignore"
-    fwrite fname, "site\n"
-    msg_gen fname
+    fname = Path.join(dir, ".gitignore")
+    fwrite(fname, "site\n")
+    msg_gen(fname)
   end
 end

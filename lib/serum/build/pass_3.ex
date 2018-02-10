@@ -18,12 +18,12 @@ defmodule Serum.Build.Pass3 do
         create_dirs(outputs)
         Enum.each(outputs, &FileOutput.perform_output!/1)
 
-      {:error, _} = error -> error
+      {:error, _} = error ->
+        error
     end
   end
 
-  @spec do_run([Fragment.t()], Template.t(), Build.mode()) ::
-    [Result.t(FileOutput.t())]
+  @spec do_run([Fragment.t()], Template.t(), Build.mode()) :: [Result.t(FileOutput.t())]
 
   defp do_run(fragments, template, build_mode)
 
@@ -48,13 +48,14 @@ defmodule Serum.Build.Pass3 do
     case Renderer.render_fragment(template, bindings) do
       {:ok, html} ->
         {:ok,
-          %FileOutput{
-            src: fragment.file,
-            dest: fragment.output,
-            data: html
-          }}
+         %FileOutput{
+           src: fragment.file,
+           dest: fragment.output,
+           data: html
+         }}
 
-      {:error, _} = error -> error
+      {:error, _} = error ->
+        error
     end
   end
 

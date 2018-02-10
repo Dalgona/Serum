@@ -1,9 +1,9 @@
 defmodule Serum.FileOutput do
   @type t :: %__MODULE__{
-    src: binary(),
-    dest: binary(),
-    data: binary()
-  }
+          src: binary(),
+          dest: binary(),
+          data: binary()
+        }
 
   defstruct [:src, :dest, :data]
 
@@ -12,6 +12,7 @@ defmodule Serum.FileOutput do
     File.open!(output.dest, [:write, :utf8], fn file ->
       IO.write(file, output.data)
     end)
+
     put_msg(output.src, output.dest)
   end
 

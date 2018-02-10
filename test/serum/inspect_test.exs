@@ -4,7 +4,7 @@ defmodule InspectTest do
   test "inspect tag" do
     tag = %Serum.Tag{name: "test-tag", list_url: "/test/tags/test-tag/"}
     expected = "#Serum.Tag<\"test-tag\": \"/test/tags/test-tag/\">"
-    assert expected == inspect tag
+    assert expected == inspect(tag)
   end
 
   test "inspect postinfo" do
@@ -17,13 +17,14 @@ defmodule InspectTest do
       date: "",
       url: ""
     }
+
     expected = "#Serum.PostInfo<\"Test Post\">"
-    assert expected == inspect info
+    assert expected == inspect(info)
   end
 
   test "inspect pageinfo" do
     info = %Serum.PageInfo{title: "Hello, world!"}
     expected = "#Serum.PageInfo<\"Hello, world!\">"
-    assert expected == inspect info
+    assert expected == inspect(info)
   end
 end

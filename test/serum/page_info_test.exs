@@ -16,7 +16,7 @@ defmodule PageInfoTest do
 
   describe "new/3 file type test" do
     test "markdown" do
-      info = new filename(:md), header(:order), state()
+      info = new(filename(:md), header(:order), state())
       assert info.file == filename(:md)
       assert info.type == ".md"
       assert info.title == "Lorem Ipsum"
@@ -28,7 +28,7 @@ defmodule PageInfoTest do
     end
 
     test "html" do
-      info = new filename(:html), header(:order), state()
+      info = new(filename(:html), header(:order), state())
       assert info.file == filename(:html)
       assert info.type == ".html"
       assert info.title == "Lorem Ipsum"
@@ -40,7 +40,7 @@ defmodule PageInfoTest do
     end
 
     test "html with eex" do
-      info = new filename(:eex), header(:order), state()
+      info = new(filename(:eex), header(:order), state())
       assert info.file == filename(:eex)
       assert info.type == ".html.eex"
       assert info.title == "Lorem Ipsum"
@@ -54,7 +54,7 @@ defmodule PageInfoTest do
 
   describe "new/3 header cases" do
     test "contains only title" do
-      info = new filename(:md), header(:only_title), state()
+      info = new(filename(:md), header(:only_title), state())
       assert info.file == filename(:md)
       assert info.type == ".md"
       assert info.title == "Lorem Ipsum"
@@ -66,7 +66,7 @@ defmodule PageInfoTest do
     end
 
     test "contains title and label" do
-      info = new filename(:md), header(:label), state()
+      info = new(filename(:md), header(:label), state())
       assert info.file == filename(:md)
       assert info.type == ".md"
       assert info.title == "Lorem Ipsum"
@@ -78,7 +78,7 @@ defmodule PageInfoTest do
     end
 
     test "contains title, label and group" do
-      info = new filename(:md), header(:group), state()
+      info = new(filename(:md), header(:group), state())
       assert info.file == filename(:md)
       assert info.type == ".md"
       assert info.title == "Lorem Ipsum"
@@ -90,7 +90,7 @@ defmodule PageInfoTest do
     end
 
     test "contains all metadata" do
-      info = new filename(:md), header(:order), state()
+      info = new(filename(:md), header(:order), state())
       assert info.file == filename(:md)
       assert info.type == ".md"
       assert info.title == "Lorem Ipsum"
@@ -102,7 +102,7 @@ defmodule PageInfoTest do
     end
 
     test "contains all metadata but label" do
-      info = new filename(:md), header(:no_label), state()
+      info = new(filename(:md), header(:no_label), state())
       assert info.file == filename(:md)
       assert info.type == ".md"
       assert info.title == "Lorem Ipsum"
@@ -118,31 +118,33 @@ defmodule PageInfoTest do
   # DATA
   #
 
-  defp filename(:md),   do: "/project/test_site/pages/index.md"
+  defp filename(:md), do: "/project/test_site/pages/index.md"
   defp filename(:html), do: "/project/test_site/pages/test.html"
-  defp filename(:eex),  do: "/project/test_site/pages/hello.html.eex"
+  defp filename(:eex), do: "/project/test_site/pages/hello.html.eex"
 
-  defp output(:md),   do: "/project/test_site/site/index.html"
+  defp output(:md), do: "/project/test_site/site/index.html"
   defp output(:html), do: "/project/test_site/site/test.html"
-  defp output(:eex),  do: "/project/test_site/site/hello.html"
+  defp output(:eex), do: "/project/test_site/site/hello.html"
 
-  defp header(:only_title), do: %{
-    title: "Lorem Ipsum"
-  }
+  defp header(:only_title),
+    do: %{
+      title: "Lorem Ipsum"
+    }
 
-  defp header(:label), do: Map.put header(:only_title), :label, "Test"
+  defp header(:label), do: Map.put(header(:only_title), :label, "Test")
 
-  defp header(:group), do: Map.put header(:label), :group, "test"
+  defp header(:group), do: Map.put(header(:label), :group, "test")
 
-  defp header(:order), do: Map.put header(:group), :order, 3
+  defp header(:order), do: Map.put(header(:group), :order, 3)
 
-  defp header(:no_label), do: Map.delete header(:order), :label
+  defp header(:no_label), do: Map.delete(header(:order), :label)
 
-  defp state, do: %{
-    project_info: %{
-      base_url: "/test_base/"
-    },
-    src: "/project/test_site/",
-    dest: "/project/test_site/site/"
-  }
+  defp state,
+    do: %{
+      project_info: %{
+        base_url: "/test_base/"
+      },
+      src: "/project/test_site/",
+      dest: "/project/test_site/site/"
+    }
 end

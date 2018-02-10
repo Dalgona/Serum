@@ -9,7 +9,7 @@ defmodule Serum.Util do
 
   defmacro fwrite(fname, str) do
     quote do
-      File.open! unquote(fname), [:write, :utf8], &IO.write(&1, unquote(str))
+      File.open!(unquote(fname), [:write, :utf8], &IO.write(&1, unquote(str)))
     end
   end
 
@@ -18,7 +18,7 @@ defmodule Serum.Util do
 
   defmacro warn(str) do
     quote do
-      IO.puts :stderr, "\x1b[33m * #{unquote(str)}\x1b[0m"
+      IO.puts(:stderr, "\x1b[33m * #{unquote(str)}\x1b[0m")
     end
   end
 
@@ -27,13 +27,13 @@ defmodule Serum.Util do
 
   defmacro msg_gen(dest) do
     quote do
-      IO.puts "\x1b[92m  GEN  \x1b[0m#{unquote(dest)}"
+      IO.puts("\x1b[92m  GEN  \x1b[0m#{unquote(dest)}")
     end
   end
 
   defmacro msg_gen(src, dest) do
     quote do
-      IO.puts "\x1b[92m  GEN  \x1b[0m#{unquote(src)} -> #{unquote(dest)}"
+      IO.puts("\x1b[92m  GEN  \x1b[0m#{unquote(src)} -> #{unquote(dest)}")
     end
   end
 
@@ -42,7 +42,7 @@ defmodule Serum.Util do
 
   defmacro msg_mkdir(dir) do
     quote do
-      IO.puts "\x1b[96m MKDIR \x1b[0m#{unquote(dir)}"
+      IO.puts("\x1b[96m MKDIR \x1b[0m#{unquote(dir)}")
     end
   end
 end

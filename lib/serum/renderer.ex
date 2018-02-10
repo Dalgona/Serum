@@ -18,11 +18,12 @@ defmodule Serum.Renderer do
   def render_fragment(template, bindings) do
     global_bindings = GlobalBindings.as_keyword()
     bindings2 = Keyword.merge(bindings, global_bindings, fn _k, v, _ -> v end)
-    {html, _} = Code.eval_quoted template.ast, bindings2
+    {html, _} = Code.eval_quoted(template.ast, bindings2)
     {:ok, html}
   rescue
     e in CompileError ->
       {:error, {e.description, template.file, e.line}}
+
     e ->
       {:error, {Exception.message(e), template.file, 0}}
   end
@@ -35,8 +36,8 @@ defmodule Serum.Renderer do
     |> regex_replace(@re_post, ~s(\\1="#{base}posts/\\2.html"))
   end
 
-  @spec regex_replace(binary, Regex.t, binary) :: binary
+  @spec regex_replace(binary, Regex.t(), binary) :: binary
   defp regex_replace(text, pattern, replacement) do
-    Regex.replace pattern, text, replacement
+    Regex.replace(pattern, text, replacement)
   end
 end

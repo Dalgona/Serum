@@ -14,33 +14,35 @@ defmodule Serum.Build.Pass1.PageBuilder do
   alias Serum.Build
   alias Serum.Page
 
-  @async_opt [max_concurrency: System.schedulers_online * 10]
+  @async_opt [max_concurrency: System.schedulers_online() * 10]
 
   @doc "Starts the first pass of PageBuilder."
-  @spec run(Build.mode, map()) :: Result.t([Page.t])
+  @spec run(Build.mode(), map()) :: Result.t([Page.t()])
 
   def run(mode, proj) do
-    IO.puts "Collecting pages information..."
-    page_dir = proj.src == "." && "pages" || Path.join(proj.src, "pages")
-    if File.exists? page_dir do
+    IO.puts("Collecting pages information...")
+    page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
+
+    if File.exists?(page_dir) do
       files =
         [page_dir, "**", "*.{md,html,html.eex}"]
         |> Path.join()
         |> Path.wildcard()
-      result = launch mode, files, proj
-      Result.aggregate_values result, :page_builder
+
+      result = launch(mode, files, proj)
+      Result.aggregate_values(result, :page_builder)
     else
       {:error, {page_dir, :enoent, 0}}
     end
   end
 
-  @spec launch(Build.mode, [binary], map()) :: [Result.t(Page.t)]
+  @spec launch(Build.mode(), [binary], map()) :: [Result.t(Page.t())]
   defp launch(mode, files, proj)
 
   defp launch(:parallel, files, proj) do
     files
     |> Task.async_stream(Page, :load, [proj], @async_opt)
-    |> Enum.map(&(elem &1, 1))
+    |> Enum.map(&elem(&1, 1))
   end
 
   defp launch(:sequential, files, proj) do

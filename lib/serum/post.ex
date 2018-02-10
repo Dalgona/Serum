@@ -9,27 +9,33 @@ defmodule Serum.Post do
   alias Serum.Template
 
   @type t :: %__MODULE__{
-    file: binary(),
-    title: binary(),
-    date: binary(),
-    raw_date: {:calendar.date(), :calendar.time()},
-    tags: [Tag.t()],
-    url: binary(),
-    preview_text: binary(),
-    html: binary(),
-    output: binary()
-  }
+          file: binary(),
+          title: binary(),
+          date: binary(),
+          raw_date: {:calendar.date(), :calendar.time()},
+          tags: [Tag.t()],
+          url: binary(),
+          preview_text: binary(),
+          html: binary(),
+          output: binary()
+        }
 
   defstruct [
-    :file, :title, :date, :raw_date, :tags,
-    :url, :preview_text, :html, :output
+    :file,
+    :title,
+    :date,
+    :raw_date,
+    :tags,
+    :url,
+    :preview_text,
+    :html,
+    :output
   ]
 
   @spec load(binary(), map()) :: Result.t(t())
   def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
-         {:ok, {header, data}} <- get_contents(file, path)
-    do
+         {:ok, {header, data}} <- get_contents(file, path) do
       File.close(file)
       html = Earmark.to_html(data)
       {:ok, create_struct(path, header, html, proj)}
@@ -46,15 +52,16 @@ defmodule Serum.Post do
       tags: {:list, :string},
       date: :datetime
     ]
+
     required = [:title]
 
     with {:ok, header} <- HeaderParser.parse_header(file, path, opts, required),
-         data when is_binary(data) <- IO.read(file, :all)
-    do
+         data when is_binary(data) <- IO.read(file, :all) do
       header = %{
         header
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
+
       {:ok, {header, data}}
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
@@ -66,8 +73,9 @@ defmodule Serum.Post do
   defp create_struct(path, header, html, proj) do
     tags = Tag.batch_create(header[:tags], proj)
     datetime = header[:date]
-    date_str = Timex.format! datetime, proj.date_format
-    raw_date = datetime |> Timex.to_erl
+    date_str = Timex.format!(datetime, proj.date_format)
+    raw_date = datetime |> Timex.to_erl()
+
     filename =
       path
       |> String.replace_suffix("md", "html")
@@ -90,15 +98,18 @@ defmodule Serum.Post do
 
   defp make_preview(html, maxlen) do
     case maxlen do
-      0 -> ""
+      0 ->
+        ""
+
       x when is_integer(x) ->
         parsed =
-          case Floki.parse html do
+          case Floki.parse(html) do
             t when is_tuple(t) -> [t]
-            l when is_list(l)  -> l
+            l when is_list(l) -> l
           end
+
         parsed
-        |> Enum.filter(&elem(&1, 0) == "p")
+        |> Enum.filter(&(elem(&1, 0) == "p"))
         |> Enum.map(&Floki.text/1)
         |> Enum.join(" ")
         |> String.slice(0, x)
@@ -116,15 +127,21 @@ defmodule Serum.Post do
   @spec to_html(t(), map()) :: Result.t(binary())
   def to_html(%__MODULE__{} = post, proj) do
     bindings = [
-      title: post.title, date: post.date, raw_date: post.raw_date,
-      tags: post.tags, contents: post.html
+      title: post.title,
+      date: post.date,
+      raw_date: post.raw_date,
+      tags: post.tags,
+      contents: post.html
     ]
+
     template = Template.get("post")
 
     case Renderer.render_fragment(template, bindings) do
       {:ok, rendered} ->
         {:ok, Renderer.process_links(rendered, proj.base_url)}
-      {:error, _} = error -> error
+
+      {:error, _} = error ->
+        error
     end
   end
 end

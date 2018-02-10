@@ -17,6 +17,7 @@ defmodule Serum.Validation do
 
   for path <- schema_files do
     basename = Path.basename(path, ".json")
+
     schema_data =
       path
       |> File.read!()
@@ -35,13 +36,17 @@ defmodule Serum.Validation do
 
   def validate(schema_name, data) do
     schema = schema(schema_name)
-    case Validator.validate schema, data do
-      :ok -> :ok
+
+    case Validator.validate(schema, data) do
+      :ok ->
+        :ok
+
       {:error, errors} ->
         errors =
           for {message, _} <- errors do
             {:error, {message, schema_name, 0}}
           end
+
         {:error, {:validate_json, errors}}
     end
   end

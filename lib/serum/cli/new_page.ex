@@ -9,14 +9,14 @@ defmodule Serum.CLI.NewPage do
     label: :string,
     group: :string,
     order: :integer,
-    output: :string,
+    output: :string
   ]
   @aliases [
     t: :title,
     l: :label,
     g: :group,
     r: :order,
-    o: :output,
+    o: :output
   ]
   @required [:title, :output]
   @in_header [:title, :label, :group, :order]
@@ -27,7 +27,7 @@ defmodule Serum.CLI.NewPage do
     case OptionParser.parse(args, strict: @strict, aliases: @aliases) do
       {_, _, [{invalid, _} | _]} ->
         # TODO: Needs consistency across all tasks
-        warn "Invalid option: #{invalid}"
+        warn("Invalid option: #{invalid}")
         {:cli_exit, 2}
 
       {opts, _, []} ->
@@ -41,8 +41,7 @@ defmodule Serum.CLI.NewPage do
          {:ok, type} <- check_type(opts[:output]),
          output = Path.join("pages/", opts[:output]),
          {:ok, file} <- create_file(output),
-         opts <- apply_default(opts)
-    do
+         opts <- apply_default(opts) do
       io_items = [generate_header(opts), generate_title(opts[:title], type)]
       IO.write(file, io_items)
       File.close(file)
@@ -51,26 +50,26 @@ defmodule Serum.CLI.NewPage do
     else
       # From check_required/1:
       [required | _] ->
-        warn "`#{required}` option is required, but it is not given."
+        warn("`#{required}` option is required, but it is not given.")
         {:cli_exit, 2}
 
       # From check_type/1:
       :invalid ->
-        warn "Invalid file name extension."
-        warn ~s(Must be one of ".md", ".html", or ".html.eex")
+        warn("Invalid file name extension.")
+        warn(~s(Must be one of ".md", ".html", or ".html.eex"))
         {:cli_exit, 2}
 
       # From create_file/1:
       {:error, reason} ->
         reason_str = :file.format_error(reason)
-        warn "Could not create a new file: #{reason_str}"
+        warn("Could not create a new file: #{reason_str}")
         {:cli_exit, 1}
     end
   end
 
   @spec check_required(keyword()) :: [atom()]
   defp check_required(opts) do
-    Enum.filter(@required, & &1 not in Keyword.keys(opts))
+    Enum.filter(@required, &(&1 not in Keyword.keys(opts)))
   end
 
   @spec check_type(binary()) :: {:ok, atom()} | :invalid
@@ -108,6 +107,7 @@ defmodule Serum.CLI.NewPage do
       |> Enum.filter(fn {k, _v} -> k in @in_header end)
       |> Enum.map(fn {k, v} -> "#{k}: #{v}" end)
       |> Enum.join("\n")
+
     "---\n" <> header <> "\n---\n\n"
   end
 
@@ -120,18 +120,19 @@ defmodule Serum.CLI.NewPage do
 
   def synopsis(_task), do: "serum newpage [OPTIONS]"
 
-  def help(_task), do: """
-  `serum newpage` helps you add a new page to your project. Some necessary
-  directories may be created during the process.
+  def help(_task),
+    do: """
+    `serum newpage` helps you add a new page to your project. Some necessary
+    directories may be created during the process.
 
-  ## OPTIONS
+    ## OPTIONS
 
-  * `-t, --title`: Title of the new page. This option is required.
-  * `-l, --label`: Label of the new page. Defaults to the page title.
-  * `-g, --group`: Optional name of a group the new page belongs to.
-  * `-r, --order`: The order of the new page in a group. Defaults to `0`.
-  * `-o, --output`: The path where the new page will be saved, relative to
-    `pages/` directory. It must end with one of `".md"`, `".html"`,
-    or `".html.eex"`. This option is required.
-  """
+    * `-t, --title`: Title of the new page. This option is required.
+    * `-l, --label`: Label of the new page. Defaults to the page title.
+    * `-g, --group`: Optional name of a group the new page belongs to.
+    * `-r, --order`: The order of the new page in a group. Defaults to `0`.
+    * `-o, --output`: The path where the new page will be saved, relative to
+      `pages/` directory. It must end with one of `".md"`, `".html"`,
+      or `".html.eex"`. This option is required.
+    """
 end

@@ -15,40 +15,41 @@ defmodule Serum.Build.Pass1.PostBuilder do
   alias Serum.Result
   alias Serum.Post
 
-  @async_opt [max_concurrency: System.schedulers_online * 10]
+  @async_opt [max_concurrency: System.schedulers_online() * 10]
 
   @doc "Starts the first pass of PostBuilder."
-  @spec run(Build.mode, map()) :: Result.t([Post.t])
+  @spec run(Build.mode(), map()) :: Result.t([Post.t()])
 
   def run(mode, proj) do
     files = load_file_list(proj.src)
-    result = launch mode, files, proj
-    Result.aggregate_values result, :post_builder
+    result = launch(mode, files, proj)
+    Result.aggregate_values(result, :post_builder)
   end
 
   @spec load_file_list(binary()) :: [binary()]
 
   defp load_file_list(src) do
-    IO.puts "Collecting posts information..."
-    post_dir = src == "." && "posts" || Path.join(src, "posts")
+    IO.puts("Collecting posts information...")
+    post_dir = (src == "." && "posts") || Path.join(src, "posts")
+
     if File.exists?(post_dir) do
       [post_dir, "*.md"]
       |> Path.join()
       |> Path.wildcard()
       |> Enum.sort()
     else
-      warn "Cannot access `posts/'. No post will be generated."
+      warn("Cannot access `posts/'. No post will be generated.")
       []
     end
   end
 
-  @spec launch(Build.mode, [binary], map()) :: [Result.t(Post.t)]
+  @spec launch(Build.mode(), [binary], map()) :: [Result.t(Post.t())]
   defp launch(mode, files, proj)
 
   defp launch(:parallel, files, proj) do
     files
     |> Task.async_stream(Post, :load, [proj], @async_opt)
-    |> Enum.map(&(elem &1, 1))
+    |> Enum.map(&elem(&1, 1))
   end
 
   defp launch(:sequential, files, proj) do

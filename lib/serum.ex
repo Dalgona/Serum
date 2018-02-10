@@ -18,7 +18,8 @@ defmodule Serum do
       Template,
       GlobalBindings
     ]
+
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
-    {:ok, _pid} = Supervisor.start_link children, opts
+    {:ok, _pid} = Supervisor.start_link(children, opts)
   end
 end

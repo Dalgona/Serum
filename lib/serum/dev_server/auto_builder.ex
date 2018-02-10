@@ -13,8 +13,8 @@ defmodule Serum.DevServer.AutoBuilder do
 
   def on_request() do
     if Service.dirty?() do
-      warn "Changes were detected in the source directory."
-      Service.rebuild
+      warn("Changes were detected in the source directory.")
+      Service.rebuild()
     end
   end
 

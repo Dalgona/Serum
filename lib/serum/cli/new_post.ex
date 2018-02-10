@@ -7,12 +7,12 @@ defmodule Serum.CLI.NewPost do
   @strict [
     title: :string,
     tag: :keep,
-    output: :string,
+    output: :string
   ]
   @aliases [
     t: :title,
     g: :tag,
-    o: :output,
+    o: :output
   ]
   @required [:title, :output]
 
@@ -22,7 +22,7 @@ defmodule Serum.CLI.NewPost do
     case OptionParser.parse(args, strict: @strict, aliases: @aliases) do
       {_, _, [{invalid, _} | _]} ->
         # TODO: Needs consistency across all tasks
-        warn "Invalid option: #{invalid}"
+        warn("Invalid option: #{invalid}")
         {:cli_exit, 2}
 
       {opts, _, []} ->
@@ -35,8 +35,7 @@ defmodule Serum.CLI.NewPost do
     with [] <- check_required(opts),
          {:ok, now} <- current_datetime(),
          path = full_path(opts[:output], now),
-         {:ok, file} <- create_file(path)
-    do
+         {:ok, file} <- create_file(path) do
       IO.write(file, generate_contents(opts, now))
       File.close(file)
       msg_gen(path)
@@ -44,25 +43,25 @@ defmodule Serum.CLI.NewPost do
     else
       # From check_required/1:
       [required | _] ->
-        warn "`#{required}` option is required, but it is not given."
+        warn("`#{required}` option is required, but it is not given.")
         {:cli_exit, 2}
 
       # From current_datetime/0:
       :error ->
-        warn "System timezone is not properly set."
+        warn("System timezone is not properly set.")
         {:cli_exit, 1}
 
       # From create_file/1:
       {:error, reason} ->
         reason_str = :file.format_error(reason)
-        warn "Could not create a new file: #{reason_str}"
+        warn("Could not create a new file: #{reason_str}")
         {:cli_exit, 1}
     end
   end
 
   @spec check_required(keyword()) :: [atom()]
   defp check_required(opts) do
-    Enum.filter(@required, & &1 not in Keyword.keys(opts))
+    Enum.filter(@required, &(&1 not in Keyword.keys(opts)))
   end
 
   @spec current_datetime() :: {:ok, DateTime.t()} | :error
@@ -76,8 +75,9 @@ defmodule Serum.CLI.NewPost do
   defp full_path(output, now) do
     date_part =
       [now.year, now.month, now.day]
-      |> Enum.map(& &1 |> to_string() |> String.pad_leading(2, "0"))
+      |> Enum.map(&(&1 |> to_string() |> String.pad_leading(2, "0")))
       |> Enum.join("-")
+
     Path.join("posts/", date_part <> "-" <> output <> ".md")
   end
 
@@ -110,19 +110,20 @@ defmodule Serum.CLI.NewPost do
 
   def synopsis(_task), do: "serum newpost [OPTIONS]"
 
-  def help(_task), do: """
-  `serum newpost` task helps you add a new post to your project. Some necessary
-  directories may be created during the process.
+  def help(_task),
+    do: """
+    `serum newpost` task helps you add a new post to your project. Some necessary
+    directories may be created during the process.
 
-  Post date will be automatically set to the moment this task is executed.
+    Post date will be automatically set to the moment this task is executed.
 
-  ## OPTIONS
+    ## OPTIONS
 
-  * `-t, --title`: Title of the new post. This option is required.
-  * `-g, --tag`: Tag(s) of the new post. You can provide this option zero or
-    more times to give multiple tags to the post.
-  * `-o, --output`: Name of the generated post file. The actual path to the
-    generated file will be in the form of `posts/YYYY-MM-DD-<output>.md`.
-    This option is required.
-  """
+    * `-t, --title`: Title of the new post. This option is required.
+    * `-g, --tag`: Tag(s) of the new post. You can provide this option zero or
+      more times to give multiple tags to the post.
+    * `-o, --output`: Name of the generated post file. The actual path to the
+      generated file will be in the form of `posts/YYYY-MM-DD-<output>.md`.
+      This option is required.
+    """
 end

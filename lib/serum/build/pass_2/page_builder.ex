@@ -18,20 +18,20 @@ defmodule Serum.Build.Pass2.PageBuilder do
   alias Serum.Page
 
   @doc "Starts the second pass of PageBuilder."
-  @spec run(Build.mode, [Page.t()], map()) :: Result.t()
+  @spec run(Build.mode(), [Page.t()], map()) :: Result.t()
 
   def run(mode, pages, proj) do
-    result = launch mode, pages, proj
-    Result.aggregate_values result, :page_builder
+    result = launch(mode, pages, proj)
+    Result.aggregate_values(result, :page_builder)
   end
 
-  @spec launch(Build.mode, [Page.t], map()) :: [Result.t(Fragment.t())]
+  @spec launch(Build.mode(), [Page.t()], map()) :: [Result.t(Fragment.t())]
   defp launch(mode, pages, proj)
 
   defp launch(:parallel, pages, proj) do
     pages
     |> Task.async_stream(Page, :to_fragment, [proj])
-    |> Enum.map(&(elem &1, 1))
+    |> Enum.map(&elem(&1, 1))
   end
 
   defp launch(:sequential, pages, proj) do

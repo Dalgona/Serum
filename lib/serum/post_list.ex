@@ -7,14 +7,14 @@ defmodule Serum.PostList do
   alias Serum.Template
 
   @type t :: %__MODULE__{
-    tag: maybe_tag(),
-    page: pos_integer(),
-    max_page: pos_integer(),
-    title: binary(),
-    posts: [Post.t()],
-    list_url: binary(),
-    output: binary()
-  }
+          tag: maybe_tag(),
+          page: pos_integer(),
+          max_page: pos_integer(),
+          title: binary(),
+          posts: [Post.t()],
+          list_url: binary(),
+          output: binary()
+        }
   @type maybe_tag :: Tag.t() | nil
 
   defstruct [:tag, :page, :max_page, :title, :posts, :list_url, :output]
@@ -23,14 +23,17 @@ defmodule Serum.PostList do
   def generate(tag, posts, proj) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
+
     paginated_posts =
       posts
       |> make_chunks(paginate?, num_posts)
       |> Enum.with_index(1)
-    max_page = length(paginated_posts)
-    list_dir = tag && Path.join("tags", tag.name) || "posts"
 
-    [first | _] = lists =
+    max_page = length(paginated_posts)
+    list_dir = (tag && Path.join("tags", tag.name)) || "posts"
+
+    [first | _] =
+      lists =
       Enum.map(paginated_posts, fn {posts, page} ->
         %__MODULE__{
           tag: tag,
@@ -43,12 +46,11 @@ defmodule Serum.PostList do
         }
       end)
 
-    first_dup =
-      %__MODULE__{
-        first
-        | list_url: rename_first_file(first.list_url),
-          output: rename_first_file(first.output)
-      }
+    first_dup = %__MODULE__{
+      first
+      | list_url: rename_first_file(first.list_url),
+        output: rename_first_file(first.output)
+    }
 
     [first_dup | lists]
   end
@@ -69,8 +71,11 @@ defmodule Serum.PostList do
           post_lists
           |> Stream.zip(htmls)
           |> Enum.map(fn {list, html} -> Fragment.new(:list, list, html) end)
+
         {:ok, fragments}
-      {:error, _} = error -> error
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -80,8 +85,7 @@ defmodule Serum.PostList do
     render([nil | post_lists], [], template)
   end
 
-  @spec render([t()], [Result.t(binary())], Template.t()) ::
-    Result.t([binary()])
+  @spec render([t()], [Result.t(binary())], Template.t()) :: Result.t([binary()])
 
   defp render([_last], acc, _template) do
     acc
@@ -91,6 +95,7 @@ defmodule Serum.PostList do
 
   defp render([prev, curr | rest], acc, template) do
     next = List.first(rest)
+
     bindings = [
       header: curr.title,
       posts: curr.posts,
@@ -99,6 +104,7 @@ defmodule Serum.PostList do
       prev_page: prev && prev.list_url,
       next_page: next && next.list_url
     ]
+
     rendered = Renderer.render_fragment(template, bindings)
 
     render([curr | rest], [rendered | acc], template)
