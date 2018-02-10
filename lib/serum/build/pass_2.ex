@@ -21,8 +21,10 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Result
 
   @doc "Starts the second pass of the building process in given build mode."
-  @spec run(map(), map(), Build.mode()) :: Result.t([Fragment.t()])
-  def run(map, proj, build_mode) do
+  @spec run(Result.t(map()), map(), Build.mode()) :: Result.t([Fragment.t()])
+  def run({:error, _} = error, _build_mode), do: error
+
+  def run({:ok, map}, proj, build_mode) do
     proj
     |> Map.from_struct()
     |> Map.merge(map)

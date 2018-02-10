@@ -33,18 +33,36 @@ defmodule Serum.Build do
   @spec build(mode, map()) :: Result.t(binary())
 
   def build(mode, proj) do
-    with :ok <- check_dest_perm(proj.dest),
-         :ok <- check_tz(),
+    with :ok <- check_tz(),
+         :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
          :ok <- prepare_templates(proj.src),
-         {:ok, output} <- Pass1.run(proj, mode),
-         {:ok, fragments} <- Pass2.run(output, proj, mode),
-         :ok <- Pass3.run(fragments, mode)
+         :ok <- do_build(proj, mode)
     do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
     else
       {:error, _} = error -> error
+    end
+  end
+
+  @spec do_build(map(), mode) :: Result.t()
+  defp do_build(proj, mode) do
+    proj
+    |> Pass1.run(mode)
+    |> Pass2.run(proj, mode)
+    |> Pass3.run(mode)
+  end
+
+  # Checks if the system timezone is set and valid.
+  @spec check_tz() :: Result.t()
+
+  defp check_tz() do
+    try do
+      Timex.local()
+      :ok
+    rescue
+      _ -> {:error, "system timezone is not set"}
     end
   end
 
@@ -64,18 +82,6 @@ defmodule Serum.Build do
     case result do
       :ok -> :ok
       err -> {:error, {err, dest, 0}}
-    end
-  end
-
-  # Checks if the system timezone is set and valid.
-  @spec check_tz() :: Result.t()
-
-  defp check_tz() do
-    try do
-      Timex.local()
-      :ok
-    rescue
-      _ -> {:error, "system timezone is not set"}
     end
   end
 

@@ -6,8 +6,10 @@ defmodule Serum.Build.Pass3 do
   alias Serum.Result
   alias Serum.Template
 
-  @spec run([Fragment.t()], Build.mode()) :: Result.t()
-  def run(fragments, build_mode) do
+  @spec run(Result.t([Fragment.t()]), Build.mode()) :: Result.t()
+  def run({:error, _} = error, _build_mode), do: error
+
+  def run({:ok, fragments}, build_mode) do
     template = Template.get("base")
     result = do_run(fragments, template, build_mode)
 
