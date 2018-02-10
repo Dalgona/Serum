@@ -7,7 +7,6 @@ defmodule Serum.Build do
   alias Serum.Result
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
-  alias Serum.GlobalBindings
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
@@ -40,23 +39,13 @@ defmodule Serum.Build do
          :ok <- clean_dest(proj.dest),
          :ok <- prepare_templates(proj.src),
          {:ok, output} <- Pass1.run(mode, proj),
-         state = wip_update_state(state, output),
-         :ok <- Pass2.run(mode, output.pages, output.posts, output.tag_map, proj)
+         :ok <- Pass2.run(mode, output, proj)
     do
       copy_assets(proj.src, proj.dest)
       {:ok, state}
     else
       {:error, _} = error -> error
     end
-  end
-
-  defp wip_update_state(state, output) do
-    state.project_info
-    |> Map.from_struct()
-    |> Map.merge(output)
-    |> GlobalBindings.load()
-    state
-    |> Map.put(:tag_map, output.tag_map)
   end
 
   # Checks if the effective user have a write
