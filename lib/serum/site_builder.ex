@@ -93,7 +93,7 @@ defmodule Serum.SiteBuilder do
   def handle_call(:load_info, _from, state) do
     case ProjectInfo.load(state.src, state.dest) do
       {:ok, proj} ->
-        {:reply, {:ok, proj}, Map.put(state, :project_info, proj)}
+        {:reply, {:ok, proj}, %{state | project_info: proj}}
       {:error, _} = error ->
         {:reply, error, state}
     end
@@ -104,8 +104,8 @@ defmodule Serum.SiteBuilder do
   end
 
   def handle_call({:build, mode}, _from, state) do
-    case Build.build mode, state do
-      {:ok, new_state} -> {:reply, {:ok, new_state.dest}, new_state}
+    case Build.build mode, state.project_info do
+      {:ok, dest} -> {:reply, {:ok, dest}, state}
       {:error, _} = error -> {:reply, error, state}
     end
   end

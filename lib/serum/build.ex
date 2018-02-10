@@ -11,7 +11,6 @@ defmodule Serum.Build do
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
-  @type state :: map
 
   @doc """
   Starts building the website in given build mode (parallel or sequential).
@@ -31,10 +30,9 @@ defmodule Serum.Build do
   5. Finally copies `assets/` and `media/` directory to the output directory
     (if any).
   """
-  @spec build(mode, state) :: Result.t(binary)
+  @spec build(mode, map()) :: Result.t(binary())
 
-  def build(mode, state) do
-    proj = state.project_info
+  def build(mode, proj) do
     with :ok <- check_dest_perm(proj.dest),
          :ok <- check_tz(),
          :ok <- clean_dest(proj.dest),
@@ -44,7 +42,7 @@ defmodule Serum.Build do
          :ok <- Pass3.run(mode, fragments)
     do
       copy_assets(proj.src, proj.dest)
-      {:ok, state}
+      {:ok, proj.dest}
     else
       {:error, _} = error -> error
     end
