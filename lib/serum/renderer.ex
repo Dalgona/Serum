@@ -5,37 +5,11 @@ defmodule Serum.Renderer do
 
   alias Serum.Result
   alias Serum.GlobalBindings
-  alias Serum.Build
   alias Serum.Template
-
-  @type state :: Build.state
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
   @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
   @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
-
-  @doc """
-  Renders contents into a complete HTML page.
-
-  `stub_ctx` is a list of variable bindings which is fed into
-  `templates/<template_name>.html.eex` template file, and `page_ctx` is a list
-  of variable bindings which is then fed into `templates/base.html.eex` template
-  file.
-  """
-  @spec render(binary, keyword, keyword, state) :: Result.t(binary)
-
-  # render full page
-  def render(template_name, stub_ctx, page_ctx, state) do
-    proj = state.project_info
-    global_bindings = GlobalBindings.as_keyword()
-    case render_fragment Template.get(template_name), stub_ctx do
-      {:ok, stub} ->
-        contents = process_links stub, proj.base_url
-        ctx = [contents: contents] ++ page_ctx
-        render_fragment Template.get("base"), ctx ++ global_bindings
-      error -> error
-    end
-  end
 
   @doc """
   Renders contents into a (partial) HTML stub.
