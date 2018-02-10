@@ -30,17 +30,27 @@ defmodule Serum.PostList do
     max_page = length(paginated_posts)
     list_dir = tag && Path.join("tags", tag.name) || "posts"
 
-    Enum.map(paginated_posts, fn {posts, page} ->
+    [first | _] = lists =
+      Enum.map(paginated_posts, fn {posts, page} ->
+        %__MODULE__{
+          tag: tag,
+          page: page,
+          max_page: max_page,
+          title: list_title(tag, proj),
+          posts: posts,
+          list_url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
+          output: Path.join([proj.dest, list_dir, "page-#{page}.html"])
+        }
+      end)
+
+    first_dup =
       %__MODULE__{
-        tag: tag,
-        page: page,
-        max_page: max_page,
-        title: list_title(tag, proj),
-        posts: posts,
-        list_url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
-        output: Path.join([proj.dest, list_dir, "page-#{page}.html"])
+        first
+        | list_url: rename_first_file(first.list_url),
+          output: rename_first_file(first.output)
       }
-    end)
+
+    [first_dup | lists]
   end
 
   @spec make_chunks([Post.t()], boolean(), pos_integer()) :: [[Post.t()]]
@@ -102,5 +112,10 @@ defmodule Serum.PostList do
     proj.list_title_tag
     |> :io_lib.format([tag_name])
     |> IO.iodata_to_binary()
+  end
+
+  @spec rename_first_file(binary()) :: binary()
+  defp rename_first_file(path) do
+    path |> Path.dirname() |> Path.join("index.html")
   end
 end
