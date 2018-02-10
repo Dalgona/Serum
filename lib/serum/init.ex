@@ -119,14 +119,14 @@ defmodule Serum.Init do
   @spec create_templates(binary) :: :ok
 
   defp create_templates(dir) do
-    [:base, :list, :page, :post]
+    ["base", "list", "page", "post"]
     |> Enum.each(fn k ->
       fname = Path.join([dir, "templates", "#{k}.html.eex"])
       fwrite(fname, template(k))
       msg_gen(fname)
     end)
 
-    [:nav]
+    ["nav"]
     |> Enum.each(fn k ->
       fname = Path.join([dir, "includes", "#{k}.html.eex"])
       fwrite(fname, include(k))

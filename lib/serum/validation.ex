@@ -12,7 +12,7 @@ defmodule Serum.Validation do
   schema_files =
     :serum
     |> :code.priv_dir()
-    |> Path.join("json_schema/*.json")
+    |> Path.join("build_resources/json_schema/*.json")
     |> Path.wildcard()
 
   for path <- schema_files do
