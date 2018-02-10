@@ -7,6 +7,7 @@ defmodule Serum.Build do
   alias Serum.Result
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
+  alias Serum.Build.Pass3
   alias Serum.TemplateLoader
 
   @type mode :: :parallel | :sequential
@@ -39,7 +40,8 @@ defmodule Serum.Build do
          :ok <- clean_dest(proj.dest),
          :ok <- prepare_templates(proj.src),
          {:ok, output} <- Pass1.run(mode, proj),
-         :ok <- Pass2.run(mode, output, proj)
+         {:ok, fragments} <- Pass2.run(mode, output, proj),
+         :ok <- Pass3.run(mode, fragments)
     do
       copy_assets(proj.src, proj.dest)
       {:ok, state}
