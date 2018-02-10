@@ -33,10 +33,10 @@ defmodule Serum.Build.Pass1 do
   }
 
   @doc "Starts the first pass of the building process in given build mode."
-  @spec run(Build.mode(), map()) :: Result.t(result())
-  def run(build_mode, proj)
+  @spec run(map(), Build.mode()) :: Result.t(result())
+  def run(proj, build_mode)
 
-  def run(:parallel, proj) do
+  def run(proj, :parallel) do
     IO.puts "\u26a1  \x1b[1mStarting parallel build...\x1b[0m"
     t1 = Task.async fn -> PageBuilder.run :parallel, proj end
     t2 = Task.async fn -> PostBuilder.run :parallel, proj end
@@ -49,7 +49,7 @@ defmodule Serum.Build.Pass1 do
     end
   end
 
-  def run(:sequential, proj) do
+  def run(proj, :sequential) do
     IO.puts "\u231b  \x1b[1mStarting sequential build...\x1b[0m"
     with {:ok, pages} <- PageBuilder.run(:sequential, proj),
          {:ok, posts} <- PostBuilder.run(:sequential, proj)

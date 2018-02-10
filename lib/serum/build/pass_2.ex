@@ -21,14 +21,14 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Result
 
   @doc "Starts the second pass of the building process in given build mode."
-  @spec run(Build.mode(), map(), map()) :: Result.t([Fragment.t()])
-  def run(build_mode, map, proj) do
+  @spec run(map(), map(), Build.mode()) :: Result.t([Fragment.t()])
+  def run(map, proj, build_mode) do
     proj
     |> Map.from_struct()
     |> Map.merge(map)
     |> GlobalBindings.load()
 
-    result = do_run(build_mode, map.pages, map.posts, map.tag_map, proj)
+    result = do_run(map.pages, map.posts, map.tag_map, proj, build_mode)
 
     result
     |> Result.aggregate_values(:build_pass2)
@@ -38,19 +38,19 @@ defmodule Serum.Build.Pass2 do
     end
   end
 
-  @spec do_run(Build.mode(), [Page.t()], [Post.t()], map(), map()) ::
+  @spec do_run([Page.t()], [Post.t()], map(), map(), Build.mode()) ::
     Result.t([[Fragment.t()]])
 
-  defp do_run(build_mode, pages, posts, tag_map, proj)
+  defp do_run(pages, posts, tag_map, proj, build_mode)
 
-  defp do_run(:parallel, pages, posts, tag_map, proj) do
+  defp do_run(pages, posts, tag_map, proj, :parallel) do
     t1 = Task.async(PageBuilder, :run, [:parallel, pages, proj])
     t2 = Task.async(PostBuilder, :run, [:parallel, posts, proj])
     t3 = Task.async(IndexBuilder, :run, [:parallel, posts, tag_map, proj])
     Enum.map([t1, t2, t3], &Task.await/1)
   end
 
-  defp do_run(:sequential, pages, posts, tag_map, proj) do
+  defp do_run(pages, posts, tag_map, proj, :sequential) do
     r1 = PageBuilder.run(:sequential, pages, proj)
     r2 = PostBuilder.run(:sequential, posts, proj)
     r3 = IndexBuilder.run(:sequential, posts, tag_map, proj)

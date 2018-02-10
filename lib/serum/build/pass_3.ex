@@ -6,10 +6,10 @@ defmodule Serum.Build.Pass3 do
   alias Serum.Result
   alias Serum.Template
 
-  @spec run(Build.mode(), [Fragment.t()]) :: Result.t()
-  def run(build_mode, fragments) do
+  @spec run([Fragment.t()], Build.mode()) :: Result.t()
+  def run(fragments, build_mode) do
     template = Template.get("base")
-    result = do_run(build_mode, fragments, template)
+    result = do_run(fragments, template, build_mode)
 
     case Result.aggregate_values(result, :build_pass3) do
       {:ok, outputs} ->
@@ -20,18 +20,18 @@ defmodule Serum.Build.Pass3 do
     end
   end
 
-  @spec do_run(Build.mode(), [Fragment.t()], Template.t()) ::
+  @spec do_run([Fragment.t()], Template.t(), Build.mode()) ::
     [Result.t(FileOutput.t())]
 
-  defp do_run(build_mode, fragments, template)
+  defp do_run(fragments, template, build_mode)
 
-  defp do_run(:parallel, fragments, template) do
+  defp do_run(fragments, template, :parallel) do
     fragments
     |> Task.async_stream(&render(&1, template))
     |> Enum.map(&elem(&1, 1))
   end
 
-  defp do_run(:sequential, fragments, template) do
+  defp do_run(fragments, template, :sequential) do
     Enum.map(fragments, &render(&1, template))
   end
 

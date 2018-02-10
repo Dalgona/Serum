@@ -37,9 +37,9 @@ defmodule Serum.Build do
          :ok <- check_tz(),
          :ok <- clean_dest(proj.dest),
          :ok <- prepare_templates(proj.src),
-         {:ok, output} <- Pass1.run(mode, proj),
-         {:ok, fragments} <- Pass2.run(mode, output, proj),
-         :ok <- Pass3.run(mode, fragments)
+         {:ok, output} <- Pass1.run(proj, mode),
+         {:ok, fragments} <- Pass2.run(output, proj, mode),
+         :ok <- Pass3.run(fragments, mode)
     do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
