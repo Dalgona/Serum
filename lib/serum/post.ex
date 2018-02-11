@@ -131,7 +131,8 @@ defmodule Serum.Post do
       date: post.date,
       raw_date: post.raw_date,
       tags: post.tags,
-      contents: post.html
+      contents: post.html,
+      preview_text: post.preview_text
     ]
 
     template = Template.get("post")
