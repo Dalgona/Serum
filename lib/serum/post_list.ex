@@ -32,27 +32,17 @@ defmodule Serum.PostList do
     max_page = length(paginated_posts)
     list_dir = (tag && Path.join("tags", tag.name)) || "posts"
 
-    [first | _] =
-      lists =
-      Enum.map(paginated_posts, fn {posts, page} ->
-        %__MODULE__{
-          tag: tag,
-          page: page,
-          max_page: max_page,
-          title: list_title(tag, proj),
-          posts: posts,
-          list_url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
-          output: Path.join([proj.dest, list_dir, "page-#{page}.html"])
-        }
-      end)
-
-    first_dup = %__MODULE__{
-      first
-      | list_url: rename_first_file(first.list_url),
-        output: rename_first_file(first.output)
-    }
-
-    [first_dup | lists]
+    Enum.map(paginated_posts, fn {posts, page} ->
+      %__MODULE__{
+        tag: tag,
+        page: page,
+        max_page: max_page,
+        title: list_title(tag, proj),
+        posts: posts,
+        list_url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
+        output: Path.join([proj.dest, list_dir, "page-#{page}.html"])
+      }
+    end)
   end
 
   @spec make_chunks([Post.t()], boolean(), pos_integer()) :: [[Post.t()]]
@@ -67,12 +57,17 @@ defmodule Serum.PostList do
   def to_fragment(post_lists) do
     case to_html(post_lists) do
       {:ok, htmls} ->
-        fragments =
+        [first | rest] =
           post_lists
           |> Stream.zip(htmls)
           |> Enum.map(fn {list, html} -> Fragment.new(:list, list, html) end)
 
-        {:ok, fragments}
+        first_dup = %Fragment{
+          first
+          | output: first.output |> Path.dirname() |> Path.join("index.html")
+        }
+
+        {:ok, [first_dup, first | rest]}
 
       {:error, _} = error ->
         error
@@ -118,10 +113,5 @@ defmodule Serum.PostList do
     proj.list_title_tag
     |> :io_lib.format([tag_name])
     |> IO.iodata_to_binary()
-  end
-
-  @spec rename_first_file(binary()) :: binary()
-  defp rename_first_file(path) do
-    path |> Path.dirname() |> Path.join("index.html")
   end
 end
