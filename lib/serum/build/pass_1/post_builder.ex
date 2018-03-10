@@ -6,7 +6,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
     files which name ends with `.md` will be loaded.
   2. Parses headers of all scanned post source files.
   3. Reads the contents of each post source file and converts to HTML using
-    Earmark. And then generates the preview text from that HTML data.
+    Earmark.
   4. Generates `Serum.Post` object for each post and stores them for later
     use in the second pass.
   """

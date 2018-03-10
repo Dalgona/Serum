@@ -88,8 +88,7 @@ defmodule Serum.Init do
         author: "Somebody",
         author_email: "somebody@example.com",
         base_url: "/",
-        date_format: "{WDfull}, {D} {Mshort} {YYYY}",
-        preview_length: 200
+        date_format: "{WDfull}, {D} {Mshort} {YYYY}"
       }
       |> Poison.encode!(pretty: true, indent: 2)
 
