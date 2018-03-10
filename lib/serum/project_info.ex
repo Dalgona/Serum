@@ -75,12 +75,12 @@ defmodule Serum.ProjectInfo do
 
     with {:ok, text} <- File.read(path),
          {:ok, json} <- Poison.decode(text),
-         :ok <- Validation.validate("project_info", json) do
+         :ok <- Validation.validate("project_info", json, path) do
       proj = new(json)
       {:ok, %__MODULE__{proj | src: src, dest: dest}}
     else
       # From File.read/1:
-      {:error, reason} ->
+      {:error, reason} when is_atom(reason) ->
         {:error, {reason, path, 0}}
 
       # From Poison.decode/1:
@@ -90,7 +90,7 @@ defmodule Serum.ProjectInfo do
       {:error, {:invalid, token, pos}} ->
         {:error, {"parse error near `#{token}' at position #{pos}", path, 0}}
 
-      # From Validation.validate/2:
+      # From Validation.validate/3:
       {:error, _} = error ->
         error
     end

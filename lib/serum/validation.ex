@@ -32,9 +32,9 @@ defmodule Serum.Validation do
   @doc """
   Validates the given `data` according to `schema_name` schema.
   """
-  @spec validate(binary, map) :: Result.t()
+  @spec validate(binary, map, binary) :: Result.t()
 
-  def validate(schema_name, data) do
+  def validate(schema_name, data, path) do
     schema = schema(schema_name)
 
     case Validator.validate(schema, data) do
@@ -43,8 +43,8 @@ defmodule Serum.Validation do
 
       {:error, errors} ->
         errors =
-          for {message, _} <- errors do
-            {:error, {message, schema_name, 0}}
+          for {message, element} <- errors do
+            {:error, {message <> " (#{element})", path, 0}}
           end
 
         {:error, {:validate_json, errors}}
