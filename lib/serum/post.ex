@@ -15,7 +15,7 @@ defmodule Serum.Post do
           raw_date: {:calendar.date(), :calendar.time()},
           tags: [Tag.t()],
           url: binary(),
-          html: binary(),
+          data: binary(),
           output: binary()
         }
 
@@ -26,7 +26,7 @@ defmodule Serum.Post do
     :raw_date,
     :tags,
     :url,
-    :html,
+    :data,
     :output
   ]
 
@@ -35,8 +35,7 @@ defmodule Serum.Post do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
          {:ok, {header, data}} <- get_contents(file, path) do
       File.close(file)
-      html = Earmark.to_html(data)
-      {:ok, create_struct(path, header, html, proj)}
+      {:ok, create_struct(path, header, data, proj)}
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
       {:error, _} = error -> error
@@ -68,7 +67,7 @@ defmodule Serum.Post do
   end
 
   @spec create_struct(binary(), map(), binary(), map()) :: t()
-  defp create_struct(path, header, html, proj) do
+  defp create_struct(path, header, data, proj) do
     tags = Tag.batch_create(header[:tags], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
@@ -83,7 +82,7 @@ defmodule Serum.Post do
       file: path,
       title: header.title,
       tags: tags,
-      html: html,
+      data: data,
       raw_date: raw_date,
       date: date_str,
       url: Path.join(proj.base_url, filename),
@@ -106,7 +105,7 @@ defmodule Serum.Post do
       date: post.date,
       raw_date: post.raw_date,
       tags: post.tags,
-      contents: post.html
+      contents: Earmark.to_html(post.data)
     ]
 
     template = Template.get("post")
