@@ -21,7 +21,7 @@ defmodule Serum.DevServer do
   def run(dir, port) do
     import Supervisor.Spec
 
-    uniq = Base.url_encode64(<<System.monotonic_time()::size(64)>>, padding: false)
+    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
     site = "/tmp/serum_" <> uniq
 
     {:ok, pid_builder} = SiteBuilder.start_link(dir, site)
