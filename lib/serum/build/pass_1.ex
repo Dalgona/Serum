@@ -20,6 +20,7 @@ defmodule Serum.Build.Pass1 do
   alias Serum.Build
   alias Serum.Build.Pass1.PageBuilder
   alias Serum.Build.Pass1.PostBuilder
+  alias Serum.GlobalBindings
   alias Serum.Result
   alias Serum.Page
   alias Serum.Post
@@ -66,6 +67,10 @@ defmodule Serum.Build.Pass1 do
     posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date))
     tag_map = get_tag_map(posts)
     tag_counts = Enum.map(tag_map, fn {k, v} -> {k, Enum.count(v)} end)
+
+    GlobalBindings.put(:all_pages, pages)
+    GlobalBindings.put(:all_posts, posts)
+    GlobalBindings.put(:all_tags, tag_counts)
 
     %{pages: pages, posts: posts, tag_map: tag_map, tag_counts: tag_counts}
   end
