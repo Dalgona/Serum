@@ -9,7 +9,7 @@ defmodule Serum.Tag do
   def new(name, proj) do
     %__MODULE__{
       name: name,
-      list_url: Path.join([proj.base_url, "tags", name, "index.html"])
+      list_url: Path.join([proj.base_url, "tags", name])
     }
   end
 
