@@ -16,8 +16,8 @@ defmodule Serum.Renderer do
   """
   @spec render_fragment(Template.t(), keyword()) :: Result.t(binary())
   def render_fragment(template, bindings) do
-    global_bindings = GlobalBindings.as_keyword()
-    bindings2 = Keyword.merge(bindings, global_bindings, fn _k, v, _ -> v end)
+    assigns = GlobalBindings.as_keyword()
+    bindings2 = Keyword.merge(bindings, [assigns: assigns], fn _k, v, _ -> v end)
     {html, _} = Code.eval_quoted(template.ast, bindings2)
     {:ok, html}
   rescue

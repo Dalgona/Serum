@@ -134,26 +134,28 @@ defmodule Serum.TemplateLoader do
   defp eval_helpers(ast)
 
   defp eval_helpers({:base, _, []}) do
-    quote do: var!(base_url)
+    quote do: unquote(base())
   end
 
   defp eval_helpers({:base, _, [arg]}) do
-    quote do: Path.join(var!(base_url), unquote(arg))
+    quote do: Path.join(unquote(base()), unquote(arg))
   end
 
   defp eval_helpers({:page, _, [arg]}) do
-    quote do: Path.join(var!(base_url), unquote(arg) <> ".html")
+    quote do: Path.join(unquote(base()), unquote(arg) <> ".html")
   end
 
   defp eval_helpers({:post, _, [arg]}) do
-    quote do: Path.join([var!(base_url), "posts", unquote(arg) <> ".html"])
+    quote do: Path.join([unquote(base()), "posts", unquote(arg) <> ".html"])
   end
 
   defp eval_helpers({:asset, _, [arg]}) do
-    quote do: Path.join([var!(base_url), "assets", unquote(arg)])
+    quote do: Path.join([unquote(base()), "assets", unquote(arg)])
   end
 
   defp eval_helpers(anything_else) do
     anything_else
   end
+
+  defp base, do: quote(do: get_in(var!(assigns), [:site, :base_url]))
 end
