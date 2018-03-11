@@ -94,7 +94,7 @@ defmodule Serum.Post do
   def to_fragment(post, proj) do
     case to_html(post, proj) do
       {:ok, html} -> {:ok, Fragment.new(:post, post, html)}
-      {:error, error} = error -> error
+      {:error, _} = error -> error
     end
   end
 
