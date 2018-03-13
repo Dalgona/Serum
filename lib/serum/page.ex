@@ -103,7 +103,7 @@ defmodule Serum.Page do
 
     with {:ok, temp} <- preprocess(page),
          {:ok, html} <- render(temp, metadata, proj) do
-      {:ok, Fragment.new(:page, page, html)}
+      {:ok, Fragment.new(page.file, page.output, metadata, html)}
     else
       {:error, _} = error -> error
     end

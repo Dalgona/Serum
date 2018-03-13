@@ -100,8 +100,11 @@ defmodule Serum.Post do
       |> Map.put(:type, :post)
 
     case to_html(post, metadata, proj) do
-      {:ok, html} -> {:ok, Fragment.new(:post, post, html)}
-      {:error, _} = error -> error
+      {:ok, html} ->
+        {:ok, Fragment.new(post.file, post.output, metadata, html)}
+
+      {:error, _} = error ->
+        error
     end
   end
 

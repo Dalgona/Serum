@@ -40,8 +40,7 @@ defmodule Serum.Build.Pass3 do
   @spec render(Fragment.t(), Template.t()) :: Result.t(FileOutput.t())
   defp render(fragment, template) do
     bindings = [
-      page_title: fragment.title,
-      page_type: fragment.type,
+      page: fragment.metadata,
       contents: fragment.data
     ]
 
