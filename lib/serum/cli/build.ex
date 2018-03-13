@@ -5,19 +5,18 @@ defmodule Serum.CLI.Build do
   alias Serum.Result
   alias Serum.SiteBuilder
 
-  @strict [parallel: :boolean, output: :string]
-  @aliases [p: :parallel, o: :output]
+  @strict [output: :string]
+  @aliases [o: :output]
 
   def tasks, do: ["build"]
 
   def run(_task, args) do
     {opts, args, errors} = OptionParser.parse(args, strict: @strict, aliases: @aliases)
-    mode = (opts[:parallel] && :parallel) || :sequential
     out = opts[:output]
 
     case {args, errors} do
       {args, []} ->
-        launch_build(args, out, mode)
+        launch_build(args, out)
 
       {_, _error} ->
         CLI.usage()
@@ -25,9 +24,9 @@ defmodule Serum.CLI.Build do
     end
   end
 
-  @spec launch_build([binary], binary, Serum.Build.mode()) :: any
+  @spec launch_build([binary], binary) :: any
 
-  defp launch_build(args, out, mode) do
+  defp launch_build(args, out) do
     dir =
       case args do
         [] -> "."
@@ -36,7 +35,7 @@ defmodule Serum.CLI.Build do
 
     with {:ok, pid} <- SiteBuilder.start_link(dir, out),
          {:ok, _} <- SiteBuilder.load_info(pid),
-         {:ok, dest} <- SiteBuilder.build(pid, mode) do
+         {:ok, dest} <- SiteBuilder.build(pid) do
       on_finish(dest)
       {:cli_exit, 0}
     else

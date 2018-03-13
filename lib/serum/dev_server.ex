@@ -1,23 +1,9 @@
 defmodule Serum.DevServer do
-  @moduledoc """
-  This module provides functions for starting the Serum development server.
-  """
-
   alias Serum.Result
   alias Serum.DevServer.{Service, AutoBuilder, Looper}
   alias Serum.SiteBuilder
 
-  @doc """
-  Starts the Serum development server.
-
-  This function starts a supervisor and required child processes and starts
-  infinite command prompt loop.
-
-  The website is built under a subdirectory of `/tmp` directory, and will be
-  deleted when the server is stopped.
-  """
-  @spec run(dir :: binary, port :: pos_integer) :: any
-
+  @spec run(binary, pos_integer) :: no_return()
   def run(dir, port) do
     import Supervisor.Spec
 
@@ -49,7 +35,6 @@ defmodule Serum.DevServer do
 
   @doc false
   @spec start_watcher(binary) :: {:ok, pid}
-
   def start_watcher(dir) do
     dir = Path.absname(dir)
 

@@ -1,8 +1,4 @@
 defmodule Serum.Build do
-  @moduledoc """
-  This module contains functions for actually building a Serum project.
-  """
-
   import Serum.Util
   alias Serum.Result
   alias Serum.Build.Pass1
@@ -10,34 +6,13 @@ defmodule Serum.Build do
   alias Serum.Build.Pass3
   alias Serum.TemplateLoader
 
-  @type mode :: :parallel | :sequential
-
-  @doc """
-  Starts building the website in given build mode (parallel or sequential).
-
-  This function does the followings:
-
-  1. Checks if the effective user has a write permission to the output
-    directory.
-  2. Checks if the system timezone is properly set. Timex application relies on
-    the system timezone to format the date string. So if the system timezone is
-    not set, Timex will fail.
-  3. Cleans the output directory. However, files or directories starting with a
-    dot (`'.'`) will not be deleted, as these may contain important version
-    control stuff and so on.
-  4. Launches 2-pass build process. Refer to `Serum.Build.Pass1` and
-    `Serum.Build.Pass2` for more information about 2-pass build process.
-  5. Finally copies `assets/` and `media/` directory to the output directory
-    (if any).
-  """
-  @spec build(mode, map()) :: Result.t(binary())
-
-  def build(mode, proj) do
+  @spec build(map()) :: Result.t(binary())
+  def build(proj) do
     with :ok <- check_tz(),
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
          :ok <- prepare_templates(proj.src),
-         :ok <- do_build(proj, mode) do
+         :ok <- do_build(proj) do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
     else
@@ -45,12 +20,12 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build(map(), mode) :: Result.t()
-  defp do_build(proj, mode) do
+  @spec do_build(map()) :: Result.t()
+  defp do_build(proj) do
     proj
-    |> Pass1.run(mode)
-    |> Pass2.run(proj, mode)
-    |> Pass3.run(mode)
+    |> Pass1.run()
+    |> Pass2.run(proj)
+    |> Pass3.run()
   end
 
   # Checks if the system timezone is set and valid.

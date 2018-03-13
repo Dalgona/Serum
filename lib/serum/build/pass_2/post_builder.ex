@@ -8,26 +8,19 @@ defmodule Serum.Build.Pass2.PostBuilder do
 
   alias Serum.Result
   alias Serum.Fragment
-  alias Serum.Build
   alias Serum.Post
 
   @doc "Starts the second pass of PostBuilder."
-  @spec run(Build.mode(), [Post.t()], map()) :: Result.t()
-  def run(mode, posts, proj) do
-    result = launch(mode, posts, proj)
+  @spec run([Post.t()], map()) :: Result.t()
+  def run(posts, proj) do
+    result = launch(posts, proj)
     Result.aggregate_values(result, :post_builder)
   end
 
-  @spec launch(Build.mode(), [Post.t()], map()) :: [Result.t(Fragment.t())]
-  defp launch(mode, files, proj)
-
-  defp launch(:parallel, files, proj) do
+  @spec launch([Post.t()], map()) :: [Result.t(Fragment.t())]
+  defp launch(files, proj) do
     files
     |> Task.async_stream(Post, :to_fragment, [proj])
     |> Enum.map(&elem(&1, 1))
-  end
-
-  defp launch(:sequential, files, proj) do
-    files |> Enum.map(&Post.to_fragment(&1, proj))
   end
 end

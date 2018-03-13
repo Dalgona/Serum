@@ -47,21 +47,18 @@ defmodule Serum.SiteBuilder do
   @doc """
   Builds the loaded project.
 
-  `mode` can be either `:parallel` or `:sequential`. This determines whether
-  the site builder should launch the sub tasks parallelly or sequentially.
-
   If the whole build process succeeds, it prints the elapsed build time and
   returns `{:ok, dest}` where `dest` is the output directory.
 
   Returns an error object if the project metadata is not loaded (i.e.
   `load_info/1` is not called yet), or other error occurs.
   """
-  @spec build(pid, Build.mode()) :: Result.t(binary)
+  @spec build(pid) :: Result.t(binary)
 
-  def build(server, mode) do
+  def build(server) do
     {time, result} =
       :timer.tc(fn ->
-        GenServer.call(server, {:build, mode})
+        GenServer.call(server, :build)
       end)
 
     case result do
@@ -103,12 +100,12 @@ defmodule Serum.SiteBuilder do
     end
   end
 
-  def handle_call({:build, _mode}, _from, state = %{project_info: nil}) do
+  def handle_call(:build, _from, state = %{project_info: nil}) do
     {:reply, {:error, "project metadata is not loaded"}, state}
   end
 
-  def handle_call({:build, mode}, _from, state) do
-    case Build.build(mode, state.project_info) do
+  def handle_call(:build, _from, state) do
+    case Build.build(state.project_info) do
       {:ok, dest} -> {:reply, {:ok, dest}, state}
       {:error, _} = error -> {:reply, error, state}
     end
