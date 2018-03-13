@@ -15,7 +15,6 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Build.Pass2.PostBuilder
   alias Serum.Build.Pass2.IndexBuilder
   alias Serum.Fragment
-  alias Serum.GlobalBindings
   alias Serum.Page
   alias Serum.Post
   alias Serum.Result
@@ -25,11 +24,6 @@ defmodule Serum.Build.Pass2 do
   def run({:error, _} = error, _build_mode), do: error
 
   def run({:ok, map}, proj, build_mode) do
-    proj
-    |> Map.from_struct()
-    |> Map.merge(map)
-    |> GlobalBindings.load()
-
     result = do_run(map.pages, map.posts, map.tag_map, proj, build_mode)
 
     result

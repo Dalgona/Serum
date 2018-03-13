@@ -4,6 +4,7 @@ defmodule Serum.ProjectInfo do
   """
 
   import Serum.Util
+  alias Serum.GlobalBindings
   alias Serum.Result
   alias Serum.Validation
 
@@ -74,6 +75,15 @@ defmodule Serum.ProjectInfo do
          {:ok, json} <- Poison.decode(text),
          :ok <- Validation.validate("project_info", json, path) do
       proj = new(json)
+
+      GlobalBindings.put(:site, %{
+        name: proj.site_name,
+        description: proj.site_description,
+        author: proj.author,
+        author_email: proj.author_email,
+        base_url: proj.base_url
+      })
+
       {:ok, %__MODULE__{proj | src: src, dest: dest}}
     else
       # From File.read/1:

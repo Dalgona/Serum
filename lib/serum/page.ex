@@ -22,6 +22,8 @@ defmodule Serum.Page do
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
+  @metadata_keys [:title, :label, :group, :url]
+
   @spec load(binary(), map()) :: Result.t(t())
   def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
@@ -94,42 +96,45 @@ defmodule Serum.Page do
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(page, proj) do
-    case to_html(page, proj) do
-      {:ok, html} -> {:ok, Fragment.new(:page, page, html)}
+    metadata =
+      page
+      |> Map.take(@metadata_keys)
+      |> Map.put(:type, :page)
+
+    with {:ok, temp} <- preprocess(page),
+         {:ok, html} <- render(temp, metadata, proj) do
+      {:ok, Fragment.new(page.file, page.output, metadata, html)}
+    else
       {:error, _} = error -> error
     end
   end
 
-  @spec to_html(t(), map()) :: Result.t(binary())
-  def to_html(page, proj)
+  @spec preprocess(t()) :: Result.t(binary())
+  defp preprocess(page)
 
-  def to_html(%__MODULE__{type: ".md"} = page, proj) do
-    page.data
-    |> Earmark.to_html()
-    |> render(proj)
+  defp preprocess(%__MODULE__{type: ".md"} = page) do
+    {:ok, Earmark.to_html(page.data)}
   end
 
-  def to_html(%__MODULE__{type: ".html"} = page, proj) do
-    render(page.data, proj)
+  defp preprocess(%__MODULE__{type: ".html"} = page) do
+    {:ok, page.data}
   end
 
-  def to_html(%__MODULE__{type: ".html.eex"} = page, proj) do
-    with {:ok, ast} <- TemplateLoader.compile(page.data, :template),
-         template = Template.new(ast, :template, page.file),
-         {:ok, html} <- Renderer.render_fragment(template, []) do
-      render(html, proj)
-    else
+  defp preprocess(%__MODULE__{type: ".html.eex"} = page) do
+    case TemplateLoader.compile(page.data, :template) do
+      {:ok, ast} ->
+        template = Template.new(ast, :template, page.file)
+
+        Renderer.render_fragment(template, [])
+
       {:ct_error, msg, line} ->
         {:error, {msg, page.file, line}}
-
-      {:error, _} = error ->
-        error
     end
   end
 
-  @spec render(binary(), map()) :: Result.t(binary())
-  defp render(html, proj) do
-    bindings = [contents: html]
+  @spec render(binary(), map(), map()) :: Result.t(binary())
+  defp render(html, metadata, proj) do
+    bindings = [page: metadata, contents: html]
     template = Template.get("page")
 
     case Renderer.render_fragment(template, bindings) do

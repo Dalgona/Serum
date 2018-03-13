@@ -44,6 +44,6 @@ defmodule Serum.Build.Pass2.IndexBuilder do
   def index_task({tag, posts}, proj) do
     tag
     |> PostList.generate(posts, proj)
-    |> PostList.to_fragment()
+    |> PostList.to_fragments()
   end
 end
