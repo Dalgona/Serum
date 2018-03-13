@@ -30,6 +30,8 @@ defmodule Serum.Post do
     :output
   ]
 
+  @metadata_keys [:title, :date, :raw_date, :tags, :url]
+
   @spec load(binary(), map()) :: Result.t(t())
   def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
@@ -92,22 +94,20 @@ defmodule Serum.Post do
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, proj) do
-    case to_html(post, proj) do
+    metadata =
+      post
+      |> Map.take(@metadata_keys)
+      |> Map.put(:type, :post)
+
+    case to_html(post, metadata, proj) do
       {:ok, html} -> {:ok, Fragment.new(:post, post, html)}
       {:error, _} = error -> error
     end
   end
 
-  @spec to_html(t(), map()) :: Result.t(binary())
-  def to_html(%__MODULE__{} = post, proj) do
-    bindings = [
-      title: post.title,
-      date: post.date,
-      raw_date: post.raw_date,
-      tags: post.tags,
-      contents: Earmark.to_html(post.data)
-    ]
-
+  @spec to_html(t(), map(), map()) :: Result.t(binary())
+  def to_html(%__MODULE__{} = post, metadata, proj) do
+    bindings = [page: metadata, contents: Earmark.to_html(post.data)]
     template = Template.get("post")
 
     case Renderer.render_fragment(template, bindings) do

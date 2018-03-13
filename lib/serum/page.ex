@@ -22,6 +22,8 @@ defmodule Serum.Page do
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
+  @metadata_keys [:title, :label, :group, :url]
+
   @spec load(binary(), map()) :: Result.t(t())
   def load(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
@@ -94,8 +96,13 @@ defmodule Serum.Page do
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(page, proj) do
+    metadata =
+      page
+      |> Map.take(@metadata_keys)
+      |> Map.put(:type, :page)
+
     with {:ok, temp} <- preprocess(page),
-         {:ok, html} <- render(temp, proj) do
+         {:ok, html} <- render(temp, metadata, proj) do
       {:ok, Fragment.new(:page, page, html)}
     else
       {:error, _} = error -> error
@@ -125,9 +132,9 @@ defmodule Serum.Page do
     end
   end
 
-  @spec render(binary(), map()) :: Result.t(binary())
-  defp render(html, proj) do
-    bindings = [contents: html]
+  @spec render(binary(), map(), map()) :: Result.t(binary())
+  defp render(html, metadata, proj) do
+    bindings = [page: metadata, contents: html]
     template = Template.get("page")
 
     case Renderer.render_fragment(template, bindings) do
