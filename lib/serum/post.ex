@@ -110,7 +110,7 @@ defmodule Serum.Post do
 
   @spec to_html(t(), map(), map()) :: Result.t(binary())
   def to_html(%__MODULE__{} = post, metadata, proj) do
-    bindings = [page: metadata, contents: Earmark.to_html(post.data)]
+    bindings = [page: metadata, contents: Earmark.as_html!(post.data)]
     template = Template.get("post")
 
     case Renderer.render_fragment(template, bindings) do

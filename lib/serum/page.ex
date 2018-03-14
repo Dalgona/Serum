@@ -113,7 +113,7 @@ defmodule Serum.Page do
   defp preprocess(page)
 
   defp preprocess(%__MODULE__{type: ".md"} = page) do
-    {:ok, Earmark.to_html(page.data)}
+    {:ok, Earmark.as_html!(page.data)}
   end
 
   defp preprocess(%__MODULE__{type: ".html"} = page) do

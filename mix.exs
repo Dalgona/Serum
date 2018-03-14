@@ -30,17 +30,16 @@ defmodule Serum.Mixfile do
 
   defp deps do
     [
-      {:earmark, "~> 1.0.1"},
+      {:earmark, "~> 1.2"},
       {:poison, "~> 3.1"},
       {:fs, github: "Dalgona/fs"},
       {:microscope, "~> 1.0"},
-      {:timex, "~> 3.1.9"},
+      {:timex, "~> 3.2"},
       {:tzdata, "~> 0.1.8", override: true},
-      {:floki, "~> 0.13"},
-      {:ex_json_schema, "~> 0.5.4"},
-      {:credo, "0.5.3", only: [:dev, :test]},
+      {:ex_json_schema, "~> 0.5"},
+      {:credo, "~> 0.8", only: [:dev, :test]},
       {:excoveralls, "~> 0.6", only: [:test]},
-      {:dialyxir, "~> 0.4", only: [:dev, :test]}
+      {:dialyxir, "~> 0.5", only: [:dev, :test]}
     ]
   end
 end
