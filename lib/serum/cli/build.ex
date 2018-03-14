@@ -11,7 +11,13 @@ defmodule Serum.CLI.Build do
   def tasks, do: ["build"]
 
   def run(_task, args) do
-    {opts, args, errors} = OptionParser.parse(args, strict: @strict, aliases: @aliases)
+    {opts, args, errors} =
+      OptionParser.parse(
+        args,
+        strict: @strict,
+        aliases: @aliases
+      )
+
     out = opts[:output]
 
     case {args, errors} do

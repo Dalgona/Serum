@@ -10,7 +10,13 @@ defmodule Serum.CLI.Server do
   def tasks, do: ["server"]
 
   def run(_task, args) do
-    {opts, args, errors} = OptionParser.parse(args, strict: @strict, aliases: @aliases)
+    {opts, args, errors} =
+      OptionParser.parse(
+        args,
+        strict: @strict,
+        aliases: @aliases
+      )
+
     port = opts[:port] || 8080
 
     case {args, errors} do

@@ -9,7 +9,7 @@ defmodule Serum.DevServer.Looper do
   @doc "Starts the infinite command prompt loop."
   @spec looper() :: no_return
 
-  def looper() do
+  def looper do
     IO.write("#{Service.port()}> ")
     cmd = "" |> IO.gets() |> String.trim()
 

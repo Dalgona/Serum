@@ -11,7 +11,13 @@ defmodule Serum.CLI.Init do
   def tasks, do: ["init"]
 
   def run(_task, args) do
-    {opts, args, errors} = OptionParser.parse(args, strict: @strict, aliases: @aliases)
+    {opts, args, errors} =
+      OptionParser.parse(
+        args,
+        strict: @strict,
+        aliases: @aliases
+      )
+
     force? = opts[:force] || false
 
     with [] <- errors,

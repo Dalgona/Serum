@@ -48,7 +48,7 @@ defmodule Serum.DevServer do
     {:ok, pid}
   end
 
-  defp watcher_looper() do
+  defp watcher_looper do
     receive do
       {_pid, {:fs, :file_event}, {_path, _events}} ->
         Service.set_dirty()

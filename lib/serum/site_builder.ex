@@ -100,7 +100,7 @@ defmodule Serum.SiteBuilder do
     end
   end
 
-  def handle_call(:build, _from, state = %{project_info: nil}) do
+  def handle_call(:build, _from, %{project_info: nil} = state) do
     {:reply, {:error, "project metadata is not loaded"}, state}
   end
 

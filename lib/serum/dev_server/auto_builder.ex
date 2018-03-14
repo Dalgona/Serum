@@ -11,7 +11,7 @@ defmodule Serum.DevServer.AutoBuilder do
 
   @spec on_request() :: no_return
 
-  def on_request() do
+  def on_request do
     if Service.dirty?() do
       warn("Changes were detected in the source directory.")
       Service.rebuild()

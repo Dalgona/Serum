@@ -89,7 +89,7 @@ defmodule Serum.CLI do
 
   @spec info() :: :ok
 
-  defp info() do
+  defp info do
     {:ok, v} = :application.get_key(:serum, :vsn)
 
     IO.puts(
@@ -100,7 +100,7 @@ defmodule Serum.CLI do
 
   @spec usage() :: :ok
 
-  def usage() do
+  def usage do
     IO.puts("""
 
     Usage: serum <TASK>

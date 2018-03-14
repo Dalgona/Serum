@@ -22,19 +22,19 @@ defmodule Serum.DevServer.Service do
 
   @doc "Rebuilds the current Serum project."
   @spec rebuild() :: :ok
-  def rebuild(), do: GenServer.call(__MODULE__, :rebuild)
+  def rebuild, do: GenServer.call(__MODULE__, :rebuild)
 
   @doc "Returns the source directory."
   @spec source_dir() :: binary
-  def source_dir(), do: GenServer.call(__MODULE__, :source_dir)
+  def source_dir, do: GenServer.call(__MODULE__, :source_dir)
 
   @doc "Returns the output directory (under `/tmp`)."
   @spec site_dir() :: binary
-  def site_dir(), do: GenServer.call(__MODULE__, :site_dir)
+  def site_dir, do: GenServer.call(__MODULE__, :site_dir)
 
   @doc "Returns the port number the server currently listening on."
   @spec port() :: pos_integer
-  def port(), do: GenServer.call(__MODULE__, :port)
+  def port, do: GenServer.call(__MODULE__, :port)
 
   @doc "Checks if the source directory is marked as dirty."
   @spec dirty?() :: boolean
