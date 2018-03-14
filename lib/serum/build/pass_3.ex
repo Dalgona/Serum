@@ -10,9 +10,12 @@ defmodule Serum.Build.Pass3 do
 
   def run({:ok, fragments}) do
     template = Template.get("base")
-    result = do_run(fragments, template)
 
-    case Result.aggregate_values(result, :build_pass3) do
+    fragments
+    |> Task.async_stream(&render(&1, template))
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values(:build_pass3)
+    |> case do
       {:ok, outputs} ->
         create_dirs(outputs)
         Enum.each(outputs, &FileOutput.perform_output!/1)
@@ -20,13 +23,6 @@ defmodule Serum.Build.Pass3 do
       {:error, _} = error ->
         error
     end
-  end
-
-  @spec do_run([Fragment.t()], Template.t()) :: [Result.t(FileOutput.t())]
-  defp do_run(fragments, template) do
-    fragments
-    |> Task.async_stream(&render(&1, template))
-    |> Enum.map(&elem(&1, 1))
   end
 
   @spec render(Fragment.t(), Template.t()) :: Result.t(FileOutput.t())
