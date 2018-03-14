@@ -20,7 +20,8 @@ defmodule Serum.TemplateLoader do
 
     result =
       ["base", "list", "page", "post"]
-      |> Enum.map(&do_load_templates(&1, src))
+      |> Task.async_stream(&do_load_templates(&1, src))
+      |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:load_templates)
 
     case result do
@@ -58,7 +59,8 @@ defmodule Serum.TemplateLoader do
         |> File.ls!()
         |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
         |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
-        |> Stream.map(&do_load_includes(&1, src))
+        |> Task.async_stream(&do_load_includes(&1, src))
+        |> Enum.map(&elem(&1, 1))
         |> Result.aggregate_values(:load_includes)
 
       case result do

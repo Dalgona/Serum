@@ -87,7 +87,8 @@ defmodule Serum.PostList do
   @spec to_fragments([t()]) :: Result.t([Fragment.t()])
   def to_fragments(post_lists) do
     post_lists
-    |> Enum.map(&to_fragment/1)
+    |> Task.async_stream(&to_fragment/1)
+    |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:to_fragments)
     |> case do
       {:ok, [first | rest]} ->
