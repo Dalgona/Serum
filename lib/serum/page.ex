@@ -1,5 +1,18 @@
 defmodule Serum.Page do
-  @moduledoc "This module defines Page struct."
+  @moduledoc """
+  Defines a struct describing a normal page.
+
+  ## Fields
+  * `file`: Source path
+  * `type`: Type of source file
+  * `title`: Page title
+  * `label`: Page label
+  * `group`: A group the page belongs to
+  * `order`: Order of the page within its group
+  * `url`: Absolute URL of the page within the website
+  * `output`: Destination path
+  * `data`: Source data
+  """
 
   @type t :: %__MODULE__{
           file: binary(),

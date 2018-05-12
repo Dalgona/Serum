@@ -1,5 +1,18 @@
 defmodule Serum.Post do
-  @moduledoc "This module defines Post struct."
+  @moduledoc """
+  Defines a struct representing a blog post page.
+
+  ## Fields
+
+  * `file`: Source path
+  * `title`: Post title
+  * `date`: Post date (formatted)
+  * `raw_date`: Post date (erlang tuple style)
+  * `tags`: A list of tags
+  * `url`: Absolute URL of the blog post in the website
+  * `data`: Post contents
+  * `output`: Destination path
+  """
 
   alias Serum.Result
   alias Serum.Fragment

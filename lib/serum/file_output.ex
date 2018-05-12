@@ -1,4 +1,14 @@
 defmodule Serum.FileOutput do
+  @moduledoc """
+  Defines a struct representing a file to be written.
+
+  ## Fields
+
+  * `src`: Source path
+  * `dest`: Destination path
+  * `data`: Data to be written to a file
+  """
+
   @type t :: %__MODULE__{
           src: binary(),
           dest: binary(),
@@ -7,6 +17,7 @@ defmodule Serum.FileOutput do
 
   defstruct [:src, :dest, :data]
 
+  @doc "Actually writes a file described by the given `FileOutput` struct."
   @spec perform_output!(t()) :: :ok
   def perform_output!(output) do
     File.open!(output.dest, [:write, :utf8], fn file ->

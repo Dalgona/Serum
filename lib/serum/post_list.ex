@@ -1,4 +1,22 @@
 defmodule Serum.PostList do
+  @moduledoc """
+  Defines a struct representing a list of blog posts.
+
+  ## Fields
+
+  * `tag`: Specifies by which tag the posts are filtered. Can be `nil`
+  * `current_page`: Number of current page
+  * `max_page`: Number of the last page
+  * `title`: Title of the list
+  * `posts`: A list of `Post` structs
+  * `url`: Absolute URL of this list page in the website
+  * `prev_url`: Absolute URL of the previous list page. Can be `nil` if this is
+    the first page
+  * `next_url`: Absolute URL of the next list page. Can be `nil` if this is
+    the last page
+  * `output`: Destination path
+  """
+
   alias Serum.Result
   alias Serum.Fragment
   alias Serum.Post
