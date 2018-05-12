@@ -1,6 +1,0 @@
-<%= site_name %> - <%= site_description %>
-[<%= page_title %>]
----
-<%= navigation %>
----
-<%= contents %>

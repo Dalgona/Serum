@@ -1,6 +1,0 @@
-<%= title %>
----
-on <%= date %> by <%= author %>
-<%= for t <- tags do %><%= t.name %>[<%= t.list_url %>] <% end %>
----
-<%= contents %>

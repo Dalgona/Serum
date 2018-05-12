@@ -1,6 +1,0 @@
-<%= header %>
-<%= for x <- posts do %>---
-<%= x.title %> [<%= x.url %>]
-<%= x.date %>
-<%= x.preview_text %>
----<% end %>

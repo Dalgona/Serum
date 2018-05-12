@@ -1,1 +1,0 @@
-<%= "Hello, #{heroes_of_the_storm}!" %>

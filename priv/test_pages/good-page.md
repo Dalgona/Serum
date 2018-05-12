@@ -1,3 +1,0 @@
-# Example Page
-
-Hello, world!

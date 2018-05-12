@@ -91,6 +91,9 @@ defmodule Serum.PostList do
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:to_fragments)
     |> case do
+      {:ok, []} ->
+        {:ok, []}
+
       {:ok, [first | rest]} ->
         first_dup = %Fragment{
           first
