@@ -50,6 +50,26 @@ defmodule Serum.PostList do
   ]
 
   @spec generate(maybe_tag(), [Post.t()], map()) :: [t()]
+  def generate(tag, posts, proj)
+
+  def generate(tag, [], proj) do
+    list_dir = (tag && Path.join("tags", tag.name)) || "posts"
+
+    [
+      %__MODULE__{
+        tag: tag,
+        current_page: 1,
+        max_page: 1,
+        title: list_title(tag, proj),
+        posts: [],
+        url: Path.join([proj.base_url, list_dir, "page-1.html"]),
+        output: Path.join([proj.dest, list_dir, "page-1.html"]),
+        prev_url: nil,
+        next_url: nil
+      }
+    ]
+  end
+
   def generate(tag, posts, proj) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
@@ -109,9 +129,6 @@ defmodule Serum.PostList do
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:to_fragments)
     |> case do
-      {:ok, []} ->
-        {:ok, []}
-
       {:ok, [first | rest]} ->
         first_dup = %Fragment{
           first
