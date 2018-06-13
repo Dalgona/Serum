@@ -85,9 +85,6 @@ defmodule Serum.CLI.Build do
 
     ## OPTIONS
 
-    * `-p, --parallel`: If this option is used, Serum accelerates the build
-      process by processing source files parallelly. Otherwise, Serum processes
-      source files one by one.
     * `-o, --output <OUTDIR>`: Specifies the directory where output files are
       stored. If this option is not used, the project will built under
       </path/to/project>/site directory.
