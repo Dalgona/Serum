@@ -1,5 +1,6 @@
 defmodule Serum.Build.Pass1.PostBuilder do
   import Serum.Util
+  alias Serum.HeaderParser
   alias Serum.Result
   alias Serum.Post
 
@@ -7,7 +8,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
   def run(proj) do
     proj.src
     |> load_file_list()
-    |> Task.async_stream(Post, :load, [proj])
+    |> Task.async_stream(&load_post(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:post_builder)
   end
@@ -25,6 +26,42 @@ defmodule Serum.Build.Pass1.PostBuilder do
     else
       warn("Cannot access `posts/'. No post will be generated.")
       []
+    end
+  end
+
+  @spec load_post(binary(), map()) :: Result.t(Post.t())
+  defp load_post(path, proj) do
+    with {:ok, file} <- File.open(path, [:read, :utf8]),
+         {:ok, {header, data}} <- get_contents(file, path) do
+      File.close(file)
+      {:ok, Post.create_struct(path, header, data, proj)}
+    else
+      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
+      {:error, _} = error -> error
+    end
+  end
+
+  @spec get_contents(pid(), binary()) :: Result.t(map())
+  defp get_contents(file, path) do
+    opts = [
+      title: :string,
+      tags: {:list, :string},
+      date: :datetime
+    ]
+
+    required = [:title]
+
+    with {:ok, header} <- HeaderParser.parse_header(file, path, opts, required),
+         data when is_binary(data) <- IO.read(file, :all) do
+      header = %{
+        header
+        | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
+      }
+
+      {:ok, {header, data}}
+    else
+      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
+      {:error, _} = error -> error
     end
   end
 end

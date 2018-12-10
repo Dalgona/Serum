@@ -45,44 +45,8 @@ defmodule Serum.Post do
 
   @metadata_keys [:title, :date, :raw_date, :tags, :url]
 
-  @spec load(binary(), map()) :: Result.t(t())
-  def load(path, proj) do
-    with {:ok, file} <- File.open(path, [:read, :utf8]),
-         {:ok, {header, data}} <- get_contents(file, path) do
-      File.close(file)
-      {:ok, create_struct(path, header, data, proj)}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec get_contents(pid(), binary()) :: Result.t(map())
-  defp get_contents(file, path) do
-    opts = [
-      title: :string,
-      tags: {:list, :string},
-      date: :datetime
-    ]
-
-    required = [:title]
-
-    with {:ok, header} <- HeaderParser.parse_header(file, path, opts, required),
-         data when is_binary(data) <- IO.read(file, :all) do
-      header = %{
-        header
-        | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
-      }
-
-      {:ok, {header, data}}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
-      {:error, _} = error -> error
-    end
-  end
-
   @spec create_struct(binary(), map(), binary(), map()) :: t()
-  defp create_struct(path, header, data, proj) do
+  def create_struct(path, header, data, proj) do
     tags = Tag.batch_create(header[:tags], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
