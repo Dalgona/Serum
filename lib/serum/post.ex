@@ -10,13 +10,12 @@ defmodule Serum.Post do
   * `raw_date`: Post date (erlang tuple style)
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
-  * `data`: Post contents
+  * `html`: Post contents converted into HTML
   * `output`: Destination path
   """
 
   alias Serum.Result
   alias Serum.Fragment
-  alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.Tag
   alias Serum.Template
@@ -28,7 +27,7 @@ defmodule Serum.Post do
           raw_date: {:calendar.date(), :calendar.time()},
           tags: [Tag.t()],
           url: binary(),
-          data: binary(),
+          html: binary(),
           output: binary()
         }
 
@@ -39,14 +38,14 @@ defmodule Serum.Post do
     :raw_date,
     :tags,
     :url,
-    :data,
+    :html,
     :output
   ]
 
   @metadata_keys [:title, :date, :raw_date, :tags, :url]
 
-  @spec create_struct(binary(), map(), binary(), map()) :: t()
-  def create_struct(path, header, data, proj) do
+  @spec new(binary(), map(), binary(), map()) :: t()
+  def new(path, header, html, proj) do
     tags = Tag.batch_create(header[:tags], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
@@ -61,7 +60,7 @@ defmodule Serum.Post do
       file: path,
       title: header.title,
       tags: tags,
-      data: data,
+      html: html,
       raw_date: raw_date,
       date: date_str,
       url: Path.join(proj.base_url, filename),
@@ -87,7 +86,7 @@ defmodule Serum.Post do
 
   @spec to_html(t(), map(), map()) :: Result.t(binary())
   def to_html(%__MODULE__{} = post, metadata, proj) do
-    bindings = [page: metadata, contents: Earmark.as_html!(post.data)]
+    bindings = [page: metadata, contents: post.html]
     template = Template.get("post")
 
     case Renderer.render_fragment(template, bindings) do

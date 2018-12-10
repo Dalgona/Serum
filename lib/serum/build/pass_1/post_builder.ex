@@ -32,9 +32,9 @@ defmodule Serum.Build.Pass1.PostBuilder do
   @spec load_post(binary(), map()) :: Result.t(Post.t())
   defp load_post(path, proj) do
     with {:ok, file} <- File.open(path, [:read, :utf8]),
-         {:ok, {header, data}} <- get_contents(file, path) do
+         {:ok, {header, html}} <- get_contents(file, path) do
       File.close(file)
-      {:ok, Post.create_struct(path, header, data, proj)}
+      {:ok, Post.new(path, header, html, proj)}
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
       {:error, _} = error -> error
@@ -58,7 +58,7 @@ defmodule Serum.Build.Pass1.PostBuilder do
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
 
-      {:ok, {header, data}}
+      {:ok, {header, Earmark.as_html!(data)}}
     else
       {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
       {:error, _} = error -> error
