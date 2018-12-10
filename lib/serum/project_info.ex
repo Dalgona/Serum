@@ -18,7 +18,8 @@ defmodule Serum.ProjectInfo do
     "list_title_all",
     "list_title_tag",
     "pagination",
-    "posts_per_page"
+    "posts_per_page",
+    "preview_length"
   ]
 
   defstruct site_name: "",
@@ -31,6 +32,7 @@ defmodule Serum.ProjectInfo do
             list_title_tag: "Posts Tagged ~s",
             pagination: false,
             posts_per_page: 5,
+            preview_length: 200,
             src: nil,
             dest: nil
 
@@ -46,7 +48,8 @@ defmodule Serum.ProjectInfo do
           list_title_all: binary(),
           list_title_tag: binary(),
           pagination: boolean(),
-          posts_per_page: pos_integer()
+          posts_per_page: pos_integer(),
+          preview_length: non_neg_integer()
         }
 
   @doc "A helper function for creating a new ProjectInfo struct."
