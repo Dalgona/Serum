@@ -94,7 +94,7 @@ defmodule Serum.CLI do
 
     IO.puts(
       "\x1b[1mSerum -- Yet another simple static website generator\n" <>
-        "Version #{v}. Copyright (C) 2016 Dalgona. <dalgona@hontou.moe>\x1b[0m"
+        "Version #{v}. Copyright (C) 2018 Dalgona. <dalgona@hontou.moe>\x1b[0m"
     )
   end
 
