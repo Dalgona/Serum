@@ -11,6 +11,7 @@ defmodule Serum.Post do
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
   * `html`: Post contents converted into HTML
+  * `preview`: Preview text of the post
   * `output`: Destination path
   """
 
@@ -28,6 +29,7 @@ defmodule Serum.Post do
           tags: [Tag.t()],
           url: binary(),
           html: binary(),
+          preview: binary(),
           output: binary()
         }
 
@@ -39,10 +41,11 @@ defmodule Serum.Post do
     :tags,
     :url,
     :html,
+    :preview,
     :output
   ]
 
-  @metadata_keys [:title, :date, :raw_date, :tags, :url]
+  @metadata_keys [:title, :date, :raw_date, :preview, :tags, :url]
 
   @spec new(binary(), map(), binary(), map()) :: t()
   def new(path, header, html, proj) do
@@ -50,6 +53,7 @@ defmodule Serum.Post do
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
     raw_date = datetime |> Timex.to_erl()
+    preview = generate_preview(html, proj.preview_length)
 
     filename =
       path
@@ -61,11 +65,31 @@ defmodule Serum.Post do
       title: header.title,
       tags: tags,
       html: html,
+      preview: preview,
       raw_date: raw_date,
       date: date_str,
       url: Path.join(proj.base_url, filename),
       output: Path.join(proj.dest, filename)
     }
+  end
+
+  @spec generate_preview(binary(), non_neg_integer()) :: binary()
+  defp generate_preview(html, length)
+
+  defp generate_preview(_html, length) when length <= 0, do: ""
+
+  defp generate_preview(html, length) do
+    text =
+      html
+      |> Floki.text(sep: " ")
+      |> String.trim()
+      |> String.replace(~r/\s+/, " ")
+
+    if String.length(text) <= length do
+      text
+    else
+      String.slice(text, 0, length) <> "\u2026"
+    end
   end
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
