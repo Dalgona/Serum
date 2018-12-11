@@ -39,7 +39,8 @@ defmodule Serum.Mixfile do
       {:ex_json_schema, "~> 0.5"},
       {:credo, "~> 0.8", only: [:dev, :test]},
       {:excoveralls, "~> 0.6", only: [:test]},
-      {:dialyxir, "~> 0.5", only: [:dev, :test]}
+      {:dialyxir, "~> 0.5", only: [:dev, :test]},
+      {:floki, "~> 0.20"}
     ]
   end
 end
