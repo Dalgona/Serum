@@ -130,20 +130,18 @@ defmodule Serum.ProjectInfo do
   @spec check_list_title_format(map) :: map
 
   defp check_list_title_format(map) do
-    try do
-      case map["list_title_tag"] do
-        nil ->
-          map
+    case map["list_title_tag"] do
+      nil ->
+        map
 
-        fmt when is_binary(fmt) ->
-          :io_lib.format(fmt, ["test"])
-          map
-      end
-    rescue
-      _e in ArgumentError ->
-        warn("Invalid post list title format string `list_title_tag`.")
-        warn("The default format string will be used instead.")
-        Map.delete(map, "list_title_tag")
+      fmt when is_binary(fmt) ->
+        :io_lib.format(fmt, ["test"])
+        map
     end
+  rescue
+    _e in ArgumentError ->
+      warn("Invalid post list title format string `list_title_tag`.")
+      warn("The default format string will be used instead.")
+      Map.delete(map, "list_title_tag")
   end
 end

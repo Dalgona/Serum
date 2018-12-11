@@ -31,12 +31,10 @@ defmodule Serum.Build do
   # Checks if the system timezone is set and valid.
   @spec check_tz() :: Result.t()
   defp check_tz do
-    try do
-      Timex.local()
-      :ok
-    rescue
-      _ -> {:error, "system timezone is not set"}
-    end
+    Timex.local()
+    :ok
+  rescue
+    _ -> {:error, "system timezone is not set"}
   end
 
   # Checks if the effective user have a write
