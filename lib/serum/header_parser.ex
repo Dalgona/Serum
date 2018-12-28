@@ -26,6 +26,10 @@ defmodule Serum.HeaderParser do
   @type options :: [{atom, value_type}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type}
   @type value :: binary | integer | [binary] | [integer]
+  @type parse_result :: Result.t({map, binary})
+
+  @typep extract_ok :: {:ok, [binary], binary}
+  @typep extract_err :: {:error, binary}
 
   @doc """
   Reads lines from an I/O device `device` and extracts the header area into a
@@ -57,27 +61,27 @@ defmodule Serum.HeaderParser do
     value must have the same type, either `:string`, `:integer`, or `:datetime`.
     You cannot make a list of lists.
   """
-  @spec parse_header(IO.device(), binary, options, [atom]) :: Result.t(map)
+  @spec parse_header(Serum.File.t(), options, [atom]) :: parse_result
 
-  def parse_header(device, fname, options, required \\ []) do
-    case extract_header(device, [], false) do
-      {:ok, lines} ->
+  def parse_header(file, options, required \\ []) do
+    case extract_header(file.in_data, [], false) do
+      {:ok, header_lines, rest_data} ->
         key_strings = options |> Keyword.keys() |> Enum.map(&Atom.to_string/1)
 
         kv_list =
-          lines
+          header_lines
           |> Enum.map(&split_kv/1)
           |> Enum.filter(fn {k, _} -> k in key_strings end)
 
         with [] <- find_missing(kv_list, required),
              {:ok, new_kv} <- transform_values(kv_list, options, []) do
-          {:ok, Map.new(new_kv)}
+          {:ok, Map.new(new_kv), rest_data}
         else
-          error -> handle_error(error, fname)
+          error -> handle_error(error, file.src)
         end
 
-      {:error, error} ->
-        {:error, {"header parse error: #{error}", fname, 0}}
+      error ->
+        handle_error(error, file.src)
     end
   end
 
@@ -96,32 +100,31 @@ defmodule Serum.HeaderParser do
     {:error, {"header parse error: #{error}", fname, 0}}
   end
 
-  @spec extract_header(IO.device(), [binary], boolean) :: {:ok, [binary]} | {:error, binary}
+  @spec extract_header(binary, [binary], boolean) :: extract_ok | extract_err
+  defp extract_header(data, acc, open?)
 
-  defp extract_header(device, lines, open?)
+  defp extract_header(data, acc, false) do
+    case String.split(data, ~r/\r?\n/, parts: 2) do
+      ["---", rest] ->
+        extract_header(rest, acc, true)
 
-  defp extract_header(device, lines, false) do
-    case IO.read(device, :line) do
-      "---\n" ->
-        extract_header(device, lines, true)
+      [line, rest] when is_binary(line) ->
+        extract_header(rest, acc, false)
 
-      line when is_binary(line) ->
-        extract_header(device, lines, false)
-
-      :eof ->
+      [_] ->
         {:error, "header not found"}
     end
   end
 
-  defp extract_header(device, lines, true) do
-    case IO.read(device, :line) do
-      "---\n" ->
-        {:ok, lines}
+  defp extract_header(data, acc, true) do
+    case String.split(data, ~r/\r?\n/, parts: 2) do
+      ["---", rest] ->
+        {:ok, acc, rest}
 
-      line when is_binary(line) ->
-        extract_header(device, [line | lines], true)
+      [line, rest] when is_binary(line) ->
+        extract_header(rest, [line | acc], true)
 
-      :eof ->
+      [_] ->
         {:error, "encountered unexpected end of file"}
     end
   end
