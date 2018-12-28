@@ -229,32 +229,4 @@ defmodule Serum.HeaderParser do
 
   defp error?({:error, _}), do: true
   defp error?(_), do: false
-
-  @doc """
-  Reads lines from I/O device `device`, discards the header area, and returns
-  the I/O device back.
-  """
-  @spec skip_header(IO.device()) :: IO.device()
-
-  def skip_header(device), do: do_skip_header(device, false)
-
-  @spec do_skip_header(IO.device(), boolean) :: IO.device()
-
-  defp do_skip_header(device, open?)
-
-  defp do_skip_header(device, false) do
-    case IO.read(device, :line) do
-      "---\n" -> do_skip_header(device, true)
-      :eof -> device
-      _ -> do_skip_header(device, false)
-    end
-  end
-
-  defp do_skip_header(device, true) do
-    case IO.read(device, :line) do
-      "---\n" -> device
-      :eof -> device
-      _ -> do_skip_header(device, true)
-    end
-  end
 end
