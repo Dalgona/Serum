@@ -1,5 +1,4 @@
 defmodule Serum.Build.Pass3 do
-  alias Serum.FileOutput
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Result
@@ -18,14 +17,14 @@ defmodule Serum.Build.Pass3 do
     |> case do
       {:ok, outputs} ->
         create_dirs(outputs)
-        Enum.each(outputs, &FileOutput.perform_output!/1)
+        Enum.each(outputs, &Serum.File.write/1)
 
       {:error, _} = error ->
         error
     end
   end
 
-  @spec render(Fragment.t(), Template.t()) :: Result.t(FileOutput.t())
+  @spec render(Fragment.t(), Template.t()) :: Result.t(Serum.File.t())
   defp render(fragment, template) do
     bindings = [
       page: fragment.metadata,
@@ -35,10 +34,11 @@ defmodule Serum.Build.Pass3 do
     case Renderer.render_fragment(template, bindings) do
       {:ok, html} ->
         {:ok,
-         %FileOutput{
+         %Serum.File{
            src: fragment.file,
            dest: fragment.output,
-           data: html
+           in_data: nil,
+           out_data: html
          }}
 
       {:error, _} = error ->
@@ -46,7 +46,7 @@ defmodule Serum.Build.Pass3 do
     end
   end
 
-  @spec create_dirs([FileOutput.t()]) :: :ok
+  @spec create_dirs([Serum.File.t()]) :: :ok
   defp create_dirs(outputs) do
     outputs
     |> Stream.map(& &1.dest)
