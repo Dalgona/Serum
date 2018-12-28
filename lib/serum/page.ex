@@ -37,20 +37,12 @@ defmodule Serum.Page do
 
   @metadata_keys [:title, :label, :group, :url]
 
-  @spec load(binary(), map()) :: Result.t(t())
-  def load(path, proj) do
-    with {:ok, file} <- File.open(path, [:read, :utf8]),
-         {:ok, {header, data}} <- get_contents(file, path) do
-      File.close(file)
-      {:ok, create_struct(path, header, data, proj)}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
-      {:error, _} = error -> error
-    end
-  end
+  @spec load(Result.t(Serum.File.t()), map) :: Result.t(t())
+  def load(read_result, proj)
 
-  @spec get_contents(pid(), binary()) :: Result.t(map())
-  defp get_contents(file, path) do
+  def load({:error, _} = error, _proj), do: error
+
+  def load({:ok, file}, proj) do
     opts = [
       title: :string,
       label: :string,
@@ -60,12 +52,12 @@ defmodule Serum.Page do
 
     required = [:title]
 
-    with {:ok, header} <- HeaderParser.parse_header(file, path, opts, required),
-         data when is_binary(data) <- IO.read(file, :all) do
-      header = Map.put(header, :label, header[:label] || header.title)
-      {:ok, {header, data}}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
+    case HeaderParser.parse_header(file, opts, required) do
+      {:ok, header, rest_data} ->
+        header = Map.put(header, :label, header[:label] || header.title)
+
+        {:ok, create_struct(file.src, header, rest_data, proj)}
+
       {:error, _} = error -> error
     end
   end

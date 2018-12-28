@@ -12,8 +12,10 @@ defmodule Serum.Build.Pass1.PageBuilder do
         [page_dir, "**", "*.{md,html,html.eex}"]
         |> Path.join()
         |> Path.wildcard()
+        |> Enum.map(&%Serum.File{src: &1})
 
       files
+      |> Enum.map(&Serum.File.read/1)
       |> Task.async_stream(Page, :load, [proj])
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:page_builder)
