@@ -7,14 +7,15 @@ defmodule Serum.Build.Pass1.PostBuilder do
   @spec run(map()) :: Result.t([Post.t()])
   def run(proj) do
     proj.src
-    |> load_file_list()
+    |> get_file_list()
+    |> Enum.map(&Serum.File.read/1)
     |> Task.async_stream(&load_post(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:post_builder)
   end
 
-  @spec load_file_list(binary()) :: [binary()]
-  defp load_file_list(src) do
+  @spec get_file_list(binary()) :: [Serum.File.t()]
+  defp get_file_list(src) do
     IO.puts("Collecting posts information...")
     post_dir = (src == "." && "posts") || Path.join(src, "posts")
 
@@ -23,26 +24,18 @@ defmodule Serum.Build.Pass1.PostBuilder do
       |> Path.join()
       |> Path.wildcard()
       |> Enum.sort()
+      |> Enum.map(&%Serum.File{src: &1})
     else
       warn("Cannot access `posts/'. No post will be generated.")
       []
     end
   end
 
-  @spec load_post(binary(), map()) :: Result.t(Post.t())
-  defp load_post(path, proj) do
-    with {:ok, file} <- File.open(path, [:read, :utf8]),
-         {:ok, {header, html}} <- get_contents(file, path) do
-      File.close(file)
-      {:ok, Post.new(path, header, html, proj)}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
-      {:error, _} = error -> error
-    end
-  end
+  @spec load_post(Result.t(Serum.File.t()), map()) :: Result.t(Post.t())
+  defp load_post(read_result, proj)
+  defp load_post({:error, _} = error, _proj), do: error
 
-  @spec get_contents(pid(), binary()) :: Result.t(map())
-  defp get_contents(file, path) do
+  defp load_post({:ok, file}, proj) do
     opts = [
       title: :string,
       tags: {:list, :string},
@@ -51,17 +44,17 @@ defmodule Serum.Build.Pass1.PostBuilder do
 
     required = [:title]
 
-    with {:ok, header} <- HeaderParser.parse_header(file, path, opts, required),
-         data when is_binary(data) <- IO.read(file, :all) do
-      header = %{
-        header
-        | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
-      }
+    case HeaderParser.parse_header(file, opts, required) do
+      {:ok, header, rest_data} ->
+        header = %{
+          header
+          | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
+        }
 
-      {:ok, {header, Earmark.as_html!(data)}}
-    else
-      {:error, reason} when is_atom(reason) -> {:error, {reason, path, 0}}
-      {:error, _} = error -> error
+        {:ok, Post.new(file.src, header, Earmark.as_html!(rest_data), proj)}
+
+      {:error, _} = error ->
+        error
     end
   end
 end
