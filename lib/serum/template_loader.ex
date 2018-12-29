@@ -93,8 +93,13 @@ defmodule Serum.TemplateLoader do
 
     ast =
       case kind do
-        :template -> preprocess_template(compiled)
-        :include -> compiled
+        :template ->
+          compiled
+          |> Macro.postwalk(&expand_includes/1)
+          |> Macro.postwalk(&eval_helpers/1)
+
+        :include ->
+          compiled
       end
 
     {:ok, ast}
@@ -107,13 +112,6 @@ defmodule Serum.TemplateLoader do
 
     e in TokenMissingError ->
       {:ct_error, e.description, e.line}
-  end
-
-  @spec preprocess_template(Macro.t()) :: Macro.t()
-  defp preprocess_template(ast) do
-    ast
-    |> Macro.postwalk(&expand_includes/1)
-    |> Macro.postwalk(&eval_helpers/1)
   end
 
   @spec expand_includes(Macro.t()) :: Macro.t()
