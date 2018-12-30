@@ -6,7 +6,7 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Result
 
   @spec run(Result.t(map()), map()) :: Result.t([Fragment.t()])
-  def run({:error, _} = error), do: error
+  def run({:error, _} = error, _proj), do: error
 
   def run({:ok, map}, proj) do
     tasks = [
