@@ -12,7 +12,6 @@ defmodule Serum.Build do
     with :ok <- check_tz(),
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
-         #:ok <- prepare_templates(proj.src),
          :ok <- do_build(proj) do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
@@ -24,8 +23,8 @@ defmodule Serum.Build do
   @spec do_build(map()) :: Result.t()
   defp do_build(proj) do
     with {:ok, files} <- FileLoader.load_files(proj),
-         :ok <- TemplateLoader.load_includes(files.includes),
-         :ok <- TemplateLoader.load_templates(files.templates),
+         :ok <- TemplateLoader.compile_files(files.includes, :include),
+         :ok <- TemplateLoader.compile_files(files.templates, :template),
          {:ok, map} <- Pass1.run(proj),
          {:ok, fragments} <- Pass2.run(map, proj),
          :ok <- Pass3.run(fragments) do
@@ -76,16 +75,6 @@ defmodule Serum.Build do
     |> Enum.reject(&String.starts_with?(&1, "."))
     |> Enum.map(&Path.join(dest, &1))
     |> Enum.each(&File.rm_rf!(&1))
-  end
-
-  @spec prepare_templates(binary()) :: Result.t()
-  defp prepare_templates(src) do
-    with :ok <- TemplateLoader.load_includes(src),
-         :ok <- TemplateLoader.load_templates(src) do
-      :ok
-    else
-      {:error, _} = error -> error
-    end
   end
 
   @spec copy_assets(binary(), binary()) :: :ok

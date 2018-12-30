@@ -9,47 +9,23 @@ defmodule Serum.TemplateLoader do
 
   @type templates() :: %{optional(binary()) => Template.t()}
 
-  @doc """
-  Compiles and preprocesses the site templates.
-
-  May return a map with loaded template ASTs.
-  """
-  @spec load_templates([Serum.File.t()]) :: Result.t()
-  def load_templates(files) do
+  @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t()
+  def compile_files(files, type) do
     result =
       files
-      |> Task.async_stream(&compile_internal(&1, :template))
+      |> Task.async_stream(&compile_file(&1, type))
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:template_loader)
 
     case result do
-      {:ok, list} -> list |> Map.new() |> Template.load(:template)
+      {:ok, list} -> list |> Map.new() |> Template.load(type)
       {:error, _} = error -> error
     end
   end
 
-  @doc """
-  Compiles and preprocesses the includable templates.
-
-  May return a map with compiled includable templates.
-  """
-  @spec load_includes([Serum.File.t()]) :: Result.t()
-  def load_includes(files) do
-    result =
-      files
-      |> Task.async_stream(&compile_internal(&1, :include))
-      |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate_values(:template_loader)
-
-    case result do
-      {:ok, list} -> list |> Map.new() |> Template.load(:include)
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec compile_internal(Serum.File.t(), Template.template_type()) ::
+  @spec compile_file(Serum.File.t(), Template.template_type()) ::
           Result.t({binary(), Template.t()})
-  defp compile_internal(file, type) do
+  defp compile_file(file, type) do
     path = file.src
     name = Path.basename(path, ".html.eex")
 
