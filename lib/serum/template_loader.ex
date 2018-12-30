@@ -18,24 +18,13 @@ defmodule Serum.TemplateLoader do
   def load_templates(files) do
     result =
       files
-      |> Task.async_stream(&compile_template/1)
+      |> Task.async_stream(&compile_internal(&1, :template))
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:template_loader)
 
     case result do
       {:ok, list} -> list |> Map.new() |> Template.load(:template)
       {:error, _} = error -> error
-    end
-  end
-
-  @spec compile_template(Serum.File.t()) :: Result.t({binary(), Template.t()})
-  defp compile_template(file) do
-    path = file.src
-    name = Path.basename(path, ".html.eex")
-
-    case compile(file.in_data, :template) do
-      {:ok, ast} -> {:ok, {name, Template.new(ast, :template, path)}}
-      {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end
 
@@ -48,7 +37,7 @@ defmodule Serum.TemplateLoader do
   def load_includes(files) do
     result =
       files
-      |> Task.async_stream(&compile_include/1)
+      |> Task.async_stream(&compile_internal(&1, :include))
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:template_loader)
 
@@ -58,13 +47,14 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec compile_include(Serum.File.t()) :: Result.t({binary(), Template.t()})
-  defp compile_include(file) do
+  @spec compile_internal(Serum.File.t(), Template.template_type()) ::
+          Result.t({binary(), Template.t()})
+  defp compile_internal(file, type) do
     path = file.src
     name = Path.basename(path, ".html.eex")
 
-    case compile(file.in_data, :include) do
-      {:ok, ast} -> {:ok, {name, Template.new(ast, :include, path)}}
+    case compile(file.in_data, type) do
+      {:ok, ast} -> {:ok, {name, Template.new(ast, type, path)}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end
