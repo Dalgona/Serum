@@ -4,10 +4,8 @@ defmodule Serum.Build.Pass3 do
   alias Serum.Result
   alias Serum.Template
 
-  @spec run(Result.t([Fragment.t()])) :: Result.t()
-  def run({:error, _} = error), do: error
-
-  def run({:ok, fragments}) do
+  @spec run([Fragment.t()]) :: Result.t()
+  def run(fragments) do
     template = Template.get("base")
 
     fragments

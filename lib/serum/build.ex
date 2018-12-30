@@ -22,10 +22,13 @@ defmodule Serum.Build do
 
   @spec do_build(map()) :: Result.t()
   defp do_build(proj) do
-    proj
-    |> Pass1.run()
-    |> Pass2.run(proj)
-    |> Pass3.run()
+    with {:ok, map} <- Pass1.run(proj),
+         {:ok, fragments} <- Pass2.run(map, proj),
+         :ok <- Pass3.run(fragments) do
+      :ok
+    else
+      {:error, _} = error -> error
+    end
   end
 
   # Checks if the system timezone is set and valid.

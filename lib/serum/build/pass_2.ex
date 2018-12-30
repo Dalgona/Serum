@@ -5,10 +5,8 @@ defmodule Serum.Build.Pass2 do
   alias Serum.Fragment
   alias Serum.Result
 
-  @spec run(Result.t(map()), map()) :: Result.t([Fragment.t()])
-  def run({:error, _} = error, _proj), do: error
-
-  def run({:ok, map}, proj) do
+  @spec run(map(), map()) :: Result.t([Fragment.t()])
+  def run(map, proj) do
     tasks = [
       Task.async(PageBuilder, :run, [map.pages, proj]),
       Task.async(PostBuilder, :run, [map.posts, proj]),
