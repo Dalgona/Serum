@@ -10,19 +10,17 @@ defmodule Serum.TemplateLoader do
   @type templates() :: %{optional(binary()) => Template.t()}
 
   @doc """
-  Reads, compiles, and preprocesses the site templates.
+  Compiles and preprocesses the site templates.
 
   May return a map with loaded template ASTs.
   """
-  @spec load_templates(binary()) :: Result.t()
-  def load_templates(src) do
-    IO.puts("Loading templates...")
-
+  @spec load_templates([Serum.File.t()]) :: Result.t()
+  def load_templates(files) do
     result =
-      ["base", "list", "page", "post"]
-      |> Task.async_stream(&do_load_templates(&1, src))
+      files
+      |> Task.async_stream(&compile_template/1)
       |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate_values(:load_templates)
+      |> Result.aggregate_values(:template_loader)
 
     case result do
       {:ok, list} -> list |> Map.new() |> Template.load(:template)
@@ -30,57 +28,43 @@ defmodule Serum.TemplateLoader do
     end
   end
 
-  @spec do_load_templates(binary(), binary()) :: Result.t({binary(), Template.t()})
-  defp do_load_templates(name, src) do
-    path = Path.join([src, "templates", name <> ".html.eex"])
+  @spec compile_template(Serum.File.t()) :: Result.t({binary(), Template.t()})
+  defp compile_template(file) do
+    path = file.src
+    name = Path.basename(path, ".html.eex")
 
-    with {:ok, data} <- File.read(path),
-         {:ok, ast} <- compile(data, :template) do
-      {:ok, {name, Template.new(ast, :template, path)}}
-    else
-      {:error, reason} -> {:error, {reason, path, 0}}
+    case compile(file.in_data, :template) do
+      {:ok, ast} -> {:ok, {name, Template.new(ast, :template, path)}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end
 
   @doc """
-  Reads, compiles and preprocesses the includable templates.
+  Compiles and preprocesses the includable templates.
 
   May return a map with compiled includable templates.
   """
-  @spec load_includes(binary()) :: Result.t(templates())
-  def load_includes(src) do
-    IO.puts("Loading includes...")
-    includes_dir = Path.join(src, "includes")
+  @spec load_includes([Serum.File.t()]) :: Result.t()
+  def load_includes(files) do
+    result =
+      files
+      |> Task.async_stream(&compile_include/1)
+      |> Enum.map(&elem(&1, 1))
+      |> Result.aggregate_values(:template_loader)
 
-    if File.exists?(includes_dir) do
-      result =
-        includes_dir
-        |> File.ls!()
-        |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
-        |> Stream.map(&String.replace_suffix(&1, ".html.eex", ""))
-        |> Task.async_stream(&do_load_includes(&1, src))
-        |> Enum.map(&elem(&1, 1))
-        |> Result.aggregate_values(:load_includes)
-
-      case result do
-        {:ok, list} -> list |> Map.new() |> Template.load(:include)
-        {:error, _} = error -> error
-      end
-    else
-      {:ok, %{}}
+    case result do
+      {:ok, list} -> list |> Map.new() |> Template.load(:include)
+      {:error, _} = error -> error
     end
   end
 
-  @spec do_load_includes(binary(), binary()) :: Result.t({binary(), Template.t()})
-  defp do_load_includes(name, src) do
-    path = Path.join([src, "includes", name <> ".html.eex"])
+  @spec compile_include(Serum.File.t()) :: Result.t({binary(), Template.t()})
+  defp compile_include(file) do
+    path = file.src
+    name = Path.basename(path, ".html.eex")
 
-    with {:ok, data} <- File.read(path),
-         {:ok, ast} <- compile(data, :include) do
-      {:ok, {name, Template.new(ast, :include, path)}}
-    else
-      {:error, reason} -> {:error, {reason, path, 0}}
+    case compile(file.in_data, :include) do
+      {:ok, ast} -> {:ok, {name, Template.new(ast, :include, path)}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end

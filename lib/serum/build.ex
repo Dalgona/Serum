@@ -4,6 +4,7 @@ defmodule Serum.Build do
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
   alias Serum.Build.Pass3
+  alias Serum.FileLoader
   alias Serum.TemplateLoader
 
   @spec build(map()) :: Result.t(binary())
@@ -11,7 +12,7 @@ defmodule Serum.Build do
     with :ok <- check_tz(),
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
-         :ok <- prepare_templates(proj.src),
+         #:ok <- prepare_templates(proj.src),
          :ok <- do_build(proj) do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
@@ -22,7 +23,10 @@ defmodule Serum.Build do
 
   @spec do_build(map()) :: Result.t()
   defp do_build(proj) do
-    with {:ok, map} <- Pass1.run(proj),
+    with {:ok, files} <- FileLoader.load_files(proj),
+         :ok <- TemplateLoader.load_includes(files.includes),
+         :ok <- TemplateLoader.load_templates(files.templates),
+         {:ok, map} <- Pass1.run(proj),
          {:ok, fragments} <- Pass2.run(map, proj),
          :ok <- Pass3.run(fragments) do
       :ok
