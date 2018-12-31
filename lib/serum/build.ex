@@ -12,23 +12,14 @@ defmodule Serum.Build do
     with :ok <- check_tz(),
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
-         :ok <- do_build(proj) do
-      copy_assets(proj.src, proj.dest)
-      {:ok, proj.dest}
-    else
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec do_build(map()) :: Result.t()
-  defp do_build(proj) do
-    with {:ok, files} <- FileLoader.load_files(proj),
+         {:ok, files} <- FileLoader.load_files(proj),
          :ok <- TemplateLoader.compile_files(files.includes, :include),
          :ok <- TemplateLoader.compile_files(files.templates, :template),
          {:ok, map} <- Pass1.run(proj),
          {:ok, fragments} <- Pass2.run(map, proj),
          :ok <- Pass3.run(fragments) do
-      :ok
+      copy_assets(proj.src, proj.dest)
+      {:ok, proj.dest}
     else
       {:error, _} = error -> error
     end
