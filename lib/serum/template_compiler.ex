@@ -1,4 +1,4 @@
-defmodule Serum.TemplateLoader do
+defmodule Serum.TemplateCompiler do
   @moduledoc """
   This module handles template loading and preprocessing.
   """
@@ -29,16 +29,16 @@ defmodule Serum.TemplateLoader do
     path = file.src
     name = Path.basename(path, ".html.eex")
 
-    case compile(file.in_data, type) do
+    case compile_string(file.in_data, type) do
       {:ok, ast} -> {:ok, {name, Template.new(ast, type, path)}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
   end
 
-  @spec compile(binary(), Template.template_type()) ::
+  @spec compile_string(binary(), Template.template_type()) ::
           {:ok, Macro.t()}
           | {:ct_error, binary, integer}
-  def compile(data, kind) do
+  def compile_string(data, kind) do
     compiled = EEx.compile_string(data)
 
     ast =
