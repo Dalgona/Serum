@@ -11,8 +11,10 @@ defmodule Serum.Build.FileProcessor do
     %{pages: page_files, posts: post_files} = files
 
     with :ok <- compile_templates(files),
-         {:ok, pages} <- process_pages(page_files, proj),
-         {:ok, posts} <- process_posts(post_files, proj) do
+         page_task = Task.async(fn -> process_pages(page_files, proj) end),
+         post_task = Task.async(fn -> process_posts(post_files, proj) end),
+         {:ok, pages} <- Task.await(page_task),
+         {:ok, posts} <- Task.await(post_task) do
     else
       {:error, _} = error -> error
     end
@@ -34,10 +36,46 @@ defmodule Serum.Build.FileProcessor do
   @spec process_pages([Serum.File.t()], Proj.t()) :: Result.t([Page.t()])
   defp process_pages(files, proj) do
     IO.puts("Processing page files...")
+
+    files
+    |> Task.async_stream(Page, :load, [proj])
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values(:file_processor)
   end
 
   @spec process_posts([Serum.File.t()], Proj.t()) :: Result.t([Post.t()])
   defp process_posts(files, proj) do
     IO.puts("Processing post files...")
+
+    files
+    |> Task.async_stream(&process_post(&1, proj))
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values(:file_processor)
+  end
+
+  @spec process_post(Serum.File.t(), Proj.t()) :: Result.t(Post.t())
+  defp process_post(file, proj) do
+    alias Serum.HeaderParser
+
+    opts = [
+      title: :string,
+      tags: {:list, :string},
+      date: :datetime
+    ]
+
+    required = [:title]
+
+    case HeaderParser.parse_header(file, opts, required) do
+      {:ok, header, rest_data} ->
+        header = %{
+          header
+          | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
+        }
+
+        {:ok, Post.new(file.src, header, Earmark.as_html!(rest_data), proj)}
+
+      {:error, _} = error ->
+        error
+    end
   end
 end

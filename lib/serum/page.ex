@@ -37,12 +37,8 @@ defmodule Serum.Page do
 
   @metadata_keys [:title, :label, :group, :url]
 
-  @spec load(Result.t(Serum.File.t()), map) :: Result.t(t())
-  def load(read_result, proj)
-
-  def load({:error, _} = error, _proj), do: error
-
-  def load({:ok, file}, proj) do
+  @spec load(Serum.File.t(), map) :: Result.t(t())
+  def load(file, proj) do
     opts = [
       title: :string,
       label: :string,
