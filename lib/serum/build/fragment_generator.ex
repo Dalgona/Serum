@@ -1,12 +1,12 @@
-defmodule Serum.Build.Pass2 do
+defmodule Serum.Build.FragmentGenerator do
   alias Serum.Build.Pass2.PageBuilder
   alias Serum.Build.Pass2.PostBuilder
   alias Serum.Build.Pass2.IndexBuilder
   alias Serum.Fragment
   alias Serum.Result
 
-  @spec run(map(), map()) :: Result.t([Fragment.t()])
-  def run(map, proj) do
+  @spec to_fragment(map(), map()) :: Result.t([Fragment.t()])
+  def to_fragment(map, proj) do
     tasks = [
       Task.async(PageBuilder, :run, [map.pages, proj]),
       Task.async(PostBuilder, :run, [map.posts, proj]),

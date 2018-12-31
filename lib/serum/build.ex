@@ -3,7 +3,7 @@ defmodule Serum.Build do
   alias Serum.Result
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
-  alias Serum.Build.Pass2
+  alias Serum.Build.FragmentGenerator
   alias Serum.Build.Pass3
 
   @spec build(map()) :: Result.t(binary())
@@ -13,7 +13,7 @@ defmodule Serum.Build do
          :ok <- clean_dest(proj.dest),
          {:ok, files} <- FileLoader.load_files(proj),
          {:ok, map} <- FileProcessor.process_files(files, proj),
-         {:ok, fragments} <- Pass2.run(map, proj),
+         {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
          :ok <- Pass3.run(fragments) do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
