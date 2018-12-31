@@ -3,6 +3,8 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Post
   alias Serum.ProjectInfo, as: Proj
   alias Serum.Result
+  alias Serum.Template
+  alias Serum.TemplateCompiler, as: TC
 
   @spec process_files(map(), Proj.t()) :: any() # TODO
   def process_files(files, proj) do
@@ -17,8 +19,16 @@ defmodule Serum.Build.FileProcessor do
   end
 
   @spec compile_templates(map()) :: Result.t()
-  defp compile_templates(file_map) do
+  defp compile_templates(files) do
     IO.puts("Compiling templates...")
+
+    with {:ok, includes} <- TC.compile_files(files.includes, :include),
+         :ok <- Template.load(includes, :include),
+         {:ok, templates} <- TC.compile_files(files.templates, :template) do
+      Template.load(templates, :template)
+    else
+      {:error, _} = error -> error
+    end
   end
 
   @spec process_pages([Serum.File.t()], Proj.t()) :: Result.t([Page.t()])
