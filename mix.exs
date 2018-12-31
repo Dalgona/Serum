@@ -4,7 +4,7 @@ defmodule Serum.Mixfile do
   def project do
     [
       app: :serum,
-      version: "0.5.0",
+      version: "0.6.0",
       elixir: "~> 1.4",
       escript: [main_module: Serum.CLI],
       build_embedded: Mix.env() == :prod,
