@@ -4,7 +4,7 @@ defmodule Serum.Build do
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
   alias Serum.Build.FragmentGenerator
-  alias Serum.Build.Pass3
+  alias Serum.Build.FileEmitter
 
   @spec build(map()) :: Result.t(binary())
   def build(proj) do
@@ -14,7 +14,7 @@ defmodule Serum.Build do
          {:ok, files} <- FileLoader.load_files(proj),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
-         :ok <- Pass3.run(fragments) do
+         :ok <- FileEmitter.run(fragments) do
       copy_assets(proj.src, proj.dest)
       {:ok, proj.dest}
     else

@@ -1,4 +1,4 @@
-defmodule Serum.Build.Pass3 do
+defmodule Serum.Build.FileEmitter do
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Result
@@ -6,6 +6,8 @@ defmodule Serum.Build.Pass3 do
 
   @spec run([Fragment.t()]) :: Result.t()
   def run(fragments) do
+    IO.puts("Writing output files...")
+
     template = Template.get("base")
 
     fragments
