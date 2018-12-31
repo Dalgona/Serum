@@ -46,9 +46,33 @@ defmodule Serum.Build.FileProcessor do
     IO.puts("Processing page files...")
 
     files
-    |> Task.async_stream(Page, :load, [proj])
+    |> Task.async_stream(&process_page(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
+  end
+
+  @spec process_page(Serum.File.t(), Proj.t()) :: Result.t(Page.t())
+  defp process_page(file, proj) do
+    alias Serum.HeaderParser
+
+    opts = [
+      title: :string,
+      label: :string,
+      group: :string,
+      order: :integer
+    ]
+
+    required = [:title]
+
+    case HeaderParser.parse_header(file, opts, required) do
+      {:ok, header, rest_data} ->
+        header = Map.put(header, :label, header[:label] || header.title)
+
+        {:ok, Page.new(file.src, header, rest_data, proj)}
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @spec process_posts([Serum.File.t()], Proj.t()) :: Result.t([Post.t()])

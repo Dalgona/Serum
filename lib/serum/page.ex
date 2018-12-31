@@ -28,7 +28,6 @@ defmodule Serum.Page do
 
   alias Serum.Result
   alias Serum.Fragment
-  alias Serum.HeaderParser
   alias Serum.Renderer
   alias Serum.Template
   alias Serum.TemplateCompiler
@@ -37,29 +36,8 @@ defmodule Serum.Page do
 
   @metadata_keys [:title, :label, :group, :url]
 
-  @spec load(Serum.File.t(), map) :: Result.t(t())
-  def load(file, proj) do
-    opts = [
-      title: :string,
-      label: :string,
-      group: :string,
-      order: :integer
-    ]
-
-    required = [:title]
-
-    case HeaderParser.parse_header(file, opts, required) do
-      {:ok, header, rest_data} ->
-        header = Map.put(header, :label, header[:label] || header.title)
-
-        {:ok, create_struct(file.src, header, rest_data, proj)}
-
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec create_struct(binary(), map(), binary(), map()) :: t()
-  defp create_struct(path, header, data, proj) do
+  @spec new(binary(), map(), binary(), map()) :: t()
+  def new(path, header, data, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
     filename = Path.relative_to(path, page_dir)
     type = get_type(filename)
