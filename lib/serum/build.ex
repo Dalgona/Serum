@@ -2,11 +2,9 @@ defmodule Serum.Build do
   import Serum.Util
   alias Serum.Result
   alias Serum.Build.FileLoader
-  alias Serum.Build.Pass1
+  alias Serum.Build.FileProcessor
   alias Serum.Build.Pass2
   alias Serum.Build.Pass3
-  alias Serum.Template
-  alias Serum.TemplateCompiler
 
   @spec build(map()) :: Result.t(binary())
   def build(proj) do
@@ -14,11 +12,7 @@ defmodule Serum.Build do
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
          {:ok, files} <- FileLoader.load_files(proj),
-         {:ok, includes} <- TemplateCompiler.compile_files(files.includes, :include),
-         Template.load(includes, :include),
-         {:ok, templates} <- TemplateCompiler.compile_files(files.templates, :template),
-         Template.load(templates, :template),
-         {:ok, map} <- Pass1.run(proj),
+         {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- Pass2.run(map, proj),
          :ok <- Pass3.run(fragments) do
       copy_assets(proj.src, proj.dest)
