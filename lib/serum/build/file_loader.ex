@@ -1,4 +1,4 @@
-defmodule Serum.FileLoader do
+defmodule Serum.Build.FileLoader do
   @moduledoc false
 
   import Serum.Util

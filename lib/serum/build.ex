@@ -1,10 +1,10 @@
 defmodule Serum.Build do
   import Serum.Util
   alias Serum.Result
+  alias Serum.Build.FileLoader
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
   alias Serum.Build.Pass3
-  alias Serum.FileLoader
   alias Serum.TemplateLoader
 
   @spec build(map()) :: Result.t(binary())
