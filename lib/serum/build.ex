@@ -5,6 +5,7 @@ defmodule Serum.Build do
   alias Serum.Build.Pass1
   alias Serum.Build.Pass2
   alias Serum.Build.Pass3
+  alias Serum.Template
   alias Serum.TemplateCompiler
 
   @spec build(map()) :: Result.t(binary())
@@ -13,8 +14,10 @@ defmodule Serum.Build do
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
          {:ok, files} <- FileLoader.load_files(proj),
-         :ok <- TemplateCompiler.compile_files(files.includes, :include),
-         :ok <- TemplateCompiler.compile_files(files.templates, :template),
+         {:ok, includes} <- TemplateCompiler.compile_files(files.includes, :include),
+         Template.load(includes, :include),
+         {:ok, templates} <- TemplateCompiler.compile_files(files.templates, :template),
+         Template.load(templates, :template),
          {:ok, map} <- Pass1.run(proj),
          {:ok, fragments} <- Pass2.run(map, proj),
          :ok <- Pass3.run(fragments) do

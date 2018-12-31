@@ -9,7 +9,7 @@ defmodule Serum.TemplateCompiler do
 
   @type templates() :: %{optional(binary()) => Template.t()}
 
-  @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t()
+  @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t(map())
   def compile_files(files, type) do
     result =
       files
@@ -18,7 +18,7 @@ defmodule Serum.TemplateCompiler do
       |> Result.aggregate_values(:template_loader)
 
     case result do
-      {:ok, list} -> list |> Map.new() |> Template.load(type)
+      {:ok, list} -> {:ok, Map.new(list)}
       {:error, _} = error -> error
     end
   end
