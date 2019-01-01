@@ -1,4 +1,8 @@
 defmodule Serum.Build.FileEmitter do
+  @moduledoc """
+  Renders each fragment into a full HTML page and writes to a file.
+  """
+
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Result

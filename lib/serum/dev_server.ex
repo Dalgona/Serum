@@ -1,4 +1,6 @@
 defmodule Serum.DevServer do
+  @moduledoc "Starts and manages the Serum development server."
+
   alias Serum.Result
   alias Serum.DevServer.{Service, AutoBuilder, Looper}
   alias Serum.SiteBuilder

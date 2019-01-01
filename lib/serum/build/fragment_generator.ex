@@ -1,4 +1,8 @@
 defmodule Serum.Build.FragmentGenerator do
+  @moduledoc """
+  Renders page/post/post list structs into a page fragment.
+  """
+
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Post

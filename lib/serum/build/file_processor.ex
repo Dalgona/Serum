@@ -1,4 +1,8 @@
 defmodule Serum.Build.FileProcessor do
+  @moduledoc """
+  Processes/parses the input files to produce the intermediate data.
+  """
+
   alias Serum.Page
   alias Serum.Post
   alias Serum.ProjectInfo, as: Proj

@@ -1,4 +1,6 @@
 defmodule Serum.Build do
+  @moduledoc "Defines the overall site build procedure."
+
   import Serum.Util
   alias Serum.Result
   alias Serum.Build.FileLoader

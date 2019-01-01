@@ -26,7 +26,6 @@ defmodule Serum.CLI.NewPage do
   def run(_, args) do
     case OptionParser.parse(args, strict: @strict, aliases: @aliases) do
       {_, _, [{invalid, _} | _]} ->
-        # TODO: Needs consistency across all tasks
         warn("Invalid option: #{invalid}")
         {:cli_exit, 2}
 
