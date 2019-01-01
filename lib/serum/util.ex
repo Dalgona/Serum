@@ -4,15 +4,6 @@ defmodule Serum.Util do
   are inlined by the compiler.
   """
 
-  @doc "Writes `str` to a file specified by `fname`."
-  @spec fwrite(binary, binary) :: :ok
-
-  defmacro fwrite(fname, str) do
-    quote do
-      File.open!(unquote(fname), [:write, :utf8], &IO.write(&1, unquote(str)))
-    end
-  end
-
   @doc "Prints a warning message to stderr."
   @spec warn(binary) :: :ok
 
