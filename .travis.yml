@@ -1,9 +1,9 @@
 language: elixir
-elixir: 1.4.0
+elixir: 1.6.0
 env:
   - MIX_ENV=test
 script:
-  - mix credo --all --strict
+  - mix credo --all
   - mix coveralls.travis
 cache:
   directories:
