@@ -3,8 +3,8 @@ defmodule Serum.Init do
   This module contains functions required to initialize a new Serum project.
   """
 
-  import Serum.Payload
   import Serum.Util
+  alias Serum.Payload
   alias Serum.Result
 
   @doc """
@@ -14,15 +14,20 @@ defmodule Serum.Init do
   generate metadata files and templates.
   """
   @spec init(binary, boolean) :: Result.t()
-
   def init(dir, force?) do
     with :ok <- check_dir(dir, force?),
          :ok <- create_dir(dir) do
-      create_info(dir)
-      create_index(dir)
-      create_templates(dir)
-      create_gitignore(dir)
-      :ok
+      files = [
+        create_info(dir),
+        create_index(dir),
+        create_templates(dir),
+        create_gitignore(dir)
+      ]
+
+      files
+      |> List.flatten()
+      |> Enum.map(&Serum.File.write/1)
+      |> Result.aggregate(:init)
     else
       {:error, _} = error -> error
     end
@@ -31,7 +36,6 @@ defmodule Serum.Init do
   # Checks if the specified directory already exists.
   # Prints a warning message if so.
   @spec check_dir(binary, boolean) :: Result.t()
-
   defp check_dir(dir, force?) do
     with true <- File.exists?(dir),
          {:ok, list} <- File.ls(dir) do
@@ -48,7 +52,6 @@ defmodule Serum.Init do
 
   # Creates necessary directory structure under the specified directory.
   @spec create_dir(binary) :: Result.t()
-
   defp create_dir(dir) do
     dirs = [
       "posts",
@@ -78,67 +81,68 @@ defmodule Serum.Init do
   end
 
   # Generates default project metadata files.
-  @spec create_info(binary) :: :ok
-
+  @spec create_info(binary) :: Serum.File.t()
   defp create_info(dir) do
-    projinfo =
-      %{
-        site_name: "New Website",
-        site_description: "Welcome to my website!",
-        author: "Somebody",
-        author_email: "somebody@example.com",
-        base_url: "/",
-        date_format: "{WDfull}, {D} {Mshort} {YYYY}"
-      }
-      |> Poison.encode!(pretty: true, indent: 2)
+    proj = %{
+      site_name: "New Website",
+      site_description: "Welcome to my website!",
+      author: "Somebody",
+      author_email: "somebody@example.com",
+      base_url: "/",
+      date_format: "{WDfull}, {D} {Mshort} {YYYY}"
+    }
 
-    fname = Path.join(dir, "serum.json")
-    fwrite(fname, projinfo)
-    msg_gen(fname)
+    %Serum.File{
+      dest: Path.join(dir, "serum.json"),
+      out_data: Poison.encode!(proj, pretty: true, indent: 2)
+    }
   end
 
   # Generates a minimal index page for the new project.
-  @spec create_index(binary) :: :ok
-
+  @spec create_index(binary) :: Serum.File.t()
   defp create_index(dir) do
-    fname = Path.join(dir, "pages/index.md")
-
-    fwrite(fname, """
+    data = """
     ---
     title: Welcome
     ---
 
     *Hello, world!*
-    """)
+    """
 
-    msg_gen(fname)
+    %Serum.File{
+      dest: Path.join([dir, "pages", "index.md"]),
+      out_data: data
+    }
   end
 
   # Generates default template files.
-  @spec create_templates(binary) :: :ok
-
+  @spec create_templates(binary) :: [Serum.File.t()]
   defp create_templates(dir) do
-    ["base", "list", "page", "post"]
-    |> Enum.each(fn k ->
-      fname = Path.join([dir, "templates", "#{k}.html.eex"])
-      fwrite(fname, template(k))
-      msg_gen(fname)
-    end)
+    template_files =
+      Enum.map(["base", "list", "page", "post"], fn name ->
+        %Serum.File{
+          dest: Path.join([dir, "templates", "#{name}.html.eex"]),
+          out_data: Payload.template(name)
+        }
+      end)
 
-    ["nav"]
-    |> Enum.each(fn k ->
-      fname = Path.join([dir, "includes", "#{k}.html.eex"])
-      fwrite(fname, include(k))
-      msg_gen(fname)
-    end)
+    include_files =
+      Enum.map(["nav"], fn name ->
+        %Serum.File{
+          dest: Path.join([dir, "includes", "#{name}.html.eex"]),
+          out_data: Payload.include(name)
+        }
+      end)
+
+    template_files ++ include_files
   end
 
   # Generates the initial `.gitignore` file.
-  @spec create_gitignore(binary) :: :ok
-
+  @spec create_gitignore(binary) :: Serum.File.t()
   defp create_gitignore(dir) do
-    fname = Path.join(dir, ".gitignore")
-    fwrite(fname, "site\n")
-    msg_gen(fname)
+    %Serum.File{
+      dest: Path.join(dir, ".gitignore"),
+      out_data: "site\n"
+    }
   end
 end
