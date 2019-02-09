@@ -6,6 +6,7 @@
     "author": { "type": "string" },
     "author_email": { "type": "string" },
     "base_url": { "type": "string", "pattern": ".*/$" },
+    "server_root": { "type": "string", "pattern": "^https?://.+" },
     "date_format": { "type": "string" },
     "list_title_all": { "type": "string" },
     "list_title_tag": { "type": "string" },

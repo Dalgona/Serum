@@ -11,6 +11,7 @@ defmodule Serum.ProjectInfo do
   @accepted_keys [
     "site_name",
     "site_description",
+    "server_root",
     "base_url",
     "author",
     "author_email",
@@ -24,6 +25,7 @@ defmodule Serum.ProjectInfo do
 
   defstruct site_name: "",
             site_description: "",
+            server_root: "",
             base_url: "",
             author: "",
             author_email: "",
@@ -41,6 +43,7 @@ defmodule Serum.ProjectInfo do
           dest: binary(),
           site_name: binary(),
           site_description: binary(),
+          server_root: binary(),
           base_url: binary(),
           author: binary(),
           author_email: binary(),
@@ -84,6 +87,7 @@ defmodule Serum.ProjectInfo do
         description: proj.site_description,
         author: proj.author,
         author_email: proj.author_email,
+        server_root: proj.server_root,
         base_url: proj.base_url
       })
 
