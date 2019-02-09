@@ -1,5 +1,12 @@
 # Serum Changelog
 
+## Up to the latest commit
+
+### Added
+
+- A list of image URLs (relative to `@site.base_url`) are available through
+  `@page.images` in `base`, `list`, `page`, `post` templates and includes.
+
 ## v0.6.1 &mdash; 2019-01-01
 
 ### Changed

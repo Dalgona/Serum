@@ -22,10 +22,17 @@ defmodule Serum.Fragment do
   @doc "Creates a new `Fragment` struct."
   @spec new(binary() | nil, binary(), map(), binary()) :: t()
   def new(file, output, metadata, data) do
+    images =
+      data
+      |> Floki.parse()
+      |> Floki.find("img")
+      |> Enum.map(fn {"img", attrs, _} -> Map.new(attrs)["src"] || [] end)
+      |> List.flatten()
+
     %__MODULE__{
       file: file,
       output: output,
-      metadata: metadata,
+      metadata: Map.put(metadata, :images, images),
       data: data
     }
   end
