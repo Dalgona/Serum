@@ -5,8 +5,13 @@
 ### Added
 
 - An optional project property `server_root` is added in `serum.json`.
-- A list of image URLs (relative to `@site.base_url`) are available through
+- A list of image URLs (relative to `@site.server_root`) are available through
   `@page.images` in `base`, `list`, `page`, `post` templates and includes.
+
+### Changed
+
+- Regex pattern requirement for `base_url` project property has changed.
+  Now it must start and end with a slash (`/`).
 
 ## v0.6.1 &mdash; 2019-01-01
 
