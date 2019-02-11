@@ -26,6 +26,7 @@ defmodule Mix.Tasks.Serum.New do
   use Mix.Task
   require Mix.Generator
   alias Mix.Generator, as: MixGen
+  alias IO.ANSI, as: A
 
   @options [
     force: :boolean
@@ -60,7 +61,6 @@ defmodule Mix.Tasks.Serum.New do
 
     # Things to implement:
     # - After all checks has passed,
-    #   - Create directory structure
     #   - Create files
     #   - Print completion message
   end
@@ -114,6 +114,82 @@ defmodule Mix.Tasks.Serum.New do
 
   @spec generate_project(binary(), keyword()) :: :ok
   defp generate_project(path, assigns) do
-    Mix.raise("not implemented\npath: #{inspect(path)}\nassigns: #{inspect(assigns)}")
+    [
+      "assets/css",
+      "assets/images",
+      "assets/js",
+      "includes",
+      "media",
+      "pages",
+      "posts",
+      "templates"
+    ]
+    |> Enum.each(&MixGen.create_directory/1)
+
+    create_file = &MixGen.create_file(&1, &2, force: true)
+
+    create_file.(".formatter.exs", formatter_exs_text())
+    create_file.(".gitignore", gitignore_template(assigns))
+    create_file.("mix.exs", mix_exs_template(assigns))
+    create_file.("serum.json", serum_json_template(assigns))
+
+    create_file.("includes/nav.html.eex", nav_html_eex_text())
+    create_file.("templates/base.html.eex", base_html_eex_text())
+    create_file.("templates/list.html.eex", list_html_eex_text())
+    create_file.("templates/page.html.eex", page_html_eex_text())
+    create_file.("templates/post.html.eex", post_html_eex_text())
+
+    create_file.("pages/index.md", index_md_text())
+
+    cd =
+      case path do
+        "." -> ""
+        _ -> "cd #{path}\n    "
+      end
+
+    """
+
+    #{A.bright()}Successfully created a new Serum project!#{A.reset()}
+    To test your new project, start the Serum development server:
+
+        #{cd}mix serum.server [--port PORT]
+
+    Run "mix help serum" for more Serum tasks.
+    """
+    |> String.trim_trailing()
+    |> Mix.shell().info()
   end
+
+  priv_dir = :code.priv_dir(:serum_new)
+  get_priv = fn path -> File.read!("#{priv_dir}/#{path}") end
+
+  # formatter_exs_text/0
+  MixGen.embed_text(:formatter_exs, get_priv.("formatter.exs"))
+
+  # gitignore_template/1
+  MixGen.embed_template(:gitignore, get_priv.("gitignore.eex"))
+
+  # mix_exs_template/1
+  MixGen.embed_template(:mix_exs, get_priv.("mix.exs.eex"))
+
+  # serum_json_template/1
+  MixGen.embed_template(:serum_json, get_priv.("serum.json.eex"))
+
+  # nav_html_eex_text/0
+  MixGen.embed_text(:nav_html_eex, get_priv.("includes/nav.html.eex"))
+
+  # base_html_eex_text/0
+  MixGen.embed_text(:base_html_eex, get_priv.("templates/base.html.eex"))
+
+  # list_html_eex_text/0
+  MixGen.embed_text(:list_html_eex, get_priv.("templates/list.html.eex"))
+
+  # page_html_eex_text/0
+  MixGen.embed_text(:page_html_eex, get_priv.("templates/page.html.eex"))
+
+  # post_html_eex_text/0
+  MixGen.embed_text(:post_html_eex, get_priv.("templates/post.html.eex"))
+
+  # index_md_text/0
+  MixGen.embed_text(:index_md, get_priv.("pages/index.md"))
 end
