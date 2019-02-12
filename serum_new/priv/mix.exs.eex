@@ -18,6 +18,8 @@ defmodule <%= @mod_name %>.MixFile do
   end
 
   defp deps do
-    []
+    [
+      {:serum, git: "https://github.com/Dalgona/Serum.git", branch: "master"}
+    ]
   end
 end
