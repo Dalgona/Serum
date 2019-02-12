@@ -16,7 +16,7 @@ defmodule Serum.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :eex, :cowboy], mod: {Serum, []}]
+    [applications: [:logger, :eex, :cowboy, :tzdata], mod: {Serum, []}]
   end
 
   defp preferred_cli_env do
@@ -32,13 +32,12 @@ defmodule Serum.Mixfile do
     [
       {:earmark, "~> 1.2"},
       {:poison, "~> 3.1"},
-      {:fs, github: "Dalgona/fs"},
-      {:microscope, "~> 1.0"},
+      {:fs, "~> 3.4"},
+      {:microscope, "~> 1.0.1"},
       {:timex, "~> 3.2"},
-      {:tzdata, "~> 0.1.8", override: true},
       {:ex_json_schema, "~> 0.5"},
-      {:credo, "~> 0.8", only: [:dev, :test]},
-      {:excoveralls, "~> 0.6", only: [:test]},
+      {:credo, "~> 1.0", only: [:dev, :test]},
+      {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
       {:floki, "~> 0.20"}
     ]
