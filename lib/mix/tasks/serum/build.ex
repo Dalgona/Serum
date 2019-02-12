@@ -21,14 +21,52 @@ defmodule Mix.Tasks.Serum.Build do
 
   @shortdoc "Builds the Serum project"
 
+  @version Mix.Project.config()[:version]
+
   @options [
     strict: [output: :string],
     aliases: [o: :output]
   ]
 
   use Mix.Task
+  alias IO.ANSI, as: A
+  alias OptionParser.ParseError
+  alias Serum.Result
+  alias Serum.SiteBuilder
 
   @impl true
   def run(args) do
+    """
+    #{A.bright()}Serum -- Yet another simple static website generator
+    Version #{@version}. Copyright (C) 2018 Dalgona. <dalgona@hontou.moe>
+    #{A.reset()}
+    """
+    |> String.trim_trailing()
+    |> Mix.shell().info()
+
+    {options, argv} = OptionParser.parse!(args, @options)
+    out = options[:output]
+
+    if argv != [] do
+      raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
+    end
+
+    with {:ok, _} <- Application.ensure_all_started(:serum),
+         {:ok, pid} <- SiteBuilder.start_link(File.cwd!(), out),
+         {:ok, _info} <- SiteBuilder.load_info(pid),
+         {:ok, dest} <- SiteBuilder.build(pid) do
+      """
+
+      #{A.bright()}Your website is now ready!#{A.reset()}
+      Copy(or move) the contents of `#{dest}` directory
+      into your public webpages directory.
+      """
+      |> String.trim_trailing()
+      |> Mix.shell().info()
+    else
+      {:error, _} = error ->
+        Result.show(error)
+        Mix.raise("could not build the website due to above error(s)")
+    end
   end
 end
