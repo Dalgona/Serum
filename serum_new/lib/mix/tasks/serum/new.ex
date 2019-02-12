@@ -28,11 +28,19 @@ defmodule Mix.Tasks.Serum.New do
   alias Mix.Generator, as: MixGen
   alias IO.ANSI, as: A
 
+  @version Mix.Project.config()[:version]
+
   @options [
     force: :boolean
   ]
 
   @impl true
+  def run(args)
+
+  def run([ver]) when ver in ["-v", "--version"] do
+    Mix.shell().info("Serum installer, version #{@version}")
+  end
+
   def run(args) do
     {options, argv} = OptionParser.parse!(args, strict: @options)
 
@@ -58,11 +66,6 @@ defmodule Mix.Tasks.Serum.New do
 
         File.cd!(path, fn -> generate_project(path, assigns) end)
     end
-
-    # Things to implement:
-    # - After all checks has passed,
-    #   - Create files
-    #   - Print completion message
   end
 
   @spec check_path!(binary(), boolean()) :: :ok | no_return()
