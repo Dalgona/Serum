@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## Up to the latest commit
+## v0.7.0 &mdash; 2019-02-12
 
 ### Added
 
