@@ -4,7 +4,7 @@ defmodule Serum.New.MixProject do
   def project do
     [
       app: :serum_new,
-      version: "0.6.1",
+      version: "0.7.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps()
