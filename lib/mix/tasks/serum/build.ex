@@ -21,18 +21,18 @@ defmodule Mix.Tasks.Serum.Build do
 
   @shortdoc "Builds the Serum project"
 
+  use Mix.Task
+  alias IO.ANSI, as: A
+  alias OptionParser.ParseError
+  alias Serum.Result
+  alias Serum.SiteBuilder
+
   @version Mix.Project.config()[:version]
 
   @options [
     strict: [output: :string],
     aliases: [o: :output]
   ]
-
-  use Mix.Task
-  alias IO.ANSI, as: A
-  alias OptionParser.ParseError
-  alias Serum.Result
-  alias Serum.SiteBuilder
 
   @impl true
   def run(args) do
@@ -51,8 +51,9 @@ defmodule Mix.Tasks.Serum.Build do
       raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
     end
 
-    with {:ok, _} <- Application.ensure_all_started(:serum),
-         {:ok, pid} <- SiteBuilder.start_link(File.cwd!(), out),
+    {:ok, _} = Application.ensure_all_started(:serum)
+
+    with {:ok, pid} <- SiteBuilder.start_link(File.cwd!(), out),
          {:ok, _info} <- SiteBuilder.load_info(pid),
          {:ok, dest} <- SiteBuilder.build(pid) do
       """
