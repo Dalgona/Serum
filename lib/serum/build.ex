@@ -2,11 +2,11 @@ defmodule Serum.Build do
   @moduledoc "Defines the overall site build procedure."
 
   import Serum.Util
-  alias Serum.Result
+  alias Serum.Build.FileEmitter
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
   alias Serum.Build.FragmentGenerator
-  alias Serum.Build.FileEmitter
+  alias Serum.Result
 
   @spec build(map()) :: Result.t(binary())
   def build(proj) do

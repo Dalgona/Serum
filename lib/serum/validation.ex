@@ -3,8 +3,8 @@ defmodule Serum.Validation do
   This module provides functions related to validating project JSON files.
   """
 
-  alias ExJsonSchema.Validator
   alias ExJsonSchema.Schema
+  alias ExJsonSchema.Validator
   alias Serum.Result
 
   @spec schema(schema_name :: binary) :: map

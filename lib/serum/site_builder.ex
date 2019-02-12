@@ -6,9 +6,9 @@ defmodule Serum.SiteBuilder do
   """
 
   use GenServer
-  alias Serum.Result
   alias Serum.Build
   alias Serum.ProjectInfo
+  alias Serum.Result
 
   #
   # Client Functions

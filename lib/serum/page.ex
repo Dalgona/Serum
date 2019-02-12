@@ -26,9 +26,9 @@ defmodule Serum.Page do
           data: binary()
         }
 
-  alias Serum.Result
   alias Serum.Fragment
   alias Serum.Renderer
+  alias Serum.Result
   alias Serum.Template
   alias Serum.TemplateCompiler
 

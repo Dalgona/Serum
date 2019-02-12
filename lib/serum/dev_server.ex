@@ -1,8 +1,8 @@
 defmodule Serum.DevServer do
   @moduledoc "Starts and manages the Serum development server."
 
+  alias Serum.DevServer.{AutoBuilder, Looper, Service}
   alias Serum.Result
-  alias Serum.DevServer.{Service, AutoBuilder, Looper}
   alias Serum.SiteBuilder
 
   @spec run(binary, pos_integer) :: no_return()

@@ -3,8 +3,8 @@ defmodule Serum.Renderer do
   This module provides functions for rendering pages into HTML.
   """
 
-  alias Serum.Result
   alias Serum.GlobalBindings
+  alias Serum.Result
   alias Serum.Template
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/

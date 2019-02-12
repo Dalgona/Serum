@@ -15,9 +15,9 @@ defmodule Serum.Post do
   * `output`: Destination path
   """
 
-  alias Serum.Result
   alias Serum.Fragment
   alias Serum.Renderer
+  alias Serum.Result
   alias Serum.Tag
   alias Serum.Template
 
