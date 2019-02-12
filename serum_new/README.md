@@ -1,21 +1,22 @@
-# Serum.New
+# mix serum.new
 
-**TODO: Add description**
+Install this archive to use `serum.new` installer.
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `serum_new` to your list of dependencies in `mix.exs`:
+### Building from Source
 
-```elixir
-def deps do
-  [
-    {:serum_new, "~> 0.1.0"}
-  ]
-end
-```
+Since this is still in development, this package is not published to Hex yet.
+So you need to build and install on your own.
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/serum_new](https://hexdocs.pm/serum_new).
+1. Make sure you uninstall any previously installed archives.
 
+    ```
+    $ mix archive.uninstall serum_new
+    ```
+
+2. Build and install the new archive.
+
+    ```
+    $ MIX_ENV=prod mix do archive.build, archive.install
+    ```
