@@ -1,28 +1,39 @@
 defmodule Serum.New.MixProject do
   use Mix.Project
 
+  @serum_version "0.8.0-dev"
+
   def project do
     [
       app: :serum_new,
-      version: "0.7.0",
+      version: @serum_version,
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
-  # Run "mix help compile.app" to learn about applications.
   def application do
     [
       extra_applications: [:logger]
     ]
   end
 
-  # Run "mix help deps" to learn about dependencies.
   defp deps do
+    []
+  end
+
+  defp package do
     [
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
+      name: "serum_new",
+      description: "Provides \"mix serum.new\", the Serum installer",
+      maintainers: ["Eunbin Jeong"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/Dalgona/Serum",
+        "Website" => "http://dalgona.github.io/Serum"
+      }
     ]
   end
 end

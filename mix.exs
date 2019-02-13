@@ -1,16 +1,19 @@
 defmodule Serum.Mixfile do
   use Mix.Project
 
+  @serum_version "0.8.0-dev"
+
   def project do
     [
       app: :serum,
-      version: "0.7.0",
+      version: @serum_version,
       elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: preferred_cli_env(),
-      deps: deps()
+      deps: deps(),
+      package: package()
     ]
   end
 
@@ -39,6 +42,19 @@ defmodule Serum.Mixfile do
       {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
       {:floki, "~> 0.20"}
+    ]
+  end
+
+  defp package do
+    [
+      name: "serum",
+      description: "Yet another static website generator written in Elixir",
+      maintainers: ["Eunbin Jeong"],
+      licenses: ["MIT"],
+      links: %{
+        "GitHub" => "https://github.com/Dalgona/Serum",
+        "Website" => "http://dalgona.github.io/Serum"
+      }
     ]
   end
 end
