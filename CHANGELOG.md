@@ -1,5 +1,20 @@
 # Serum Changelog
 
+## v0.8.0-dev &mdash; 2019-02-13
+
+### Changed
+
+- Installation method has changed.
+  - escript is no longer used. Install `serum_new` archive from external
+    source (e.g. Hex) and run `mix serum.new` to create a new Serum project.
+  - A Serum project is also a Mix project, with `serum` added as a dependency.
+    Run `mix do deps.get, deps.compile` to install Serum under that project.
+  - Then existing Serum tasks will be available as Mix tasks.
+    (e.g. `mix serum.build`, etc.)
+
+- Due to the above change, every Serum project now requires its own
+  `mix.exs` file.
+
 ## v0.7.0 &mdash; 2019-02-12
 
 ### Added
