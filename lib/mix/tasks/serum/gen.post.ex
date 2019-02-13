@@ -61,7 +61,7 @@ defmodule Mix.Tasks.Serum.Gen.Post do
     tags =
       case Keyword.get_values(options, :tag) do
         [] -> ""
-        list -> Enum.join(list, ", ") <> "\n"
+        list -> "tags: #{Enum.join(list, ", ")}\n"
       end
 
     MixGen.create_file(
