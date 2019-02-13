@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## v0.8.0-dev &mdash; 2019-02-13
+## v0.8.0 &mdash; 2019-02-13
 
 ### Changed
 
