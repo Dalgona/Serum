@@ -1,10 +1,14 @@
 # Serum Changelog
 
-## v0.8.1 &mdash; _Not released yet_
+## v0.8.1 &mdash; 2019-02-13
 
 ### Fixed
 
 - Now `serum.gen.post` generates well-formed tags header.
+
+### Added
+
+- Added missing `mix serum` task.
 
 ## v0.8.0 &mdash; 2019-02-13
 
