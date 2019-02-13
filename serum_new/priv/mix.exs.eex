@@ -13,13 +13,13 @@ defmodule <%= @mod_name %>.MixFile do
 
   def application do
     [
-      extra_applications: [:logger]
+      applications: [:serum]
     ]
   end
 
   defp deps do
     [
-      {:serum, git: "https://github.com/Dalgona/Serum.git", branch: "master"}
+      {:serum, "~> <%= @serum_version %>"}
     ]
   end
 end

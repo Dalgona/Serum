@@ -57,7 +57,8 @@ defmodule Mix.Tasks.Serum.New do
         assigns = [
           app_name: app_name,
           mod_name: Macro.camelize(app_name),
-          elixir_version: get_version!()
+          elixir_version: get_version!(),
+          serum_version: @version
         ]
 
         if path != "." do
@@ -155,7 +156,8 @@ defmodule Mix.Tasks.Serum.New do
     #{A.bright()}Successfully created a new Serum project!#{A.reset()}
     To test your new project, start the Serum development server:
 
-        #{cd}mix serum.server [--port PORT]
+        #{cd}mix deps.get
+        mix serum.server [--port PORT]
 
     Run "mix help serum" for more Serum tasks.
     """
