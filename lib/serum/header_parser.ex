@@ -75,7 +75,7 @@ defmodule Serum.HeaderParser do
 
         with [] <- find_missing(kv_list, required),
              {:ok, new_kv} <- transform_values(kv_list, options, []) do
-          {:ok, Map.new(new_kv), rest_data}
+          {:ok, {Map.new(new_kv), rest_data}}
         else
           error -> handle_error(error, file.src)
         end

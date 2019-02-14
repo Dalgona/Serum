@@ -13,8 +13,8 @@ defmodule Serum.Build.FileProcessor do
   @type result() :: %{
           pages: [Page.t()],
           posts: [Post.t()],
-          tag_map: %{required(Tag.t()) => [Post.t()]},
-          tag_counts: %{required(Tag.t()) => non_neg_integer()}
+          tag_map: %{optional(Tag.t()) => [Post.t()]},
+          tag_counts: [{Tag.t(), non_neg_integer()}]
         }
 
   @spec process_files(map(), Proj.t()) :: Result.t(result())
@@ -69,7 +69,7 @@ defmodule Serum.Build.FileProcessor do
     required = [:title]
 
     case HeaderParser.parse_header(file, opts, required) do
-      {:ok, header, rest_data} ->
+      {:ok, {header, rest_data}} ->
         header = Map.put(header, :label, header[:label] || header.title)
 
         {:ok, Page.new(file.src, header, rest_data, proj)}
@@ -102,7 +102,7 @@ defmodule Serum.Build.FileProcessor do
     required = [:title]
 
     case HeaderParser.parse_header(file, opts, required) do
-      {:ok, header, rest_data} ->
+      {:ok, {header, rest_data}} ->
         header = %{
           header
           | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)

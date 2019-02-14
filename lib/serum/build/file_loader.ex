@@ -91,7 +91,7 @@ defmodule Serum.Build.FileLoader do
     (src == "." && subdir) || Path.join(src, subdir)
   end
 
-  @spec read_files([binary()]) :: Result.t([Serum.File.t()])
+  @spec read_files(Enumerable.t()) :: Result.t([Serum.File.t()])
   defp read_files(paths) do
     paths
     |> Stream.map(&%Serum.File{src: &1})
