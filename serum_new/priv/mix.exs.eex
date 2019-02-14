@@ -19,7 +19,7 @@ defmodule <%= @mod_name %>.MixFile do
 
   defp deps do
     [
-      {:serum, "~> <%= @serum_version %>"}
+      <%= @serum_dep %>
     ]
   end
 end

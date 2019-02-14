@@ -25,8 +25,8 @@ defmodule Mix.Tasks.Serum.New do
 
   use Mix.Task
   require Mix.Generator
-  alias Mix.Generator, as: MixGen
   alias IO.ANSI, as: A
+  alias Mix.Generator, as: MixGen
 
   @version Mix.Project.config()[:version]
 
@@ -57,8 +57,8 @@ defmodule Mix.Tasks.Serum.New do
         assigns = [
           app_name: app_name,
           mod_name: Macro.camelize(app_name),
-          elixir_version: get_version!(),
-          serum_version: @version
+          elixir_version: get_elixir_version!(),
+          serum_dep: get_serum_dep(Mix.env())
         ]
 
         if path != "." do
@@ -103,8 +103,8 @@ defmodule Mix.Tasks.Serum.New do
     end
   end
 
-  @spec get_version!() :: binary()
-  defp get_version! do
+  @spec get_elixir_version!() :: binary()
+  defp get_elixir_version! do
     ver = Version.parse!(System.version())
 
     pre_release =
@@ -114,6 +114,17 @@ defmodule Mix.Tasks.Serum.New do
       end
 
     "#{ver.major}.#{ver.minor}#{pre_release}"
+  end
+
+  @spec get_serum_dep(atom()) :: binary()
+  defp get_serum_dep(env)
+
+  defp get_serum_dep(:prod) do
+    ~s({:serum, "~> #{@version}"})
+  end
+
+  defp get_serum_dep(_) do
+    ~s({:serum, path: "#{Path.expand(Path.join(File.cwd!(), ".."))}"})
   end
 
   @spec generate_project(binary(), keyword()) :: :ok
