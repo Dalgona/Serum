@@ -25,39 +25,12 @@ defmodule Serum.DevServer do
 
         children = [
           worker(Service, [pid_builder, dir, site, port]),
-          worker(__MODULE__, [dir], function: :start_watcher, id: "serum_fs"),
           worker(Microscope, [site, ms_options])
         ]
 
         opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
         Supervisor.start_link(children, opts)
         Looper.looper()
-    end
-  end
-
-  @doc false
-  @spec start_watcher(binary) :: {:ok, pid}
-  def start_watcher(dir) do
-    dir = Path.absname(dir)
-
-    pid =
-      spawn_link(fn ->
-        :fs.start_link(:watcher, dir)
-        :fs.subscribe(:watcher)
-        watcher_looper()
-      end)
-
-    {:ok, pid}
-  end
-
-  defp watcher_looper do
-    receive do
-      {_pid, {:fs, :file_event}, {_path, _events}} ->
-        Service.set_dirty()
-        watcher_looper()
-
-      _ ->
-        watcher_looper()
     end
   end
 end

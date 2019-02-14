@@ -40,18 +40,17 @@ defmodule Serum.DevServer.Service do
   @spec dirty?() :: boolean
   def dirty?, do: GenServer.call(__MODULE__, :is_dirty)
 
-  @doc "Set the source directory as dirty."
-  @spec set_dirty() :: :ok
-  def set_dirty, do: GenServer.cast(__MODULE__, :set_dirty)
-
   #
   # GenServer Implementation - Server
   #
 
   @doc false
   def init([builder, dir, site, portnum]) do
+    {:ok, watcher} = FileSystem.start_link(dirs: [Path.absname(dir)])
+
     state = %{
       builder: builder,
+      watcher: watcher,
       dir: dir,
       site: site,
       portnum: portnum,
@@ -59,6 +58,8 @@ defmodule Serum.DevServer.Service do
     }
 
     do_rebuild(builder)
+    FileSystem.subscribe(watcher)
+
     {:ok, state}
   end
 
@@ -79,8 +80,15 @@ defmodule Serum.DevServer.Service do
     do: {:reply, state.is_dirty, %{state | is_dirty: false}}
 
   @doc false
-  def handle_cast(msg, state)
-  def handle_cast(:set_dirty, state), do: {:noreply, %{state | is_dirty: true}}
+  def handle_info(msg, state)
+
+  def handle_info({:file_event, pid, _}, %{watcher: pid} = state) do
+    {:noreply, %{state | is_dirty: true}}
+  end
+
+  def handle_info({:file_event, pid, :stop}, %{watcher: pid} = state) do
+    {:noreply, state}
+  end
 
   @spec do_rebuild(pid) :: :ok
   defp do_rebuild(builder) do
