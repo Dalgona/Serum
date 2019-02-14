@@ -1,5 +1,12 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Changed
+
+- Serum now tries to compile the project codes (in `lib/`)
+  when the user invokes `mix serum.build` or `mix serum.server` task.
+
 ## v0.8.1 &mdash; 2019-02-13
 
 ### Fixed

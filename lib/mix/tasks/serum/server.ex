@@ -29,6 +29,8 @@ defmodule Mix.Tasks.Serum.Server do
 
   @impl true
   def run(args) do
+    Mix.Project.compile([])
+
     """
     #{A.bright()}Serum -- Yet another simple static website generator
     Version #{@version}. Copyright (C) 2018 Dalgona. <dalgona@hontou.moe>
