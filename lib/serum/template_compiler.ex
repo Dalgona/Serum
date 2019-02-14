@@ -29,7 +29,14 @@ defmodule Serum.TemplateCompiler do
     path = file.src
     name = Path.basename(path, ".html.eex")
 
-    case compile_string(file.in_data, type) do
+    inject = """
+    <%
+    require Serum.TemplateHelpers
+    import Serum.TemplateHelpers
+    %>
+    """
+
+    case compile_string(inject <> file.in_data, type) do
       {:ok, ast} -> {:ok, {name, Template.new(ast, type, path)}}
       {:ct_error, msg, line} -> {:error, {msg, path, line}}
     end
@@ -43,13 +50,8 @@ defmodule Serum.TemplateCompiler do
 
     ast =
       case kind do
-        :template ->
-          compiled
-          |> Macro.postwalk(&expand_includes/1)
-          |> Macro.postwalk(&eval_helpers/1)
-
-        :include ->
-          compiled
+        :template -> Macro.postwalk(compiled, &expand_includes/1)
+        :include -> compiled
       end
 
     {:ok, ast}
@@ -79,33 +81,4 @@ defmodule Serum.TemplateCompiler do
   end
 
   defp expand_includes(anything_else), do: anything_else
-
-  @spec eval_helpers(Macro.t()) :: Macro.t()
-  defp eval_helpers(ast)
-
-  defp eval_helpers({:base, _, []}) do
-    quote do: unquote(base())
-  end
-
-  defp eval_helpers({:base, _, [arg]}) do
-    quote do: Path.join(unquote(base()), unquote(arg))
-  end
-
-  defp eval_helpers({:page, _, [arg]}) do
-    quote do: Path.join(unquote(base()), unquote(arg) <> ".html")
-  end
-
-  defp eval_helpers({:post, _, [arg]}) do
-    quote do: Path.join([unquote(base()), "posts", unquote(arg) <> ".html"])
-  end
-
-  defp eval_helpers({:asset, _, [arg]}) do
-    quote do: Path.join([unquote(base()), "assets", unquote(arg)])
-  end
-
-  defp eval_helpers(anything_else) do
-    anything_else
-  end
-
-  defp base, do: quote(do: get_in(var!(assigns), [:site, :base_url]))
 end

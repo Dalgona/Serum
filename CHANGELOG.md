@@ -6,6 +6,8 @@
 
 - Serum now tries to compile the project codes (in `lib/`)
   when the user invokes `mix serum.build` or `mix serum.server` task.
+- Refactored (maybe reimplemented) template helper macros except `include/1`.
+  This change may not affect the existing behavior.
 
 ## v0.8.1 &mdash; 2019-02-13
 
