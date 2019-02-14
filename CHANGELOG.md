@@ -1,6 +1,11 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v0.8.2 &mdash; 2019-02-14
+
+### Fixed
+
+- Changed the backend of filesystem watcher from `fs` to `file_system`.
+  This will fix development server issues on macOS.
 
 ### Changed
 
