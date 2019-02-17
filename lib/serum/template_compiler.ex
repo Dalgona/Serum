@@ -76,7 +76,7 @@ defmodule Serum.TemplateCompiler do
         nil
 
       include ->
-        include.ast
+        quote do: (fn -> unquote(include.ast) end).()
     end
   end
 

@@ -1,5 +1,11 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Fixed
+
+- Fixed Elixir 1.8.x compatibility of `TemplateCompiler`.
+
 ## v0.8.2 &mdash; 2019-02-14
 
 ### Fixed
