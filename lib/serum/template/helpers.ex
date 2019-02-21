@@ -1,4 +1,4 @@
-defmodule Serum.TemplateHelpers do
+defmodule Serum.Template.Helpers do
   @moduledoc """
   Provides helper macros for EEx templates.
 

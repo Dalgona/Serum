@@ -8,7 +8,7 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.ProjectInfo, as: Proj
   alias Serum.Result
   alias Serum.Template
-  alias Serum.TemplateCompiler, as: TC
+  alias Serum.Template.Compiler, as: TC
 
   @type result() :: %{
           pages: [Page.t()],

@@ -30,7 +30,7 @@ defmodule Serum.Page do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
-  alias Serum.TemplateCompiler
+  alias Serum.Template.Compiler, as: TC
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
@@ -100,7 +100,7 @@ defmodule Serum.Page do
   end
 
   defp preprocess(%__MODULE__{type: ".html.eex"} = page) do
-    case TemplateCompiler.compile_string(page.data, :template) do
+    case TC.compile_string(page.data, :template) do
       {:ok, ast} ->
         template = Template.new(ast, :template, page.file)
 

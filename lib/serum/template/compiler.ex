@@ -1,4 +1,4 @@
-defmodule Serum.TemplateCompiler do
+defmodule Serum.Template.Compiler do
   @moduledoc """
   This module handles template loading and preprocessing.
   """
@@ -31,8 +31,8 @@ defmodule Serum.TemplateCompiler do
 
     inject = """
     <%
-    require Serum.TemplateHelpers
-    import Serum.TemplateHelpers
+    require Serum.Template.Helpers
+    import Serum.Template.Helpers
     %>
     """
 
