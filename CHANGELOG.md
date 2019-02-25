@@ -6,6 +6,10 @@
 
 - Fixed Elixir 1.8.x compatibility of `TemplateCompiler`.
 
+### Changed
+
+- Upgraded `microscope` which now uses Cowboy 2.6.1.
+
 ## v0.8.2 &mdash; 2019-02-14
 
 ### Fixed
