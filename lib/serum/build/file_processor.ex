@@ -6,6 +6,7 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.GlobalBindings
   alias Serum.Page
   alias Serum.Post
+  alias Serum.PostList
   alias Serum.ProjectInfo, as: Proj
   alias Serum.Result
   alias Serum.Template
@@ -16,8 +17,7 @@ defmodule Serum.Build.FileProcessor do
   @type result() :: %{
           pages: [Page.t()],
           posts: [Post.t()],
-          tag_map: tag_map(),
-          tag_counts: [{Tag.t(), non_neg_integer()}]
+          lists: [[PostList.t()]]
         }
 
   @spec process_files(map(), Proj.t()) :: Result.t(result())
@@ -30,12 +30,13 @@ defmodule Serum.Build.FileProcessor do
          {:ok, pages} <- Task.await(page_task),
          {:ok, posts} <- Task.await(post_task),
          tag_map = get_tag_map(posts),
-         tag_counts = get_tag_counts(tag_map) do
+         tag_counts = get_tag_counts(tag_map),
+         lists = generate_lists(posts, tag_map, proj) do
       GlobalBindings.put(:all_pages, pages)
       GlobalBindings.put(:all_posts, posts)
       GlobalBindings.put(:all_tags, tag_counts)
 
-      result = %{pages: pages, posts: posts, tag_map: tag_map, tag_counts: tag_counts}
+      result = %{pages: pages, posts: posts, lists: lists}
 
       {:ok, result}
     else
@@ -132,6 +133,22 @@ defmodule Serum.Build.FileProcessor do
       {:error, _} = error ->
         error
     end
+  end
+
+  @spec generate_lists([Post.t()], tag_map(), Proj.t()) :: [[PostList.t()]]
+  def generate_lists(posts, tag_map, proj) do
+    IO.puts("Generating post lists...")
+
+    all_posts = PostList.generate(nil, posts, proj)
+
+    tag_lists =
+      tag_map
+      |> Task.async_stream(fn {tag, posts} ->
+        PostList.generate(tag, posts, proj)
+      end)
+      |> Enum.map(&elem(&1, 1))
+
+    [all_posts | tag_lists]
   end
 
   @spec get_tag_map([Post.t()]) :: map()

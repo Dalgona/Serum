@@ -17,7 +17,7 @@ defmodule Serum.Build.FragmentGenerator do
     tasks = [
       Task.async(fn -> task_fun(map.pages, Page, proj) end),
       Task.async(fn -> task_fun(map.posts, Post, proj) end),
-      Task.async(fn -> list_task_fun(map.posts, map.tag_map, proj) end)
+      Task.async(fn -> list_task_fun(map.lists) end)
     ]
 
     tasks
@@ -37,29 +37,15 @@ defmodule Serum.Build.FragmentGenerator do
     |> Result.aggregate_values(:fragment_generator)
   end
 
-  @spec list_task_fun([Post.t()], map(), Proj.t()) :: Result.t([Fragment.t()])
-  defp list_task_fun(posts, tag_map, proj) do
-    IO.puts("Generating post lists...")
-
-    all_posts = PostList.generate(nil, posts, proj)
-
-    tag_lists =
-      tag_map
-      |> Task.async_stream(fn {tag, posts} ->
-        PostList.generate(tag, posts, proj)
-      end)
-      |> Enum.map(&elem(&1, 1))
-
-    [all_posts | tag_lists]
+  @spec list_task_fun([[PostList.t()]]) :: Result.t([Fragment.t()])
+  defp list_task_fun(lists) do
+    lists
     |> Task.async_stream(PostList, :to_fragments, [])
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:fragment_generator)
     |> case do
-      {:ok, fragments} ->
-        {:ok, List.flatten(fragments)}
-
-      {:error, _} = error ->
-        error
+      {:ok, fragments} -> {:ok, List.flatten(fragments)}
+      {:error, _} = error -> error
     end
   end
 end
