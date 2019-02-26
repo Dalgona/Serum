@@ -29,10 +29,8 @@ defmodule Mix.Tasks.Serum.New do
   alias Mix.Generator, as: MixGen
 
   @version Mix.Project.config()[:version]
-
-  @options [
-    force: :boolean
-  ]
+  @mix_env Mix.env()
+  @options [force: :boolean]
 
   @impl true
   def run(args)
@@ -58,7 +56,7 @@ defmodule Mix.Tasks.Serum.New do
           app_name: app_name,
           mod_name: Macro.camelize(app_name),
           elixir_version: get_elixir_version!(),
-          serum_dep: get_serum_dep(Mix.env())
+          serum_dep: get_serum_dep(@mix_env)
         ]
 
         if path != "." do

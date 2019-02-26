@@ -5,6 +5,7 @@
 ### Fixed
 
 - Fixed Elixir 1.8.x compatibility of `TemplateCompiler`.
+- Fixed `mix serum.new` generating incorrect dependency information.
 
 ### Changed
 
