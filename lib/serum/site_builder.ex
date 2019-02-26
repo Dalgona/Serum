@@ -7,7 +7,7 @@ defmodule Serum.SiteBuilder do
 
   use GenServer
   alias Serum.Build
-  alias Serum.ProjectInfo
+  alias Serum.Project
   alias Serum.Result
 
   #
@@ -38,7 +38,7 @@ defmodule Serum.SiteBuilder do
 
   Returns an error object otherwise.
   """
-  @spec load_info(pid) :: Result.t(ProjectInfo.t())
+  @spec load_info(pid) :: Result.t(Project.t())
 
   def load_info(server) do
     GenServer.call(server, :load_info)
@@ -91,7 +91,7 @@ defmodule Serum.SiteBuilder do
   def handle_call(msg, from, state)
 
   def handle_call(:load_info, _from, state) do
-    case ProjectInfo.load(state.src, state.dest) do
+    case Project.load(state.src, state.dest) do
       {:ok, proj} ->
         {:reply, {:ok, proj}, %{state | project_info: proj}}
 

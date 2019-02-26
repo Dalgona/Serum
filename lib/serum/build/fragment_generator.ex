@@ -7,7 +7,7 @@ defmodule Serum.Build.FragmentGenerator do
   alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
-  alias Serum.ProjectInfo, as: Proj
+  alias Serum.Project
   alias Serum.Result
 
   @spec to_fragment(map(), map()) :: Result.t([Fragment.t()])
@@ -29,7 +29,7 @@ defmodule Serum.Build.FragmentGenerator do
     end
   end
 
-  @spec task_fun([struct()], module(), Proj.t()) :: Result.t([Fragment.t()])
+  @spec task_fun([struct()], module(), Project.t()) :: Result.t([Fragment.t()])
   defp task_fun(items, struct, proj) do
     items
     |> Task.async_stream(struct, :to_fragment, [proj])

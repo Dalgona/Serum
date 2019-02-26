@@ -1,4 +1,4 @@
-defmodule Serum.ProjectInfo do
+defmodule Serum.Project do
   @moduledoc """
   This module defines a struct for storing Serum project metadata.
   """
@@ -55,7 +55,7 @@ defmodule Serum.ProjectInfo do
           preview_length: non_neg_integer()
         }
 
-  @doc "A helper function for creating a new ProjectInfo struct."
+  @doc "A helper function for creating a new Project struct."
   @spec new(map) :: t
 
   def new(map) do

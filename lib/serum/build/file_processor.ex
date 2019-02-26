@@ -7,7 +7,7 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
-  alias Serum.ProjectInfo, as: Proj
+  alias Serum.Project
   alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
@@ -20,7 +20,7 @@ defmodule Serum.Build.FileProcessor do
           lists: [[PostList.t()]]
         }
 
-  @spec process_files(map(), Proj.t()) :: Result.t(result())
+  @spec process_files(map(), Project.t()) :: Result.t(result())
   def process_files(files, proj) do
     %{pages: page_files, posts: post_files} = files
 
@@ -57,7 +57,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_pages([Serum.File.t()], Proj.t()) :: Result.t([Page.t()])
+  @spec process_pages([Serum.File.t()], Project.t()) :: Result.t([Page.t()])
   defp process_pages(files, proj) do
     IO.puts("Processing page files...")
 
@@ -71,7 +71,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_page(Serum.File.t(), Proj.t()) :: Result.t(Page.t())
+  @spec process_page(Serum.File.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(file, proj) do
     alias Serum.HeaderParser
 
@@ -95,7 +95,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_posts([Serum.File.t()], Proj.t()) :: Result.t([Post.t()])
+  @spec process_posts([Serum.File.t()], Project.t()) :: Result.t([Post.t()])
   defp process_posts(files, proj) do
     IO.puts("Processing post files...")
 
@@ -109,7 +109,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_post(Serum.File.t(), Proj.t()) :: Result.t(Post.t())
+  @spec process_post(Serum.File.t(), Project.t()) :: Result.t(Post.t())
   defp process_post(file, proj) do
     alias Serum.HeaderParser
 
@@ -135,7 +135,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec generate_lists([Post.t()], tag_map(), Proj.t()) :: [[PostList.t()]]
+  @spec generate_lists([Post.t()], tag_map(), Project.t()) :: [[PostList.t()]]
   def generate_lists(posts, tag_map, proj) do
     IO.puts("Generating post lists...")
 
