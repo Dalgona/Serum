@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v0.9.0 &mdash; 2019-02-26
 
 ### Fixed
 
@@ -10,6 +10,7 @@
 ### Changed
 
 - Upgraded `microscope` which now uses Cowboy 2.6.1.
+- Minor refactoring and internal structure improvements.
 
 ## v0.8.2 &mdash; 2019-02-14
 
