@@ -22,7 +22,11 @@ defmodule Serum.ProjectLoader do
     with {:ok, data} <- File.read(path),
          {:ok, json} <- Poison.decode(data),
          :ok <- Validation.validate("project_info", json, path) do
-      proj = Project.new(json)
+      proj =
+        json
+        |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
+        |> Map.new()
+        |> Project.new()
 
       GlobalBindings.put(:site, %{
         name: proj.site_name,

@@ -5,21 +5,6 @@ defmodule Serum.Project do
 
   import Serum.Util
 
-  @accepted_keys [
-    "site_name",
-    "site_description",
-    "server_root",
-    "base_url",
-    "author",
-    "author_email",
-    "date_format",
-    "list_title_all",
-    "list_title_tag",
-    "pagination",
-    "posts_per_page",
-    "preview_length"
-  ]
-
   defstruct site_name: "",
             site_description: "",
             server_root: "",
@@ -55,20 +40,17 @@ defmodule Serum.Project do
   @doc "A helper function for creating a new Project struct."
   @spec new(map) :: t
   def new(map) do
-    default = %__MODULE__{}
-    map_checked = map |> check_date_format() |> check_list_title_format()
+    map_checked =
+      map
+      |> check_date_format()
+      |> check_list_title_format()
 
-    map_new =
-      for {k, v} <- map_checked, k in @accepted_keys, into: %{} do
-        {String.to_atom(k), v}
-      end
-
-    Map.merge(default, map_new)
+    Map.merge(%__MODULE__{}, map_checked)
   end
 
   @spec check_date_format(map) :: map
   defp check_date_format(map) do
-    case map["date_format"] do
+    case map.date_format do
       nil ->
         map
 
@@ -88,7 +70,7 @@ defmodule Serum.Project do
 
   @spec check_list_title_format(map) :: map
   defp check_list_title_format(map) do
-    case map["list_title_tag"] do
+    case map.list_title_tag do
       nil ->
         map
 
