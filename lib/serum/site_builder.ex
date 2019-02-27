@@ -8,6 +8,7 @@ defmodule Serum.SiteBuilder do
   use GenServer
   alias Serum.Build
   alias Serum.Project
+  alias Serum.ProjectLoader
   alias Serum.Result
 
   #
@@ -91,7 +92,7 @@ defmodule Serum.SiteBuilder do
   def handle_call(msg, from, state)
 
   def handle_call(:load_info, _from, state) do
-    case Project.load(state.src, state.dest) do
+    case ProjectLoader.load(state.src, state.dest) do
       {:ok, proj} ->
         {:reply, {:ok, proj}, %{state | project_info: proj}}
 

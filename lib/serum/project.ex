@@ -4,9 +4,6 @@ defmodule Serum.Project do
   """
 
   import Serum.Util
-  alias Serum.GlobalBindings
-  alias Serum.Result
-  alias Serum.Validation
 
   @accepted_keys [
     "site_name",
@@ -57,7 +54,6 @@ defmodule Serum.Project do
 
   @doc "A helper function for creating a new Project struct."
   @spec new(map) :: t
-
   def new(map) do
     default = %__MODULE__{}
     map_checked = map |> check_date_format() |> check_list_title_format()
@@ -70,48 +66,7 @@ defmodule Serum.Project do
     Map.merge(default, map_new)
   end
 
-  @doc """
-  Loads a Serum project info from the given file `path`.
-  """
-  @spec load(binary(), binary()) :: Result.t(t())
-  def load(src, dest) do
-    path = Path.join(src, "serum.json")
-
-    with {:ok, text} <- File.read(path),
-         {:ok, json} <- Poison.decode(text),
-         :ok <- Validation.validate("project_info", json, path) do
-      proj = new(json)
-
-      GlobalBindings.put(:site, %{
-        name: proj.site_name,
-        description: proj.site_description,
-        author: proj.author,
-        author_email: proj.author_email,
-        server_root: proj.server_root,
-        base_url: proj.base_url
-      })
-
-      {:ok, %__MODULE__{proj | src: src, dest: dest}}
-    else
-      # From File.read/1:
-      {:error, reason} when is_atom(reason) ->
-        {:error, {reason, path, 0}}
-
-      # From Poison.decode/1:
-      {:error, :invalid, pos} ->
-        {:error, {"parse error at position #{pos}", path, 0}}
-
-      {:error, {:invalid, token, pos}} ->
-        {:error, {"parse error near `#{token}' at position #{pos}", path, 0}}
-
-      # From Validation.validate/3:
-      {:error, _} = error ->
-        error
-    end
-  end
-
   @spec check_date_format(map) :: map
-
   defp check_date_format(map) do
     case map["date_format"] do
       nil ->
@@ -132,7 +87,6 @@ defmodule Serum.Project do
   end
 
   @spec check_list_title_format(map) :: map
-
   defp check_list_title_format(map) do
     case map["list_title_tag"] do
       nil ->
