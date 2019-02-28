@@ -1,5 +1,7 @@
 defmodule Serum.ProjectValidator do
-  all_keys = [
+  @moduledoc false
+
+  @all_keys [
     :site_name,
     :site_description,
     :author,
@@ -14,13 +16,88 @@ defmodule Serum.ProjectValidator do
     :preview_length
   ]
 
-  required_keys = [
+  @required_keys [
     :site_name,
     :site_description,
     :author,
     :author_email,
     :base_url
   ]
+
+  @spec validate(map(), binary()) :: Result.t()
+  def validate(map, path) do
+    keys = map |> Map.keys() |> MapSet.new()
+
+    with {:missing, []} <- check_missing_keys(keys),
+         {:extra, []} <- check_extra_keys(keys),
+         :ok <- check_constraints(map) do
+      :ok
+    else
+      {:missing, [x]} ->
+        {:error, {"missing required property: #{x}", path, 0}}
+
+      {:missing, xs} ->
+        props_str = Enum.join(xs, ", ")
+
+        {:error, {"missing required properties: #{props_str}", path, 0}}
+
+      {:extra, [x]} ->
+        {:error, {"unknown property: #{x}", path, 0}}
+
+      {:extra, xs} ->
+        props_str = Enum.join(xs, ", ")
+
+        {:error, {"unknown properties: #{props_str}", path, 0}}
+
+      {:error, messages} ->
+        sub_errors = Enum.map(messages, &{:error, {&1, path, 0}})
+
+        {:error, {:project_validator, sub_errors}}
+    end
+  end
+
+  @spec check_missing_keys(MapSet.t()) :: {:missing, [atom()]}
+  defp check_missing_keys(keys) do
+    missing =
+      @required_keys
+      |> MapSet.new()
+      |> MapSet.difference(keys)
+      |> MapSet.to_list()
+
+    {:missing, missing}
+  end
+
+  @spec check_extra_keys(MapSet.t()) :: {:extra, [atom()]}
+  defp check_extra_keys(keys) do
+    extra =
+      keys
+      |> MapSet.difference(MapSet.new(@all_keys))
+      |> MapSet.to_list()
+
+    {:extra, extra}
+  end
+
+  @spec check_constraints(map()) :: :ok | {:error, [binary()]}
+  defp check_constraints(map) do
+    map
+    |> Enum.map(fn {k, v} -> {k, validate_field(k, v)} end)
+    |> Enum.filter(&(elem(&1, 1) != :ok))
+    |> case do
+      [] ->
+        :ok
+
+      errors ->
+        messages =
+          Enum.map(errors, fn {k, {:fail, s}} ->
+            prop = "\x1b[1;33m#{k}\x1b[0m"
+            constraint = "\x1b[1;33m#{s}\x1b[0m"
+
+            "the property #{prop} violates the constraint #{constraint}"
+          end)
+
+        {:error, messages}
+    end
+  end
 
   rules =
     quote do
@@ -69,6 +146,4 @@ defmodule Serum.ProjectValidator do
       end
     end
   end)
-
-  defp validate_field(x, _), do: {:fail, "unknown field \"#{inspect(x)}\""}
 end
