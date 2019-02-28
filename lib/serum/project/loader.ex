@@ -1,4 +1,4 @@
-defmodule Serum.ProjectLoader do
+defmodule Serum.Project.Loader do
   @moduledoc false
 
   alias Serum.GlobalBindings
