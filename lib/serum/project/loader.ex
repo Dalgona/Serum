@@ -1,6 +1,8 @@
 defmodule Serum.Project.Loader do
   @moduledoc false
 
+  require Serum.Util
+  import Serum.Util
   alias Serum.GlobalBindings
   alias Serum.Project
   alias Serum.Project.ElixirValidator
@@ -39,6 +41,10 @@ defmodule Serum.Project.Loader do
   @spec load_json(binary()) :: Result.t(Project.t())
   defp load_json(src) do
     path = Path.join(src, "serum.json")
+
+    warn("The JSON project definition file is deprecated")
+    warn("and support for this will be removed in the later releases.")
+    warn("Please refer to the docs to migrate to Elixir format.")
 
     with {:ok, data} <- File.read(path),
          {:ok, json} <- Poison.decode(data),
