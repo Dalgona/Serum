@@ -1,4 +1,4 @@
-defmodule Serum.ProjectValidator do
+defmodule Serum.Project.ElixirValidator do
   @moduledoc false
 
   @all_keys [

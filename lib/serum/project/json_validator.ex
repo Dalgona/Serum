@@ -1,4 +1,4 @@
-defmodule Serum.Validation do
+defmodule Serum.Project.JsonValidator do
   @moduledoc """
   This module provides functions related to validating project JSON files.
   """

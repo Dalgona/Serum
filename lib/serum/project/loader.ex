@@ -3,9 +3,9 @@ defmodule Serum.Project.Loader do
 
   alias Serum.GlobalBindings
   alias Serum.Project
-  alias Serum.ProjectValidator
+  alias Serum.Project.ElixirValidator
+  alias Serum.Project.JsonValidator
   alias Serum.Result
-  alias Serum.Validation
 
   @spec load(binary(), binary()) :: Result.t(Project.t())
   def load(src, dest) do
@@ -42,7 +42,7 @@ defmodule Serum.Project.Loader do
 
     with {:ok, data} <- File.read(path),
          {:ok, json} <- Poison.decode(data),
-         :ok <- Validation.validate("project_info", json, path) do
+         :ok <- JsonValidator.validate("project_info", json, path) do
       proj =
         json
         |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
@@ -74,7 +74,7 @@ defmodule Serum.Project.Loader do
 
     with {:ok, data} <- File.read(path),
          {%{} = map, _} <- Code.eval_string(data, [], file: path),
-         :ok <- ProjectValidator.validate(map, path) do
+         :ok <- ElixirValidator.validate(map, path) do
       {:ok, Project.new(map)}
     else
       # From File.read/1:
