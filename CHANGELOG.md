@@ -1,5 +1,16 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Added
+
+- Added support for Elixir-based project definition file (`serum.exs`).
+
+### Deprecated
+
+- Deprecated processing of JSON project definition file (`serum.json`) in
+  favor of the new Elixir format.
+
 ## v0.9.0 &mdash; 2019-02-26
 
 ### Fixed
