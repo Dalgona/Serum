@@ -41,25 +41,34 @@ defmodule Serum.ProjectValidator do
     end
 
   @spec validate_field(atom(), term()) :: :ok | {:fail, binary()}
-  def validate_field(key, value)
+  defp validate_field(key, value)
 
   Enum.each(rules, fn {key, exprs} ->
-    expr_str =
-      exprs
-      |> Enum.map(fn {func, args} -> Macro.to_string({func, [], args}) end)
-      |> Enum.join(" and ")
+    [x | xs] =
+      Enum.map(exprs, fn {func, args} ->
+        quote(do: unquote(func)(var!(value), unquote_splicing(args)))
+      end)
 
-    def validate_field(unquote(key), value) do
-      result =
-        Enum.reduce(unquote(exprs), true, fn {func, args}, acc ->
-          acc && apply(Kernel, func, [value | args])
-        end)
+    check_expr = Enum.reduce(xs, x, &quote(do: unquote(&2) and unquote(&1)))
 
-      if result do
+    [y | ys] =
+      Enum.map(exprs, fn {func, args} ->
+        quote(do: unquote(func)(value, unquote_splicing(args)))
+      end)
+
+    check_str =
+      ys
+      |> Enum.reduce(y, &quote(do: unquote(&2) and unquote(&1)))
+      |> Macro.to_string()
+
+    defp validate_field(unquote(key), value) do
+      if unquote(check_expr) do
         :ok
       else
-        {:fail, unquote(expr_str)}
+        {:fail, unquote(check_str)}
       end
     end
   end)
+
+  defp validate_field(x, _), do: {:fail, "unknown field \"#{inspect(x)}\""}
 end
