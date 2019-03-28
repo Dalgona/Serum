@@ -2,6 +2,11 @@
 
 ## Unreleased Changes
 
+### Fixed
+
+- `Serum.File.write/1` now properly closes a file. This problem caused the
+  Serum development server to crash after dozens of project rebuilds.
+
 ### Added
 
 - Added support for Elixir-based project definition file (`serum.exs`).

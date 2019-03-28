@@ -38,7 +38,8 @@ defmodule Serum.File do
   @spec write(t()) :: Result.t()
   def write(%__MODULE__{src: src, dest: dest, out_data: data}) do
     with {:ok, file} <- File.open(dest, [:write, :utf8]),
-         :ok <- IO.write(file, data) do
+         :ok <- IO.write(file, data),
+         :ok <- File.close(file) do
       print_write(src, dest)
       :ok
     else
