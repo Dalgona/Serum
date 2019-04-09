@@ -25,7 +25,9 @@ defmodule Serum.Project.ElixirValidator do
   ]
 
   @spec validate(map(), binary()) :: Result.t()
-  def validate(map, path) do
+  def validate(term, path)
+
+  def validate(%{} = map, path) do
     keys = map |> Map.keys() |> MapSet.new()
 
     with {:missing, []} <- check_missing_keys(keys),
@@ -54,6 +56,10 @@ defmodule Serum.Project.ElixirValidator do
 
         {:error, {:project_validator, sub_errors}}
     end
+  end
+
+  def validate(term, path) do
+    {:error, {"expected a map, got: #{inspect(term)}", path, 0}}
   end
 
   @spec check_missing_keys(MapSet.t()) :: {:missing, [atom()]}

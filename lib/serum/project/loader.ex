@@ -79,7 +79,7 @@ defmodule Serum.Project.Loader do
     path = Path.join(src, "serum.exs")
 
     with {:ok, data} <- File.read(path),
-         {%{} = map, _} <- Code.eval_string(data, [], file: path),
+         {map, _} <- Code.eval_string(data, [], file: path),
          :ok <- ElixirValidator.validate(map, path) do
       {:ok, Project.new(map)}
     else
@@ -90,10 +90,6 @@ defmodule Serum.Project.Loader do
       # From ProjectValidator.validate/2:
       {:error, _} = error ->
         error
-
-      # From Code.eval_string/3:
-      {x, _} ->
-        {:error, {"expected a map, got: #{inspect(x)}", path, 0}}
     end
   rescue
     e in CompileError ->
