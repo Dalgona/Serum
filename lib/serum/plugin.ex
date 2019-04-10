@@ -301,4 +301,163 @@ defmodule Serum.Plugin do
   rescue
     e in UndefinedFunctionError -> {:error, Exception.message(e)}
   end
+
+  @doc false
+  @spec build_started(src :: binary(), dest :: binary()) :: Result.t()
+  def build_started(src, dest) do
+    call_action(:build_started, [src, dest])
+  end
+
+  @doc false
+  @spec reading_pages(files :: [binary()]) :: Result.t([binary()])
+  def reading_pages(files) do
+    call_function(:reading_pages, [files])
+  end
+
+  @doc false
+  @spec reading_posts(files :: [binary()]) :: Result.t([binary()])
+  def reading_posts(files) do
+    call_function(:reading_posts, [files])
+  end
+
+  @doc false
+  @spec reading_templates(files :: [binary()]) :: Result.t([binary()])
+  def reading_templates(files) do
+    call_function(:reading_templates, [files])
+  end
+
+  @doc false
+  @spec processing_page(file :: File.t()) :: Result.t(File.t())
+  def processing_page(file) do
+    call_function(:processing_page, [file])
+  end
+
+  @doc false
+  @spec processing_post(file :: File.t()) :: Result.t(File.t())
+  def processing_post(file) do
+    call_function(:processing_post, [file])
+  end
+
+  @doc false
+  @spec processing_template(file :: File.t()) :: Result.t(File.t())
+  def processing_template(file) do
+    call_function(:processing_template, [file])
+  end
+
+  @doc false
+  @spec processed_page(page :: Page.t()) :: Result.t(Page.t())
+  def processed_page(page) do
+    call_function(:processed_page, [page])
+  end
+
+  @doc false
+  @spec processed_post(post :: Post.t()) :: Result.t(Post.t())
+  def processed_post(post) do
+    call_function(:processed_post, [post])
+  end
+
+  @doc false
+  @spec processed_template(template :: Template.t()) :: Result.t(Template.t())
+  def processed_template(template) do
+    call_function(:processed_template, [template])
+  end
+
+  @doc false
+  @spec processed_list(list :: PostList.t()) :: Result.t(PostList.t())
+  def processed_list(list) do
+    call_function(:processed_list, [list])
+  end
+
+  @doc false
+  @spec rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
+  def rendered_fragment(frag) do
+    call_function(:rendered_fragment, [frag])
+  end
+
+  @doc false
+  @spec rendered_page(file :: File.t()) :: Result.t(File.t())
+  def rendered_page(file) do
+    call_function(:rendered_page, [file])
+  end
+
+  @doc false
+  @spec wrote_file(file :: File.t()) :: Result.t()
+  def wrote_file(file) do
+    call_action(:wrote_file, [file])
+  end
+
+  @doc false
+  @spec build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
+  def build_succeeded(src, dest) do
+    call_action(:build_succeeded, [src, dest])
+  end
+
+  @doc false
+  @spec build_failed(src :: binary(), dest :: binary(), result :: Result.t() | Result.t(term)) ::
+          Result.t()
+  def build_failed(src, dest, result) do
+    call_action(:build_failed, [src, dest, result])
+  end
+
+  @doc false
+  @spec finalizing(src :: binary(), dest :: binary()) :: Result.t()
+  def finalizing(src, dest) do
+    call_action(:finalizing, [src, dest])
+  end
+
+  @spec call_action(atom(), [term()]) :: Result.t()
+  defp call_action(fun, args) do
+    __MODULE__
+    |> Agent.get(&(&1[fun] || []))
+    |> do_call_action(fun, args)
+  end
+
+  @spec do_call_action([t()], atom(), [term()]) :: Result.t()
+  defp do_call_action(plugins, fun, args)
+  defp do_call_action([], _fun, _args), do: :ok
+
+  defp do_call_action([plugin | plugins], fun, args) do
+    case apply(plugin.module, fun, args) do
+      :ok ->
+        do_call_action(plugins, fun, args)
+
+      {:error, _} = error ->
+        error
+
+      term ->
+        message =
+          "#{plugin.name} (#{plugin.version}): #{fun} returned an " <>
+            "unexpected value: #{inspect(term)}"
+
+        {:error, message}
+    end
+  end
+
+  @spec call_function(atom(), [term()]) :: Result.t(term())
+  defp call_function(fun, [arg | args]) do
+    __MODULE__
+    |> Agent.get(&(&1[fun] || []))
+    |> do_call_function(fun, args, arg)
+  end
+
+  @spec do_call_function([t()], atom(), [term()], term()) :: Result.t(term())
+  defp do_call_function(plugins, fun, args, acc)
+  defp do_call_function([], _fun, _args, acc), do: {:ok, acc}
+
+  defp do_call_function([plugin | plugins], fun, args, acc) do
+    case apply(plugin.module, fun, [acc | args]) do
+      {:ok, new_acc} ->
+        do_call_function(plugins, fun, args, new_acc)
+
+      {:error, _} = error ->
+        error
+
+      term ->
+        message =
+          "#{plugin.name} (#{plugin.version}): #{fun} returned an " <>
+            "unexpected value: #{inspect(term)}"
+
+        {:error, message}
+    end
+  end
 end

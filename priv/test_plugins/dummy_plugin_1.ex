@@ -25,26 +25,38 @@ defmodule Serum.DummyPlugin1 do
 
   def reading_posts(files) do
     debug("reading_posts: #{length(files)}")
+
+    {:ok, files}
   end
 
   def processing_page(file) do
     debug("processing_page: #{file.src}")
+
+    {:ok, file}
   end
 
   def processing_template(file) do
     debug("processing_template: #{file.src}")
+
+    {:ok, file}
   end
 
   def processed_post(post) do
     debug("processed_post: #{post.title}")
+
+    {:ok, post}
   end
 
   def processed_list(list) do
     debug("processed_list: #{list.title}")
+
+    {:ok, list}
   end
 
   def rendered_page(file) do
     debug("rendered_page: #{file.dest}")
+
+    {:ok, file}
   end
 
   def build_succeeded(src, dest) do
