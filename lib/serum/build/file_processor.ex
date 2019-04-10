@@ -12,7 +12,7 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
-  @type tag_map() :: %{optional(Tag.t()) => [Post.t()]}
+  @type tag_group() :: [{Tag.t(), [Post.t()]}]
 
   @type result() :: %{
           pages: [Page.t()],
@@ -29,9 +29,9 @@ defmodule Serum.Build.FileProcessor do
          post_task = Task.async(fn -> process_posts(post_files, proj) end),
          {:ok, pages} <- Task.await(page_task),
          {:ok, posts} <- Task.await(post_task),
-         tag_map = get_tag_map(posts),
-         tag_counts = get_tag_counts(tag_map),
-         lists = generate_lists(posts, tag_map, proj) do
+         tags = group_posts_by_tag(posts),
+         tag_counts = get_tag_counts(tags),
+         lists = generate_lists(posts, tags, proj) do
       GlobalBindings.put(:all_pages, pages)
       GlobalBindings.put(:all_posts, posts)
       GlobalBindings.put(:all_tags, tag_counts)
@@ -135,37 +135,35 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec generate_lists([Post.t()], tag_map(), Project.t()) :: [[PostList.t()]]
-  def generate_lists(posts, tag_map, proj) do
+  @spec generate_lists([Post.t()], tag_group(), Project.t()) :: [[PostList.t()]]
+  defp generate_lists(posts, tags, proj) do
     IO.puts("Generating post lists...")
 
-    all_posts = PostList.generate(nil, posts, proj)
-
-    tag_lists =
-      tag_map
-      |> Task.async_stream(fn {tag, posts} ->
-        PostList.generate(tag, posts, proj)
-      end)
-      |> Enum.map(&elem(&1, 1))
-
-    [all_posts | tag_lists]
+    [{nil, posts} | tags]
+    |> Task.async_stream(fn {tag, posts} ->
+      PostList.generate(tag, posts, proj)
+    end)
+    |> Enum.map(&elem(&1, 1))
   end
 
-  @spec get_tag_map([Post.t()]) :: map()
-  defp get_tag_map(all_posts) do
+  @spec group_posts_by_tag([Post.t()]) :: tag_group()
+  defp group_posts_by_tag(all_posts) do
     all_tags =
-      Enum.reduce(all_posts, MapSet.new(), fn info, acc ->
-        MapSet.union(acc, MapSet.new(info.tags))
+      Enum.reduce(all_posts, MapSet.new(), fn post, acc ->
+        MapSet.union(acc, MapSet.new(post.tags))
       end)
 
-    for tag <- all_tags, into: %{} do
+    all_tags
+    |> Task.async_stream(fn tag ->
       posts = Enum.filter(all_posts, &(tag in &1.tags))
+
       {tag, posts}
-    end
+    end)
+    |> Enum.map(&elem(&1, 1))
   end
 
-  @spec get_tag_counts(tag_map()) :: [{Tag.t(), integer()}]
-  defp get_tag_counts(tag_map) do
-    Enum.map(tag_map, fn {k, v} -> {k, Enum.count(v)} end)
+  @spec get_tag_counts(tag_group()) :: [{Tag.t(), integer()}]
+  defp get_tag_counts(tags) do
+    Enum.map(tags, fn {k, v} -> {k, Enum.count(v)} end)
   end
 end
