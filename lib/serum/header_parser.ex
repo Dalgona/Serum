@@ -18,40 +18,33 @@ defmodule Serum.HeaderParser do
   actual value of a metadata.
   """
 
-  alias Serum.Result
-
   @date_format1 "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
   @date_format2 "{YYYY}-{0M}-{0D}"
 
   @type options :: [{atom, value_type}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type}
   @type value :: binary | integer | [binary] | [integer]
-  @type parse_result :: Result.t({map, binary})
+  @type parse_result :: {:ok, {map(), binary()}} | {:invalid, binary()}
 
   @typep extract_ok :: {:ok, [binary], binary}
   @typep extract_err :: {:error, binary}
 
   @doc """
-  Reads lines from an I/O device `device` and extracts the header area into a
-  map.
+  Reads lines from a binary `data` and extracts the header into a map.
 
-  `fname` argument seems to be redundant, but is used when generating error
-  objects.
-
-  `options` argument is a keyword list which specifies the name and type of
-  metadata the header parser expects. So the typical `options` should look like
-  this:
+  `options` is a keyword list which specifies the name and type of metadata the
+  header parser expects. So the typical `options` should look like this:
 
       [key1: type1, key2: type2, ...]
 
   See "Types" section for avilable value types.
 
-  `options` argument is a list of required keys (in atom). If the header parser
+  `required` argument is a list of required keys (in atom). If the header parser
   cannot find required keys in the header area, it returns an error.
 
   ## Types
 
-  Currently the HeaderParser module supports following types:
+  Currently the HeaderParser supports following types:
 
   * `:string` - A line of string. It can contain spaces.
   * `:integer` - A decimal integer.
@@ -61,10 +54,10 @@ defmodule Serum.HeaderParser do
     value must have the same type, either `:string`, `:integer`, or `:datetime`.
     You cannot make a list of lists.
   """
-  @spec parse_header(Serum.File.t(), options, [atom]) :: parse_result
+  @spec parse_header(binary(), options(), [atom()]) :: parse_result()
 
-  def parse_header(file, options, required \\ []) do
-    case extract_header(file.in_data, [], false) do
+  def parse_header(data, options, required \\ []) do
+    case extract_header(data, [], false) do
       {:ok, header_lines, rest_data} ->
         key_strings = options |> Keyword.keys() |> Enum.map(&Atom.to_string/1)
 
@@ -77,27 +70,29 @@ defmodule Serum.HeaderParser do
              {:ok, new_kv} <- transform_values(kv_list, options, []) do
           {:ok, {Map.new(new_kv), rest_data}}
         else
-          error -> handle_error(error, file.src)
+          error -> handle_error(error)
         end
 
       error ->
-        handle_error(error, file.src)
+        handle_error(error)
     end
   end
 
-  @spec handle_error(term, binary) :: Result.t()
+  @spec handle_error(term) :: {:invalid, binary()}
+  defp handle_error(term)
 
-  defp handle_error([missing], fname) do
-    {:error, {"`#{missing}` is required, but it's missing", fname, 0}}
+  defp handle_error([missing]) do
+    {:invalid, "`#{missing}` is required, but it's missing"}
   end
 
-  defp handle_error([_ | _] = missing, fname) do
+  defp handle_error([_ | _] = missing) do
     repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
-    {:error, {"#{repr} are required, but they are missing", fname, 0}}
+
+    {:invalid, "#{repr} are required, but they are missing"}
   end
 
-  defp handle_error({:error, error}, fname) do
-    {:error, {"header parse error: #{error}", fname, 0}}
+  defp handle_error({:error, error}) do
+    {:invalid, "header parse error: #{error}"}
   end
 
   @spec extract_header(binary, [binary], boolean) :: extract_ok | extract_err

@@ -84,14 +84,14 @@ defmodule Serum.Build.FileProcessor do
 
     required = [:title]
 
-    case HeaderParser.parse_header(file, opts, required) do
+    case HeaderParser.parse_header(file.in_data, opts, required) do
       {:ok, {header, rest_data}} ->
         header = Map.put(header, :label, header[:label] || header.title)
 
         {:ok, Page.new(file.src, header, rest_data, proj)}
 
-      {:error, _} = error ->
-        error
+      {:invalid, message} ->
+        {:error, {message, file.src, 0}}
     end
   end
 
@@ -121,7 +121,7 @@ defmodule Serum.Build.FileProcessor do
 
     required = [:title]
 
-    case HeaderParser.parse_header(file, opts, required) do
+    case HeaderParser.parse_header(file.in_data, opts, required) do
       {:ok, {header, rest_data}} ->
         header = %{
           header
@@ -130,8 +130,8 @@ defmodule Serum.Build.FileProcessor do
 
         {:ok, Post.new(file.src, header, Earmark.as_html!(rest_data), proj)}
 
-      {:error, _} = error ->
-        error
+      {:invalid, message} ->
+        {:error, {message, file.src, 0}}
     end
   end
 
