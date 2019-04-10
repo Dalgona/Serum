@@ -1,6 +1,8 @@
 defmodule Serum.Project.ElixirValidator do
   @moduledoc false
 
+  @type result() :: :ok | {:invalid, binary()} | {:invalid, [binary()]}
+
   @all_keys [
     :site_name,
     :site_description,
@@ -24,10 +26,10 @@ defmodule Serum.Project.ElixirValidator do
     :base_url
   ]
 
-  @spec validate(map(), binary()) :: Result.t()
-  def validate(term, path)
+  @spec validate(map()) :: result()
+  def validate(term)
 
-  def validate(%{} = map, path) do
+  def validate(%{} = map) do
     keys = map |> Map.keys() |> MapSet.new()
 
     with {:missing, []} <- check_missing_keys(keys),
@@ -36,30 +38,28 @@ defmodule Serum.Project.ElixirValidator do
       :ok
     else
       {:missing, [x]} ->
-        {:error, {"missing required property: #{x}", path, 0}}
+        {:invalid, "missing required property: #{x}"}
 
       {:missing, xs} ->
         props_str = Enum.join(xs, ", ")
 
-        {:error, {"missing required properties: #{props_str}", path, 0}}
+        {:invalid, "missing required properties: #{props_str}"}
 
       {:extra, [x]} ->
-        {:error, {"unknown property: #{x}", path, 0}}
+        {:invalid, "unknown property: #{x}"}
 
       {:extra, xs} ->
         props_str = Enum.join(xs, ", ")
 
-        {:error, {"unknown properties: #{props_str}", path, 0}}
+        {:invalid, "unknown properties: #{props_str}"}
 
       {:error, messages} ->
-        sub_errors = Enum.map(messages, &{:error, {&1, path, 0}})
-
-        {:error, {:project_validator, sub_errors}}
+        {:invalid, messages}
     end
   end
 
-  def validate(term, path) do
-    {:error, {"expected a map, got: #{inspect(term)}", path, 0}}
+  def validate(term) do
+    {:invalid, "expected a map, got: #{inspect(term)}"}
   end
 
   @spec check_missing_keys(MapSet.t()) :: {:missing, [atom()]}

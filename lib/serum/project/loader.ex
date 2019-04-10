@@ -80,16 +80,24 @@ defmodule Serum.Project.Loader do
 
     with {:ok, data} <- File.read(path),
          {map, _} <- Code.eval_string(data, [], file: path),
-         :ok <- ElixirValidator.validate(map, path) do
+         :ok <- ElixirValidator.validate(map) do
       {:ok, Project.new(map)}
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
         {:error, {reason, path, 0}}
 
-      # From ProjectValidator.validate/2:
-      {:error, _} = error ->
-        error
+      # From ElixirValidator.validate/2:
+      {:invalid, message} when is_binary(message) ->
+        {:error, {message, path, 0}}
+
+      {:invalid, messages} when is_list(messages) ->
+        sub_errors =
+          Enum.map(messages, fn message ->
+            {:error, {message, path, 0}}
+          end)
+
+        {:error, {:project_validator, sub_errors}}
     end
   rescue
     e in CompileError ->

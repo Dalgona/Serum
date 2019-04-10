@@ -19,8 +19,6 @@ defmodule Serum.Project.ElixirValidatorTest do
   use ExUnit.Case
   import Serum.Project.ElixirValidator
 
-  @test_path "/test/serum.exs"
-
   @base_map %{
     site_name: "Test Site",
     site_description: "This is a test site.",
@@ -29,9 +27,9 @@ defmodule Serum.Project.ElixirValidatorTest do
     base_url: "/"
   }
 
-  describe "validate/2" do
+  describe "validate/1" do
     test "good, contains required keys only" do
-      assert :ok = validate(@base_map, @test_path)
+      assert :ok = validate(@base_map)
     end
 
     test "good, also contains optional keys" do
@@ -46,30 +44,30 @@ defmodule Serum.Project.ElixirValidatorTest do
           preview_length: 200
         })
 
-      assert :ok = validate(map, @test_path)
+      assert :ok = validate(map)
     end
 
     test "not a map" do
-      assert {:error, _} = validate(:foo, @test_path)
+      assert {:invalid, _} = validate(:foo)
     end
 
     test "missing one required key" do
       map = Map.delete(@base_map, :base_url)
-      {:error, {msg, @test_path, _}} = validate(map, @test_path)
+      {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "missing required property:")
     end
 
     test "missing multiple required keys" do
       map = Map.drop(@base_map, [:base_url, :site_description])
-      {:error, {msg, @test_path, _}} = validate(map, @test_path)
+      {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "missing required properties:")
     end
 
     test "one extra key" do
       map = Map.put(@base_map, :foo, :bar)
-      {:error, {msg, @test_path, _}} = validate(map, @test_path)
+      {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "unknown property:")
     end
@@ -80,14 +78,14 @@ defmodule Serum.Project.ElixirValidatorTest do
         |> Map.put(:foo, :bar)
         |> Map.put(:lorem, "ipsum")
 
-      {:error, {msg, @test_path, _}} = validate(map, @test_path)
+      {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "unknown properties:")
     end
 
     test "constraint check 1" do
       map = Map.put(@base_map, :base_url, "hello")
-      {:error, {_, l}} = validate(map, @test_path)
+      {:invalid, l} = validate(map)
 
       assert length(l) == 1
     end
@@ -102,7 +100,7 @@ defmodule Serum.Project.ElixirValidatorTest do
           preview_length: -1
         })
 
-      {:error, {_, l}} = validate(map, @test_path)
+      {:invalid, l} = validate(map)
 
       assert length(l) == 5
     end
