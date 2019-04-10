@@ -1,0 +1,59 @@
+defmodule Serum.DummyPlugin1 do
+  @behaviour Serum.Plugin
+
+  def name, do: "dummy_plugin_1"
+  def version, do: "0.0.1"
+  def description, do: "This is dummy plugin no. 1"
+
+  def implements do
+    [
+      :build_started,
+      :reading_posts,
+      :processing_page,
+      :processing_template,
+      :processed_post,
+      :processed_list,
+      :rendered_page,
+      :build_succeeded,
+      :finalizing
+    ]
+  end
+
+  def build_started(src, dest) do
+    debug("build_started: #{src}, #{dest}")
+  end
+
+  def reading_posts(files) do
+    debug("reading_posts: #{length(files)}")
+  end
+
+  def processing_page(file) do
+    debug("processing_page: #{file.src}")
+  end
+
+  def processing_template(file) do
+    debug("processing_template: #{file.src}")
+  end
+
+  def processed_post(post) do
+    debug("processed_post: #{post.title}")
+  end
+
+  def processed_list(list) do
+    debug("processed_list: #{list.title}")
+  end
+
+  def rendered_page(file) do
+    debug("rendered_page: #{file.dest}")
+  end
+
+  def build_succeeded(src, dest) do
+    debug("build_succeeded: #{src}, #{dest}")
+  end
+
+  def finalizing(src, dest) do
+    debug("finalizing: #{src}, #{dest}")
+  end
+
+  defp debug(msg), do: IO.puts("\x1b[90m#{name()} #{msg}\x1b[0m")
+end
