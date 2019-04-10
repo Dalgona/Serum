@@ -53,13 +53,24 @@ defmodule Serum.Plugin do
       }
   """
 
-  alias Serum.Result
+  use Agent
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Post
-  alias Serum.Template
   alias Serum.PostList
+  alias Serum.Result
+  alias Serum.Template
+
+  defstruct [:module, :name, :version, :description, :implements]
+
+  @type t :: %__MODULE__{
+          module: atom(),
+          name: binary(),
+          version: binary(),
+          description: binary(),
+          implements: [atom()]
+        }
 
   @optional_callbacks [
     build_started: 2,
@@ -246,4 +257,48 @@ defmodule Serum.Plugin do
   in `build_started/2` callback.
   """
   @callback finalizing(src :: binary(), dest :: binary()) :: Result.t()
+
+  #
+  # Plugin Consumer Functions
+  #
+
+  @doc false
+  @spec start_link(any()) :: {:error, any()} | {:ok, pid()}
+  def start_link(_) do
+    Agent.start_link(fn -> %{} end, name: __MODULE__)
+  end
+
+  @doc false
+  @spec load_plugins([atom()]) :: Result.t([t()])
+  def load_plugins(modules) do
+    all_plugins =
+      modules
+      |> Enum.uniq()
+      |> Enum.map(fn module ->
+        %__MODULE__{
+          module: module,
+          name: module.name(),
+          version: module.version(),
+          description: module.description(),
+          implements: module.implements()
+        }
+      end)
+
+    all_plugins
+    |> Enum.map(fn plugin -> Enum.map(plugin.implements, &{&1, plugin}) end)
+    |> List.flatten()
+    |> Enum.each(fn {fun, plugin} ->
+      Agent.update(__MODULE__, fn state ->
+        Map.put(state, fun, [plugin | state[fun] || []])
+      end)
+    end)
+
+    Agent.update(__MODULE__, fn state ->
+      for {key, value} <- state, into: %{}, do: {key, Enum.reverse(value)}
+    end)
+
+    {:ok, all_plugins}
+  rescue
+    e in UndefinedFunctionError -> {:error, Exception.message(e)}
+  end
 end

@@ -1,6 +1,7 @@
 defmodule Serum do
   use Application
   alias Serum.GlobalBindings
+  alias Serum.Plugin
   alias Serum.Template
 
   @moduledoc """
@@ -16,7 +17,8 @@ defmodule Serum do
   def start(_type, _args) do
     children = [
       Template,
-      GlobalBindings
+      GlobalBindings,
+      Plugin
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
