@@ -36,11 +36,11 @@ defmodule Serum.File do
 
   @doc "Writes data to a file described by the given `Serum.File` struct."
   @spec write(t()) :: Result.t()
-  def write(%__MODULE__{src: src, dest: dest, out_data: data}) do
+  def write(%__MODULE__{dest: dest, out_data: data}) do
     with {:ok, file} <- File.open(dest, [:write, :utf8]),
          :ok <- IO.write(file, data),
          :ok <- File.close(file) do
-      print_write(src, dest)
+      print_write(dest)
       :ok
     else
       {:error, reason} -> {:error, {reason, dest, 0}}
@@ -52,14 +52,10 @@ defmodule Serum.File do
     IO.puts("\x1b[93m  READ \x1b[0m#{src}")
   end
 
-  @spec print_write(binary(), binary()) :: :ok
-  defp print_write(src, dest)
+  @spec print_write(binary()) :: :ok
+  defp print_write(dest)
 
-  defp print_write(nil, dest) do
+  defp print_write(dest) do
     IO.puts("\x1b[92m   GEN \x1b[0m#{dest}")
-  end
-
-  defp print_write(src, dest) do
-    IO.puts("\x1b[92m   GEN \x1b[0m#{src} -> #{dest}")
   end
 end
