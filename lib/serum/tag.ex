@@ -23,7 +23,3 @@ defmodule Serum.Tag do
     names |> Enum.sort() |> Enum.map(&new(&1, proj))
   end
 end
-
-defimpl Inspect, for: Serum.Tag do
-  def inspect(tag, _opts), do: ~s(#Serum.Tag<"#{tag.name}": "#{tag.list_url}">)
-end

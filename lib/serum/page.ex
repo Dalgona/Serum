@@ -128,7 +128,3 @@ defmodule Serum.Page do
     end
   end
 end
-
-defimpl Inspect, for: Serum.Page do
-  def inspect(page, _opts), do: ~s(#Serum.Page<"#{page.title}">)
-end

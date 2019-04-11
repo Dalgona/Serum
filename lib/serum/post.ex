@@ -125,7 +125,3 @@ defmodule Serum.Post do
     end
   end
 end
-
-defimpl Inspect, for: Serum.Post do
-  def inspect(post, _opts), do: ~s(#Serum.Post<"#{post.title}">)
-end
