@@ -144,7 +144,7 @@ defmodule Mix.Tasks.Serum.New do
     create_file.(".formatter.exs", formatter_exs_text())
     create_file.(".gitignore", gitignore_template(assigns))
     create_file.("mix.exs", mix_exs_template(assigns))
-    create_file.("serum.json", serum_json_template(assigns))
+    create_file.("serum.exs", serum_exs_template(assigns))
 
     create_file.("includes/nav.html.eex", nav_html_eex_text())
     create_file.("templates/base.html.eex", base_html_eex_text())
@@ -186,8 +186,8 @@ defmodule Mix.Tasks.Serum.New do
   # mix_exs_template/1
   MixGen.embed_template(:mix_exs, get_priv.("mix.exs.eex"))
 
-  # serum_json_template/1
-  MixGen.embed_template(:serum_json, get_priv.("serum.json.eex"))
+  # serum_exs_template/1
+  MixGen.embed_template(:serum_exs, get_priv.("serum.exs.eex"))
 
   # nav_html_eex_text/0
   MixGen.embed_text(:nav_html_eex, get_priv.("includes/nav.html.eex"))
