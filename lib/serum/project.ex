@@ -42,12 +42,10 @@ defmodule Serum.Project do
   @doc "A helper function for creating a new Project struct."
   @spec new(map) :: t
   def new(map) do
-    map_checked =
-      map
-      |> check_date_format()
-      |> check_list_title_format()
-
-    Map.merge(%__MODULE__{}, map_checked)
+    %__MODULE__{}
+    |> Map.merge(map)
+    |> check_date_format()
+    |> check_list_title_format()
   end
 
   @spec check_date_format(map) :: map
