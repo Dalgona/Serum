@@ -65,4 +65,26 @@ defmodule Serum.PluginTest do
 
     assert String.contains?(output, "not compatible")
   end
+
+  test "failing plugin 1" do
+    {:ok, _} = load_plugins([Serum.DummyPlugin1, Serum.FailingPlugin1])
+
+    assert {:error, "RuntimeError" <> _} = build_started("", "")
+    assert {:error, "RuntimeError" <> _} = reading_posts([])
+    assert {:error, "test: processing_page"} == processing_page(%File{})
+    assert {:error, "test: finalizing"} == finalizing("", "")
+
+    {:error, msg1} = processing_template(%File{})
+    {:error, msg2} = build_succeeded("", "")
+
+    assert String.contains?(msg1, "unexpected")
+    assert String.contains?(msg2, "unexpected")
+
+    Agent.update(Serum.Plugin, fn _ -> %{} end)
+  end
+
+  test "failing plugin 2" do
+    assert {:error, {_, [h | _]}} = load_plugins([Serum.FailingPlugin2])
+    assert {:error, "RuntimeError" <> _} = h
+  end
 end

@@ -346,11 +346,7 @@ defmodule Serum.Plugin do
     {:ok, plugin}
   rescue
     exception ->
-      ex_name =
-        exception.__struct__
-        |> to_string()
-        |> String.replace_prefix("Elixir.", "")
-
+      ex_name = module_name(exception.__struct__)
       ex_msg = Exception.message(exception)
       msg = "#{ex_name} while loading plugin (module: #{module}): #{ex_msg}"
 
@@ -497,11 +493,13 @@ defmodule Serum.Plugin do
 
       term ->
         message =
-          "#{plugin.name} (#{plugin.version}): #{fun} returned an " <>
-            "unexpected value: #{inspect(term)}"
+          "#{module_name(plugin.module)}.#{fun} returned " <>
+            "an unexpected value: #{inspect(term)}"
 
         {:error, message}
     end
+  rescue
+    exception -> handle_exception(exception, plugin.module, fun)
   end
 
   @spec call_function(atom(), [term()]) :: Result.t(term())
@@ -525,10 +523,26 @@ defmodule Serum.Plugin do
 
       term ->
         message =
-          "#{plugin.name} (#{plugin.version}): #{fun} returned an " <>
-            "unexpected value: #{inspect(term)}"
+          "#{module_name(plugin.module)}.#{fun} returned " <>
+            "an unexpected value: #{inspect(term)}"
 
         {:error, message}
     end
+  rescue
+    exception -> handle_exception(exception, plugin.module, fun)
+  end
+
+  @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t()
+  defp handle_exception(exception, module, fun) do
+    ex_name = module_name(exception.__struct__)
+    ex_msg = Exception.message(exception)
+    msg = "#{ex_name} at #{module_name(module)}.#{fun}: #{ex_msg}"
+
+    {:error, msg}
+  end
+
+  @spec module_name(atom()) :: binary()
+  defp module_name(module) do
+    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end
