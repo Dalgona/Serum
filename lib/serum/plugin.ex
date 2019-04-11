@@ -355,6 +355,8 @@ defmodule Serum.Plugin do
 
   @spec update_agent([t()]) :: :ok
   defp update_agent(plugins) do
+    Agent.update(__MODULE__, fn _ -> %{} end)
+
     plugins
     |> Enum.map(fn plugin -> Enum.map(plugin.implements, &{&1, plugin}) end)
     |> List.flatten()
