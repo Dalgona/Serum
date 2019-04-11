@@ -7,6 +7,7 @@ defmodule Serum.SiteBuilder do
 
   use GenServer
   alias Serum.Build
+  alias Serum.Plugin
   alias Serum.Project
   alias Serum.Result
 
@@ -91,12 +92,13 @@ defmodule Serum.SiteBuilder do
   def handle_call(msg, from, state)
 
   def handle_call(:load_info, _from, state) do
-    case Project.Loader.load(state.src, state.dest) do
-      {:ok, proj} ->
-        {:reply, {:ok, proj}, %{state | project_info: proj}}
+    with {:ok, proj} <- Project.Loader.load(state.src, state.dest),
+         {:ok, plugins} <- Plugin.load_plugins(proj.plugins) do
+      print_plugins(plugins)
 
-      {:error, _} = error ->
-        {:reply, error, state}
+      {:reply, {:ok, proj}, %{state | project_info: proj}}
+    else
+      {:error, _} = error -> {:reply, error, state}
     end
   end
 
@@ -113,5 +115,24 @@ defmodule Serum.SiteBuilder do
 
   def handle_cast(:stop, _state) do
     exit(:normal)
+  end
+
+  @spec print_plugins([Plugin.t()]) :: :ok
+  defp print_plugins([]), do: :ok
+
+  defp print_plugins(plugins) do
+    IO.puts("\x1b[93m=== Loaded Plugins ===\x1b[0m")
+
+    Enum.each(plugins, fn plugin ->
+      mod_name =
+        plugin.module
+        |> to_string()
+        |> String.replace_prefix("Elixir.", "")
+
+      IO.puts("\x1b[1m#{plugin.name} v#{plugin.version}\x1b[0m (#{mod_name})")
+      IO.puts("    " <> plugin.description)
+    end)
+
+    IO.puts("")
   end
 end
