@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Serum do
   def run(_) do
     """
     #{@b}Serum -- Yet another simple static website generator
-    Version #{@version}. Copyright (C) 2018 Dalgona. <dalgona@hontou.moe>#{@r}
+    Version #{@version}. Copyright (C) 2019 Dalgona. <dalgona@hontou.moe>#{@r}
 
     Available tasks are:
     #{@c}mix serum          #{@r}# Prints this help message

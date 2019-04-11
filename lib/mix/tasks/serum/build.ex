@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Serum.Build do
 
     """
     #{A.bright()}Serum -- Yet another simple static website generator
-    Version #{@version}. Copyright (C) 2018 Dalgona. <dalgona@hontou.moe>
+    Version #{@version}. Copyright (C) 2019 Dalgona. <dalgona@hontou.moe>
     #{A.reset()}
     """
     |> String.trim_trailing()

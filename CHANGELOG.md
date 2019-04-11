@@ -1,15 +1,20 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v0.10.0 &mdash; 2019-04-12
 
 ### Fixed
 
 - `Serum.File.write/1` now properly closes a file. This problem caused the
   Serum development server to crash after dozens of project rebuilds.
+- Fixed a potential issue which can happen when building a newly created
+  Serum project.
 
 ### Added
 
 - Added support for Elixir-based project definition file (`serum.exs`).
+  `mix serum.new` now generates `serum.exs` instead of `serum.json`.
+- Added support for Serum plugins. Several basic plugins will be included
+  in later releases. :)
 
 ### Deprecated
 
