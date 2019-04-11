@@ -79,7 +79,7 @@ defmodule Serum.Project do
         map
     end
   rescue
-    _e in ArgumentError ->
+    ArgumentError ->
       warn("Invalid post list title format string `list_title_tag`.")
       warn("The default format string will be used instead.")
       Map.delete(map, "list_title_tag")

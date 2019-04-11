@@ -100,13 +100,7 @@ defmodule Serum.Project.Loader do
         {:error, {:project_validator, sub_errors}}
     end
   rescue
-    e in CompileError ->
-      {:error, {e.description, e.file, e.line}}
-
-    e in TokenMissingError ->
-      {:error, {e.description, e.file, e.line}}
-
-    e in SyntaxError ->
+    e in [CompileError, SyntaxError, TokenMissingError] ->
       {:error, {e.description, e.file, e.line}}
 
     e ->
