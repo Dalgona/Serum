@@ -4,10 +4,18 @@ defmodule Serum.Template.Compiler do
   """
 
   import Serum.Util
+  alias Serum.Plugin
   alias Serum.Result
   alias Serum.Template
 
   @type templates() :: %{optional(binary()) => Template.t()}
+
+  @inject """
+  <%
+  require Serum.Template.Helpers
+  import Serum.Template.Helpers
+  %>
+  """
 
   @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t(map())
   def compile_files(files, type) do
@@ -26,19 +34,17 @@ defmodule Serum.Template.Compiler do
   @spec compile_file(Serum.File.t(), Template.template_type()) ::
           Result.t({binary(), Template.t()})
   defp compile_file(file, type) do
-    path = file.src
-    name = Path.basename(path, ".html.eex")
+    injected_file = %Serum.File{file | in_data: @inject <> file.in_data}
 
-    inject = """
-    <%
-    require Serum.Template.Helpers
-    import Serum.Template.Helpers
-    %>
-    """
-
-    case compile_string(inject <> file.in_data, type) do
-      {:ok, ast} -> {:ok, {name, Template.new(ast, type, path)}}
-      {:ct_error, msg, line} -> {:error, {msg, path, line}}
+    with {:ok, file2} <- Plugin.processing_template(injected_file),
+         {:ok, ast} <- compile_string(file2.in_data, type),
+         template = Template.new(ast, type, file2.src),
+         name = Path.basename(file2.src, ".html.eex"),
+         {:ok, template2} <- Plugin.processed_template(template) do
+      {:ok, {name, template2}}
+    else
+      {:ct_error, msg, line} -> {:error, {msg, file.src, line}}
+      {:error, _} = plugin_error -> plugin_error
     end
   end
 

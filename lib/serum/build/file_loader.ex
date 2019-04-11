@@ -2,6 +2,7 @@ defmodule Serum.Build.FileLoader do
   @moduledoc false
 
   import Serum.Util
+  alias Serum.Plugin
   alias Serum.Project
   alias Serum.Result
 
@@ -31,7 +32,11 @@ defmodule Serum.Build.FileLoader do
 
     ["base", "list", "page", "post"]
     |> Enum.map(&Path.join(templates_dir, &1 <> ".html.eex"))
-    |> read_files()
+    |> Plugin.reading_templates()
+    |> case do
+      {:ok, files} -> read_files(files)
+      {:error, _} = plugin_error -> plugin_error
+    end
   end
 
   @spec load_includes(binary()) :: Result.t([Serum.File.t()])
@@ -43,9 +48,13 @@ defmodule Serum.Build.FileLoader do
     if File.exists?(includes_dir) do
       includes_dir
       |> File.ls!()
-      |> Stream.filter(&String.ends_with?(&1, ".html.eex"))
-      |> Stream.map(&Path.join(includes_dir, &1))
-      |> read_files()
+      |> Enum.filter(&String.ends_with?(&1, ".html.eex"))
+      |> Enum.map(&Path.join(includes_dir, &1))
+      |> Plugin.reading_templates()
+      |> case do
+        {:ok, files} -> read_files(files)
+        {:error, _} = plugin_error -> plugin_error
+      end
     else
       {:ok, []}
     end
@@ -61,7 +70,11 @@ defmodule Serum.Build.FileLoader do
       [pages_dir, "**", "*.{md,html,html.eex}"]
       |> Path.join()
       |> Path.wildcard()
-      |> read_files()
+      |> Plugin.reading_pages()
+      |> case do
+        {:ok, files} -> read_files(files)
+        {:error, _} = plugin_error -> plugin_error
+      end
     else
       {:error, {:enoent, pages_dir, 0}}
     end
@@ -78,7 +91,11 @@ defmodule Serum.Build.FileLoader do
       |> Path.join("*.md")
       |> Path.wildcard()
       |> Enum.sort()
-      |> read_files()
+      |> Plugin.reading_posts()
+      |> case do
+        {:ok, files} -> read_files(files)
+        {:error, _} = plugin_error -> plugin_error
+      end
     else
       warn("Cannot access `posts/'. No post will be generated.")
 
@@ -91,7 +108,7 @@ defmodule Serum.Build.FileLoader do
     (src == "." && subdir) || Path.join(src, subdir)
   end
 
-  @spec read_files(Enumerable.t()) :: Result.t([Serum.File.t()])
+  @spec read_files([binary()]) :: Result.t([Serum.File.t()])
   defp read_files(paths) do
     paths
     |> Stream.map(&%Serum.File{src: &1})

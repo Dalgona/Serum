@@ -4,6 +4,7 @@ defmodule Serum.Build.FileEmitter do
   """
 
   alias Serum.Fragment
+  alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
@@ -37,13 +38,14 @@ defmodule Serum.Build.FileEmitter do
 
     case Renderer.render_fragment(template, bindings) do
       {:ok, html} ->
-        {:ok,
-         %Serum.File{
-           src: fragment.file,
-           dest: fragment.output,
-           in_data: nil,
-           out_data: html
-         }}
+        file = %Serum.File{
+          src: fragment.file,
+          dest: fragment.output,
+          in_data: nil,
+          out_data: html
+        }
+
+        Plugin.rendered_page(file)
 
       {:error, _} = error ->
         error

@@ -5,6 +5,7 @@ defmodule Serum.Build.FileProcessor do
 
   alias Serum.GlobalBindings
   alias Serum.Page
+  alias Serum.Plugin
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
@@ -31,7 +32,7 @@ defmodule Serum.Build.FileProcessor do
          {:ok, posts} <- Task.await(post_task),
          tags = group_posts_by_tag(posts),
          tag_counts = get_tag_counts(tags),
-         lists = generate_lists(posts, tags, proj) do
+         {:ok, lists} <- generate_lists(posts, tags, proj) do
       GlobalBindings.put(:all_pages, pages)
       GlobalBindings.put(:all_posts, posts)
       GlobalBindings.put(:all_tags, tag_counts)
@@ -73,7 +74,7 @@ defmodule Serum.Build.FileProcessor do
 
   @spec process_page(Serum.File.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(file, proj) do
-    alias Serum.HeaderParser
+    import Serum.HeaderParser
 
     opts = [
       title: :string,
@@ -84,14 +85,15 @@ defmodule Serum.Build.FileProcessor do
 
     required = [:title]
 
-    case HeaderParser.parse_header(file.in_data, opts, required) do
-      {:ok, {header, rest_data}} ->
-        header = Map.put(header, :label, header[:label] || header.title)
+    with {:ok, file2} <- Plugin.processing_page(file),
+         {:ok, {header, rest}} <- parse_header(file2.in_data, opts, required) do
+      header = Map.put(header, :label, header[:label] || header.title)
+      page = Page.new(file2.src, header, rest, proj)
 
-        {:ok, Page.new(file.src, header, rest_data, proj)}
-
-      {:invalid, message} ->
-        {:error, {message, file.src, 0}}
+      Plugin.processed_page(page)
+    else
+      {:invalid, message} -> {:error, {message, file.src, 0}}
+      {:error, _} = plugin_error -> plugin_error
     end
   end
 
@@ -111,7 +113,7 @@ defmodule Serum.Build.FileProcessor do
 
   @spec process_post(Serum.File.t(), Project.t()) :: Result.t(Post.t())
   defp process_post(file, proj) do
-    alias Serum.HeaderParser
+    import Serum.HeaderParser
 
     opts = [
       title: :string,
@@ -121,21 +123,23 @@ defmodule Serum.Build.FileProcessor do
 
     required = [:title]
 
-    case HeaderParser.parse_header(file.in_data, opts, required) do
-      {:ok, {header, rest_data}} ->
-        header = %{
-          header
-          | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
-        }
+    with {:ok, file2} <- Plugin.processing_post(file),
+         {:ok, {header, rest}} <- parse_header(file2.in_data, opts, required) do
+      header = %{
+        header
+        | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
+      }
 
-        {:ok, Post.new(file.src, header, Earmark.as_html!(rest_data), proj)}
+      post = Post.new(file2.src, header, Earmark.as_html!(rest), proj)
 
-      {:invalid, message} ->
-        {:error, {message, file.src, 0}}
+      Plugin.processed_post(post)
+    else
+      {:invalid, message} -> {:error, {message, file.src, 0}}
+      {:error, _} = plugin_error -> plugin_error
     end
   end
 
-  @spec generate_lists([Post.t()], tag_group(), Project.t()) :: [[PostList.t()]]
+  @spec generate_lists([Post.t()], tag_group(), Project.t()) :: Result.t([[PostList.t()]])
   defp generate_lists(posts, tags, proj) do
     IO.puts("Generating post lists...")
 
@@ -144,6 +148,7 @@ defmodule Serum.Build.FileProcessor do
       PostList.generate(tag, posts, proj)
     end)
     |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values(:file_processor)
   end
 
   @spec group_posts_by_tag([Post.t()]) :: tag_group()

@@ -18,6 +18,7 @@ defmodule Serum.PostList do
   """
 
   alias Serum.Fragment
+  alias Serum.Plugin
   alias Serum.Post
   alias Serum.Renderer
   alias Serum.Result
@@ -35,6 +36,7 @@ defmodule Serum.PostList do
           next_url: binary() | nil,
           output: binary()
         }
+
   @type maybe_tag :: Tag.t() | nil
 
   defstruct [
@@ -49,27 +51,7 @@ defmodule Serum.PostList do
     :output
   ]
 
-  @spec generate(maybe_tag(), [Post.t()], map()) :: [t()]
-  def generate(tag, posts, proj)
-
-  def generate(tag, [], proj) do
-    list_dir = (tag && Path.join("tags", tag.name)) || "posts"
-
-    [
-      %__MODULE__{
-        tag: tag,
-        current_page: 1,
-        max_page: 1,
-        title: list_title(tag, proj),
-        posts: [],
-        url: Path.join([proj.base_url, list_dir, "page-1.html"]),
-        output: Path.join([proj.dest, list_dir, "page-1.html"]),
-        prev_url: nil,
-        next_url: nil
-      }
-    ]
-  end
-
+  @spec generate(maybe_tag(), [Post.t()], map()) :: Result.t([t()])
   def generate(tag, posts, proj) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
@@ -95,10 +77,14 @@ defmodule Serum.PostList do
         }
       end)
 
-    put_adjacent_urls([nil | lists], [])
+    [nil | lists]
+    |> put_adjacent_urls([])
+    |> Task.async_stream(&Plugin.processed_list/1)
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values(:generate_lists)
   end
 
-  @spec put_adjacent_urls([t()], [t()]) :: [t()]
+  @spec put_adjacent_urls([nil | t()], [t()]) :: [t()]
   defp put_adjacent_urls(lists, acc)
   defp put_adjacent_urls([_last], acc), do: Enum.reverse(acc)
 
@@ -116,6 +102,7 @@ defmodule Serum.PostList do
 
   @spec make_chunks([Post.t()], boolean(), pos_integer()) :: [[Post.t()]]
   defp make_chunks(posts, paginate?, num_posts)
+  defp make_chunks([], _, _), do: [[]]
   defp make_chunks(posts, false, _), do: [posts]
 
   defp make_chunks(posts, true, num_posts) do
@@ -154,7 +141,9 @@ defmodule Serum.PostList do
 
     case Renderer.render_fragment(template, bindings) do
       {:ok, html} ->
-        {:ok, Fragment.new(nil, post_list.output, metadata, html)}
+        fragment = Fragment.new(nil, post_list.output, metadata, html)
+
+        Plugin.rendered_fragment(fragment)
 
       {:error, _} = error ->
         error

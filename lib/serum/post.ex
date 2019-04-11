@@ -16,6 +16,7 @@ defmodule Serum.Post do
   """
 
   alias Serum.Fragment
+  alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
@@ -101,7 +102,9 @@ defmodule Serum.Post do
 
     case to_html(post, metadata, proj) do
       {:ok, html} ->
-        {:ok, Fragment.new(post.file, post.output, metadata, html)}
+        fragment = Fragment.new(post.file, post.output, metadata, html)
+
+        Plugin.rendered_fragment(fragment)
 
       {:error, _} = error ->
         error

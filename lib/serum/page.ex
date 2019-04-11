@@ -27,6 +27,7 @@ defmodule Serum.Page do
         }
 
   alias Serum.Fragment
+  alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
@@ -82,7 +83,9 @@ defmodule Serum.Page do
 
     with {:ok, temp} <- preprocess(page),
          {:ok, html} <- render(temp, metadata, proj) do
-      {:ok, Fragment.new(page.file, page.output, metadata, html)}
+      fragment = Fragment.new(page.file, page.output, metadata, html)
+
+      Plugin.rendered_fragment(fragment)
     else
       {:error, _} = error -> error
     end

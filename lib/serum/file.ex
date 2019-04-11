@@ -1,4 +1,5 @@
 defmodule Serum.File do
+  alias Serum.Plugin
   alias Serum.Result
 
   @moduledoc """
@@ -36,12 +37,12 @@ defmodule Serum.File do
 
   @doc "Writes data to a file described by the given `Serum.File` struct."
   @spec write(t()) :: Result.t()
-  def write(%__MODULE__{dest: dest, out_data: data}) do
-    with {:ok, file} <- File.open(dest, [:write, :utf8]),
-         :ok <- IO.write(file, data),
-         :ok <- File.close(file) do
+  def write(%__MODULE__{dest: dest, out_data: data} = file) do
+    with {:ok, pid} <- File.open(dest, [:write, :utf8]),
+         :ok <- IO.write(pid, data),
+         :ok <- File.close(pid),
+         :ok <- Plugin.wrote_file(file) do
       print_write(dest)
-      :ok
     else
       {:error, reason} -> {:error, {reason, dest, 0}}
     end

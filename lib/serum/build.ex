@@ -6,21 +6,31 @@ defmodule Serum.Build do
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
   alias Serum.Build.FragmentGenerator
+  alias Serum.Plugin
   alias Serum.Result
 
   @spec build(map()) :: Result.t(binary())
   def build(proj) do
-    with :ok <- check_tz(),
+    with :ok <- Plugin.build_started(proj.src, proj.dest),
+         :ok <- check_tz(),
          :ok <- check_dest_perm(proj.dest),
          :ok <- clean_dest(proj.dest),
          {:ok, files} <- FileLoader.load_files(proj),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
-         :ok <- FileEmitter.run(fragments) do
-      copy_assets(proj.src, proj.dest)
+         :ok <- FileEmitter.run(fragments),
+         :ok <- copy_assets(proj.src, proj.dest),
+         :ok <- Plugin.build_succeeded(proj.src, proj.dest),
+         :ok <- Plugin.finalizing(proj.src, proj.dest) do
       {:ok, proj.dest}
     else
-      {:error, _} = error -> error
+      {:error, _} = error ->
+        with :ok <- Plugin.build_failed(proj.src, proj.dest, error),
+             :ok <- Plugin.finalizing(proj.src, proj.dest) do
+          error
+        else
+          {:error, _} = plugin_error -> plugin_error
+        end
     end
   end
 
