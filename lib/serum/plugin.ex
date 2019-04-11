@@ -271,20 +271,50 @@ defmodule Serum.Plugin do
   @doc false
   @spec load_plugins([atom()]) :: Result.t([t()])
   def load_plugins(modules) do
-    all_plugins =
-      modules
-      |> Enum.uniq()
-      |> Enum.map(fn module ->
-        %__MODULE__{
-          module: module,
-          name: module.name(),
-          version: module.version(),
-          description: module.description(),
-          implements: module.implements()
-        }
-      end)
+    modules
+    |> Enum.uniq()
+    |> Enum.map(&make_plugin/1)
+    |> Result.aggregate_values(:load_plugins)
+    |> case do
+      {:ok, plugins} ->
+        update_agent(plugins)
 
-    all_plugins
+        {:ok, plugins}
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @spec make_plugin(atom()) :: Result.t(t())
+  defp make_plugin(module) do
+    version = Version.parse!(module.version())
+
+    plugin = %__MODULE__{
+      module: module,
+      name: module.name(),
+      version: version,
+      description: module.description(),
+      implements: module.implements()
+    }
+
+    {:ok, plugin}
+  rescue
+    exception ->
+      ex_name =
+        exception.__struct__
+        |> to_string()
+        |> String.replace_prefix("Elixir.", "")
+
+      ex_msg = Exception.message(exception)
+      msg = "#{ex_name} while loading plugin (module: #{module}): #{ex_msg}"
+
+      {:error, msg}
+  end
+
+  @spec update_agent([t()]) :: :ok
+  defp update_agent(plugins) do
+    plugins
     |> Enum.map(fn plugin -> Enum.map(plugin.implements, &{&1, plugin}) end)
     |> List.flatten()
     |> Enum.each(fn {fun, plugin} ->
@@ -296,10 +326,6 @@ defmodule Serum.Plugin do
     Agent.update(__MODULE__, fn state ->
       for {key, value} <- state, into: %{}, do: {key, Enum.reverse(value)}
     end)
-
-    {:ok, all_plugins}
-  rescue
-    e in UndefinedFunctionError -> {:error, Exception.message(e)}
   end
 
   @doc false
