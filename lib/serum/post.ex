@@ -50,7 +50,7 @@ defmodule Serum.Post do
 
   @spec new(binary(), map(), binary(), map()) :: t()
   def new(path, header, html, proj) do
-    tags = Tag.batch_create(header[:tags], proj)
+    tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
     raw_date = datetime |> Timex.to_erl()

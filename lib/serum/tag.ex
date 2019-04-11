@@ -1,7 +1,10 @@
 defmodule Serum.Tag do
   @moduledoc "This module defines Tag struct."
 
-  @type t :: %__MODULE__{}
+  @type t :: %__MODULE__{
+          name: binary(),
+          list_url: binary()
+        }
 
   defstruct [:name, :list_url]
 
@@ -13,13 +16,8 @@ defmodule Serum.Tag do
     }
   end
 
-  @spec batch_create([binary()] | nil, map()) :: [t()]
-  def batch_create(names, proj)
-
-  def batch_create(nil, _proj), do: []
-  def batch_create([], _proj), do: []
-
-  def batch_create([_h | _t] = names, proj) do
+  @spec batch_create([binary()], map()) :: [t()]
+  def batch_create(names, proj) do
     names |> Enum.sort() |> Enum.map(&new(&1, proj))
   end
 end

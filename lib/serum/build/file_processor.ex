@@ -10,6 +10,7 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.PostList
   alias Serum.Project
   alias Serum.Result
+  alias Serum.Tag
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
