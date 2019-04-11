@@ -3,6 +3,8 @@ defmodule Serum.DummyPlugin2 do
 
   def name, do: "dummy_plugin_2"
   def version, do: "0.0.1"
+  def elixir, do: ">= 1.6.0"
+  def serum, do: "~> 0.9.0"
   def description, do: "This is dummy plugin no. 2"
 
   def implements do

@@ -18,6 +18,8 @@ defmodule Serum.Plugin do
 
   - `name/0`
   - `version/0`
+  - `elixir/0`
+  - `serum/0`
   - `description/0`
   - `implements/0`
 
@@ -30,9 +32,9 @@ defmodule Serum.Plugin do
   To enable Serum plugins, add a `plugins` key to your `serum.exs`(if it does
   not exist), and put names of Serum plugin modules there.
 
-  The order of plugins is important, as Serum will call plugins one by one, from
-  the first item to the last one. Therefore these two configurations below may
-  produce different results.
+  The order of plugins is important, as Serum will call plugins one by one,
+  from the first item to the last one. Therefore these two configurations below
+  may produce different results.
 
   Configuration 1:
 
@@ -54,6 +56,8 @@ defmodule Serum.Plugin do
   """
 
   use Agent
+  require Serum.Util
+  import Serum.Util
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
@@ -92,6 +96,8 @@ defmodule Serum.Plugin do
     finalizing: 2
   ]
 
+  @serum_version Version.parse!(Mix.Project.config()[:version])
+  @elixir_version Version.parse!(System.version())
   @required_msg "You must implement this callback, or the plugin may fail."
 
   #
@@ -113,6 +119,26 @@ defmodule Serum.Plugin do
   #{@required_msg}
   """
   @callback version() :: binary()
+
+  @doc """
+  Returns the version requirement of Elixir.
+
+  Refer to [this document](https://hexdocs.pm/elixir/Version.html#module-requirements)
+  for the string format.
+
+  #{@required_msg}
+  """
+  @callback elixir() :: binary()
+
+  @doc """
+  Returns the version requirement of Serum.
+
+  Refer to [this document](https://hexdocs.pm/elixir/Version.html#module-requirements)
+  for the string format.
+
+  #{@required_msg}
+  """
+  @callback serum() :: binary()
 
   @doc """
   Returns the short description of the plugin.
@@ -288,11 +314,30 @@ defmodule Serum.Plugin do
 
   @spec make_plugin(atom()) :: Result.t(t())
   defp make_plugin(module) do
+    name = module.name()
     version = Version.parse!(module.version())
+    elixir = module.elixir()
+    serum = module.serum()
+
+    unless Version.match?(@elixir_version, elixir) do
+      warn(
+        "The plugin \"#{name}\" is not compatible with " <>
+          "the current version of Elixir(#{@elixir_version}). " <>
+          "This plugin may not work as intended."
+      )
+    end
+
+    unless Version.match?(@serum_version, serum) do
+      warn(
+        "The plugin \"#{name}\" is not compatible with " <>
+          "the current version of Serum(#{@serum_version}). " <>
+          "This plugin may not work as intended."
+      )
+    end
 
     plugin = %__MODULE__{
       module: module,
-      name: module.name(),
+      name: name,
       version: version,
       description: module.description(),
       implements: module.implements()
