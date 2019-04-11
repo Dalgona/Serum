@@ -18,7 +18,8 @@ defmodule Serum.Project do
             posts_per_page: 5,
             preview_length: 200,
             src: nil,
-            dest: nil
+            dest: nil,
+            plugins: []
 
   @type t :: %__MODULE__{
           src: binary(),
@@ -34,7 +35,8 @@ defmodule Serum.Project do
           list_title_tag: binary(),
           pagination: boolean(),
           posts_per_page: pos_integer(),
-          preview_length: non_neg_integer()
+          preview_length: non_neg_integer(),
+          plugins: [atom()]
         }
 
   @doc "A helper function for creating a new Project struct."

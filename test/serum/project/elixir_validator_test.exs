@@ -41,7 +41,8 @@ defmodule Serum.Project.ElixirValidatorTest do
           list_title_tag: "Posts about ~s",
           pagination: true,
           posts_per_page: 10,
-          preview_length: 200
+          preview_length: 200,
+          plugins: [Serum.TestPlugin1, Serum.TestPlugin2]
         })
 
       assert :ok = validate(map)

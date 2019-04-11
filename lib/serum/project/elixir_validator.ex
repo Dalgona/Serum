@@ -15,7 +15,8 @@ defmodule Serum.Project.ElixirValidator do
     :list_title_tag,
     :pagination,
     :posts_per_page,
-    :preview_length
+    :preview_length,
+    :plugins
   ]
 
   @required_keys [
@@ -119,7 +120,8 @@ defmodule Serum.Project.ElixirValidator do
         list_title_tag: [is_binary: []],
         pagination: [is_boolean: []],
         posts_per_page: [is_integer: [], >=: [1]],
-        preview_length: [is_integer: [], >=: [0]]
+        preview_length: [is_integer: [], >=: [0]],
+        plugins: [is_list: []]
       ]
     end
 
