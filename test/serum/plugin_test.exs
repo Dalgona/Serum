@@ -8,10 +8,11 @@ defmodule Serum.PluginTest do
   alias Serum.PostList
   alias Serum.Template
 
-  priv_dir = :serum |> :code.priv_dir() |> IO.iodata_to_binary()
-
-  1..3
-  |> Enum.map(&Path.join(priv_dir, "test_plugins/dummy_plugin_#{&1}.ex"))
+  :serum
+  |> :code.priv_dir()
+  |> IO.iodata_to_binary()
+  |> Path.join("test_plugins/*plugin*.ex")
+  |> Path.wildcard()
   |> Enum.each(&Code.require_file/1)
 
   test "load_plugins/1" do
@@ -54,5 +55,14 @@ defmodule Serum.PluginTest do
     assert :ok = finalizing("/src", "/dest")
 
     Agent.update(Serum.Plugin, fn _ -> %{} end)
+  end
+
+  test "incompatible plugin" do
+    output =
+      ExUnit.CaptureIO.capture_io(:stderr, fn ->
+        {:ok, _} = load_plugins([Serum.IncompatiblePlugin])
+      end)
+
+    assert String.contains?(output, "not compatible")
   end
 end
