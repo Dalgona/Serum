@@ -1,5 +1,12 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Added
+
+- Serum now ships with "Table of Contents" plugin. More of essential plugins
+  are coming in the future!
+
 ## v0.10.0 &mdash; 2019-04-12
 
 ### Fixed
