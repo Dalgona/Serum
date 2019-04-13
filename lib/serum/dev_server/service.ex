@@ -82,8 +82,18 @@ defmodule Serum.DevServer.Service do
   @doc false
   def handle_info(msg, state)
 
-  def handle_info({:file_event, pid, _}, %{watcher: pid} = state) do
-    {:noreply, %{state | is_dirty: true}}
+  def handle_info({:file_event, pid, {path, _}}, %{watcher: pid} = state) do
+    ignore? =
+      path
+      |> Path.relative_to(state.dir)
+      |> Path.split()
+      |> Enum.any?(&dotfile?/1)
+
+    if ignore? do
+      {:noreply, state}
+    else
+      {:noreply, %{state | is_dirty: true}}
+    end
   end
 
   def handle_info({:file_event, pid, :stop}, %{watcher: pid} = state) do
@@ -100,6 +110,12 @@ defmodule Serum.DevServer.Service do
     end
   end
 
+  @spec dotfile?(binary()) :: boolean()
+  defp dotfile?(item)
+  defp dotfile?(<<?.::8, _::binary>>), do: true
+  defp dotfile?(_), do: false
+
+  @spec build_failed(Result.t()) :: :ok
   defp build_failed(error) do
     Result.show(error)
     warn("Error occurred while building the website.")
