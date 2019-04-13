@@ -21,7 +21,16 @@ defmodule Serum.DevServer do
       {:ok, proj} ->
         base = proj.base_url
         ms_callbacks = [Microscope.Logger, AutoBuilder]
-        ms_options = [port: port, base: base, callbacks: ms_callbacks]
+
+        ms_options = [
+          port: port,
+          base: base,
+          callbacks: ms_callbacks,
+          index: true,
+          extra_routes: [
+            {"/serum_live_reloader", Serum.DevServer.LiveReloadHandler, nil}
+          ]
+        ]
 
         children = [
           worker(Service, [pid_builder, dir, site, port]),

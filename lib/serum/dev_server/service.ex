@@ -36,6 +36,10 @@ defmodule Serum.DevServer.Service do
   @spec port() :: pos_integer
   def port, do: GenServer.call(__MODULE__, :port)
 
+  @doc "Returns the pid of file system watcher process."
+  @spec fs_watcher() :: pid
+  def fs_watcher, do: GenServer.call(__MODULE__, :fs_watcher)
+
   @doc "Checks if the source directory is marked as dirty."
   @spec dirty?() :: boolean
   def dirty?, do: GenServer.call(__MODULE__, :is_dirty)
@@ -75,6 +79,7 @@ defmodule Serum.DevServer.Service do
   def handle_call(:source_dir, _from, state), do: {:reply, state.dir, state}
   def handle_call(:site_dir, _from, state), do: {:reply, state.site, state}
   def handle_call(:port, _from, state), do: {:reply, state.portnum, state}
+  def handle_call(:fs_watcher, _from, state), do: {:reply, state.watcher, state}
 
   def handle_call(:is_dirty, _from, state),
     do: {:reply, state.is_dirty, %{state | is_dirty: false}}
@@ -82,22 +87,12 @@ defmodule Serum.DevServer.Service do
   @doc false
   def handle_info(msg, state)
 
-  def handle_info({:file_event, pid, {path, _}}, %{watcher: pid} = state) do
-    ignore? =
-      path
-      |> Path.relative_to(state.dir)
-      |> Path.split()
-      |> Enum.any?(&dotfile?/1)
-
-    if ignore? do
-      {:noreply, state}
-    else
-      {:noreply, %{state | is_dirty: true}}
-    end
-  end
-
   def handle_info({:file_event, pid, :stop}, %{watcher: pid} = state) do
     {:noreply, state}
+  end
+
+  def handle_info({:file_event, pid, _}, %{watcher: pid} = state) do
+    {:noreply, %{state | is_dirty: true}}
   end
 
   @spec do_rebuild(pid) :: :ok
@@ -109,11 +104,6 @@ defmodule Serum.DevServer.Service do
       {:error, _} = error -> build_failed(error)
     end
   end
-
-  @spec dotfile?(binary()) :: boolean()
-  defp dotfile?(item)
-  defp dotfile?(<<?.::8, _::binary>>), do: true
-  defp dotfile?(_), do: false
 
   @spec build_failed(Result.t()) :: :ok
   defp build_failed(error) do
