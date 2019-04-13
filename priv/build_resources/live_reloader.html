@@ -1,0 +1,23 @@
+<script>
+const ws_url = "ws://" + location.host + "/serum_live_reloader";
+var ws;
+
+connect();
+
+function connect() {
+  ws = new WebSocket(ws_url);
+  ws.onmessage = onMessage;
+  ws.onclose = onClose;
+}
+
+function onMessage(e) {
+  if (e.data === "reload") {
+    location.reload(true);
+  }
+}
+
+function onClose(e) {
+  console.warn("WebSocket disconnected from server. Reconnecting in 10 seconds.");
+  setTimeout(connect, 10000)
+}
+</script>

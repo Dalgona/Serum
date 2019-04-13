@@ -3,11 +3,18 @@ defmodule Serum.Build.FileEmitter do
   Renders each fragment into a full HTML page and writes to a file.
   """
 
+  alias Serum.DevServer.Service
   alias Serum.Fragment
   alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
+
+  @live_reloader_snippet :serum
+                         |> :code.priv_dir()
+                         |> IO.iodata_to_binary()
+                         |> Path.join("build_resources/live_reloader.html")
+                         |> File.read!()
 
   @spec run([Fragment.t()]) :: Result.t()
   def run(fragments) do
@@ -42,7 +49,7 @@ defmodule Serum.Build.FileEmitter do
           src: fragment.file,
           dest: fragment.output,
           in_data: nil,
-          out_data: html
+          out_data: with_live_reloader(html)
         }
 
         Plugin.rendered_page(file)
@@ -62,5 +69,15 @@ defmodule Serum.Build.FileEmitter do
       File.mkdir_p!(dir)
       IO.puts("\x1b[96m MKDIR \x1b[0m#{dir}")
     end)
+  end
+
+  @spec with_live_reloader(binary()) :: binary()
+  defp with_live_reloader(html) do
+    with pid when is_pid(pid) <- Process.whereis(Service),
+         true <- Process.alive?(pid) do
+      html <> @live_reloader_snippet
+    else
+      _ -> html
+    end
   end
 end
