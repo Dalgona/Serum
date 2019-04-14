@@ -1,14 +1,19 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v0.11.0 &mdash; 2019-04-14
 
 ### Added
 
 - Serum now ships with "Table of Contents" plugin. More of essential plugins
   are coming in the future!
+- Added a live reloader script injector plugin to support the Serum development
+  server. This plugin is set to run only if `Mix.env() == :dev` when you create
+  a new Serum project from now on.
 
 ### Changed
 
+- You can now let Serum plugins be loaded only in specified Mix environments.
+  Please refer to the module documentation of `Serum.Plugin` for details.
 - The Serum development server now automatically rebuilds your project when
   the source code has changed, and signals any open web browers to reload the
   page. Your web browser must support the WebSocket API.
