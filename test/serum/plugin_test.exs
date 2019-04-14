@@ -57,6 +57,19 @@ defmodule Serum.PluginTest do
     Agent.update(Serum.Plugin, fn _ -> %{} end)
   end
 
+  test "env filter" do
+    plugins = [
+      Serum.DummyPlugin1,
+      {Serum.DummyPlugin2, only: :test},
+      {Serum.DummyPlugin3, only: [:dev, :prod]}
+    ]
+
+    {:ok, loaded} = load_plugins(plugins)
+    loaded_mods = Enum.map(loaded, & &1.module)
+
+    assert [Serum.DummyPlugin1, Serum.DummyPlugin2] == loaded_mods
+  end
+
   test "incompatible plugin" do
     output =
       ExUnit.CaptureIO.capture_io(:stderr, fn ->

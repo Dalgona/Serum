@@ -32,6 +32,25 @@ defmodule Serum.Plugin do
   To enable Serum plugins, add a `plugins` key to your `serum.exs`(if it does
   not exist), and put names of Serum plugin modules there.
 
+      %{
+        plugins: [
+          Awesome.Serum.Plugin,
+          Great.Serum.Plugin
+        ]
+      }
+
+  You can also restrict some plugins to run only in specific Mix environments.
+  For example, if plugins are configured like the code below, only
+  `Awesome.Serum.Plugin` plugin will be loaded when `MIX_ENV` is set to `prod`.
+
+      %{
+        plugins: [
+          Awesome.Serum.Plugin,
+          {Great.Serum.Plugin, only: :dev},
+          {Another.Serum.Plugin, only: [:dev, :test]}
+        ]
+      }
+
   The order of plugins is important, as Serum will call plugins one by one,
   from the first item to the last one. Therefore these two configurations below
   may produce different results.
@@ -75,6 +94,8 @@ defmodule Serum.Plugin do
           description: binary(),
           implements: [atom()]
         }
+
+  @type plugin_spec :: atom() | {atom(), atom() | [atom()]}
 
   @optional_callbacks [
     build_started: 2,
@@ -295,10 +316,12 @@ defmodule Serum.Plugin do
   end
 
   @doc false
-  @spec load_plugins([atom()]) :: Result.t([t()])
+  @spec load_plugins([plugin_spec()]) :: Result.t([t()])
   def load_plugins(modules) do
     modules
-    |> Enum.uniq()
+    |> Stream.filter(&env_matches?/1)
+    |> Stream.map(&from_spec/1)
+    |> Stream.uniq()
     |> Enum.map(&make_plugin/1)
     |> Result.aggregate_values(:load_plugins)
     |> case do
@@ -311,6 +334,25 @@ defmodule Serum.Plugin do
         error
     end
   end
+
+  @spec env_matches?(plugin_spec()) :: boolean()
+  defp env_matches?(plugin_spec)
+  defp env_matches?(mod) when is_atom(mod), do: true
+
+  defp env_matches?({mod, only: env}) when is_atom(mod) and is_atom(env) do
+    Mix.env() == env
+  end
+
+  defp env_matches?({mod, only: envs}) when is_atom(mod) and is_list(envs) do
+    Mix.env() in envs
+  end
+
+  defp env_matches?(_), do: false
+
+  @spec from_spec(plugin_spec()) :: atom()
+  defp from_spec(plugin_spec)
+  defp from_spec({mod, _}), do: mod
+  defp from_spec(x), do: x
 
   @spec make_plugin(atom()) :: Result.t(t())
   defp make_plugin(module) do
