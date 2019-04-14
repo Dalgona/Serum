@@ -30,11 +30,15 @@ defmodule Serum.DevServer.LiveReloadHandler do
   @impl true
   def websocket_info(message, state)
 
+  def websocket_info(:send_reload, state) do
+    {:reply, {:text, "reload"}, state}
+  end
+
   def websocket_info(_, state), do: {:ok, state}
 
   @impl true
-  def terminate(reason, _mini_req, _state) do
-    warn("Live Reloader: WebSocket disconnected: #{inspect(reason)}")
+  def terminate(_reason, _mini_req, _state) do
+    warn("Live Reloader: WebSocket disconnected.")
 
     :ok
   end
