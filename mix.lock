@@ -19,7 +19,7 @@
   "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
   "jsx": {:hex, :jsx, "2.8.3", "a05252d381885240744d955fbe3cf810504eb2567164824e19303ea59eef62cf", [:mix, :rebar3], [], "hexpm"},
   "metrics": {:hex, :metrics, "1.0.1", "25f094dea2cda98213cecc3aeff09e940299d950904393b2a29d191c346a8486", [:rebar3], [], "hexpm"},
-  "microscope": {:hex, :microscope, "1.1.1", "67809d61fac78ecca0d922e0ec2b5380ec94506c80f20b08ce03060c77e89f6d", [:mix], [{:cowboy, "~> 2.6.1", [hex: :cowboy, repo: "hexpm", optional: false]}, {:mime, "~> 1.3", [hex: :mime, repo: "hexpm", optional: false]}], "hexpm"},
+  "microscope": {:hex, :microscope, "1.2.0", "8a8df61936db568ee67e4bf13ced0bf21e72570bfdccc46be71cd02b1d5ec98d", [:mix], [{:cowboy, "~> 2.6", [hex: :cowboy, repo: "hexpm", optional: false]}, {:mime, "~> 1.3", [hex: :mime, repo: "hexpm", optional: false]}], "hexpm"},
   "mime": {:hex, :mime, "1.3.1", "30ce04ab3175b6ad0bdce0035cba77bba68b813d523d1aac73d9781b4d193cf8", [:mix], [], "hexpm"},
   "mimerl": {:hex, :mimerl, "1.0.2", "993f9b0e084083405ed8252b99460c4f0563e41729ab42d9074fd5e52439be88", [:rebar3], [], "hexpm"},
   "mochiweb": {:hex, :mochiweb, "2.18.0", "eb55f1db3e6e960fac4e6db4e2db9ec3602cc9f30b86cd1481d56545c3145d2e", [:rebar3], [], "hexpm"},
