@@ -36,10 +36,6 @@ defmodule Serum.DevServer.Service do
   @spec port() :: pos_integer
   def port, do: GenServer.call(__MODULE__, :port)
 
-  @doc "Returns the pid of file system watcher process."
-  @spec fs_watcher() :: pid
-  def fs_watcher, do: GenServer.call(__MODULE__, :fs_watcher)
-
   @doc "Checks if the source directory is marked as dirty."
   @spec dirty?() :: boolean
   def dirty?, do: GenServer.call(__MODULE__, :is_dirty)
@@ -79,7 +75,6 @@ defmodule Serum.DevServer.Service do
   def handle_call(:source_dir, _from, state), do: {:reply, state.dir, state}
   def handle_call(:site_dir, _from, state), do: {:reply, state.site, state}
   def handle_call(:port, _from, state), do: {:reply, state.portnum, state}
-  def handle_call(:fs_watcher, _from, state), do: {:reply, state.watcher, state}
 
   def handle_call(:is_dirty, _from, state),
     do: {:reply, state.is_dirty, %{state | is_dirty: false}}

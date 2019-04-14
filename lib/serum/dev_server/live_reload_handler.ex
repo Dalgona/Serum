@@ -15,7 +15,6 @@ defmodule Serum.DevServer.LiveReloadHandler do
   @impl true
   def websocket_init(state) do
     warn("Live Reloader: WebSocket connected.")
-    FileSystem.subscribe(Service.fs_watcher())
 
     {:ok, state}
   end
@@ -30,23 +29,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
   @impl true
   def websocket_info(message, state)
 
-  def websocket_info({:file_event, _pid, {path, _events}}, state) do
-    ignore? =
-      path
-      |> Path.relative_to(Service.source_dir())
-      |> Path.split()
-      |> Enum.any?(&dotfile?/1)
-
-    if ignore? do
-      {:ok, state}
-    else
-      {:reply, {:text, "reload"}, state}
-    end
-  end
-
-  def websocket_info({:file_event, _pid, :stop}, state) do
-    {:ok, state}
-  end
+  def websocket_info(_, state), do: {:ok, state}
 
   @impl true
   def terminate(reason, _mini_req, _state) do
@@ -54,9 +37,4 @@ defmodule Serum.DevServer.LiveReloadHandler do
 
     :ok
   end
-
-  @spec dotfile?(binary()) :: boolean()
-  defp dotfile?(item)
-  defp dotfile?(<<?.::8, _::binary>>), do: true
-  defp dotfile?(_), do: false
 end
