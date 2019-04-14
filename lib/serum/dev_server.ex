@@ -1,7 +1,7 @@
 defmodule Serum.DevServer do
   @moduledoc "Starts and manages the Serum development server."
 
-  alias Serum.DevServer.{AutoBuilder, Looper, Service}
+  alias Serum.DevServer.{Looper, Service}
   alias Serum.Result
   alias Serum.SiteBuilder
 
@@ -20,7 +20,7 @@ defmodule Serum.DevServer do
 
       {:ok, proj} ->
         base = proj.base_url
-        ms_callbacks = [Microscope.Logger, AutoBuilder]
+        ms_callbacks = [Microscope.Logger]
 
         ms_options = [
           port: port,
