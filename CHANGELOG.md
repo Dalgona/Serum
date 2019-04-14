@@ -7,6 +7,12 @@
 - Serum now ships with "Table of Contents" plugin. More of essential plugins
   are coming in the future!
 
+### Changed
+
+- The Serum development server now automatically rebuilds your project when
+  the source code has changed, and signals any open web browers to reload the
+  page. Your web browser must support the WebSocket API.
+
 ## v0.10.0 &mdash; 2019-04-12
 
 ### Fixed
