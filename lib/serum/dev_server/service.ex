@@ -40,6 +40,10 @@ defmodule Serum.DevServer.Service do
   @spec dirty?() :: boolean
   def dirty?, do: GenServer.call(__MODULE__, :is_dirty)
 
+  @doc "Subscribes to this GenServer for notifications."
+  @spec subscribe() :: :ok
+  def subscribe, do: GenServer.call(__MODULE__, :subscribe)
+
   #
   # GenServer Implementation - Server
   #
@@ -54,7 +58,8 @@ defmodule Serum.DevServer.Service do
       dir: dir,
       site: site,
       portnum: portnum,
-      is_dirty: false
+      is_dirty: false,
+      subscribers: %{}
     }
 
     do_rebuild(builder)
@@ -79,6 +84,13 @@ defmodule Serum.DevServer.Service do
   def handle_call(:is_dirty, _from, state),
     do: {:reply, state.is_dirty, %{state | is_dirty: false}}
 
+  def handle_call(:subscribe, {caller, _}, state) do
+    ref = Process.monitor(caller)
+    state2 = %{state | subscribers: Map.put(state.subscribers, ref, caller)}
+
+    {:reply, :ok, state2}
+  end
+
   @doc false
   def handle_info(msg, state)
 
@@ -86,8 +98,8 @@ defmodule Serum.DevServer.Service do
     {:noreply, state}
   end
 
-  def handle_info({:file_event, pid, _}, %{watcher: pid} = state) do
-    {:noreply, %{state | is_dirty: true}}
+  def handle_info({:DOWN, ref, :process, _, _}, state) do
+    {:noreply, %{state | subscribers: Map.delete(state.subscribers, ref)}}
   end
 
   @spec do_rebuild(pid) :: :ok

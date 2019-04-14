@@ -15,6 +15,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
   @impl true
   def websocket_init(state) do
     warn("Live Reloader: WebSocket connected.")
+    Service.subscribe()
 
     {:ok, state}
   end
