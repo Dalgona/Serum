@@ -5,5 +5,7 @@
   base_url: "/",
   author: "John Doe",
   author_email: "john.doe@example.com",
-  plugins: []
+  plugins: [
+    {Serum.Plugins.LiveReloader, only: :dev}
+  ]
 }
