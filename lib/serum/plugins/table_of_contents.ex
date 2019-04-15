@@ -130,7 +130,7 @@ defmodule Serum.Plugins.TableOfContents do
   defp traverse({tag, attrs, children}, state, fun) do
     {new_children, new_state} = traverse(children, state, fun)
 
-    fun.({tag, attrs, Enum.reverse(new_children)}, new_state)
+    fun.({tag, attrs, new_children}, new_state)
   end
 
   defp traverse([_ | _] = tags, state, fun) do
