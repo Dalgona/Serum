@@ -1,5 +1,7 @@
 defmodule Serum.DevServer.LiveReloadHandler do
-  @moduledoc false
+  @moduledoc """
+  A Cowboy Websocket handler that sends signals to clients on file events.
+  """
 
   @behaviour :cowboy_websocket
 

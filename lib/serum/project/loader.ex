@@ -1,5 +1,7 @@
 defmodule Serum.Project.Loader do
-  @moduledoc false
+  @moduledoc """
+  A module for loading Serum project definition files.
+  """
 
   require Serum.Util
   import Serum.Util
@@ -9,6 +11,12 @@ defmodule Serum.Project.Loader do
   alias Serum.Project.JsonValidator
   alias Serum.Result
 
+  @doc """
+  Detects and loads Serum project definition file from the source directory.
+
+  This function first looks for `serum.exs`. If it does not exist, it checks if
+  `serum.json` exists. If none of them exists, an error is returned.
+  """
   @spec load(binary(), binary()) :: Result.t(Project.t())
   def load(src, dest) do
     case do_load(src) do

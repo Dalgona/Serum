@@ -1,5 +1,7 @@
 defmodule Serum.Project.ElixirValidator do
-  @moduledoc false
+  @moduledoc """
+  A module for validation of Serum project definition data.
+  """
 
   @type result() :: :ok | {:invalid, binary()} | {:invalid, [binary()]}
 

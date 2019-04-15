@@ -1,5 +1,7 @@
 defmodule Serum.Build do
-  @moduledoc "Defines the overall site build procedure."
+  @moduledoc """
+  A module for managing the overall project build procedure.
+  """
 
   import Serum.Util
   alias Serum.Build.FileEmitter
@@ -9,6 +11,32 @@ defmodule Serum.Build do
   alias Serum.Plugin
   alias Serum.Result
 
+  @doc """
+  Builds the given Serum project.
+
+  ## Build Procedure
+
+  1. Checks if the system timezone is properly set.
+
+      Timex requires the local timezone information to format the date/time
+      string. If it's not set or invalid, Timex will fail.
+
+  2. Checks if the current user has enough permission on the destination
+    directory and cleans it if it already exists.
+
+  3. Loads source files. See `Serum.Build.FileLoader`.
+
+  4. Processes source files and produces intermediate data structures.
+    See `Serum.Build.FileProcessor`.
+
+  5. Generates HTML fragments from the intermediate data.
+    See `Serum.Build.FragmentGenerator`.
+
+  6. Renders full HTML pages from fragments and writes them to files.
+    See `Serum.Build.FileEmitter`.
+
+  7. Copies `assets/` and `media/` directories if they exist.
+  """
   @spec build(map()) :: Result.t(binary())
   def build(proj) do
     with :ok <- Plugin.build_started(proj.src, proj.dest),

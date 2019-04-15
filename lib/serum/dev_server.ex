@@ -1,10 +1,15 @@
 defmodule Serum.DevServer do
-  @moduledoc "Starts and manages the Serum development server."
+  @moduledoc """
+  The Serum development server.
+  """
 
   alias Serum.DevServer.{Looper, Service}
   alias Serum.Result
   alias Serum.SiteBuilder
 
+  @doc """
+  Starts the Serum development server.
+  """
   @spec run(binary, pos_integer) :: no_return()
   def run(dir, port) do
     import Supervisor.Spec

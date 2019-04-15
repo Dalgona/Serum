@@ -17,6 +17,12 @@ defmodule Serum.Template.Compiler do
   %>
   """
 
+  @doc """
+  Compiles a list of template files.
+
+  A code that requires and imports `Serum.Template.Helpers` is injected before
+  the input data.
+  """
   @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t(map())
   def compile_files(files, type) do
     result =
@@ -48,6 +54,9 @@ defmodule Serum.Template.Compiler do
     end
   end
 
+  @doc """
+  Compiles the given EEx string.
+  """
   @spec compile_string(binary(), Template.template_type()) ::
           {:ok, Macro.t()}
           | {:ct_error, binary, integer}

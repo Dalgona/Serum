@@ -1,6 +1,11 @@
 defmodule Serum.Project.JsonValidator do
   @moduledoc """
   This module provides functions related to validating project JSON files.
+
+  ## Note
+
+  JSON format of Serum project definition is deprecated in favor of the
+  Elixir-based format.
   """
 
   alias ExJsonSchema.Schema

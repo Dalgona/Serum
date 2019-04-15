@@ -1,7 +1,4 @@
 defmodule Serum.File do
-  alias Serum.Plugin
-  alias Serum.Result
-
   @moduledoc """
   Defines a struct representing a file to be read or written.
 
@@ -12,6 +9,9 @@ defmodule Serum.File do
   * `in_data`: Data read from a file
   * `out_data`: Data to be written to a file
   """
+
+  alias Serum.Plugin
+  alias Serum.Result
 
   defstruct [:src, :dest, :in_data, :out_data]
 
