@@ -13,7 +13,10 @@ defmodule Serum.Mixfile do
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: preferred_cli_env(),
       deps: deps(),
-      package: package()
+      package: package(),
+      docs: [
+        main: "Serum"
+      ]
     ]
   end
 
@@ -32,7 +35,7 @@ defmodule Serum.Mixfile do
 
   defp deps do
     [
-      {:earmark, "~> 1.2"},
+      {:earmark, "~> 1.3"},
       {:poison, "~> 3.1"},
       {:file_system, "~> 0.2.6"},
       {:microscope, "1.2.0"},
@@ -41,7 +44,8 @@ defmodule Serum.Mixfile do
       {:credo, "~> 1.0", only: [:dev, :test]},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
-      {:floki, "~> 0.20"}
+      {:floki, "~> 0.20"},
+      {:ex_doc, "~> 0.20", only: :dev, runtime: false}
     ]
   end
 
