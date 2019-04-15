@@ -36,7 +36,7 @@ defmodule Serum.Plugins.LiveReloader do
       "all HTML files for use in the Serum development server."
   end
 
-  def implements(),
+  def implements,
     do: [
       :rendered_page
     ]
