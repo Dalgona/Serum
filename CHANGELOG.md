@@ -1,5 +1,18 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Fixed
+
+- Fixed a problem that `Serum.Plugins.TableOfContents` can generate reversed
+  HTML trees.
+- Changed the script injected by `Serum.Plugin.LiveReloader` so that the scroll
+  offset is preserved after page reloads.
+
+### Changed
+
+- Serum now requires Elixir v1.7.0 or newer.
+
 ## v0.11.0 &mdash; 2019-04-14
 
 ### Added
