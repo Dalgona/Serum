@@ -4,6 +4,8 @@ defmodule Serum.DevServer do
   """
 
   alias Serum.DevServer.{Looper, Service}
+  alias Serum.Project
+  alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
   alias Serum.SiteBuilder
 
@@ -17,13 +19,12 @@ defmodule Serum.DevServer do
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
     site = "/tmp/serum_" <> uniq
 
-    {:ok, pid_builder} = SiteBuilder.start_link(dir, site)
-
-    case SiteBuilder.load_info(pid_builder) do
+    case ProjectLoader.load(dir, site) do
       {:error, _} = error ->
         Result.show(error)
 
-      {:ok, proj} ->
+      {:ok, %Project{} = proj} ->
+        {:ok, builder} = SiteBuilder.start_link(dir, site)
         base = proj.base_url
         ms_callbacks = [Microscope.Logger]
 
@@ -38,7 +39,7 @@ defmodule Serum.DevServer do
         ]
 
         children = [
-          worker(Service, [pid_builder, dir, site, port]),
+          worker(Service, [builder, dir, site, port]),
           worker(Microscope, [site, ms_options])
         ]
 
