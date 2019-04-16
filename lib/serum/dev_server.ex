@@ -7,7 +7,6 @@ defmodule Serum.DevServer do
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
-  alias Serum.SiteBuilder
 
   @doc """
   Starts the Serum development server.
@@ -24,7 +23,6 @@ defmodule Serum.DevServer do
         Result.show(error)
 
       {:ok, %Project{} = proj} ->
-        {:ok, builder} = SiteBuilder.start_link(dir, site)
         base = proj.base_url
         ms_callbacks = [Microscope.Logger]
 
@@ -39,7 +37,7 @@ defmodule Serum.DevServer do
         ]
 
         children = [
-          worker(Service, [builder, dir, site, port]),
+          worker(Service, [dir, site, port]),
           worker(Microscope, [site, ms_options])
         ]
 

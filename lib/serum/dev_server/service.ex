@@ -6,17 +6,17 @@ defmodule Serum.DevServer.Service do
 
   use GenServer
   import Serum.Util
+  alias Serum.Build
   alias Serum.Result
-  alias Serum.SiteBuilder
 
   #
   # GenServer Implementation - Client
   #
 
   @doc "Starts `Serum.DevServer.Service` GenServer."
-  @spec start_link(pid, binary, binary, pos_integer) :: {:ok, pid} | {:error, atom}
-  def start_link(builder, dir, site, portnum) do
-    args = [builder, dir, site, portnum]
+  @spec start_link(binary, binary, pos_integer) :: {:ok, pid} | {:error, atom}
+  def start_link(dir, site, portnum) do
+    args = [dir, site, portnum]
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
@@ -49,11 +49,10 @@ defmodule Serum.DevServer.Service do
   #
 
   @doc false
-  def init([builder, dir, site, portnum]) do
+  def init([dir, site, portnum]) do
     {:ok, watcher} = FileSystem.start_link(dirs: [Path.absname(dir)])
 
     state = %{
-      builder: builder,
       watcher: watcher,
       dir: dir,
       site: site,
@@ -62,7 +61,7 @@ defmodule Serum.DevServer.Service do
       subscribers: %{}
     }
 
-    do_rebuild(builder)
+    do_rebuild(dir, site)
     FileSystem.subscribe(watcher)
 
     {:ok, state}
@@ -72,8 +71,8 @@ defmodule Serum.DevServer.Service do
   def handle_call(msg, from, state)
 
   def handle_call(:rebuild, _from, state) do
-    builder = state.builder
-    do_rebuild(builder)
+    do_rebuild(state.dir, state.site)
+
     {:reply, :ok, state}
   end
 
@@ -131,18 +130,16 @@ defmodule Serum.DevServer.Service do
   end
 
   def handle_info(:tick, state) do
-    do_rebuild(state.builder)
+    do_rebuild(state.dir, state.site)
     Enum.each(state.subscribers, fn {_, pid} -> send(pid, :send_reload) end)
 
     {:noreply, %{state | is_dirty: false}}
   end
 
-  @spec do_rebuild(pid) :: :ok
-  defp do_rebuild(builder) do
-    with {:ok, _info} <- SiteBuilder.load_info(builder),
-         {:ok, _} <- SiteBuilder.build(builder) do
-      :ok
-    else
+  @spec do_rebuild(binary(), binary()) :: :ok
+  defp do_rebuild(src, dest) do
+    case Build.build(src, dest) do
+      {:ok, _} -> :ok
       {:error, _} = error -> build_failed(error)
     end
   end

@@ -24,8 +24,8 @@ defmodule Mix.Tasks.Serum.Build do
   use Mix.Task
   alias IO.ANSI, as: A
   alias OptionParser.ParseError
+  alias Serum.Build
   alias Serum.Result
-  alias Serum.SiteBuilder
 
   @version Mix.Project.config()[:version]
 
@@ -47,7 +47,8 @@ defmodule Mix.Tasks.Serum.Build do
     |> Mix.shell().info()
 
     {options, argv} = OptionParser.parse!(args, @options)
-    out = options[:output]
+    src = File.cwd!()
+    dest = options[:output] || Path.join(src, "site")
 
     if argv != [] do
       raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
@@ -55,18 +56,17 @@ defmodule Mix.Tasks.Serum.Build do
 
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    with {:ok, pid} <- SiteBuilder.start_link(File.cwd!(), out),
-         {:ok, _info} <- SiteBuilder.load_info(pid),
-         {:ok, dest} <- SiteBuilder.build(pid) do
-      """
+    case Build.build(src, dest) do
+      {:ok, ^dest} ->
+        """
 
-      #{A.bright()}Your website is now ready!#{A.reset()}
-      Copy(or move) the contents of `#{dest}` directory
-      into your public webpages directory.
-      """
-      |> String.trim_trailing()
-      |> Mix.shell().info()
-    else
+        #{A.bright()}Your website is now ready!#{A.reset()}
+        Copy(or move) the contents of `#{dest}` directory
+        into your public webpages directory.
+        """
+        |> String.trim_trailing()
+        |> Mix.shell().info()
+
       {:error, _} = error ->
         Result.show(error)
         Mix.raise("could not build the website due to above error(s)")
