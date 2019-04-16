@@ -4,6 +4,7 @@ defmodule Serum.Project do
   """
 
   import Serum.Util
+  alias Serum.Plugin
 
   defstruct site_name: "",
             site_description: "",
@@ -36,7 +37,7 @@ defmodule Serum.Project do
           pagination: boolean(),
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
-          plugins: [atom()]
+          plugins: [Plugin.plugin_spec()]
         }
 
   @doc "A helper function for creating a new Project struct."

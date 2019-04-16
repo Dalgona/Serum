@@ -95,7 +95,7 @@ defmodule Serum.Plugin do
           implements: [atom()]
         }
 
-  @type plugin_spec :: atom() | {atom(), atom() | [atom()]}
+  @type plugin_spec :: atom() | {atom(), [{:only, atom() | [atom()]}]}
 
   @optional_callbacks [
     build_started: 2,
