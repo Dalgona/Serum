@@ -46,17 +46,10 @@ defmodule Serum.Build do
   """
   @spec build(binary(), binary()) :: Result.t(binary())
   def build(src, dest) do
-    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
-         {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
-         :ok <- print_plugins(plugins),
+    with {:ok, %Project{} = proj} <- load_project(src, dest),
          :ok <- Plugin.build_started(src, dest),
-         :ok <- check_tz(),
-         :ok <- check_dest_perm(dest),
-         :ok <- clean_dest(dest),
-         {:ok, files} <- FileLoader.load_files(proj),
-         {:ok, map} <- FileProcessor.process_files(files, proj),
-         {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
-         :ok <- FileEmitter.run(fragments),
+         :ok <- pre_check(dest),
+         :ok <- do_build(proj),
          :ok <- copy_assets(src, dest),
          :ok <- Plugin.build_succeeded(src, dest),
          :ok <- Plugin.finalizing(src, dest) do
@@ -69,6 +62,38 @@ defmodule Serum.Build do
         else
           {:error, _} = plugin_error -> plugin_error
         end
+    end
+  end
+
+  @spec load_project(binary(), binary()) :: Result.t(Project.t())
+  defp load_project(src, dest) do
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
+         {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
+         :ok <- print_plugins(plugins) do
+      {:ok, proj}
+    else
+      {:error, _} = error -> error
+    end
+  end
+
+  @spec pre_check(binary()) :: Result.t()
+  defp pre_check(dest) do
+    with :ok <- check_tz(),
+         :ok <- check_dest_perm(dest) do
+      clean_dest(dest)
+    else
+      {:error, _} = error -> error
+    end
+  end
+
+  @spec do_build(Project.t()) :: Result.t()
+  defp do_build(proj) do
+    with {:ok, files} <- FileLoader.load_files(proj),
+         {:ok, map} <- FileProcessor.process_files(files, proj),
+         {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj) do
+      FileEmitter.run(fragments)
+    else
+      {:error, _} = error -> error
     end
   end
 
