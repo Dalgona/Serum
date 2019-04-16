@@ -9,6 +9,8 @@ defmodule Serum.Build do
   alias Serum.Build.FileProcessor
   alias Serum.Build.FragmentGenerator
   alias Serum.Plugin
+  alias Serum.Project
+  alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
 
   @doc """
@@ -16,45 +18,53 @@ defmodule Serum.Build do
 
   ## Build Procedure
 
-  1. Checks if the system timezone is properly set.
+  1. Checks if a project definition file exists under `src`, checks if it's
+    well-formed and valid, then loads it.
+
+  2. Tries to load plugins listed in the project definition file.
+
+  3. Checks if the system timezone is properly set.
 
       Timex requires the local timezone information to format the date/time
       string. If it's not set or invalid, Timex will fail.
 
-  2. Checks if the current user has enough permission on the destination
+  4. Checks if the current user has enough permission on the destination
     directory and cleans it if it already exists.
 
-  3. Loads source files. See `Serum.Build.FileLoader`.
+  5. Loads source files. See `Serum.Build.FileLoader`.
 
-  4. Processes source files and produces intermediate data structures.
+  6. Processes source files and produces intermediate data structures.
     See `Serum.Build.FileProcessor`.
 
-  5. Generates HTML fragments from the intermediate data.
+  7. Generates HTML fragments from the intermediate data.
     See `Serum.Build.FragmentGenerator`.
 
-  6. Renders full HTML pages from fragments and writes them to files.
+  8. Renders full HTML pages from fragments and writes them to files.
     See `Serum.Build.FileEmitter`.
 
-  7. Copies `assets/` and `media/` directories if they exist.
+  9. Copies `assets/` and `media/` directories if they exist.
   """
-  @spec build(map()) :: Result.t(binary())
-  def build(proj) do
-    with :ok <- Plugin.build_started(proj.src, proj.dest),
+  @spec build(binary(), binary()) :: Result.t(binary())
+  def build(src, dest) do
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
+         {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
+         :ok <- print_plugins(plugins),
+         :ok <- Plugin.build_started(src, dest),
          :ok <- check_tz(),
-         :ok <- check_dest_perm(proj.dest),
-         :ok <- clean_dest(proj.dest),
+         :ok <- check_dest_perm(dest),
+         :ok <- clean_dest(dest),
          {:ok, files} <- FileLoader.load_files(proj),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
          :ok <- FileEmitter.run(fragments),
-         :ok <- copy_assets(proj.src, proj.dest),
-         :ok <- Plugin.build_succeeded(proj.src, proj.dest),
-         :ok <- Plugin.finalizing(proj.src, proj.dest) do
-      {:ok, proj.dest}
+         :ok <- copy_assets(src, dest),
+         :ok <- Plugin.build_succeeded(src, dest),
+         :ok <- Plugin.finalizing(src, dest) do
+      {:ok, dest}
     else
       {:error, _} = error ->
-        with :ok <- Plugin.build_failed(proj.src, proj.dest, error),
-             :ok <- Plugin.finalizing(proj.src, proj.dest) do
+        with :ok <- Plugin.build_failed(src, dest, error),
+             :ok <- Plugin.finalizing(src, dest) do
           error
         else
           {:error, _} = plugin_error -> plugin_error
@@ -121,5 +131,24 @@ defmodule Serum.Build do
       {:ok, _} ->
         :ok
     end
+  end
+
+  @spec print_plugins([Plugin.t()]) :: :ok
+  defp print_plugins([]), do: :ok
+
+  defp print_plugins(plugins) do
+    IO.puts("\x1b[93m=== Loaded Plugins ===\x1b[0m")
+
+    Enum.each(plugins, fn plugin ->
+      mod_name =
+        plugin.module
+        |> to_string()
+        |> String.replace_prefix("Elixir.", "")
+
+      IO.puts("\x1b[1m#{plugin.name} v#{plugin.version}\x1b[0m (#{mod_name})")
+      IO.puts("    " <> plugin.description)
+    end)
+
+    IO.puts("")
   end
 end
