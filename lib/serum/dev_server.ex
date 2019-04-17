@@ -16,7 +16,10 @@ defmodule Serum.DevServer do
     import Supervisor.Spec
 
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    site = "/tmp/serum_" <> uniq
+
+    site =
+      "serum_" <> uniq
+      |> Path.expand(System.tmp_dir!())
 
     case ProjectLoader.load(dir, site) do
       {:error, _} = error ->

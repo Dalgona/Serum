@@ -28,7 +28,7 @@ defmodule Serum.DevServer.Service do
   @spec source_dir() :: binary
   def source_dir, do: GenServer.call(__MODULE__, :source_dir)
 
-  @doc "Returns the output directory (under `/tmp`)."
+  @doc "Returns the output directory (under temporary directory)."
   @spec site_dir() :: binary
   def site_dir, do: GenServer.call(__MODULE__, :site_dir)
 
