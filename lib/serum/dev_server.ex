@@ -17,9 +17,7 @@ defmodule Serum.DevServer do
 
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
 
-    site =
-      "serum_" <> uniq
-      |> Path.expand(System.tmp_dir!())
+    site = Path.expand("serum_" <> uniq, System.tmp_dir!())
 
     case ProjectLoader.load(dir, site) do
       {:error, _} = error ->
