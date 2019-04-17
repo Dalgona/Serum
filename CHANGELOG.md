@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v0.12.0 &mdash; 2019-04-17
 
 ### Fixed
 
@@ -8,10 +8,13 @@
   HTML trees.
 - Changed the script injected by `Serum.Plugin.LiveReloader` so that the scroll
   offset is preserved after page reloads.
+- Fix `Serum.Project.new/1` which may cause issues if invalid date format
+  format string is in `serum.exs`.
 
 ### Changed
 
 - Serum now requires Elixir v1.7.0 or newer.
+- Minor improvements in internal code base structure.
 
 ## v0.11.0 &mdash; 2019-04-14
 

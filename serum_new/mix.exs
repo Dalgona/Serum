@@ -1,13 +1,13 @@
 defmodule Serum.New.MixProject do
   use Mix.Project
 
-  @serum_version "0.11.0"
+  @serum_version "0.12.0"
 
   def project do
     [
       app: :serum_new,
       version: @serum_version,
-      elixir: "~> 1.6",
+      elixir: ">= 1.7.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package()
