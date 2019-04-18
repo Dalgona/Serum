@@ -1,0 +1,189 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Templates - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+        <h1><a href="/Serum/">Serum</a></h1>
+        <p>A simple static website generator</p>
+      </header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+</ul>
+</nav>
+      <hr>
+      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1>Templates</h1><p>Serum generates HTML pages by applying templates to your contents. Templates
+are <em>Embedded Elixir (EEx)</em> files. Please read <a href="https://hexdocs.pm/eex">the official EEx
+documentation</a> for more information about EEx.</p><div><ul class="serum-toc"><li class="indent-0"><a href="#s_1"><span class="number">1</span>List of Templates</a></li><li class="indent-1"><a href="#s_1.1"><span class="number">1.1</span>base.html.eex</a></li><li class="indent-1"><a href="#s_1.2"><span class="number">1.2</span>page.html.eex</a></li><li class="indent-1"><a href="#s_1.3"><span class="number">1.3</span>post.html.eex</a></li><li class="indent-1"><a href="#s_1.4"><span class="number">1.4</span>list.html.eex</a></li><li class="indent-0"><a href="#s_2"><span class="number">2</span>Variables</a></li><li class="indent-1"><a href="#s_2.1"><span class="number">2.1</span>Common Variables</a></li><li class="indent-2"><a href="#s_2.1.1"><span class="number">2.1.1</span>@site  - Website Information</a></li><li class="indent-2"><a href="#s_2.1.2"><span class="number">2.1.2</span>@all_pages  - List of All Pages</a></li><li class="indent-2"><a href="#s_2.1.3"><span class="number">2.1.3</span>@all_posts  - List of All Posts</a></li><li class="indent-2"><a href="#s_2.1.4"><span class="number">2.1.4</span>@all_tags  - List of All Tags</a></li><li class="indent-1"><a href="#s_2.2"><span class="number">2.2</span>Page-specific Variables</a></li><li class="indent-2"><a href="#s_2.2.1"><span class="number">2.2.1</span>@page  - Current Page</a></li><li class="indent-2"><a href="#s_2.2.2"><span class="number">2.2.2</span>@contents  - Page Contents</a></li><li class="indent-0"><a href="#s_3"><span class="number">3</span>Helper Macros</a></li><li class="indent-1"><a href="#s_3.1"><span class="number">3.1</span>base/0</a></li><li class="indent-1"><a href="#s_3.2"><span class="number">3.2</span>base/1</a></li><li class="indent-1"><a href="#s_3.3"><span class="number">3.3</span>page/1</a></li><li class="indent-1"><a href="#s_3.4"><span class="number">3.4</span>post/1</a></li><li class="indent-1"><a href="#s_3.5"><span class="number">3.5</span>asset/1</a></li><li class="indent-1"><a href="#s_3.6"><span class="number">3.6</span>include/1</a></li></ul></div><a name="s_1"><h2>List of Templates</h2></a><p>These four template files must be present in the <code class="inline">templates/</code> directory, and
+their names must not be changed. Specifying a custom template for a specific
+page is not supported yet, this feature can be added in the future.</p><a name="s_1.1"><h3><code class="inline">base.html.eex</code></h3></a><p>This template defines the overall structure and visual layout of the page. That
+is, you should place the root <code class="inline">&lt;html&gt;</code> tag in this template.</p><a name="s_1.2"><h3><code class="inline">page.html.eex</code></h3></a><p>This template simply wraps the contents of your pages. Any file in the <code class="inline">pages/</code>
+directory is processed, rendered as HTML, and its contents are merged into
+this template.</p><a name="s_1.3"><h3><code class="inline">post.html.eex</code></h3></a><p>This template is used to display the contents and metadata of your blog posts.</p><a name="s_1.4"><h3><code class="inline">list.html.eex</code></h3></a><p>This template defines how a list of blog posts is displayed.</p><a name="s_2"><h2>Variables</h2></a><p>Serum provides a number of variables for use in templates described above. Some
+of them are always available and constant all the time, and some of them are
+not available in all templates and may have different values depending on the
+page being rendered at the moment.</p><a name="s_2.1"><h3>Common Variables</h3></a><p>These variables are available in any template and have constant values.</p><a name="s_2.1.1"><h4><code class="inline">@site</code> - Website Information</h4></a><pre><code class="lang-elixir">%{
+  name: &quot;Serum&quot;,
+  description: &quot;A simple static website generator&quot;,
+  author: &quot;Dalgona.&quot;,
+  author_email: &quot;dalgona@hontou.moe&quot;,
+  server_root: &quot;https://dalgona.github.io&quot;,
+  base_url: &quot;/Serum/&quot;
+}</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
+&lt;header&gt;
+  &lt;h1&gt;&lt;%= @site.name %&gt;&lt;/h1&gt;
+  &lt;p&gt;&lt;%= @site.description %&gt;&lt;/p&gt;
+&lt;/header&gt;</code></pre><p>The <code class="inline">@site</code> variable contains the information about your website. You can
+customize its values by editing the
+<a href="/Serum/docs/project-definition.html"><code class="inline">serum.exs</code> file.</a></p><a name="s_2.1.2"><h4><code class="inline">@all_pages</code> - List of All Pages</h4></a><pre><code class="lang-elixir">[
+  %{
+    type: :page,
+    title: &quot;Welcome&quot;,
+    label: &quot;Home&quot;,
+    group: &quot;main-menu&quot;,
+    order: &quot;1&quot;,
+    images: [&quot;/Serum/media/logo.png&quot;],
+    url: &quot;/Serum/index.html&quot;
+  },
+  ...
+]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
+&lt;ul&gt;
+  &lt;%= for page &lt;- @all_pages, page.group === &quot;main-menu&quot; do %&gt;
+    &lt;li&gt;&lt;a href=&quot;page.url&quot; title=&quot;&lt;%= page.title %&gt;&quot;&gt;&lt;%= page.label %&gt;&lt;/a&gt;&lt;/li&gt;
+  &lt;% end %&gt;
+&lt;/ul&gt;</code></pre><p>The <code class="inline">@all_pages</code> variable contains a list of all pages, sorted by <code class="inline">order</code> in
+ascending order. You can filter this list by <code class="inline">group</code> to make a customized
+navigation list or a table of contents.</p><a name="s_2.1.3"><h4><code class="inline">@all_posts</code> - List of All Posts</h4></a><pre><code class="lang-elixir">[
+  %{
+    type: :post,
+    title: &quot;My First Post&quot;,
+    date: &quot;Thursday, 18 April 2019&quot;,
+    raw_date: {{2019, 4, 18}, {10, 36, 27}},
+    preview: &quot;The quick brown fox jumps over ...&quot;,
+    tags: [
+      %{name: &quot;Tag1&quot;, list_url: &quot;/Serum/tags/Tag1/&quot;},
+      %{name: &quot;Tag3&quot;, list_url: &quot;/Serum/tags/Tag3/&quot;}
+    ],
+    images: [
+      &quot;/Serum/media/my-first-post/image1.jpg&quot;,
+      &quot;/Serum/media/my-first-post/image2.jpg&quot;
+    ]
+    url: &quot;/Serum/posts/2019-04-18-my-first-post.html&quot;
+  },
+  ...
+]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
+&lt;h2&gt;Recent Posts&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;%= for post &lt;- Enum.take(@all_posts, 5) do&gt;
+    &lt;li&gt;&lt;a href=&quot;&lt;%= post.url %&gt;&quot;&gt;&lt;%= post.title %&gt;&lt;/a&gt;&lt;/li&gt;
+  &lt;% end %&gt;
+&lt;/li&gt;</code></pre><p>The <code class="inline">@all_posts</code> variable contains a list of all blog posts, sorted by
+<code class="inline">raw_date</code>. The newest one comes first.</p><a name="s_2.1.4"><h4><code class="inline">@all_tags</code> - List of All Tags</h4></a><pre><code class="lang-elixir">[
+  {%{name: &quot;Tag1&quot;, list_url: &quot;/Serum/tags/Tag1/&quot;}, 3},
+  {%{name: &quot;Tag2&quot;, list_url: &quot;/Serum/tags/Tag2/&quot;}, 7},
+  {%{name: &quot;Tag3&quot;, list_url: &quot;/Serum/tags/Tag3/&quot;}, 5},
+  ...
+]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
+&lt;%= for {tag, count} &lt;- @all_tags do&gt;
+  &lt;a href=&quot;&lt;%= tag.list_url %&gt;&quot;&gt;
+    &lt;%= tag.name %&gt; &lt;span class=&quot;count&quot;&gt;&lt;%= count %&gt;&lt;/span&gt;
+  &lt;/a&gt;
+&lt;% end %&gt;</code></pre><p>The <code class="inline">@all_tags</code> variable contains a list of 2-element tuple, which consists of
+a tag and the number of blog posts associated with the tag. The list is not
+sorted; you can use it as is to make a “tag cloud,” or you can sort the list
+by the use count to make a “top tags” list.</p><a name="s_2.2"><h3>Page-specific Variables</h3></a><p>These variables have different values depending on the page being rendered at
+the moment, and may not be available in some templates.</p><a name="s_2.2.1"><h4><code class="inline">@page</code> - Current Page</h4></a><p>The <code class="inline">@page</code> variable contains a metadata of the page being rendered. When
+rendering a page or a blog post, the type of its value is the same as the type
+of an element of <a href="#s_2.1.2"><code class="inline">@all_pages</code></a> or an element of
+<a href="#s_2.1.3"><code class="inline">@all_posts</code></a>.</p><p>When rendering a blog post list, its value looks like the following:</p><pre><code class="lang-elixir">%{
+  type: :list,
+
+  # This is set to `nil` when a list of all posts is being rendered.
+  tag: %{name: &quot;Tag1&quot;, list_url: &quot;/Serum/tags/Tag1/&quot;},
+
+  current_page: 2,
+  max_page: 5,
+  title: &quot;Posts tagged \&quot;Tag1\&quot;&quot;,
+  posts: [ ... ],
+  url: &quot;/Serum/tags/Tag1/page-2.html&quot;,
+
+  # This is set to `nil` if current_page == 1.
+  prev_url: &quot;/Serum/tags/Tag1/page-1.html&quot;,
+
+  # This is set to `nil` if current_page == max_page.
+  next_url: &quot;/Serum/tags/Tag1/page-3.html&quot;
+}</code></pre><a name="s_2.2.2"><h4><code class="inline">@contents</code> - Page Contents</h4></a><p>The <code class="inline">@contents</code> variable contains a rendered HTML content as a binary. When
+used in <code class="inline">page.html.eex</code>, this is the contents of your page. When used in
+<code class="inline">post.html.eex</code>, this is the main text of your blog post. Finally, when used in
+<code class="inline">base.html.eex</code>, this is the rendered content of <code class="inline">page.html.eex</code>,
+<code class="inline">post.html.eex</code>, or <code class="inline">list.html.eex</code>. Note that this variable is not available
+in <code class="inline">list.html.eex</code>.</p><a name="s_3"><h2>Helper Macros</h2></a><p><a href="https://hexdocs.pm/serum/Serum.Template.Helpers.html"><code class="inline">Serum.Template.Helpers</code></a>
+module provides some helper macros for use in your templates. This module is
+automatically <code class="inline">require</code>d and <code class="inline">import</code>ed when templates are compiled, so you
+usually don’t need to write any code in order to use these macros.</p><a name="s_3.1"><h3><code class="inline">base/0</code></h3></a><p>This is equivalent to <code class="inline">@site.base_url</code>.</p><pre><code class="lang-html">&lt;a href=&quot;&lt;%= base() %&gt;&quot;&gt;Home&lt;/a&gt;
+
+&lt;!-- The above code expands to: --&gt;
+&lt;a href=&quot;/base/url/&quot;&gt;Home&lt;/a&gt;</code></pre><a name="s_3.2"><h3><code class="inline">base/1</code></h3></a><p>Returns the URL relative to <code class="inline">@site.base_url</code>.</p><pre><code class="lang-html">&lt;a href=&quot;&lt;%= base(&quot;/path/to/some_file.txt&quot;) %&gt;&quot;&gt;File&lt;/a&gt;
+
+&lt;!-- The above code expands to: --&gt;
+&lt;a href=&quot;/base/url/path/to/some_file.txt&quot;&gt;File&lt;/a&gt;</code></pre><a name="s_3.3"><h3><code class="inline">page/1</code></h3></a><p>Returns the URL of the given page.</p><pre><code class="lang-html">&lt;a href=&quot;&lt;%= page(&quot;docs/index&quot;) %&gt;&quot;&gt;Serum Docs&lt;/a&gt;
+
+&lt;!-- The above code expands to: --&gt;
+&lt;a href=&quot;/base/url/docs/index.html&quot;&gt;Serum Docs&lt;/a&gt;</code></pre><p>Note that the trailing <code class="inline">.html</code> is automatically appended.</p><a name="s_3.4"><h3><code class="inline">post/1</code></h3></a><p>Returns the URL of the given blog post.</p><pre><code class="lang-html">&lt;a href=&quot;&lt;%= post(&quot;2019-04-18-hello-world&quot;) %&gt;&quot;&gt;Hello, world!&lt;/a&gt;
+
+&lt;!-- The above code expands to: --&gt;
+&lt;a href=&quot;/base/url/posts/2019-04-18-hello-world.html&quot;&gt;Hello, world!&lt;/a&gt;</code></pre><a name="s_3.5"><h3><code class="inline">asset/1</code></h3></a><p>Returns the URL of the given asset.</p><pre><code class="lang-html">&lt;img src=&quot;&lt;%= asset(&quot;images/icon-warning.png&quot;) %&gt;&quot;&gt;
+
+&lt;!-- The above code expands to: --&gt;
+&lt;img src=&quot;/base/url/assets/images/icon-warning.png&quot;&gt;</code></pre><a name="s_3.6"><h3><code class="inline">include/1</code></h3></a><p>Includes the given template saved in <code class="inline">includes/</code> directory. See <a href="/Serum/docs/includes.html">Includable
+Templates</a> for more information about including templates.</p><p>Actually this macro is not defined in the <code class="inline">Serum.Template.Helpers</code> module.
+The Serum template processor traverses the compiled template code (which is an
+Elixir AST), and directly expands the call to this macro into the corresponding
+includable template.</p><pre><code class="lang-html">&lt;!-- includes/nav.html.eex --&gt;
+&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Home&lt;/li&gt;
+    &lt;li&gt;About&lt;/li&gt;
+    &lt;li&gt;Posts&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</code></pre><pre><code class="lang-html">&lt;!-- part of templates/base.html.eex --&gt;
+&lt;div class=&quot;navigation&quot;&gt;
+&lt;%= include(&quot;nav&quot;) %&gt;
+&lt;/div&gt;
+
+&lt;!-- The above code expands to: --&gt;
+&lt;div class=&quot;navigation&quot;&gt;
+&lt;nav&gt;
+  &lt;ul&gt;
+    &lt;li&gt;Home&lt;/li&gt;
+    &lt;li&gt;About&lt;/li&gt;
+    &lt;li&gt;Posts&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;/div&gt;</code></pre></div></article></main>
+      <hr>
+      <footer>
+        
+        <p>Copyright &copy; 2019 Dalgona. <a href="https://dalgona.github.io/">[Website]</a> <a href="https://github.com/Dalgona">[GitHub]</a></p>
+        <p>This website was generated by <a href="https://github.com/Dalgona/Serum">Serum</a>.
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>

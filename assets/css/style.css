@@ -1,0 +1,260 @@
+@import 'https://fonts.googleapis.com/css?family=Lato:100,900|Open+Sans:400,700';
+
+body {
+  margin: 0;
+  background: whitesmoke;
+  color: #333;
+  font-family: 'Open Sans', '.SFNSText-Regular', 'Segoe UI', 'Helvetica', 'Lucida Grande', 'Tahoma', 'Yu Gothic UI', 'Malgun Gothic', sans-serif;
+  font-size: 16px;
+}
+
+a:link, a:active, a:visited { color: #4078c0; text-decoration: none; }
+a:hover { text-decoration: underline }
+
+header#top h1
+{
+  margin: 0 0 0 -4px;
+  font-family: 'Lato', '.SFNSText-Regular', 'Segoe UI', sans-serif;
+  font-weight: 100;
+  font-size: 80px;
+}
+
+header#top p
+{
+  margin: 0;
+  font-weight: bold;
+}
+
+header#top a:link,
+header#top a:active,
+header#top a:visited,
+header#top a:hover
+{
+  color: #333;
+  text-decoration: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 1rem 0;
+}
+
+nav ul {
+  margin: 1.5rem 0 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+nav ul li { display: inline-block; }
+
+nav ul li:before {
+  content: '|';
+  padding: 0 1em;
+}
+
+nav ul li:first-of-type:before {
+  content: '';
+  padding: 0;
+}
+
+hr {
+  margin: 1rem 0;
+  border: none;
+  height: 1px;
+  background: #ddd;
+}
+
+footer {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+footer p { margin: 0.5rem 0; }
+
+code {
+  font-family: 'monospace';
+  color: #c04078;
+}
+
+pre code {
+  display: block;
+  box-sizing: border-box;
+  padding: 0.3rem 0.4rem;
+  border-left: 4px solid #ddd;
+  color: #333;
+  background: whitesmoke;
+}
+
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+  color: #333;
+  font-weight: bold;
+}
+
+a:link code,
+a:hover code,
+a:visited code,
+a:active code {
+  color: #4078c0;
+}
+
+#wrapper {
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: 50px;
+  width: 900px;
+  min-height: 100vh;
+  background: white;
+}
+
+article h1
+{
+  margin: 0.5rem 0;
+  font-family: 'Lato', '.SFNSText-Regular', 'Segoe UI', sans-serif;
+  font-weight: 900;
+  font-size: 2.5em;
+}
+
+article header p {
+  margin: 0;
+  font-size: 0.75em;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  opacity: 0.8;
+}
+
+article > div p,
+article > div ul,
+article > div ol {
+  line-height: 1.6em;
+}
+
+article > div img,
+article > div svg {
+  max-width: 100%;
+}
+
+blockquote {
+  margin: 1em 0;
+  padding: 0.5em 0.75em 0 0.75em;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+blockquote header {
+  font-weight: bold;
+}
+
+blockquote p {
+  margin: 0.5em 0;
+  font-size: 0.9em;
+}
+
+blockquote.note {
+  border-color: #78c040;
+  background-color: rgba(120, 192, 64, 0.125);
+}
+
+article.list > div > ul {
+  padding: 0;
+  list-style-type: none;
+}
+
+article.list li.article h2 {
+  margin-bottom: 0.5rem;
+}
+
+article.list p.post-preview {
+  margin: 0.5em 0 1.5em 0;
+  opacity: 0.8;
+}
+
+p.post-date {
+  margin: 0;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+span.tags:before { content: '|'; }
+
+span.tags a.tag { padding: 0 5px; }
+span.tags a.tag:first-child { padding-left: 0; }
+span.tags a.tag:last-child { padding-right: 0; }
+
+table {
+  border: 1px solid #ddd;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+table th,
+table td {
+  border: 1px solid #ddd;
+  padding: 5px 11px;
+}
+
+table th {
+  border-bottom-width: 2px;
+}
+
+table tr:nth-of-type(2n) td {
+  background: whitesmoke;
+}
+
+ul.serum-toc {
+  display: inline-block;
+  margin: 0;
+  padding: 0.25em 0.5em;
+  border: 1px solid whitesmoke;
+  list-style-type: none;
+}
+
+ul.serum-toc li.indent-0 { margin-left: 0em; }
+ul.serum-toc li.indent-1 { margin-left: 1em; }
+ul.serum-toc li.indent-2 { margin-left: 2em; }
+ul.serum-toc li.indent-3 { margin-left: 3em; }
+ul.serum-toc li.indent-4 { margin-left: 4em; }
+ul.serum-toc li.indent-5 { margin-left: 5em; }
+
+ul.serum-toc li span.number {
+  color: #333;
+  margin-right: 0.5em;
+}
+
+@media screen and (max-width: 899px) {
+  nav ul li {
+    display: block;
+    margin: 0.5rem 0;
+  }
+
+  nav ul li:before {
+    content: '';
+    padding: 0;
+  }
+
+  #wrapper {
+    width: 100%;
+    padding: 20px;
+  }
+
+  header#top h1 {
+    margin: 0;
+    font-size: 60px;
+  }
+
+  header#top p {
+    font-size: 0.9rem;
+  }
+
+  article > div ul,
+  article > div ol {
+    padding-left: 24px;
+  }
+
+  pre code {
+    overflow-x: scroll;
+  }
+
+  span.tags { display: block; }
+  span.tags:before { content: ''; }
+}
