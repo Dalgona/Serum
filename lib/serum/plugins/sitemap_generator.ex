@@ -62,7 +62,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   defp write_sitemap(dest) do
     all_posts = GlobalBindings.get(:all_posts)
 
-    read_build_resource("sitemap_template.xml")
+    read_build_resource("sitemap.xml.eex")
     |> EEx.eval_string(
       assigns: [
         all_posts: all_posts,
@@ -76,7 +76,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   defp write_robots(dest) do
     sitemap_path = Path.join(get_server_root(), "sitemap.xml")
 
-    read_build_resource("robots_template.txt")
+    read_build_resource("robots.txt.eex")
     |> EEx.eval_string(assigns: [sitemap_path: sitemap_path])
     |> try_save(Path.join(dest, "robots.txt"))
   end
