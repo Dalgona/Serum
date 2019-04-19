@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <%= for post <- @all_posts do %>
+  <%= for post <- all_posts do %>
     <url>
-      <loc><%= Path.join(@server_root, post.url) %></loc>
+      <loc><%= Path.join(server_root, post.url) %></loc>
 
-      <lastmod><%= @transformer.(post.raw_date) %></lastmod>
+      <lastmod><%= transformer.(post.raw_date) %></lastmod>
       
       <changefreq>weekly</changefreq>
 

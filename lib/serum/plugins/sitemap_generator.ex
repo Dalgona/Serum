@@ -15,6 +15,7 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   @behaviour Serum.Plugin
 
+  require EEx
   alias Serum.GlobalBindings
 
   def name, do: "Create sitemap for search engine"
@@ -36,49 +37,50 @@ defmodule Serum.Plugins.SitemapGenerator do
          :ok <- write_robots(dest) do
       :ok
     else
-      result -> result
+      {:error, _} = error -> error
     end
   end
+
+  res_dir =
+    :serum
+    |> :code.priv_dir()
+    |> IO.iodata_to_binary()
+    |> Path.join("build_resources")
+
+  sitemap_path = Path.join(res_dir, "sitemap.xml.eex")
+  robots_path = Path.join(res_dir, "robots.txt.eex")
+
+  EEx.function_from_file(:defp, :sitemap_xml, sitemap_path, [
+    :all_posts,
+    :transformer,
+    :server_root
+  ])
+
+  EEx.function_from_file(:defp, :robots_txt, robots_path, [:sitemap_path])
 
   defp to_w3c_format(erl_datetime) do
     # reference to https://www.w3.org/TR/NOTE-datetime
     Timex.format!(erl_datetime, "%Y-%m-%d", :strftime)
   end
 
-  defp get_server_root() do
+  defp get_server_root do
     :site
     |> GlobalBindings.get()
     |> Map.fetch!(:server_root)
   end
 
-  defp read_build_resource(resource) do
-    :serum
-    |> :code.priv_dir()
-    |> IO.iodata_to_binary()
-    |> Path.join("build_resources/#{resource}")
-    |> File.read!()
-  end
-
   defp write_sitemap(dest) do
     all_posts = GlobalBindings.get(:all_posts)
+    sitemap = sitemap_xml(all_posts, &to_w3c_format/1, get_server_root())
 
-    read_build_resource("sitemap.xml.eex")
-    |> EEx.eval_string(
-      assigns: [
-        all_posts: all_posts,
-        transformer: &to_w3c_format/1,
-        server_root: get_server_root()
-      ]
-    )
-    |> try_save(Path.join(dest, "sitemap.xml"))
+    try_save(sitemap, Path.join(dest, "sitemap.xml"))
   end
 
   defp write_robots(dest) do
     sitemap_path = Path.join(get_server_root(), "sitemap.xml")
+    robots = robots_txt(sitemap_path)
 
-    read_build_resource("robots.txt.eex")
-    |> EEx.eval_string(assigns: [sitemap_path: sitemap_path])
-    |> try_save(Path.join(dest, "robots.txt"))
+    try_save(robots, Path.join(dest, "robots.txt"))
   end
 
   defp try_save(data, dest) do
