@@ -145,4 +145,13 @@ defmodule Serum.PostList do
     |> :io_lib.format([tag_name])
     |> IO.iodata_to_binary()
   end
+
+  defimpl Fragment.Source do
+    alias Serum.PostList
+    alias Serum.Project
+    alias Serum.Result
+
+    @spec to_fragment(PostList.t(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(fragment, proj), do: PostList.to_fragment(fragment, proj)
+  end
 end

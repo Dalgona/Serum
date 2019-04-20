@@ -127,4 +127,13 @@ defmodule Serum.Page do
         error
     end
   end
+
+  defimpl Fragment.Source do
+    alias Serum.Page
+    alias Serum.Project
+    alias Serum.Result
+
+    @spec to_fragment(Page.t(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(page, proj), do: Page.to_fragment(page, proj)
+  end
 end

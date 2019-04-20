@@ -36,4 +36,12 @@ defmodule Serum.Fragment do
       data: data
     }
   end
+
+  defprotocol Source do
+    alias Serum.Project
+    alias Serum.Result
+
+    @spec to_fragment(term(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(x, proj)
+  end
 end
