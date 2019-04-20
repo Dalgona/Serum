@@ -3,53 +3,17 @@ defmodule Serum.Build.FileEmitter do
   Renders each fragment into a full HTML page and writes to a file.
   """
 
-  alias Serum.Fragment
   alias Serum.Plugin
-  alias Serum.Renderer
   alias Serum.Result
-  alias Serum.Template
 
-  @spec run([Fragment.t()]) :: Result.t()
-  def run(fragments) do
+  @spec run([Serum.File.t()]) :: Result.t()
+  def run(files) do
     IO.puts("Writing output files...")
+    create_dirs(files)
 
-    template = Template.get("base")
-
-    fragments
-    |> Task.async_stream(&render(&1, template))
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:build_pass3)
-    |> case do
-      {:ok, outputs} ->
-        create_dirs(outputs)
-        Enum.each(outputs, &Serum.File.write/1)
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  @spec render(Fragment.t(), Template.t()) :: Result.t(Serum.File.t())
-  defp render(fragment, template) do
-    bindings = [
-      page: fragment.metadata,
-      contents: fragment.data
-    ]
-
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, html} ->
-        file = %Serum.File{
-          src: fragment.file,
-          dest: fragment.output,
-          in_data: nil,
-          out_data: html
-        }
-
-        Plugin.rendered_page(file)
-
-      {:error, _} = error ->
-        error
-    end
+    files
+    |> Enum.map(&write_file/1)
+    |> Result.aggregate(:file_emitter)
   end
 
   @spec create_dirs([Serum.File.t()]) :: :ok
@@ -62,5 +26,13 @@ defmodule Serum.Build.FileEmitter do
       File.mkdir_p!(dir)
       IO.puts("\x1b[96m MKDIR \x1b[0m#{dir}")
     end)
+  end
+
+  @spec write_file(Serum.File.t()) :: Result.t()
+  defp write_file(file) do
+    case Serum.File.write(file) do
+      {:ok, ^file} -> Plugin.wrote_file(file)
+      {:error, _} = error -> error
+    end
   end
 end

@@ -10,7 +10,6 @@ defmodule Serum.File do
   * `out_data`: Data to be written to a file
   """
 
-  alias Serum.Plugin
   alias Serum.Result
 
   defstruct [:src, :dest, :in_data, :out_data]
@@ -36,13 +35,14 @@ defmodule Serum.File do
   end
 
   @doc "Writes data to a file described by the given `Serum.File` struct."
-  @spec write(t()) :: Result.t()
+  @spec write(t()) :: Result.t(t())
   def write(%__MODULE__{dest: dest, out_data: data} = file) do
     with {:ok, pid} <- File.open(dest, [:write, :utf8]),
-         :ok <- IO.write(pid, data),
-         :ok <- File.close(pid),
-         :ok <- Plugin.wrote_file(file) do
+         :ok = IO.write(pid, data),
+         :ok <- File.close(pid) do
       print_write(dest)
+
+      {:ok, file}
     else
       {:error, reason} -> {:error, {reason, dest, 0}}
     end
@@ -54,8 +54,6 @@ defmodule Serum.File do
   end
 
   @spec print_write(binary()) :: :ok
-  defp print_write(dest)
-
   defp print_write(dest) do
     IO.puts("\x1b[92m   GEN \x1b[0m#{dest}")
   end

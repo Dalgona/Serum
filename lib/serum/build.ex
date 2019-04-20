@@ -8,6 +8,7 @@ defmodule Serum.Build do
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
   alias Serum.Build.FragmentGenerator
+  alias Serum.Build.PageGenerator
   alias Serum.Plugin
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
@@ -90,8 +91,9 @@ defmodule Serum.Build do
   defp do_build(proj) do
     with {:ok, files} <- FileLoader.load_files(proj),
          {:ok, map} <- FileProcessor.process_files(files, proj),
-         {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj) do
-      FileEmitter.run(fragments)
+         {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
+         {:ok, files} <- PageGenerator.run(fragments) do
+      FileEmitter.run(files)
     else
       {:error, _} = error -> error
     end
