@@ -16,7 +16,7 @@ defmodule Serum.Project.ElixirValidatorTest do
     specific to that key.
   """
 
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import Serum.Project.ElixirValidator
 
   @base_map %{

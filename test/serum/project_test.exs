@@ -1,5 +1,5 @@
 defmodule Serum.ProjecTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   import ExUnit.CaptureIO
   alias Serum.Project
 

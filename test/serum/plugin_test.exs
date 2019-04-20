@@ -1,5 +1,5 @@
 defmodule Serum.PluginTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
   import Serum.Plugin
   alias Serum.File
   alias Serum.Fragment

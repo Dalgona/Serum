@@ -1,5 +1,5 @@
 defmodule Serum.Plugins.TableOfContentsTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
   alias Serum.Fragment
   alias Serum.Plugins.TableOfContents
 
