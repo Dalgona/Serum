@@ -77,10 +77,16 @@ defmodule Serum.PostList do
         }
       end)
 
-    [nil | lists]
-    |> put_adjacent_urls([])
-    |> Task.async_stream(&Plugin.processed_list/1)
-    |> Enum.map(&elem(&1, 1))
+    [first | rest] = put_adjacent_urls([nil | lists], [])
+
+    first_dup = %__MODULE__{
+      first
+      | url: Path.join([proj.base_url, list_dir, "index.html"]),
+        output: Path.join([proj.dest, list_dir, "index.html"])
+    }
+
+    [first_dup, first | rest]
+    |> Enum.map(&Plugin.processed_list/1)
     |> Result.aggregate_values(:generate_lists)
   end
 
@@ -109,28 +115,8 @@ defmodule Serum.PostList do
     Enum.chunk_every(posts, num_posts)
   end
 
-  @spec to_fragments([t()]) :: Result.t([Fragment.t()])
-  def to_fragments(post_lists) do
-    post_lists
-    |> Task.async_stream(&to_fragment/1)
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:to_fragments)
-    |> case do
-      {:ok, [first | rest]} ->
-        first_dup = %Fragment{
-          first
-          | output: first.output |> Path.dirname() |> Path.join("index.html")
-        }
-
-        {:ok, [first_dup, first | rest]}
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  @spec to_fragment(t()) :: Result.t(Fragment.t())
-  defp to_fragment(post_list) do
+  @spec to_fragment(t(), any()) :: Result.t(Fragment.t())
+  def to_fragment(post_list, _) do
     metadata =
       post_list
       |> Map.drop([:__struct__, :output])

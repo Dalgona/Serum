@@ -19,7 +19,7 @@ defmodule Serum.Build.FileProcessor do
   @type result() :: %{
           pages: [Page.t()],
           posts: [Post.t()],
-          lists: [[PostList.t()]]
+          lists: [PostList.t()]
         }
 
   @spec process_files(map(), Project.t()) :: Result.t(result())
@@ -140,7 +140,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec generate_lists([Post.t()], tag_group(), Project.t()) :: Result.t([[PostList.t()]])
+  @spec generate_lists([Post.t()], tag_group(), Project.t()) :: Result.t([PostList.t()])
   defp generate_lists(posts, tags, proj) do
     IO.puts("Generating post lists...")
 
@@ -150,6 +150,10 @@ defmodule Serum.Build.FileProcessor do
     end)
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
+    |> case do
+      {:ok, lists} -> {:ok, List.flatten(lists)}
+      {:error, _} = error -> error
+    end
   end
 
   @spec group_posts_by_tag([Post.t()]) :: tag_group()

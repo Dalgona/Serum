@@ -17,7 +17,7 @@ defmodule Serum.Build.FragmentGenerator do
     tasks = [
       Task.async(fn -> task_fun(map.pages, Page, proj) end),
       Task.async(fn -> task_fun(map.posts, Post, proj) end),
-      Task.async(fn -> list_task_fun(map.lists) end)
+      Task.async(fn -> task_fun(map.lists, PostList, proj) end)
     ]
 
     tasks
@@ -35,17 +35,5 @@ defmodule Serum.Build.FragmentGenerator do
     |> Task.async_stream(struct, :to_fragment, [proj])
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:fragment_generator)
-  end
-
-  @spec list_task_fun([[PostList.t()]]) :: Result.t([Fragment.t()])
-  defp list_task_fun(lists) do
-    lists
-    |> Task.async_stream(PostList, :to_fragments, [])
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:fragment_generator)
-    |> case do
-      {:ok, fragments} -> {:ok, List.flatten(fragments)}
-      {:error, _} = error -> error
-    end
   end
 end
