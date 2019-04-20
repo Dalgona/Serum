@@ -130,7 +130,7 @@ defmodule Serum.Build do
 
   # Removes all files and directories in the destination directory,
   # excluding dotfiles so that git repository is not blown away.
-  @spec clean_dest(binary) :: :ok
+  @spec clean_dest(binary) :: Result.t()
   defp clean_dest(dest) do
     File.mkdir_p!(dest)
     msg_mkdir(dest)
@@ -139,7 +139,13 @@ defmodule Serum.Build do
     |> File.ls!()
     |> Enum.reject(&String.starts_with?(&1, "."))
     |> Enum.map(&Path.join(dest, &1))
-    |> Enum.each(&File.rm_rf!(&1))
+    |> Enum.map(fn path ->
+      case File.rm_rf(path) do
+        {:ok, _} -> :ok
+        {:error, reason, ^path} -> {:error, {reason, path, 0}}
+      end
+    end)
+    |> Result.aggregate(:clean_dest)
   end
 
   @spec copy_assets(binary(), binary()) :: :ok

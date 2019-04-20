@@ -8,6 +8,8 @@
   platform-independent way to create a temporary directory. (by @kernelgarden)
 - Fixed a potential issue which might cause an infinite loop when a Serum
   plugin calls `Serum.File.write/1`.
+- Fixed a potential crash which can happen if the destination directory has no
+  write permission. Serum now exits gracefully with error messages.
 
 ### Added
 
