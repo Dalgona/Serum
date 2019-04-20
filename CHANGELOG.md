@@ -1,5 +1,19 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Fixed
+
+- Now the Serum development server works on Microsoft Windows, by using a
+  platform-independent way to create a temporary directory. (by @kernelgarden)
+- Fixed a potential issue which might cause an infinite loop when a Serum
+  plugin calls `Serum.File.write/1`.
+
+### Added
+
+- Added `Serum.Plugins.SitemapGenerator` plugin, which generates a `robots.txt`
+  and `sitemap.xml` for blog posts. (by @kernelgarden)
+
 ## v0.12.0 &mdash; 2019-04-17
 
 ### Fixed
