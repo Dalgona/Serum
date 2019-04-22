@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v0.13.0 &mdash; 2019-04-22
 
 ### Fixed
 
@@ -10,6 +10,15 @@
   plugin calls `Serum.File.write/1`.
 - Fixed a potential crash which can happen if the destination directory has no
   write permission. Serum now exits gracefully with error messages.
+- Serum no longer crashes when the destination directory is not writable.
+  Instead, it exits gracefully with an error message. (#35)
+- The values of `@all_pages` and `@all_posts` variables in EEx templates match
+  the latest official documentation. (#36)
+
+### Changed
+
+- The table of contents plugin now preserves markup inside source `<h1>`~`<h6>`
+  tags when building TOC list items.
 
 ### Added
 
