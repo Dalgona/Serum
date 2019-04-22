@@ -27,20 +27,14 @@ defmodule Serum.Build.FileProcessor do
     %{pages: page_files, posts: post_files} = files
 
     with :ok <- compile_templates(files),
-         page_task = Task.async(fn -> process_pages(page_files, proj) end),
-         post_task = Task.async(fn -> process_posts(post_files, proj) end),
-         {:ok, pages} <- Task.await(page_task),
-         {:ok, posts} <- Task.await(post_task),
+         {:ok, pages} <- process_pages(page_files, proj),
+         {:ok, posts} <- process_posts(post_files, proj),
          tags = group_posts_by_tag(posts),
          tag_counts = get_tag_counts(tags),
          {:ok, lists} <- generate_lists(posts, tags, proj) do
-      GlobalBindings.put(:all_pages, pages)
-      GlobalBindings.put(:all_posts, posts)
-      GlobalBindings.put(:all_tags, tag_counts)
+      update_global_bindings(pages, posts, tag_counts)
 
-      result = %{pages: pages, posts: posts, lists: lists}
-
-      {:ok, result}
+      {:ok, %{pages: pages, posts: posts, lists: lists}}
     else
       {:error, _} = error -> error
     end
@@ -175,5 +169,12 @@ defmodule Serum.Build.FileProcessor do
   @spec get_tag_counts(tag_group()) :: [{Tag.t(), integer()}]
   defp get_tag_counts(tags) do
     Enum.map(tags, fn {k, v} -> {k, Enum.count(v)} end)
+  end
+
+  @spec update_global_bindings([Page.t()], [Post.t()], [{Tag.t(), integer()}]) :: :ok
+  def update_global_bindings(pages, posts, tag_counts) do
+    GlobalBindings.put(:all_pages, Enum.map(pages, &Page.compact/1))
+    GlobalBindings.put(:all_posts, Enum.map(posts, &Post.compact/1))
+    GlobalBindings.put(:all_tags, tag_counts)
   end
 end
