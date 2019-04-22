@@ -35,8 +35,6 @@ defmodule Serum.Page do
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
-  @metadata_keys [:title, :label, :group, :url]
-
   @spec new(binary(), map(), binary(), map()) :: t()
   def new(path, header, data, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
@@ -59,8 +57,14 @@ defmodule Serum.Page do
     })
   end
 
-  @spec get_type(binary) :: binary
+  @spec compact(t()) :: map()
+  def compact(%__MODULE__{} = page) do
+    page
+    |> Map.drop(~w(__struct__ data file output type)a)
+    |> Map.put(:type, :page)
+  end
 
+  @spec get_type(binary) :: binary
   defp get_type(filename) do
     case Path.extname(filename) do
       ".eex" ->
@@ -76,10 +80,7 @@ defmodule Serum.Page do
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(page, proj) do
-    metadata =
-      page
-      |> Map.take(@metadata_keys)
-      |> Map.put(:type, :page)
+    metadata = compact(page)
 
     with {:ok, temp} <- preprocess(page),
          {:ok, html} <- render(temp, metadata, proj) do

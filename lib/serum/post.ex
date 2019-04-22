@@ -46,8 +46,6 @@ defmodule Serum.Post do
     :output
   ]
 
-  @metadata_keys [:title, :date, :raw_date, :preview, :tags, :url]
-
   @spec new(binary(), map(), binary(), map()) :: t()
   def new(path, header, html, proj) do
     tags = Tag.batch_create(header[:tags] || [], proj)
@@ -74,9 +72,15 @@ defmodule Serum.Post do
     }
   end
 
+  @spec compact(t()) :: map()
+  def compact(%__MODULE__{} = post) do
+    post
+    |> Map.drop(~w(__struct__ file html output)a)
+    |> Map.put(:type, :post)
+  end
+
   @spec generate_preview(binary(), non_neg_integer()) :: binary()
   defp generate_preview(html, length)
-
   defp generate_preview(_html, length) when length <= 0, do: ""
 
   defp generate_preview(html, length) do
@@ -95,10 +99,7 @@ defmodule Serum.Post do
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, proj) do
-    metadata =
-      post
-      |> Map.take(@metadata_keys)
-      |> Map.put(:type, :post)
+    metadata = compact(post)
 
     case to_html(post, metadata, proj) do
       {:ok, html} ->

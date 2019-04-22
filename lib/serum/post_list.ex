@@ -90,6 +90,13 @@ defmodule Serum.PostList do
     |> Result.aggregate_values(:generate_lists)
   end
 
+  @spec compact(t()) :: map()
+  def compact(%__MODULE__{} = list) do
+    list
+    |> Map.drop(~w(__struct__ output)a)
+    |> Map.put(:type, :list)
+  end
+
   @spec put_adjacent_urls([nil | t()], [t()]) :: [t()]
   defp put_adjacent_urls(lists, acc)
   defp put_adjacent_urls([_last], acc), do: Enum.reverse(acc)
@@ -117,11 +124,7 @@ defmodule Serum.PostList do
 
   @spec to_fragment(t(), any()) :: Result.t(Fragment.t())
   def to_fragment(post_list, _) do
-    metadata =
-      post_list
-      |> Map.drop([:__struct__, :output])
-      |> Map.put(:type, :list)
-
+    metadata = compact(post_list)
     bindings = [page: metadata]
     template = Template.get("list")
 
