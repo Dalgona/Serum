@@ -19,7 +19,6 @@ defmodule Serum.PostList do
 
   alias Serum.Fragment
   alias Serum.Plugin
-  alias Serum.Post
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
@@ -30,7 +29,7 @@ defmodule Serum.PostList do
           current_page: pos_integer(),
           max_page: pos_integer(),
           title: binary(),
-          posts: [Post.t()],
+          posts: [map()],
           url: binary(),
           prev_url: binary() | nil,
           next_url: binary() | nil,
@@ -51,7 +50,7 @@ defmodule Serum.PostList do
     :output
   ]
 
-  @spec generate(maybe_tag(), [Post.t()], map()) :: Result.t([t()])
+  @spec generate(maybe_tag(), [map()], map()) :: Result.t([t()])
   def generate(tag, posts, proj) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
@@ -113,7 +112,7 @@ defmodule Serum.PostList do
     put_adjacent_urls([curr | rest], [updated_curr | acc])
   end
 
-  @spec make_chunks([Post.t()], boolean(), pos_integer()) :: [[Post.t()]]
+  @spec make_chunks([map()], boolean(), pos_integer()) :: [[map()]]
   defp make_chunks(posts, paginate?, num_posts)
   defp make_chunks([], _, _), do: [[]]
   defp make_chunks(posts, false, _), do: [posts]

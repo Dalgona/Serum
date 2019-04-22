@@ -27,12 +27,12 @@ defmodule Serum.Build.FileProcessor do
     %{pages: page_files, posts: post_files} = files
 
     with :ok <- compile_templates(files),
-         {:ok, pages} <- process_pages(page_files, proj),
-         {:ok, posts} <- process_posts(post_files, proj),
-         tags = group_posts_by_tag(posts),
+         {:ok, {pages, compact_pages}} <- process_pages(page_files, proj),
+         {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
+         tags = group_posts_by_tag(compact_posts),
          tag_counts = get_tag_counts(tags),
-         {:ok, lists} <- generate_lists(posts, tags, proj) do
-      update_global_bindings(pages, posts, tag_counts)
+         {:ok, lists} <- generate_lists(compact_posts, tags, proj) do
+      update_global_bindings(compact_pages, compact_posts, tag_counts)
 
       {:ok, %{pages: pages, posts: posts, lists: lists}}
     else
@@ -53,7 +53,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_pages([Serum.File.t()], Project.t()) :: Result.t([Page.t()])
+  @spec process_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
   defp process_pages(files, proj) do
     IO.puts("Processing page files...")
 
@@ -62,8 +62,13 @@ defmodule Serum.Build.FileProcessor do
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
-      {:ok, pages} -> {:ok, Enum.sort(pages, &(&1.order < &2.order))}
-      {:error, _} = error -> error
+      {:ok, pages} ->
+        sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
+
+        {:ok, {sorted_pages, Enum.map(sorted_pages, &Page.compact/1)}}
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -92,7 +97,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_posts([Serum.File.t()], Project.t()) :: Result.t([Post.t()])
+  @spec process_posts([Serum.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
   defp process_posts(files, proj) do
     IO.puts("Processing post files...")
 
@@ -101,8 +106,13 @@ defmodule Serum.Build.FileProcessor do
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
-      {:ok, posts} -> {:ok, Enum.sort(posts, &(&1.raw_date > &2.raw_date))}
-      {:error, _} = error -> error
+      {:ok, posts} ->
+        sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date))
+
+        {:ok, {sorted_posts, Enum.map(sorted_posts, &Post.compact/1)}}
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -150,7 +160,7 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec group_posts_by_tag([Post.t()]) :: tag_group()
+  @spec group_posts_by_tag([map()]) :: tag_group()
   defp group_posts_by_tag(all_posts) do
     all_tags =
       Enum.reduce(all_posts, MapSet.new(), fn post, acc ->
@@ -171,10 +181,10 @@ defmodule Serum.Build.FileProcessor do
     Enum.map(tags, fn {k, v} -> {k, Enum.count(v)} end)
   end
 
-  @spec update_global_bindings([Page.t()], [Post.t()], [{Tag.t(), integer()}]) :: :ok
-  def update_global_bindings(pages, posts, tag_counts) do
-    GlobalBindings.put(:all_pages, Enum.map(pages, &Page.compact/1))
-    GlobalBindings.put(:all_posts, Enum.map(posts, &Post.compact/1))
+  @spec update_global_bindings([map()], [map()], [{Tag.t(), integer()}]) :: :ok
+  def update_global_bindings(compact_pages, compact_posts, tag_counts) do
+    GlobalBindings.put(:all_pages, compact_pages)
+    GlobalBindings.put(:all_posts, compact_posts)
     GlobalBindings.put(:all_tags, tag_counts)
   end
 end
