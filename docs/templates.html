@@ -58,7 +58,6 @@ customize its values by editing the
     label: &quot;Home&quot;,
     group: &quot;main-menu&quot;,
     order: &quot;1&quot;,
-    images: [&quot;/Serum/media/logo.png&quot;],
     url: &quot;/Serum/index.html&quot;
   },
   ...
@@ -80,10 +79,6 @@ navigation list or a table of contents.</p><a name="s_2.1.3"><h4><code class="in
       %{name: &quot;Tag1&quot;, list_url: &quot;/Serum/tags/Tag1/&quot;},
       %{name: &quot;Tag3&quot;, list_url: &quot;/Serum/tags/Tag3/&quot;}
     ],
-    images: [
-      &quot;/Serum/media/my-first-post/image1.jpg&quot;,
-      &quot;/Serum/media/my-first-post/image2.jpg&quot;
-    ]
     url: &quot;/Serum/posts/2019-04-18-my-first-post.html&quot;
   },
   ...
@@ -109,9 +104,10 @@ a tag and the number of blog posts associated with the tag. The list is not
 sorted; you can use it as is to make a “tag cloud,” or you can sort the list
 by the use count to make a “top tags” list.</p><a name="s_2.2"><h3>Page-specific Variables</h3></a><p>These variables have different values depending on the page being rendered at
 the moment, and may not be available in some templates.</p><a name="s_2.2.1"><h4><code class="inline">@page</code> - Current Page</h4></a><p>The <code class="inline">@page</code> variable contains a metadata of the page being rendered. When
-rendering a page or a blog post, the type of its value is the same as the type
-of an element of <a href="#s_2.1.2"><code class="inline">@all_pages</code></a> or an element of
-<a href="#s_2.1.3"><code class="inline">@all_posts</code></a>.</p><p>When rendering a blog post list, its value looks like the following:</p><pre><code class="lang-elixir">%{
+rendering a page or a blog post, the type of its value is almost the same as
+the type of an element of <a href="#s_2.1.2"><code class="inline">@all_pages</code></a> or an element of
+<a href="#s_2.1.3"><code class="inline">@all_posts</code></a>, but there is additional <code class="inline">:images</code> key, which value
+is a list of URLs of images used inside the page or the blog post.</p><p>When rendering a blog post list, its value looks like the following:</p><pre><code class="lang-elixir">%{
   type: :list,
 
   # This is set to `nil` when a list of all posts is being rendered.
@@ -122,6 +118,7 @@ of an element of <a href="#s_2.1.2"><code class="inline">@all_pages</code></a> o
   title: &quot;Posts tagged \&quot;Tag1\&quot;&quot;,
   posts: [ ... ],
   url: &quot;/Serum/tags/Tag1/page-2.html&quot;,
+  images: [],
 
   # This is set to `nil` if current_page == 1.
   prev_url: &quot;/Serum/tags/Tag1/page-1.html&quot;,
