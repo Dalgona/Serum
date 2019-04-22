@@ -141,7 +141,7 @@ defmodule Serum.Plugins.TableOfContents do
         {[new_tag | acc], new_st}
       end)
 
-    {Enum.reverse(new_tags), new_state}
+    {new_tags |> Enum.reverse() |> List.flatten(), new_state}
   end
 
   defp traverse(x, state, _fun), do: {x, state}
@@ -149,7 +149,7 @@ defmodule Serum.Plugins.TableOfContents do
   @spec tree_fun(Floki.html_tree(), term()) :: {Floki.html_tree(), term()}
   defp tree_fun(tree, state)
 
-  defp tree_fun({<<?h::8, ch::8, _::binary>>, _, _} = tree, state) when ch in ?1..?6 do
+  defp tree_fun({<<?h::8, ch::8, _::binary>>, _, children} = tree, state) when ch in ?1..?6 do
     {start, end_, prev_level, counts, items} = state
     level = ch - ?0
 
@@ -157,19 +157,24 @@ defmodule Serum.Plugins.TableOfContents do
       new_counts = update_counts(counts, level, prev_level)
       num_dot = new_counts |> Enum.reverse() |> Enum.join(".")
       span = {"span", [{"class", "number"}], [num_dot]}
-      text = Floki.text(tree, sep: " ")
-      link = {"a", [{"href", "#s_#{num_dot}"}], [span, text]}
+      {contents, _} = traverse(children, nil, &strip_a_tags/2)
+      link = {"a", [{"href", "#s_#{num_dot}"}], [span | contents]}
       item = {"li", [{"class", "indent-#{level - start}"}], [link]}
-      new_tree = {"a", [{"name", "s_#{num_dot}"}], [tree]}
+      bookmark = {"a", [{"name", "s_#{num_dot}"}], []}
       new_state = {start, end_, level, new_counts, [item | items]}
 
-      {new_tree, new_state}
+      {[bookmark, tree], new_state}
     else
       {tree, state}
     end
   end
 
   defp tree_fun(x, state), do: {x, state}
+
+  @spec strip_a_tags(Floki.html_tree(), term()) :: {Floki.html_tree(), term()}
+  defp strip_a_tags(tree, state)
+  defp strip_a_tags({"a", _, children}, state), do: {children, state}
+  defp strip_a_tags(x, state), do: {x, state}
 
   @spec update_counts([integer()], integer(), integer()) :: [integer()]
   defp update_counts(counts, level, prev_level) do
