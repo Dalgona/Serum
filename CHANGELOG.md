@@ -1,5 +1,16 @@
 # Serum Changelog
 
+## v1.0.0-pre.0 &mdash; 2019-04-23
+
+This is the first pre-release of Serum v1.0.0. I will mostly focus on stability
+and code coverage until the final release.
+
+### Removed
+
+- `serum.json` is no longer supported. Serum will exit with an error when
+  trying to load one. Migrate to `serum.exs` now. JSON files won't be
+  recognized when Serum v1.0.0 is released.
+
 ## v0.13.0 &mdash; 2019-04-22
 
 ### Fixed
