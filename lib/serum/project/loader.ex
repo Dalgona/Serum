@@ -4,11 +4,9 @@ defmodule Serum.Project.Loader do
   """
 
   require Serum.Util
-  import Serum.Util
   alias Serum.GlobalBindings
   alias Serum.Project
   alias Serum.Project.ElixirValidator
-  alias Serum.Project.JsonValidator
   alias Serum.Result
 
   @doc """
@@ -48,38 +46,16 @@ defmodule Serum.Project.Loader do
 
   @spec load_json(binary()) :: Result.t(Project.t())
   defp load_json(src) do
-    path = Path.join(src, "serum.json")
+    url = "https://dalgona.github.io/Serum/docs/project-definition.html"
 
-    warn("The JSON project definition file is deprecated")
-    warn("and support for this will be removed in the later releases.")
-    warn("Please refer to the docs to migrate to Elixir format.")
+    message = """
+    JSON-based Serum project definition file is no longer supported.
 
-    with {:ok, data} <- File.read(path),
-         {:ok, json} <- Poison.decode(data),
-         :ok <- JsonValidator.validate("project_info", json, path) do
-      proj =
-        json
-        |> Enum.map(fn {k, v} -> {String.to_atom(k), v} end)
-        |> Map.new()
-        |> Project.new()
+    Please visit \x1b[1m#{url}\x1b[0m
+    for more information about the new Elixir-based file format.
+    """
 
-      {:ok, proj}
-    else
-      # From File.read/1:
-      {:error, reason} when is_atom(reason) ->
-        {:error, {reason, path, 0}}
-
-      # From Poison.decode/1:
-      {:error, :invalid, pos} ->
-        {:error, {"parse error at position #{pos}", path, 0}}
-
-      {:error, {:invalid, token, pos}} ->
-        {:error, {"parse error near `#{token}' at position #{pos}", path, 0}}
-
-      # From Validation.validate/3:
-      {:error, _} = error ->
-        error
-    end
+    {:error, {message, src, 0}}
   end
 
   @spec load_exs(binary()) :: Result.t(Project.t())
