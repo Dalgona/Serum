@@ -53,8 +53,9 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
+  @doc false
   @spec process_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
-  defp process_pages(files, proj) do
+  def process_pages(files, proj) do
     IO.puts("Processing page files...")
 
     files
@@ -97,8 +98,9 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
+  @doc false
   @spec process_posts([Serum.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
-  defp process_posts(files, proj) do
+  def process_posts(files, proj) do
     IO.puts("Processing post files...")
 
     files
