@@ -37,15 +37,18 @@ defmodule Serum.Project.Loader do
 
   @spec do_load(binary()) :: Result.t(Project.t())
   defp do_load(src) do
+    exs_path = Path.join(src, "serum.exs")
+    json_path = Path.join(src, "serum.json")
+
     cond do
-      File.exists?(Path.join(src, "serum.exs")) -> load_exs(src)
-      File.exists?(Path.join(src, "serum.json")) -> load_json(src)
-      :else -> {:error, {:enoent, Path.join(src, "serum.exs"), 0}}
+      File.exists?(exs_path) -> load_exs(exs_path)
+      File.exists?(json_path) -> load_json(json_path)
+      :else -> {:error, {:enoent, exs_path, 0}}
     end
   end
 
   @spec load_json(binary()) :: Result.t(Project.t())
-  defp load_json(src) do
+  defp load_json(json_path) do
     url = "https://dalgona.github.io/Serum/docs/project-definition.html"
 
     message = """
@@ -55,30 +58,28 @@ defmodule Serum.Project.Loader do
     for more information about the new Elixir-based file format.
     """
 
-    {:error, {message, src, 0}}
+    {:error, {message, json_path, 0}}
   end
 
   @spec load_exs(binary()) :: Result.t(Project.t())
-  defp load_exs(src) do
-    path = Path.join(src, "serum.exs")
-
-    with {:ok, data} <- File.read(path),
-         {map, _} <- Code.eval_string(data, [], file: path),
+  defp load_exs(exs_path) do
+    with {:ok, data} <- File.read(exs_path),
+         {map, _} <- Code.eval_string(data, [], file: exs_path),
          :ok <- ElixirValidator.validate(map) do
       {:ok, Project.new(map)}
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
-        {:error, {reason, path, 0}}
+        {:error, {reason, exs_path, 0}}
 
       # From ElixirValidator.validate/2:
       {:invalid, message} when is_binary(message) ->
-        {:error, {message, path, 0}}
+        {:error, {message, exs_path, 0}}
 
       {:invalid, messages} when is_list(messages) ->
         sub_errors =
           Enum.map(messages, fn message ->
-            {:error, {message, path, 0}}
+            {:error, {message, exs_path, 0}}
           end)
 
         {:error, {:project_validator, sub_errors}}
@@ -94,8 +95,7 @@ defmodule Serum.Project.Loader do
         |> String.replace_prefix("Elixir.", "")
 
       err_msg = "#{err_name} while evaluating: #{Exception.message(e)}"
-      file = Path.join(src, "serum.exs")
 
-      {:error, {err_msg, file, 0}}
+      {:error, {err_msg, exs_path, 0}}
   end
 end
