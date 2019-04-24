@@ -1,0 +1,8 @@
+---
+title: Test Page
+---
+
+<p>This page cannot be transformed into a fragment
+because the EEx code below does not compile.</p>
+
+<%=
