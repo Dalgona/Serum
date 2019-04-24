@@ -128,7 +128,7 @@ defmodule Serum.Build.FileProcessor do
       date: :datetime
     ]
 
-    required = [:title]
+    required = [:title, :date]
 
     with {:ok, file2} <- Plugin.processing_post(file),
          {:ok, {header, rest}} <- parse_header(file2.in_data, opts, required) do

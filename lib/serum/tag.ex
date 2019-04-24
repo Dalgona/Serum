@@ -18,6 +18,6 @@ defmodule Serum.Tag do
 
   @spec batch_create([binary()], map()) :: [t()]
   def batch_create(names, proj) do
-    names |> Enum.sort() |> Enum.map(&new(&1, proj))
+    names |> Enum.uniq() |> Enum.sort() |> Enum.map(&new(&1, proj))
   end
 end
