@@ -14,7 +14,8 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
-  @type tag_group() :: [{Tag.t(), [Post.t()]}]
+  @type tag_groups() :: [{Tag.t(), [Post.t()]}]
+  @type tag_counts() :: [{Tag.t(), integer()}]
 
   @type result() :: %{
           pages: [Page.t()],
@@ -29,9 +30,7 @@ defmodule Serum.Build.FileProcessor do
     with :ok <- compile_templates(files),
          {:ok, {pages, compact_pages}} <- process_pages(page_files, proj),
          {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
-         tags = group_posts_by_tag(compact_posts),
-         tag_counts = get_tag_counts(tags),
-         {:ok, lists} <- generate_lists(compact_posts, tags, proj) do
+         {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj) do
       update_global_bindings(compact_pages, compact_posts, tag_counts)
 
       {:ok, %{pages: pages, posts: posts, lists: lists}}
@@ -146,44 +145,52 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec generate_lists([Post.t()], tag_group(), Project.t()) :: Result.t([PostList.t()])
-  defp generate_lists(posts, tags, proj) do
+  @doc false
+  @spec generate_lists([map()], Project.t()) :: Result.t({[PostList.t()], tag_counts()})
+  def generate_lists(compact_posts, proj) do
     IO.puts("Generating post lists...")
 
-    [{nil, posts} | tags]
+    tag_groups = group_posts_by_tag(compact_posts)
+
+    [{nil, compact_posts} | tag_groups]
     |> Task.async_stream(fn {tag, posts} ->
       PostList.generate(tag, posts, proj)
     end)
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
-      {:ok, lists} -> {:ok, List.flatten(lists)}
+      {:ok, lists} -> {:ok, {List.flatten(lists), get_tag_counts(tag_groups)}}
       {:error, _} = error -> error
     end
   end
 
-  @spec group_posts_by_tag([map()]) :: tag_group()
-  defp group_posts_by_tag(all_posts) do
-    all_tags =
-      Enum.reduce(all_posts, MapSet.new(), fn post, acc ->
-        MapSet.union(acc, MapSet.new(post.tags))
-      end)
+  @spec group_posts_by_tag([map()], map()) :: tag_groups()
+  defp group_posts_by_tag(posts, acc \\ %{})
 
-    all_tags
-    |> Task.async_stream(fn tag ->
-      posts = Enum.filter(all_posts, &(tag in &1.tags))
-
-      {tag, posts}
-    end)
-    |> Enum.map(&elem(&1, 1))
+  defp group_posts_by_tag([], acc) do
+    Enum.map(acc, fn {tag, posts} -> {tag, Enum.reverse(posts)} end)
   end
 
-  @spec get_tag_counts(tag_group()) :: [{Tag.t(), integer()}]
+  defp group_posts_by_tag([post | posts], acc1) do
+    new_acc =
+      Enum.reduce(post.tags, acc1, fn tag, acc2 ->
+        acc2
+        |> Map.get_and_update(tag, fn
+          nil -> {nil, [post]}
+          posts when is_list(posts) -> {posts, [post | posts]}
+        end)
+        |> elem(1)
+      end)
+
+    group_posts_by_tag(posts, new_acc)
+  end
+
+  @spec get_tag_counts(tag_groups()) :: tag_counts()
   defp get_tag_counts(tags) do
     Enum.map(tags, fn {k, v} -> {k, Enum.count(v)} end)
   end
 
-  @spec update_global_bindings([map()], [map()], [{Tag.t(), integer()}]) :: :ok
+  @spec update_global_bindings([map()], [map()], tag_counts()) :: :ok
   def update_global_bindings(compact_pages, compact_posts, tag_counts) do
     GlobalBindings.put(:all_pages, compact_pages)
     GlobalBindings.put(:all_posts, compact_posts)
