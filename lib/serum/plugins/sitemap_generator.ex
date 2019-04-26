@@ -17,6 +17,7 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   require EEx
   alias Serum.GlobalBindings
+  alias Serum.Result
 
   def name, do: "Create sitemap for search engine"
   def version, do: "1.0.0"
@@ -33,8 +34,8 @@ defmodule Serum.Plugins.SitemapGenerator do
     ]
 
   def build_succeeded(_src, dest) do
-    with :ok <- write_sitemap(dest),
-         :ok <- write_robots(dest) do
+    with {:ok, _} <- write_sitemap(dest),
+         {:ok, _} <- write_robots(dest) do
       :ok
     else
       {:error, _} = error -> error
@@ -69,28 +70,25 @@ defmodule Serum.Plugins.SitemapGenerator do
     |> Map.fetch!(:server_root)
   end
 
+  @spec write_sitemap(binary()) :: Result.t(Serum.File.t())
   defp write_sitemap(dest) do
     all_posts = GlobalBindings.get(:all_posts)
-    sitemap = sitemap_xml(all_posts, &to_w3c_format/1, get_server_root())
 
-    try_save(sitemap, Path.join(dest, "sitemap.xml"))
+    file = %Serum.File{
+      dest: Path.join(dest, "sitemap.xml"),
+      out_data: sitemap_xml(all_posts, &to_w3c_format/1, get_server_root())
+    }
+
+    Serum.File.write(file)
   end
 
+  @spec write_robots(binary()) :: Result.t(Serum.File.t())
   defp write_robots(dest) do
-    sitemap_path = Path.join(get_server_root(), "sitemap.xml")
-    robots = robots_txt(sitemap_path)
+    file = %Serum.File{
+      dest: Path.join(dest, "robots.txt"),
+      out_data: robots_txt(Path.join(get_server_root(), "sitemap.xml"))
+    }
 
-    try_save(robots, Path.join(dest, "robots.txt"))
-  end
-
-  defp try_save(data, dest) do
-    with {:ok, pid} <- File.open(dest, [:write, :utf8]),
-         :ok <- IO.write(pid, data),
-         :ok <- File.close(pid) do
-      IO.puts("\x1b[92m   GEN \x1b[0m#{dest}")
-      :ok
-    else
-      {:error, reason} -> {:error, {reason, dest, 0}}
-    end
+    Serum.File.write(file)
   end
 end

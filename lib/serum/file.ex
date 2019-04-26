@@ -15,8 +15,8 @@ defmodule Serum.File do
   defstruct [:src, :dest, :in_data, :out_data]
 
   @type t :: %__MODULE__{
-          src: binary(),
-          dest: binary(),
+          src: binary() | nil,
+          dest: binary() | nil,
           in_data: binary() | nil,
           out_data: binary() | nil
         }
