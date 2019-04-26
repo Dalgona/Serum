@@ -6,8 +6,8 @@ defmodule Serum.Build.FileLoader do
   alias Serum.Project
   alias Serum.Result
 
-  @spec load_files(Project.t()) :: Result.t(map())
-  def load_files(%Project{src: src}) do
+  @spec load_files(binary()) :: Result.t(map())
+  def load_files(src) do
     with {:ok, template_files} <- load_templates(src),
          {:ok, include_files} <- load_includes(src),
          {:ok, page_files} <- load_pages(src),
