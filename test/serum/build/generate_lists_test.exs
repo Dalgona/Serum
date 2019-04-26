@@ -1,4 +1,4 @@
-defmodule Serum.GenerateListsTest do
+defmodule Serum.Build.GenerateListsTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros

@@ -1,4 +1,4 @@
-defmodule Serum.PageProcessTest do
+defmodule Serum.Build.PageProcessTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
