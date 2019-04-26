@@ -14,18 +14,22 @@ defmodule Serum.PageProcessTest do
   describe "process_pages/2" do
     test "supported file types", ctx do
       page_files =
-        [
-          "pages/good-md.md",
-          "pages/good-html.html",
-          "pages/good-eex.html.eex"
-        ]
-        |> Enum.map(&fixture/1)
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
-        |> Enum.map(fn {:ok, file} -> file end)
+        mute_stdio do
+          [
+            "pages/good-md.md",
+            "pages/good-html.html",
+            "pages/good-eex.html.eex"
+          ]
+          |> Enum.map(&fixture/1)
+          |> Enum.map(&%Serum.File{src: &1})
+          |> Enum.map(&Serum.File.read/1)
+          |> Enum.map(fn {:ok, file} -> file end)
+        end
 
-      {:ok, result} = FileProcessor.process_pages(page_files, ctx.proj)
-      {[page1, page2, page3] = pages, compact_pages} = result
+      {:ok, {[page1, page2, page3] = pages, compact_pages}} =
+        mute_stdio do
+          FileProcessor.process_pages(page_files, ctx.proj)
+        end
 
       assert %{
                title: "Test Markdown Page",
@@ -64,10 +68,12 @@ defmodule Serum.PageProcessTest do
 
     test "use default label", ctx do
       file = %Serum.File{src: fixture("pages/good-minimal-header.md")}
-      {:ok, file} = Serum.File.read(file)
+      {:ok, file} = mute_stdio(do: Serum.File.read(file))
 
-      {:ok, result} = FileProcessor.process_pages([file], ctx.proj)
-      {[page], [compact_page]} = result
+      {:ok, {[page], [compact_page]}} =
+        mute_stdio do
+          FileProcessor.process_pages([file], ctx.proj)
+        end
 
       assert page.label === "Test Page"
       assert compact_page.label === "Test Page"
@@ -75,14 +81,19 @@ defmodule Serum.PageProcessTest do
 
     test "fail on pages with bad headers", ctx do
       files =
-        fixture("pages")
-        |> Path.join("bad-*.md")
-        |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
-        |> Enum.map(fn {:ok, file} -> file end)
+        mute_stdio do
+          fixture("pages")
+          |> Path.join("bad-*.md")
+          |> Path.wildcard()
+          |> Enum.map(&%Serum.File{src: &1})
+          |> Enum.map(&Serum.File.read/1)
+          |> Enum.map(fn {:ok, file} -> file end)
+        end
 
-      {:error, {_, errors}} = FileProcessor.process_pages(files, ctx.proj)
+      {:error, {_, errors}} =
+        mute_stdio do
+          FileProcessor.process_pages(files, ctx.proj)
+        end
 
       assert length(errors) === length(files)
     end

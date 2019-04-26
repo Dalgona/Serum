@@ -1,5 +1,7 @@
 defmodule Serum.GenerateListsTest do
   use ExUnit.Case, async: true
+  require Serum.TestHelper
+  import Serum.TestHelper, only: :macros
   alias Serum.Build.FileProcessor
   alias Serum.Tag
 
@@ -38,7 +40,10 @@ defmodule Serum.GenerateListsTest do
       posts = ctx.compact_posts
       proj = Map.put(ctx.proj_template, :pagination, false)
 
-      assert {:ok, {lists, counts}} = FileProcessor.generate_lists(posts, proj)
+      {:ok, {lists, counts}} =
+        mute_stdio do
+          FileProcessor.generate_lists(posts, proj)
+        end
 
       # (num_of_tags + 1) * (index + page_1)
       assert length(lists) === (3 + 1) * 2
@@ -65,7 +70,10 @@ defmodule Serum.GenerateListsTest do
       posts = ctx.compact_posts
       proj = Map.put(ctx.proj_template, :pagination, true)
 
-      assert {:ok, {lists, counts}} = FileProcessor.generate_lists(posts, proj)
+      {:ok, {lists, counts}} =
+        mute_stdio do
+          FileProcessor.generate_lists(posts, proj)
+        end
 
       # num_of_tags * (index + page_1_to_4) + 1 * (index + page_1_to_6)
       assert length(lists) === 3 * (1 + 4) + (1 + 6)

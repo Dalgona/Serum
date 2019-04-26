@@ -56,23 +56,31 @@ defmodule Serum.ProcessPostsTest do
 
     test "fail on bad posts", ctx do
       files =
-        fixture("posts")
-        |> Path.join("bad-*.md")
-        |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
-        |> Enum.map(fn {:ok, file} -> file end)
+        mute_stdio do
+          fixture("posts")
+          |> Path.join("bad-*.md")
+          |> Path.wildcard()
+          |> Enum.map(&%Serum.File{src: &1})
+          |> Enum.map(&Serum.File.read/1)
+          |> Enum.map(fn {:ok, file} -> file end)
+        end
 
-      {:error, {_, errors}} = FileProcessor.process_posts(files, ctx.proj)
+      {:error, {_, errors}} =
+        mute_stdio do
+          FileProcessor.process_posts(files, ctx.proj)
+        end
 
       assert length(errors) === length(files)
     end
   end
 
   defp process(fixture_path, proj) do
-    {:ok, file} = Serum.File.read(%Serum.File{src: fixture(fixture_path)})
+    {:ok, file} =
+      mute_stdio do
+        Serum.File.read(%Serum.File{src: fixture(fixture_path)})
+      end
 
-    FileProcessor.process_posts([file], proj)
+    mute_stdio(do: FileProcessor.process_posts([file], proj))
   end
 
   defp assert_compact(map) do

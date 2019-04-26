@@ -1,6 +1,8 @@
 defmodule Serum.FileTest do
   use ExUnit.Case, async: true
+  require Serum.TestHelper
   import ExUnit.CaptureIO
+  import Serum.TestHelper, only: :macros
 
   @content1 "The quick brown fox jumps over the lazy dog.\n"
 
@@ -30,17 +32,13 @@ defmodule Serum.FileTest do
         out_data: nil
       }
 
-      capture_io(fn ->
-        {:ok, read_file} = Serum.File.read(file)
+      result =
+        mute_stdio do
+          {:ok, read_file} = Serum.File.read(file)
+          %Serum.File{} = read_file
+        end
 
-        send(self(), read_file)
-      end)
-
-      receive do
-        %Serum.File{} = file -> assert file.in_data === @content1
-      after
-        1000 -> flunk("Received no message in 1 second")
-      end
+      assert result.in_data === @content1
     end
 
     test "try to read a file that does not exist", context do
