@@ -1,8 +1,7 @@
 defmodule Serum.Build.FileProcessor do
-  @moduledoc """
-  Processes/parses the input files to produce the intermediate data.
-  """
+  @moduledoc "Processes the input files to produce the intermediate data."
 
+  alias Serum.Build.FileLoader
   alias Serum.GlobalBindings
   alias Serum.Page
   alias Serum.Plugin
@@ -23,7 +22,23 @@ defmodule Serum.Build.FileProcessor do
           lists: [PostList.t()]
         }
 
-  @spec process_files(map(), Project.t()) :: Result.t(result())
+  @doc """
+  Processes the input files.
+
+  ## Procedure
+
+  - Compiles includable templates.
+  - Compiles regular templates. Any call to the `include/1` macro in a template
+    will be expanded into the corresponding includable template by the
+    `Serum.Template.Compiler` module.
+  - Processes page files.
+  - Processes blog post files.
+  - Generates post lists using information generated just before. A list of
+    tags and their use counts is also created.
+  - Updates the `Serum.GlobalBindings` agent so that the above information is
+    available later, when rendering pages into fragments or full HTML pages.
+  """
+  @spec process_files(FileLoader.result(), Project.t()) :: Result.t(result())
   def process_files(files, proj) do
     %{pages: page_files, posts: post_files} = files
 

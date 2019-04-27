@@ -1,12 +1,32 @@
 defmodule Serum.Build.FileLoader do
-  @moduledoc false
+  @moduledoc "A module responsible for loading project files."
 
   import Serum.Util
   alias Serum.Plugin
-  alias Serum.Project
   alias Serum.Result
 
-  @spec load_files(binary()) :: Result.t(map())
+  @type result :: %{
+          templates: [Serum.File.t()],
+          includes: [Serum.File.t()],
+          pages: [Serum.File.t()],
+          posts: [Serum.File.t()]
+        }
+
+  @doc """
+  Loads project files.
+
+  Files will be read from four subdirectories:
+
+  - `templates/`: Template files (`*.html.eex`)
+  - `includes/`: Includable template files (`*.html.eex`)
+  - `pages/`: Pages (`*.md`, `*.html`, `*.html.eex`)
+  - `posts/`: Blog posts (`*.md`)
+
+  The `includes/` directory and the `posts/` directory are optional. That is,
+  this function won't fail even if they don't exist. The corresponding lists
+  in the resulting map will be empty.
+  """
+  @spec load_files(binary()) :: Result.t(result())
   def load_files(src) do
     with {:ok, template_files} <- load_templates(src),
          {:ok, include_files} <- load_includes(src),

@@ -1,11 +1,16 @@
 defmodule Serum.Build.FileEmitter do
   @moduledoc """
-  Renders each fragment into a full HTML page and writes to a file.
+  A module responsible for writing each complete HTML page to a file.
   """
 
   alias Serum.Plugin
   alias Serum.Result
 
+  @doc """
+  Write files described by `%Serum.File{}` to actual files on disk.
+
+  Necessary subdirectories will be created if they don't exist.
+  """
   @spec run([Serum.File.t()]) :: Result.t()
   def run(files) do
     IO.puts("Writing output files...")
