@@ -1,0 +1,2 @@
+The code below causes a TokenMissingError to be raised.
+<%= Enum.reduce(0, 1..5, fn x, acc -> x + acc) %>

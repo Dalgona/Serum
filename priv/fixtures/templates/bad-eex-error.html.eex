@@ -1,0 +1,2 @@
+<%= if true do %>
+This results in EEx.SyntaxError because there is no end tag.
