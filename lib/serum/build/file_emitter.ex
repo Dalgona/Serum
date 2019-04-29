@@ -24,10 +24,6 @@ defmodule Serum.Build.FileEmitter do
       {:error, _} = error ->
         error
     end
-
-    files
-    |> Enum.map(&write_file/1)
-    |> Result.aggregate(:file_emitter)
   end
 
   @spec create_dirs([Serum.File.t()]) :: Result.t()
