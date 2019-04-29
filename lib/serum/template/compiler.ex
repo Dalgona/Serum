@@ -11,9 +11,11 @@ defmodule Serum.Template.Compiler do
   @type templates() :: %{optional(binary()) => Template.t()}
 
   @type options :: [
-    type: Template.template_type(),
-    includes: templates()
-  ]
+          type: Template.template_type(),
+          includes: templates()
+        ]
+
+  @default_options [type: :template, includes: %{}]
 
   @inject """
   <%
@@ -35,16 +37,18 @@ defmodule Serum.Template.Compiler do
   The `options` parameter is a keyword list of additional options controlling
   the behavior of this function. The available options are:
 
-  - `type`: Either `:template` or `:include`
+  - `type`: Either `:template` or `:include`, defaults to `:template`.
   - `includes`: A map where the key of each item is the name of the includable
     template, and the value associated with the key is a `Serum.Template`
     struct, which is an already compiled Serum template.
   """
-  @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t(map())
-  def compile_files(files, type) when is_atom(type) do
+  @spec compile_files([Serum.File.t()], options()) :: Result.t(map())
+  def compile_files(files, options) do
+    options = Keyword.merge(@default_options, options)
+
     result =
       files
-      |> Task.async_stream(&compile_file(&1, type))
+      |> Task.async_stream(&compile_file(&1, options))
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:template_loader)
 
@@ -54,19 +58,13 @@ defmodule Serum.Template.Compiler do
     end
   end
 
-  @spec compile_files([Serum.File.t()], options()) :: Result.t(map())
-  def compile_files(files, options) do
-    raise "not implemented"
-  end
-
-  @spec compile_file(Serum.File.t(), Template.template_type()) ::
-          Result.t({binary(), Template.t()})
-  defp compile_file(file, type) do
+  @spec compile_file(Serum.File.t(), options()) :: Result.t({binary(), Template.t()})
+  defp compile_file(file, options) do
     injected_file = %Serum.File{file | in_data: @inject <> file.in_data}
 
     with {:ok, file2} <- Plugin.processing_template(injected_file),
-         {:ok, ast} <- compile_string(file2.in_data, type),
-         template = Template.new(ast, type, file2.src),
+         {:ok, ast} <- compile_string(file2.in_data, options),
+         template = Template.new(ast, options[:type], file2.src),
          name = Path.basename(file2.src, ".html.eex"),
          {:ok, template2} <- Plugin.processed_template(template) do
       {:ok, {name, template2}}
@@ -79,16 +77,17 @@ defmodule Serum.Template.Compiler do
   @doc """
   Compiles the given EEx string.
   """
-  @spec compile_string(binary(), Template.template_type()) ::
+  @spec compile_string(binary(), options()) ::
           {:ok, Macro.t()}
-          | {:ct_error, binary, integer}
-  def compile_string(data, kind) do
-    compiled = EEx.compile_string(data)
+          | {:ct_error, binary(), integer()}
+  def compile_string(string, options) do
+    compiled = EEx.compile_string(string)
+    includes = options[:includes] || []
 
     ast =
-      case kind do
-        :template -> Macro.postwalk(compiled, &expand_includes/1)
+      case options[:type] do
         :include -> compiled
+        _ -> Macro.postwalk(compiled, &expand_includes(&1, includes))
       end
 
     {:ok, ast}
@@ -100,11 +99,11 @@ defmodule Serum.Template.Compiler do
       {:ct_error, e.description, e.line}
   end
 
-  @spec expand_includes(Macro.t()) :: Macro.t()
-  defp expand_includes(ast)
+  @spec expand_includes(Macro.t(), map()) :: Macro.t()
+  defp expand_includes(ast, includes)
 
-  defp expand_includes({:include, _, [arg]}) do
-    case Template.get(arg, :include) do
+  defp expand_includes({:include, _, [arg]}, includes) do
+    case includes[arg] do
       nil ->
         warn("There is no includable template named `#{arg}`.")
         nil
@@ -114,5 +113,5 @@ defmodule Serum.Template.Compiler do
     end
   end
 
-  defp expand_includes(anything_else), do: anything_else
+  defp expand_includes(anything_else, _), do: anything_else
 end
