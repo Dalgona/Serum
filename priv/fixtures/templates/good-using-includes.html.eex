@@ -1,0 +1,3 @@
+<h1>Include Test</h1>
+
+<%= include("good") %>

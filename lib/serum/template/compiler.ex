@@ -10,6 +10,11 @@ defmodule Serum.Template.Compiler do
 
   @type templates() :: %{optional(binary()) => Template.t()}
 
+  @type options :: [
+    type: Template.template_type(),
+    includes: templates()
+  ]
+
   @inject """
   <%
   require Serum.Template.Helpers
@@ -22,9 +27,21 @@ defmodule Serum.Template.Compiler do
 
   A code that requires and imports `Serum.Template.Helpers` is injected before
   the input data.
+
+  The `files` parameter is a list of `Serum.File` structs representing loaded
+  template files. That is, for each item of this list, the value of `:in_data`
+  must not be `nil`.
+
+  The `options` parameter is a keyword list of additional options controlling
+  the behavior of this function. The available options are:
+
+  - `type`: Either `:template` or `:include`
+  - `includes`: A map where the key of each item is the name of the includable
+    template, and the value associated with the key is a `Serum.Template`
+    struct, which is an already compiled Serum template.
   """
   @spec compile_files([Serum.File.t()], Template.template_type()) :: Result.t(map())
-  def compile_files(files, type) do
+  def compile_files(files, type) when is_atom(type) do
     result =
       files
       |> Task.async_stream(&compile_file(&1, type))
@@ -35,6 +52,11 @@ defmodule Serum.Template.Compiler do
       {:ok, list} -> {:ok, Map.new(list)}
       {:error, _} = error -> error
     end
+  end
+
+  @spec compile_files([Serum.File.t()], options()) :: Result.t(map())
+  def compile_files(files, options) do
+    raise "not implemented"
   end
 
   @spec compile_file(Serum.File.t(), Template.template_type()) ::
