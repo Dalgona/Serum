@@ -115,6 +115,10 @@ defmodule Serum.Build.FileProcessor do
 
   @doc false
   @spec process_posts([Serum.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
+  def process_posts(files, proj)
+
+  def process_posts([], _proj), do: {:ok, {[], []}}
+
   def process_posts(files, proj) do
     IO.puts("Processing post files...")
 
@@ -163,6 +167,10 @@ defmodule Serum.Build.FileProcessor do
 
   @doc false
   @spec generate_lists([map()], Project.t()) :: Result.t({[PostList.t()], tag_counts()})
+  def generate_lists(compact_posts, proj)
+
+  def generate_lists([], _proj), do: {:ok, {[], []}}
+
   def generate_lists(compact_posts, proj) do
     IO.puts("Generating post lists...")
 
