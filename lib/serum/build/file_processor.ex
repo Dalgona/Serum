@@ -59,9 +59,10 @@ defmodule Serum.Build.FileProcessor do
   defp compile_templates(files) do
     IO.puts("Compiling templates...")
 
-    with {:ok, includes} <- TC.compile_files(files.includes, :include),
-         :ok <- Template.load(includes, :include),
-         {:ok, templates} <- TC.compile_files(files.templates, :template) do
+    with {:ok, includes} <- TC.compile_files(files.includes, type: :include),
+         tc_options = [type: :template, includes: includes],
+         {:ok, templates} <- TC.compile_files(files.templates, tc_options) do
+      Template.load(includes, :include)
       Template.load(templates, :template)
     else
       {:error, _} = error -> error

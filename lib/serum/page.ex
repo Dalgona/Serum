@@ -105,7 +105,7 @@ defmodule Serum.Page do
   end
 
   defp preprocess(%__MODULE__{type: ".html.eex"} = page, _proj) do
-    case TC.compile_string(page.data, :template) do
+    case TC.compile_string(page.data, type: :template) do
       {:ok, ast} ->
         template = Template.new(ast, :template, page.file)
 
