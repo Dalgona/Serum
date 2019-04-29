@@ -169,7 +169,7 @@ defmodule Serum.Build.FileProcessor do
   @spec generate_lists([map()], Project.t()) :: Result.t({[PostList.t()], tag_counts()})
   def generate_lists(compact_posts, proj)
 
-  def generate_lists([], _proj), do: {:ok, []}
+  def generate_lists([], _proj), do: {:ok, {[], []}}
 
   def generate_lists(compact_posts, proj) do
     IO.puts("Generating post lists...")
