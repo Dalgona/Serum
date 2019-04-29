@@ -7,10 +7,6 @@ defmodule Serum.Renderer do
   alias Serum.Result
   alias Serum.Template
 
-  @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
-  @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
-  @re_page ~r/(?<type>href|src)="(?:%|%25)page:(?<url>[^"]*)"/
-
   @doc """
   Renders contents into a (partial) HTML stub.
   """
@@ -25,18 +21,5 @@ defmodule Serum.Renderer do
 
     e ->
       {:error, {Exception.message(e), template.file, 0}}
-  end
-
-  @spec process_links(binary, binary) :: binary
-  def process_links(text, base) do
-    text
-    |> regex_replace(@re_media, ~s(\\1="#{base}media/\\2"))
-    |> regex_replace(@re_page, ~s(\\1="#{base}\\2.html"))
-    |> regex_replace(@re_post, ~s(\\1="#{base}posts/\\2.html"))
-  end
-
-  @spec regex_replace(binary, Regex.t(), binary) :: binary
-  defp regex_replace(text, pattern, replacement) do
-    Regex.replace(pattern, text, replacement)
   end
 end
