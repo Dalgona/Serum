@@ -3,6 +3,7 @@ defmodule Serum.Build.FileProcessor do
 
   alias Serum.Build.FileLoader
   alias Serum.GlobalBindings
+  alias Serum.Markdown
   alias Serum.Page
   alias Serum.Plugin
   alias Serum.Post
@@ -151,7 +152,7 @@ defmodule Serum.Build.FileProcessor do
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
 
-      post = Post.new(file2.src, header, Earmark.as_html!(rest), proj)
+      post = Post.new(file2.src, header, Markdown.to_html(rest, proj), proj)
 
       Plugin.processed_post(post)
     else

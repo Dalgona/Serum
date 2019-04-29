@@ -27,6 +27,7 @@ defmodule Serum.Page do
         }
 
   alias Serum.Fragment
+  alias Serum.Markdown
   alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
@@ -82,8 +83,8 @@ defmodule Serum.Page do
   def to_fragment(page, proj) do
     metadata = compact(page)
 
-    with {:ok, temp} <- preprocess(page),
-         {:ok, html} <- render(temp, metadata, proj) do
+    with {:ok, temp} <- preprocess(page, proj),
+         {:ok, html} <- render(temp, metadata) do
       fragment = Fragment.new(page.file, page.output, metadata, html)
 
       Plugin.rendered_fragment(fragment)
@@ -92,18 +93,18 @@ defmodule Serum.Page do
     end
   end
 
-  @spec preprocess(t()) :: Result.t(binary())
-  defp preprocess(page)
+  @spec preprocess(t(), Project.t()) :: Result.t(binary())
+  defp preprocess(page, proj)
 
-  defp preprocess(%__MODULE__{type: ".md"} = page) do
-    {:ok, Earmark.as_html!(page.data)}
+  defp preprocess(%__MODULE__{type: ".md"} = page, proj) do
+    {:ok, Markdown.to_html(page.data, proj)}
   end
 
-  defp preprocess(%__MODULE__{type: ".html"} = page) do
+  defp preprocess(%__MODULE__{type: ".html"} = page, _proj) do
     {:ok, page.data}
   end
 
-  defp preprocess(%__MODULE__{type: ".html.eex"} = page) do
+  defp preprocess(%__MODULE__{type: ".html.eex"} = page, _proj) do
     case TC.compile_string(page.data, :template) do
       {:ok, ast} ->
         template = Template.new(ast, :template, page.file)
@@ -115,18 +116,12 @@ defmodule Serum.Page do
     end
   end
 
-  @spec render(binary(), map(), map()) :: Result.t(binary())
-  defp render(html, metadata, proj) do
-    bindings = [page: metadata, contents: html]
+  @spec render(binary(), map()) :: Result.t(binary())
+  defp render(html, metadata) do
     template = Template.get("page")
+    bindings = [page: metadata, contents: html]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, rendered} ->
-        {:ok, Renderer.process_links(rendered, proj.base_url)}
-
-      {:error, _} = error ->
-        error
-    end
+    Renderer.render_fragment(template, bindings)
   end
 
   defimpl Fragment.Source do

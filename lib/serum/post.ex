@@ -97,11 +97,11 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
-  def to_fragment(post, proj) do
+  @spec to_fragment(t(), Project.t()) :: Result.t(Fragment.t())
+  def to_fragment(post, _proj) do
     metadata = compact(post)
 
-    case to_html(post, metadata, proj) do
+    case to_html(post, metadata) do
       {:ok, html} ->
         fragment = Fragment.new(post.file, post.output, metadata, html)
 
@@ -112,18 +112,12 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_html(t(), map(), map()) :: Result.t(binary())
-  def to_html(%__MODULE__{} = post, metadata, proj) do
-    bindings = [page: metadata, contents: post.html]
+  @spec to_html(t(), map()) :: Result.t(binary())
+  def to_html(%__MODULE__{} = post, metadata) do
     template = Template.get("post")
+    bindings = [page: metadata, contents: post.html]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, rendered} ->
-        {:ok, Renderer.process_links(rendered, proj.base_url)}
-
-      {:error, _} = error ->
-        error
-    end
+    Renderer.render_fragment(template, bindings)
   end
 
   defimpl Fragment.Source do
