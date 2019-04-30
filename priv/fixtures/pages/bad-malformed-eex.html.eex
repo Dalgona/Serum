@@ -2,7 +2,7 @@
 title: Test Page
 ---
 
-<p>This page cannot be transformed into a fragment
-because the EEx code below does not compile.</p>
+<p>This page cannot be processed because
+the EEx code below does not compile.</p>
 
 <%=

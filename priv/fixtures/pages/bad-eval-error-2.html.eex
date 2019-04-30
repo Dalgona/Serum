@@ -1,0 +1,7 @@
+---
+title: Test Page
+---
+
+<p>An error will occur while processing this EEx page.</p>
+
+<%= raise "they shall not pass" %>

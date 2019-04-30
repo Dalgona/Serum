@@ -104,5 +104,25 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
       assert length(errors) === length(files)
     end
+
+    test "fail on bad EEx pages", ctx do
+      files =
+        mute_stdio do
+          fixture("pages")
+          |> Path.join("bad-*.html.eex")
+          |> Path.wildcard()
+          |> Enum.map(&%Serum.File{src: &1})
+          |> Enum.map(&Serum.File.read/1)
+          |> Enum.map(fn {:ok, file} -> file end)
+        end
+
+      {:error, {_, errors}} =
+        mute_stdio do
+          {:ok, {pages, _}} = preprocess_pages(files, ctx.proj)
+          {:error, _} = process_pages(pages, ctx.includes, ctx.proj)
+        end
+
+      assert length(errors) === length(files)
+    end
   end
 end
