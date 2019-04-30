@@ -92,7 +92,7 @@ defmodule Serum.Build do
     with {:ok, files} <- FileLoader.load_files(proj.src),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map, proj),
-         {:ok, files} <- PageGenerator.run(fragments) do
+         {:ok, files} <- PageGenerator.run(fragments, map.templates["base"]) do
       FileEmitter.run(files)
     else
       {:error, _} = error -> error
