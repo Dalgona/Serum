@@ -20,7 +20,6 @@ defmodule Serum.Post do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
-  alias Serum.Template
 
   @type t :: %__MODULE__{
           file: binary(),
@@ -97,11 +96,13 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_fragment(t(), Project.t()) :: Result.t(Fragment.t())
-  def to_fragment(post, _proj) do
+  @spec to_fragment(t(), map(), Project.t()) :: Result.t(Fragment.t())
+  def to_fragment(post, templates, _proj) do
     metadata = compact(post)
+    template = templates["post"]
+    bindings = [page: metadata, contents: post.html]
 
-    case to_html(post, metadata) do
+    case Renderer.render_fragment(template, bindings) do
       {:ok, html} ->
         fragment = Fragment.new(post.file, post.output, metadata, html)
 
@@ -112,20 +113,14 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_html(t(), map()) :: Result.t(binary())
-  def to_html(%__MODULE__{} = post, metadata) do
-    template = Template.get("post")
-    bindings = [page: metadata, contents: post.html]
-
-    Renderer.render_fragment(template, bindings)
-  end
-
   defimpl Fragment.Source do
     alias Serum.Post
     alias Serum.Project
     alias Serum.Result
 
-    @spec to_fragment(Post.t(), Project.t()) :: Result.t(Fragment.t())
-    def to_fragment(post, proj), do: Post.to_fragment(post, proj)
+    @spec to_fragment(Post.t(), map(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(post, templates, proj) do
+      Post.to_fragment(post, templates, proj)
+    end
   end
 end

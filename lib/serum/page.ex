@@ -79,12 +79,14 @@ defmodule Serum.Page do
     end
   end
 
-  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
-  def to_fragment(page, proj) do
+  @spec to_fragment(t(), map(), map()) :: Result.t(Fragment.t())
+  def to_fragment(page, templates, proj) do
     metadata = compact(page)
+    template = templates["page"]
 
     with {:ok, temp} <- preprocess(page, proj),
-         {:ok, html} <- render(temp, metadata) do
+         bindings = [page: metadata, contents: temp],
+         {:ok, html} <- Renderer.render_fragment(template, bindings) do
       fragment = Fragment.new(page.file, page.output, metadata, html)
 
       Plugin.rendered_fragment(fragment)
@@ -105,6 +107,7 @@ defmodule Serum.Page do
   end
 
   defp preprocess(%__MODULE__{type: ".html.eex"} = page, _proj) do
+    # TODO: includes
     case TC.compile_string(page.data, type: :template) do
       {:ok, ast} ->
         template = Template.new(ast, :template, page.file)
@@ -116,20 +119,14 @@ defmodule Serum.Page do
     end
   end
 
-  @spec render(binary(), map()) :: Result.t(binary())
-  defp render(html, metadata) do
-    template = Template.get("page")
-    bindings = [page: metadata, contents: html]
-
-    Renderer.render_fragment(template, bindings)
-  end
-
   defimpl Fragment.Source do
     alias Serum.Page
     alias Serum.Project
     alias Serum.Result
 
-    @spec to_fragment(Page.t(), Project.t()) :: Result.t(Fragment.t())
-    def to_fragment(page, proj), do: Page.to_fragment(page, proj)
+    @spec to_fragment(Page.t(), map(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(page, templates, proj) do
+      Page.to_fragment(page, templates, proj)
+    end
   end
 end

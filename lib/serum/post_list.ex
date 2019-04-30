@@ -22,7 +22,6 @@ defmodule Serum.PostList do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
-  alias Serum.Template
 
   @type t :: %__MODULE__{
           tag: maybe_tag(),
@@ -121,11 +120,11 @@ defmodule Serum.PostList do
     Enum.chunk_every(posts, num_posts)
   end
 
-  @spec to_fragment(t(), any()) :: Result.t(Fragment.t())
-  def to_fragment(post_list, _) do
+  @spec to_fragment(t(), map(), Project.t()) :: Result.t(Fragment.t())
+  def to_fragment(post_list, templates, _) do
     metadata = compact(post_list)
     bindings = [page: metadata]
-    template = Template.get("list")
+    template = templates["list"]
 
     case Renderer.render_fragment(template, bindings) do
       {:ok, html} ->
@@ -153,7 +152,9 @@ defmodule Serum.PostList do
     alias Serum.Project
     alias Serum.Result
 
-    @spec to_fragment(PostList.t(), Project.t()) :: Result.t(Fragment.t())
-    def to_fragment(fragment, proj), do: PostList.to_fragment(fragment, proj)
+    @spec to_fragment(PostList.t(), map(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(fragment, templates, proj) do
+      PostList.to_fragment(fragment, templates, proj)
+    end
   end
 end

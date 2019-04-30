@@ -11,9 +11,13 @@ defmodule Serum.Build.FragmentGenerator do
   def to_fragment(map, proj) do
     IO.puts("Generating fragments...")
 
+    templates = map.templates
+
     map
     |> Map.take([:pages, :posts, :lists])
-    |> Enum.map(fn {_, v} -> Task.async(fn -> task_fun(v, proj) end) end)
+    |> Enum.map(fn {_, v} ->
+      Task.async(fn -> task_fun(v, templates, proj) end)
+    end)
     |> Enum.map(&Task.await/1)
     |> Result.aggregate_values(:fragment_generator)
     |> case do
@@ -22,10 +26,10 @@ defmodule Serum.Build.FragmentGenerator do
     end
   end
 
-  @spec task_fun([struct()], Project.t()) :: Result.t([Fragment.t()])
-  defp task_fun(items, proj) do
+  @spec task_fun([struct()], map(), Project.t()) :: Result.t([Fragment.t()])
+  defp task_fun(items, templates, proj) do
     items
-    |> Task.async_stream(&Fragment.Source.to_fragment(&1, proj))
+    |> Task.async_stream(&Fragment.Source.to_fragment(&1, templates, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:fragment_generator)
   end

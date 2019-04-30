@@ -41,7 +41,7 @@ defmodule Serum.Fragment do
     alias Serum.Project
     alias Serum.Result
 
-    @spec to_fragment(term(), Project.t()) :: Result.t(Fragment.t())
-    def to_fragment(x, proj)
+    @spec to_fragment(term(), map(), Project.t()) :: Result.t(Fragment.t())
+    def to_fragment(x, templates, proj)
   end
 end
