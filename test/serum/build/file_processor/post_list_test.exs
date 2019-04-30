@@ -1,8 +1,8 @@
-defmodule Serum.Build.GenerateListsTest do
+defmodule Serum.Build.FileProcessor.PostListTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
-  alias Serum.Build.FileProcessor
+  alias Serum.Build.FileProcessor.PostList, as: ListGenerator
   alias Serum.Tag
 
   setup_all do
@@ -42,7 +42,7 @@ defmodule Serum.Build.GenerateListsTest do
 
       {:ok, {lists, counts}} =
         mute_stdio do
-          FileProcessor.generate_lists(posts, proj)
+          ListGenerator.generate_lists(posts, proj)
         end
 
       # (num_of_tags + 1) * (index + page_1)
@@ -72,7 +72,7 @@ defmodule Serum.Build.GenerateListsTest do
 
       {:ok, {lists, counts}} =
         mute_stdio do
-          FileProcessor.generate_lists(posts, proj)
+          ListGenerator.generate_lists(posts, proj)
         end
 
       # num_of_tags * (index + page_1_to_4) + 1 * (index + page_1_to_6)

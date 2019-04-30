@@ -1,7 +1,7 @@
-defmodule Serum.Build.PageProcessTest do
+defmodule Serum.Build.FileProcessor.PageTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
-  import Serum.Build.FileProcessor
+  import Serum.Build.FileProcessor.Page
   import Serum.TestHelper, only: :macros
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template

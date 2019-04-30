@@ -1,8 +1,8 @@
-defmodule Serum.Build.ProcessPostsTest do
+defmodule Serum.Build.FileProcessor.PostTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
-  alias Serum.Build.FileProcessor
+  alias Serum.Build.FileProcessor.Post, as: PostProcessor
   alias Serum.Project.Loader, as: ProjectLoader
 
   setup_all do
@@ -67,7 +67,7 @@ defmodule Serum.Build.ProcessPostsTest do
 
       {:error, {_, errors}} =
         mute_stdio do
-          FileProcessor.process_posts(files, ctx.proj)
+          PostProcessor.process_posts(files, ctx.proj)
         end
 
       assert length(errors) === length(files)
@@ -80,7 +80,7 @@ defmodule Serum.Build.ProcessPostsTest do
         Serum.File.read(%Serum.File{src: fixture(fixture_path)})
       end
 
-    mute_stdio(do: FileProcessor.process_posts([file], proj))
+    mute_stdio(do: PostProcessor.process_posts([file], proj))
   end
 
   defp assert_compact(map) do
