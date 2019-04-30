@@ -1,18 +1,22 @@
 defmodule Serum.Build.PageProcessTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
+  import Serum.Build.FileProcessor
   import Serum.TestHelper, only: :macros
-  alias Serum.Build.FileProcessor
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.Template
+  alias Serum.Template.Compiler, as: TC
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+    {:ok, ast} = TC.compile_string(~S(<%= "Hello, world!" %>), type: :template)
+    includes = %{"test" => Template.new(ast, :template, "test.html.eex")}
 
-    {:ok, [proj: proj]}
+    {:ok, [proj: proj, includes: includes]}
   end
 
   describe "preprocess_pages/2" do
-    test "supported file types", ctx do
+    test "supported file types", %{proj: proj, includes: includes} do
       page_files =
         mute_stdio do
           [
@@ -26,10 +30,13 @@ defmodule Serum.Build.PageProcessTest do
           |> Enum.map(fn {:ok, file} -> file end)
         end
 
-      {:ok, {[page1, page2, page3] = pages, compact_pages}} =
+      {:ok, {pages, compact_pages}} =
         mute_stdio do
-          FileProcessor.preprocess_pages(page_files, ctx.proj)
+          preprocess_pages(page_files, proj)
         end
+
+      {:ok, pages} = process_pages(pages, includes, proj)
+      [page1, page2, page3] = pages
 
       assert %{
                title: "Test Markdown Page",
@@ -72,7 +79,7 @@ defmodule Serum.Build.PageProcessTest do
 
       {:ok, {[page], [compact_page]}} =
         mute_stdio do
-          FileProcessor.preprocess_pages([file], ctx.proj)
+          preprocess_pages([file], ctx.proj)
         end
 
       assert page.label === "Test Page"
@@ -92,7 +99,7 @@ defmodule Serum.Build.PageProcessTest do
 
       {:error, {_, errors}} =
         mute_stdio do
-          FileProcessor.preprocess_pages(files, ctx.proj)
+          preprocess_pages(files, ctx.proj)
         end
 
       assert length(errors) === length(files)

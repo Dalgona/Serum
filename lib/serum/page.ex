@@ -27,12 +27,9 @@ defmodule Serum.Page do
         }
 
   alias Serum.Fragment
-  alias Serum.Markdown
   alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
-  alias Serum.Template
-  alias Serum.Template.Compiler, as: TC
 
   defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
 
@@ -80,42 +77,19 @@ defmodule Serum.Page do
   end
 
   @spec to_fragment(t(), map(), map()) :: Result.t(Fragment.t())
-  def to_fragment(page, templates, proj) do
+  def to_fragment(page, templates, _proj) do
     metadata = compact(page)
     template = templates["page"]
+    bindings = [page: metadata, contents: page.data]
 
-    with {:ok, temp} <- preprocess(page, proj),
-         bindings = [page: metadata, contents: temp],
-         {:ok, html} <- Renderer.render_fragment(template, bindings) do
-      fragment = Fragment.new(page.file, page.output, metadata, html)
+    case Renderer.render_fragment(template, bindings) do
+      {:ok, html} ->
+        fragment = Fragment.new(page.file, page.output, metadata, html)
 
-      Plugin.rendered_fragment(fragment)
-    else
-      {:error, _} = error -> error
-    end
-  end
+        Plugin.rendered_fragment(fragment)
 
-  @spec preprocess(t(), Project.t()) :: Result.t(binary())
-  defp preprocess(page, proj)
-
-  defp preprocess(%__MODULE__{type: ".md"} = page, proj) do
-    {:ok, Markdown.to_html(page.data, proj)}
-  end
-
-  defp preprocess(%__MODULE__{type: ".html"} = page, _proj) do
-    {:ok, page.data}
-  end
-
-  defp preprocess(%__MODULE__{type: ".html.eex"} = page, _proj) do
-    # TODO: includes
-    case TC.compile_string(page.data, type: :template) do
-      {:ok, ast} ->
-        template = Template.new(ast, :template, page.file)
-
-        Renderer.render_fragment(template, [])
-
-      {:ct_error, msg, line} ->
-        {:error, {msg, page.file, line}}
+      {:error, _} = error ->
+        error
     end
   end
 

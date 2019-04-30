@@ -5,6 +5,6 @@ group: test
 order: 3
 ---
 
-<h1>Hello, world!</h1>
+<h1><%= include("test") %></h1>
 
 <p>6 * 7 = <%= 6 * 7 %></p>

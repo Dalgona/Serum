@@ -9,8 +9,10 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
+  alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
+  alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
@@ -47,9 +49,9 @@ defmodule Serum.Build.FileProcessor do
     with {:ok, {templates, includes}} <- compile_templates(files),
          {:ok, {pages, compact_pages}} <- preprocess_pages(page_files, proj),
          {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
-         {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj) do
-      update_global_bindings(compact_pages, compact_posts, tag_counts)
-
+         {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj),
+         update_global_bindings(compact_pages, compact_posts, tag_counts),
+         {:ok, pages} <- process_pages(pages, includes, proj) do
       result = %{
         pages: pages,
         posts: posts,
@@ -119,6 +121,39 @@ defmodule Serum.Build.FileProcessor do
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
       {:error, _} = plugin_error -> plugin_error
+    end
+  end
+
+  @doc false
+  @spec process_pages([Page.t()], map(), Project.t()) :: Result.t([Page.t()])
+  def process_pages(pages, includes, proj) do
+    pages
+    |> Task.async_stream(&process_page(&1, includes, proj))
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values(:file_processor)
+  end
+
+  @spec process_page(Page.t(), map(), Project.t()) :: Result.t(Page.t())
+  defp process_page(page, includes, proj)
+
+  defp process_page(%Page{type: ".md"} = page, _includes, proj) do
+    {:ok, %Page{page | data: Markdown.to_html(page.data, proj)}}
+  end
+
+  defp process_page(%Page{type: ".html"} = page, _includes, _proj) do
+    {:ok, page}
+  end
+
+  defp process_page(%Page{type: ".html.eex"} = page, includes, _proj) do
+    tc_options = [type: :template, includes: includes]
+
+    with {:ok, ast} <- TC.compile_string(page.data, tc_options),
+         template = Template.new(ast, :template, page.file),
+         {:ok, html} <- Renderer.render_fragment(template, []) do
+      {:ok, %Page{page | data: html}}
+    else
+      {:ct_error, msg, line} -> {:error, msg, page.file, line}
+      {:error, _} = error -> error
     end
   end
 
