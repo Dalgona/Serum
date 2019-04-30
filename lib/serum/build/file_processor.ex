@@ -20,7 +20,9 @@ defmodule Serum.Build.FileProcessor do
   @type result() :: %{
           pages: [Page.t()],
           posts: [Post.t()],
-          lists: [PostList.t()]
+          lists: [PostList.t()],
+          templates: map(),
+          includes: map()
         }
 
   @doc """
@@ -43,19 +45,27 @@ defmodule Serum.Build.FileProcessor do
   def process_files(files, proj) do
     %{pages: page_files, posts: post_files} = files
 
-    with :ok <- compile_templates(files),
+    with {:ok, {templates, includes}} <- compile_templates(files),
          {:ok, {pages, compact_pages}} <- process_pages(page_files, proj),
          {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
          {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj) do
       update_global_bindings(compact_pages, compact_posts, tag_counts)
 
-      {:ok, %{pages: pages, posts: posts, lists: lists}}
+      result = %{
+        pages: pages,
+        posts: posts,
+        lists: lists,
+        templates: templates,
+        includes: includes
+      }
+
+      {:ok, result}
     else
       {:error, _} = error -> error
     end
   end
 
-  @spec compile_templates(map()) :: Result.t()
+  @spec compile_templates(map()) :: Result.t({map(), map()})
   defp compile_templates(files) do
     IO.puts("Compiling templates...")
 
@@ -64,6 +74,8 @@ defmodule Serum.Build.FileProcessor do
          {:ok, templates} <- TC.compile_files(files.templates, tc_options) do
       Template.load(includes, :include)
       Template.load(templates, :template)
+
+      {:ok, {templates, includes}}
     else
       {:error, _} = error -> error
     end

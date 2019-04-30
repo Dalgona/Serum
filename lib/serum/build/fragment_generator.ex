@@ -12,6 +12,7 @@ defmodule Serum.Build.FragmentGenerator do
     IO.puts("Generating fragments...")
 
     map
+    |> Map.take([:pages, :posts, :lists])
     |> Enum.map(fn {_, v} -> Task.async(fn -> task_fun(v, proj) end) end)
     |> Enum.map(&Task.await/1)
     |> Result.aggregate_values(:fragment_generator)
