@@ -11,7 +11,7 @@ defmodule Serum.Build.PageProcessTest do
     {:ok, [proj: proj]}
   end
 
-  describe "process_pages/2" do
+  describe "preprocess_pages/2" do
     test "supported file types", ctx do
       page_files =
         mute_stdio do
@@ -28,7 +28,7 @@ defmodule Serum.Build.PageProcessTest do
 
       {:ok, {[page1, page2, page3] = pages, compact_pages}} =
         mute_stdio do
-          FileProcessor.process_pages(page_files, ctx.proj)
+          FileProcessor.preprocess_pages(page_files, ctx.proj)
         end
 
       assert %{
@@ -72,7 +72,7 @@ defmodule Serum.Build.PageProcessTest do
 
       {:ok, {[page], [compact_page]}} =
         mute_stdio do
-          FileProcessor.process_pages([file], ctx.proj)
+          FileProcessor.preprocess_pages([file], ctx.proj)
         end
 
       assert page.label === "Test Page"
@@ -92,7 +92,7 @@ defmodule Serum.Build.PageProcessTest do
 
       {:error, {_, errors}} =
         mute_stdio do
-          FileProcessor.process_pages(files, ctx.proj)
+          FileProcessor.preprocess_pages(files, ctx.proj)
         end
 
       assert length(errors) === length(files)

@@ -45,7 +45,7 @@ defmodule Serum.Build.FileProcessor do
     %{pages: page_files, posts: post_files} = files
 
     with {:ok, {templates, includes}} <- compile_templates(files),
-         {:ok, {pages, compact_pages}} <- process_pages(page_files, proj),
+         {:ok, {pages, compact_pages}} <- preprocess_pages(page_files, proj),
          {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
          {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj) do
       update_global_bindings(compact_pages, compact_posts, tag_counts)
@@ -65,12 +65,12 @@ defmodule Serum.Build.FileProcessor do
   end
 
   @spec compile_templates(map()) :: Result.t({map(), map()})
-  defp compile_templates(files) do
+  defp compile_templates(%{templates: templates, includes: includes}) do
     IO.puts("Compiling templates...")
 
-    with {:ok, includes} <- TC.compile_files(files.includes, type: :include),
+    with {:ok, includes} <- TC.compile_files(includes, type: :include),
          tc_options = [type: :template, includes: includes],
-         {:ok, templates} <- TC.compile_files(files.templates, tc_options) do
+         {:ok, templates} <- TC.compile_files(templates, tc_options) do
       {:ok, {templates, includes}}
     else
       {:error, _} = error -> error
@@ -78,12 +78,12 @@ defmodule Serum.Build.FileProcessor do
   end
 
   @doc false
-  @spec process_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
-  def process_pages(files, proj) do
+  @spec preprocess_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
+  def preprocess_pages(files, proj) do
     IO.puts("Processing page files...")
 
     files
-    |> Task.async_stream(&process_page(&1, proj))
+    |> Task.async_stream(&preprocess_page(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
@@ -97,8 +97,8 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec process_page(Serum.File.t(), Project.t()) :: Result.t(Page.t())
-  defp process_page(file, proj) do
+  @spec preprocess_page(Serum.File.t(), Project.t()) :: Result.t(Page.t())
+  defp preprocess_page(file, proj) do
     import Serum.HeaderParser
 
     opts = [
