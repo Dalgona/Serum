@@ -83,7 +83,7 @@ defmodule Serum.Build.FileProcessor.Page do
          {:ok, html} <- Renderer.render_fragment(template, []) do
       {:ok, %Page{page | data: html}}
     else
-      {:ct_error, msg, line} -> {:error, msg, page.file, line}
+      {:ct_error, msg, line} -> {:error, {msg, page.file, line}}
       {:error, _} = error -> error
     end
   end
