@@ -11,7 +11,6 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Project
   alias Serum.Result
   alias Serum.Tag
-  alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
@@ -72,9 +71,6 @@ defmodule Serum.Build.FileProcessor do
     with {:ok, includes} <- TC.compile_files(files.includes, type: :include),
          tc_options = [type: :template, includes: includes],
          {:ok, templates} <- TC.compile_files(files.templates, tc_options) do
-      Template.load(includes, :include)
-      Template.load(templates, :template)
-
       {:ok, {templates, includes}}
     else
       {:error, _} = error -> error

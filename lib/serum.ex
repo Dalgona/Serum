@@ -14,7 +14,6 @@ defmodule Serum do
   use Application
   alias Serum.GlobalBindings
   alias Serum.Plugin
-  alias Serum.Template
 
   @doc """
   Starts the `:serum` application.
@@ -24,7 +23,6 @@ defmodule Serum do
   """
   def start(_type, _args) do
     children = [
-      Template,
       GlobalBindings,
       Plugin
     ]
