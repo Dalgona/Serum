@@ -1,0 +1,4 @@
+The template compiler must fail when attempting to include a template
+which does not exist in the <code>includes/</code> directory.
+
+<%= include "foobarbaz" %>

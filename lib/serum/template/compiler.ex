@@ -3,7 +3,6 @@ defmodule Serum.Template.Compiler do
   This module handles template loading and preprocessing.
   """
 
-  import Serum.Util
   alias Serum.Plugin
   alias Serum.Result
   alias Serum.Template
@@ -84,13 +83,10 @@ defmodule Serum.Template.Compiler do
     compiled = EEx.compile_string(string)
     includes = options[:includes] || []
 
-    ast =
-      case options[:type] do
-        :include -> compiled
-        _ -> Macro.postwalk(compiled, &expand_includes(&1, includes))
-      end
-
-    {:ok, ast}
+    case options[:type] do
+      :include -> {:ok, compiled}
+      _ -> expand_includes(compiled, includes)
+    end
   rescue
     e in EEx.SyntaxError ->
       {:ct_error, e.message, e.line}
@@ -99,19 +95,25 @@ defmodule Serum.Template.Compiler do
       {:ct_error, e.description, e.line}
   end
 
-  @spec expand_includes(Macro.t(), map()) :: Macro.t()
-  defp expand_includes(ast, includes)
+  @spec expand_includes(Macro.t(), map()) ::
+          {:ok, Macro.t()}
+          | {:ct_error, binary(), integer()}
+  defp expand_includes(ast, includes) do
+    {:ok, Macro.postwalk(ast, &do_expand_includes(&1, includes))}
+  rescue
+    e in RuntimeError ->
+      {:ct_error, "no includable template named \"#{e.message}\"", 0}
+  end
 
-  defp expand_includes({:include, _, [arg]}, includes) do
+  @spec do_expand_includes(Macro.t(), map()) :: Macro.t()
+  defp do_expand_includes(ast, includes)
+
+  defp do_expand_includes({:include, _, [arg]}, includes) do
     case includes[arg] do
-      nil ->
-        warn("There is no includable template named `#{arg}`.")
-        nil
-
-      include ->
-        quote do: (fn -> unquote(include.ast) end).()
+      nil -> raise arg
+      include -> quote do: (fn -> unquote(include.ast) end).()
     end
   end
 
-  defp expand_includes(anything_else, _), do: anything_else
+  defp do_expand_includes(anything_else, _), do: anything_else
 end
