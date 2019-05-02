@@ -1,5 +1,13 @@
 # Serum Changelog
 
+## v1.0.0-pre.1 &mdash; 2019-05-02
+
+### Fixed
+
+- Do not generate post lists when there is no blog post. Until now, an empty
+  post list has been generated anyway. (by @igalic, PR #41)
+- Refactoring and bug fixes which could improve reliability.
+
 ## v1.0.0-pre.0 &mdash; 2019-04-23
 
 This is the first pre-release of Serum v1.0.0. I will mostly focus on stability
@@ -16,7 +24,8 @@ and code coverage until the final release.
 ### Fixed
 
 - Now the Serum development server works on Microsoft Windows, by using a
-  platform-independent way to create a temporary directory. (by @kernelgarden)
+  platform-independent way to create a temporary directory.
+  (by @kernelgarden, PR #32)
 - Fixed a potential issue which might cause an infinite loop when a Serum
   plugin calls `Serum.File.write/1`.
 - Fixed a potential crash which can happen if the destination directory has no
@@ -34,7 +43,7 @@ and code coverage until the final release.
 ### Added
 
 - Added `Serum.Plugins.SitemapGenerator` plugin, which generates a `robots.txt`
-  and `sitemap.xml` for blog posts. (by @kernelgarden)
+  and `sitemap.xml` for blog posts. (by @kernelgarden, PR #33)
 
 ## v0.12.0 &mdash; 2019-04-17
 
