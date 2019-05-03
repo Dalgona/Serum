@@ -38,27 +38,12 @@ defmodule Serum.Project.Loader do
   @spec do_load(binary()) :: Result.t(Project.t())
   defp do_load(src) do
     exs_path = Path.join(src, "serum.exs")
-    json_path = Path.join(src, "serum.json")
 
-    cond do
-      File.exists?(exs_path) -> load_exs(exs_path)
-      File.exists?(json_path) -> load_json(json_path)
-      :else -> {:error, {:enoent, exs_path, 0}}
+    if File.exists?(exs_path) do
+      load_exs(exs_path)
+    else
+      {:error, {:enoent, exs_path, 0}}
     end
-  end
-
-  @spec load_json(binary()) :: Result.t(Project.t())
-  defp load_json(json_path) do
-    url = "https://dalgona.github.io/Serum/docs/project-definition.html"
-
-    message = """
-    JSON-based Serum project definition file is no longer supported.
-
-    Please visit \x1b[1m#{url}\x1b[0m
-    for more information about the new Elixir-based file format.
-    """
-
-    {:error, {message, json_path, 0}}
   end
 
   @spec load_exs(binary()) :: Result.t(Project.t())

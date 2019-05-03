@@ -21,12 +21,6 @@ defmodule Serum.Project.LoaderTest do
       assert {:error, {:enoent, ^file, 0}} = ProjectLoader.load(src, ctx.dest)
     end
 
-    test "load serum.json (unsupported)", ctx do
-      src = fixture("proj/bad-unsupported")
-      file = Path.join(src, "serum.json")
-      assert {:error, {_msg, ^file, 0}} = ProjectLoader.load(src, ctx.dest)
-    end
-
     test "serum.exs compile-time error", ctx do
       src = fixture("proj/bad-compile-error")
       file = Path.join(src, "serum.exs")
