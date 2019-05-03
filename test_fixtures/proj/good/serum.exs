@@ -11,5 +11,5 @@
   pagination: false,
   posts_per_page: 5,
   preview_length: 200,
-  plugins: []
+  plugins: [Serum.Plugins.SitemapGenerator]
 }
