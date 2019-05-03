@@ -1,12 +1,24 @@
 # Serum Changelog
 
-## v1.0.0-pre.1 &mdash; 2019-05-02
+## v1.0.0 &mdash; 2019-05-03
+
+This is the first official release of Serum! 🎉
 
 ### Fixed
 
 - Do not generate post lists when there is no blog post. Until now, an empty
   post list has been generated anyway. (by @igalic, PR #41)
-- Refactoring and bug fixes which could improve reliability.
+- Lots of refactoring and bug fixes which can improve reliability.
+
+### Changed
+
+- Serum now exits with an error when trying to include a template which does
+  not exist in `includes/` directory.
+
+### Removed
+
+- Completely removed support for `serum.json` file. You must use `seurm.exs`
+  instead.
 
 ## v1.0.0-pre.0 &mdash; 2019-04-23
 

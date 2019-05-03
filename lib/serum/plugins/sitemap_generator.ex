@@ -22,7 +22,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   def name, do: "Create sitemap for search engine"
   def version, do: "1.0.0"
   def elixir, do: ">= 1.6.0"
-  def serum, do: "0.13.0"
+  def serum, do: "~> 1.0"
 
   def description do
     "Create a sitemap so that the search engine can index posts."

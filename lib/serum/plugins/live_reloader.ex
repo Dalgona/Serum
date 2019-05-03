@@ -29,7 +29,7 @@ defmodule Serum.Plugins.LiveReloader do
   def name, do: "Inject Live Reloader Script"
   def version, do: "1.0.0"
   def elixir, do: ">= 1.6.0"
-  def serum, do: "0.13.0"
+  def serum, do: "~> 1.0"
 
   def description do
     "Injects the live reloader script at the end of " <>

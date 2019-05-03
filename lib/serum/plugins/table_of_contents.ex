@@ -50,7 +50,7 @@ defmodule Serum.Plugins.TableOfContents do
   def name, do: "Table of Contents"
   def version, do: "1.0.0"
   def elixir, do: ">= 1.6.0"
-  def serum, do: ">= 0.13.0"
+  def serum, do: "~> 1.0"
   def description, do: "Inserts a table of contents into pages or posts."
 
   def implements,
