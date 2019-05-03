@@ -1,10 +1,10 @@
 ExUnit.start()
 
 defmodule Serum.TestHelper do
-  @priv_dir :serum |> :code.priv_dir() |> IO.iodata_to_binary()
+  @test_dir Path.join(File.cwd!(), "test_fixtures")
 
   defmacro fixture(arg) do
-    quote(do: Path.join([unquote(@priv_dir), "fixtures", unquote(arg)]))
+    quote(do: Path.join([unquote(@test_dir), unquote(arg)]))
   end
 
   defmacro mute_stdio(do: block) do

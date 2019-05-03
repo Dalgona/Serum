@@ -1,7 +1,9 @@
 defmodule Serum.PluginTest do
   use ExUnit.Case
+  require Serum.TestHelper
   import ExUnit.CaptureIO
   import Serum.Plugin
+  import Serum.TestHelper, only: :macros
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
@@ -9,10 +11,8 @@ defmodule Serum.PluginTest do
   alias Serum.PostList
   alias Serum.Template
 
-  :serum
-  |> :code.priv_dir()
-  |> IO.iodata_to_binary()
-  |> Path.join("test_plugins/*plugin*.ex")
+  "plugins/*plugin*.ex"
+  |> fixture()
   |> Path.wildcard()
   |> Enum.each(&Code.require_file/1)
 
