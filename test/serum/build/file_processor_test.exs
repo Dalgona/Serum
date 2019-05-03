@@ -70,7 +70,7 @@ defmodule Serum.Build.FileProcessorTest do
     {:ok, [good: good, bad: bad, proj: proj]}
   end
 
-  setup(do: on_exit(fn -> Agent.update(GlobalBindings, fn _ -> %{} end) end))
+  setup(do: on_exit(fn -> Agent.update(GlobalBindings, fn _ -> {%{}, []} end) end))
 
   describe "process_files/2" do
     test "everything went all", ctx do

@@ -14,7 +14,7 @@ defmodule Serum.Build.PageGeneratorTest do
     {:ok, [fragments: fragments, good: good["base"], bad: bad["base"], state: state]}
   end
 
-  setup(do: on_exit(fn -> Agent.update(GlobalBindings, fn _ -> %{} end) end))
+  setup(do: on_exit(fn -> Agent.update(GlobalBindings, fn _ -> {%{}, []} end) end))
 
   describe "run/2" do
     test "good", ctx do

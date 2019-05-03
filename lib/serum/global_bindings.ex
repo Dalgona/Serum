@@ -7,26 +7,30 @@ defmodule Serum.GlobalBindings do
   use Agent
 
   def start_link(_args) do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+    Agent.start_link(fn -> {%{}, []} end, name: __MODULE__)
   end
 
   @spec load(map()) :: :ok
   def load(%{} = map) do
-    Agent.update(__MODULE__, fn _ -> map end)
+    Agent.update(__MODULE__, fn {_, _} -> {map, Keyword.new(map)} end)
   end
 
   @spec put(atom(), term()) :: :ok
   def put(key, value) when is_atom(key) do
-    Agent.update(__MODULE__, &Map.put(&1, key, value))
+    Agent.update(__MODULE__, fn {map, _} ->
+      new_map = Map.put(map, key, value)
+
+      {new_map, Keyword.new(new_map)}
+    end)
   end
 
   @spec as_keyword() :: keyword()
   def as_keyword do
-    Agent.get(__MODULE__, &Keyword.new/1)
+    Agent.get(__MODULE__, fn {_, kw} -> kw end)
   end
 
   @spec get(atom()) :: term()
   def get(key) when is_atom(key) do
-    Agent.get(__MODULE__, & &1[key])
+    Agent.get(__MODULE__, fn {map, _} -> map[key] end)
   end
 end

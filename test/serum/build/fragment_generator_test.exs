@@ -17,7 +17,7 @@ defmodule Serum.Build.FragmentGeneratorTest do
 
   setup do
     on_exit(fn ->
-      Agent.update(GlobalBindings, fn _ -> %{} end)
+      Agent.update(GlobalBindings, fn _ -> {%{}, []} end)
     end)
   end
 
