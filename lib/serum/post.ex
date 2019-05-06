@@ -102,14 +102,11 @@ defmodule Serum.Post do
     template = templates["post"]
     bindings = [page: metadata, contents: post.html]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, html} ->
-        fragment = Fragment.new(post.file, post.output, metadata, html)
-
-        Plugin.rendered_fragment(fragment)
-
-      {:error, _} = error ->
-        error
+    with {:ok, html} <- Renderer.render_fragment(template, bindings),
+         {:ok, frag} <- Fragment.new(post.file, post.output, metadata, html) do
+      Plugin.rendered_fragment(frag)
+    else
+      {:error, _} = error -> error
     end
   end
 

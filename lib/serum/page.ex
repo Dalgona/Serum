@@ -82,14 +82,11 @@ defmodule Serum.Page do
     template = templates["page"]
     bindings = [page: metadata, contents: page.data]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, html} ->
-        fragment = Fragment.new(page.file, page.output, metadata, html)
-
-        Plugin.rendered_fragment(fragment)
-
-      {:error, _} = error ->
-        error
+    with {:ok, html} <- Renderer.render_fragment(template, bindings),
+         {:ok, frag} <- Fragment.new(page.file, page.output, metadata, html) do
+      Plugin.rendered_fragment(frag)
+    else
+      {:error, _} = error -> error
     end
   end
 
