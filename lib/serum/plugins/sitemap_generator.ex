@@ -15,6 +15,9 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   @behaviour Serum.Plugin
 
+  serum_ver = Version.parse!(Mix.Project.config()[:version])
+  serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
+
   require EEx
   alias Serum.GlobalBindings
   alias Serum.Result
@@ -22,7 +25,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   def name, do: "Create sitemap for search engine"
   def version, do: "1.0.0"
   def elixir, do: ">= 1.6.0"
-  def serum, do: "~> 1.0"
+  def serum, do: unquote(serum_req)
 
   def description do
     "Create a sitemap so that the search engine can index posts."
