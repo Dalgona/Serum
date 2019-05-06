@@ -98,7 +98,7 @@ defmodule Serum.Plugins.TableOfContents do
         state = {start, end_, start, [0], []}
         {new_tree, new_state} = traverse(html, state, &tree_fun/2)
         items = new_state |> elem(4) |> Enum.reverse()
-        toc = {"ul", [{"class", "serum-toc"}], items}
+        toc = {"ul", [{"id", "toc"}, {"class", "serum-toc"}], items}
 
         new_tree
         |> traverse(nil, fn
@@ -159,21 +159,19 @@ defmodule Serum.Plugins.TableOfContents do
   @spec tree_fun(Floki.html_tree(), term()) :: {Floki.html_tree(), term()}
   defp tree_fun(tree, state)
 
-  defp tree_fun({<<?h::8, ch::8, _::binary>>, _, children} = tree, state) when ch in ?1..?6 do
+  defp tree_fun({<<?h::8, ch::8, _::binary>>, _, _} = tree, state) when ch in ?1..?6 do
     {start, end_, prev_level, counts, items} = state
     level = ch - ?0
 
     if level >= start and level <= end_ do
       new_counts = update_counts(counts, level, prev_level)
       num_dot = new_counts |> Enum.reverse() |> Enum.join(".")
-      span = {"span", [{"class", "number"}], [num_dot]}
-      {contents, _} = traverse(children, nil, &strip_a_tags/2)
-      link = {"a", [{"href", "#s_#{num_dot}"}], [span | contents]}
+      {tree2, id} = try_set_id(tree, "s_#{num_dot}")
+      link = toc_link(tree2, num_dot, id)
       item = {"li", [{"class", "indent-#{level - start}"}], [link]}
-      bookmark = {"a", [{"name", "s_#{num_dot}"}], []}
       new_state = {start, end_, level, new_counts, [item | items]}
 
-      {[bookmark, tree], new_state}
+      {tree2, new_state}
     else
       {tree, state}
     end
@@ -201,6 +199,22 @@ defmodule Serum.Plugins.TableOfContents do
 
       diff when diff > 0 ->
         List.duplicate(1, diff) ++ counts
+    end
+  end
+
+  @spec toc_link(Floki.html_tree(), binary(), binary()) :: Floki.html_tree()
+  defp toc_link({_, _, children} = _header_tag, num_dot, target_id) do
+    num_span = {"span", [{"class", "number"}], [num_dot]}
+    {contents, _} = traverse(children, nil, &strip_a_tags/2)
+
+    {"a", [{"href", <<?#, target_id::binary>>}], [num_span | contents]}
+  end
+
+  @spec try_set_id(Floki.html_tree(), binary()) :: {Floki.html_tree(), binary()}
+  defp try_set_id({tag_name, attrs, children} = tree, new_id) do
+    case Enum.find(attrs, fn {k, _} -> k === "id" end) do
+      {"id", id} -> {tree, id}
+      nil -> {{tag_name, [{"id", new_id} | attrs], children}, new_id}
     end
   end
 end
