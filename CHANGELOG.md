@@ -1,5 +1,19 @@
 # Serum Changelog
 
+## v1.1.0 &mdash; To be released
+
+### Added
+
+- The following optional callbacks are added for plugins.
+    - `processed_pages/1`
+    - `processed_posts/1`
+    - `rendering_fragment/2`
+
+### Changed
+
+- The internal implementation of the Table of Contents plugin has slightly
+  changed. There will be no notable change in the usage and the output.
+
 ## v1.0.0 &mdash; 2019-05-03
 
 This is the first official release of Serum! 🎉
