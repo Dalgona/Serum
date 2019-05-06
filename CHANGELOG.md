@@ -9,6 +9,10 @@
     - `processed_posts/1`
     - `rendering_fragment/2`
 
+- Added `Serum.HtmlTreeHelper` module, which provides `traverse/2` and
+  `traverse/3` function. You will find this module useful when you need to
+  manipulate HTML trees from your plugins.
+
 ### Changed
 
 - The behavior of the Table of Contents plugin has slightly changed.
