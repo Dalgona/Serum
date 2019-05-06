@@ -107,15 +107,15 @@ defmodule Serum.Plugins.TableOfContentsTest do
     do: """
     <serum-toc#{attr}></serum-toc>
     <h1>The</h1>
-    <h2 id="h2_quick">Quick</h2>
-    <h3>Brown</h3>
+    <h2 id="h2_quick"><a>Quick</a></h2>
+    <h3><code>Brown</code></h3>
     <h4 id="h4_fox">Fox</h4>
     <h5>Jumps</h5>
-    <h6>Over</h6>
-    <h2>The</h2>
+    <h6><a>Over</a></h6>
+    <h2><strong>The</strong></h2>
     <h3 id="h3_lazy">Lazy</h3>
     <h4>Dog</h4>
-    <h2 id="h2_lorem">Lorem</h2>
-    <h3>Ipsum</h3>
+    <h2 id="h2_lorem"><a>Lorem</a></h2>
+    <h3><em>Ipsum</em></h3>
     """
 end
