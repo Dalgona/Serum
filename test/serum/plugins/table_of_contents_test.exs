@@ -1,16 +1,11 @@
 defmodule Serum.Plugins.TableOfContentsTest do
   use ExUnit.Case, async: true
-  alias Serum.Fragment
   alias Serum.Plugins.TableOfContents
 
   test "without attribute" do
-    frag = %Fragment{
-      metadata: %{type: :page},
-      data: get_data()
-    }
-
-    {:ok, frag2} = TableOfContents.rendered_fragment(frag)
-    items = Floki.find(frag2.data, "ul.serum-toc li span.number")
+    html = Floki.parse(get_data())
+    {:ok, html2} = TableOfContents.rendering_fragment(html, %{type: :page})
+    items = Floki.find(html2, "ul.serum-toc li span.number")
 
     assert length(items) == 11
 
@@ -35,13 +30,9 @@ defmodule Serum.Plugins.TableOfContentsTest do
   end
 
   test "with attribute" do
-    frag = %Fragment{
-      metadata: %{type: :post},
-      data: get_data(2, 4)
-    }
-
-    {:ok, frag2} = TableOfContents.rendered_fragment(frag)
-    items = Floki.find(frag2.data, "ul.serum-toc li span.number")
+    html = Floki.parse(get_data(2, 4))
+    {:ok, html2} = TableOfContents.rendering_fragment(html, %{type: :post})
+    items = Floki.find(html2, "ul.serum-toc li span.number")
 
     assert length(items) == 8
 
@@ -63,31 +54,17 @@ defmodule Serum.Plugins.TableOfContentsTest do
   end
 
   test "no serum-toc tag" do
-    data = "Notice me (OwO)"
-
-    frag = %Fragment{
-      metadata: %{type: :page},
-      data: data
-    }
-
-    assert {:ok, %{data: ^data}} = TableOfContents.rendered_fragment(frag)
+    html = Floki.parse("Notice me (OwO)")
+    assert {:ok, ^html} = TableOfContents.rendering_fragment(html, %{type: :page})
   end
 
   test "garbage in, something reasonable out" do
-    frag1 = %Fragment{
-      metadata: %{type: :page},
-      data: get_data()
-    }
+    html1 = Floki.parse(get_data())
+    html2 = Floki.parse(get_data("a", "b"))
+    result1 = TableOfContents.rendering_fragment(html1, %{type: :page})
+    result2 = TableOfContents.rendering_fragment(html2, %{type: :page})
 
-    frag2 = %Fragment{
-      metadata: %{type: :page},
-      data: get_data("a", "b")
-    }
-
-    result1 = TableOfContents.rendered_fragment(frag1)
-    result2 = TableOfContents.rendered_fragment(frag2)
-
-    assert result1 == result2
+    assert result1 === result2
   end
 
   defp get_data, do: data("")

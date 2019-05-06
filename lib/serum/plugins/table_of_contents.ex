@@ -55,37 +55,24 @@ defmodule Serum.Plugins.TableOfContents do
 
   def implements,
     do: [
-      :rendered_fragment
+      :rendering_fragment
     ]
 
-  def rendered_fragment(frag)
+  def rendering_fragment(html, metadata)
+  def rendering_fragment(html, %{type: :page}), do: {:ok, insert_toc(html)}
+  def rendering_fragment(html, %{type: :post}), do: {:ok, insert_toc(html)}
+  def rendering_fragment(html, _), do: {:ok, html}
 
-  def rendered_fragment(%{metadata: %{type: :page}, data: html} = frag) do
-    new_html = insert_toc(html)
-
-    {:ok, %{frag | data: new_html}}
-  end
-
-  def rendered_fragment(%{metadata: %{type: :post}, data: html} = frag) do
-    new_html = insert_toc(html)
-
-    {:ok, %{frag | data: new_html}}
-  end
-
-  def rendered_fragment(frag), do: {:ok, frag}
-
-  @spec insert_toc(binary()) :: binary()
+  @spec insert_toc(Floki.html_tree()) :: Floki.html_tree()
   defp insert_toc(html) do
-    html_tree = Floki.parse(html)
-
-    case Floki.find(html_tree, "serum-toc") do
+    case Floki.find(html, "serum-toc") do
       [] ->
         html
 
       [{"serum-toc", attr_list, _} | _] ->
         {start, end_} = get_range(attr_list)
         state = {start, end_, start, [0], []}
-        {new_tree, new_state} = traverse(html_tree, state, &tree_fun/2)
+        {new_tree, new_state} = traverse(html, state, &tree_fun/2)
         items = new_state |> elem(4) |> Enum.reverse()
         toc = {"ul", [{"class", "serum-toc"}], items}
 
@@ -95,7 +82,6 @@ defmodule Serum.Plugins.TableOfContents do
           x, _ -> {x, nil}
         end)
         |> elem(0)
-        |> Floki.raw_html()
     end
   end
 
