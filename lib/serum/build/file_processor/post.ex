@@ -15,18 +15,18 @@ defmodule Serum.Build.FileProcessor.Post do
   def process_posts(files, proj) do
     IO.puts("Processing post files...")
 
-    files
-    |> Task.async_stream(&process_post(&1, proj))
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:file_processor)
-    |> case do
-      {:ok, posts} ->
-        sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date))
+    result =
+      files
+      |> Task.async_stream(&process_post(&1, proj))
+      |> Enum.map(&elem(&1, 1))
+      |> Result.aggregate_values(:file_processor)
 
-        {:ok, {sorted_posts, Enum.map(sorted_posts, &Post.compact/1)}}
-
-      {:error, _} = error ->
-        error
+    with {:ok, posts} <- result,
+         sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date)),
+         {:ok, posts2} <- Plugin.processed_posts(sorted_posts) do
+      {:ok, {posts2, Enum.map(posts2, &Post.compact/1)}}
+    else
+      {:error, _} = error -> error
     end
   end
 

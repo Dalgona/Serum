@@ -15,18 +15,18 @@ defmodule Serum.Build.FileProcessor.Page do
   def preprocess_pages(files, proj) do
     IO.puts("Processing page files...")
 
-    files
-    |> Task.async_stream(&preprocess_page(&1, proj))
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:file_processor)
-    |> case do
-      {:ok, pages} ->
-        sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
+    result =
+      files
+      |> Task.async_stream(&preprocess_page(&1, proj))
+      |> Enum.map(&elem(&1, 1))
+      |> Result.aggregate_values(:file_processor)
 
-        {:ok, {sorted_pages, Enum.map(sorted_pages, &Page.compact/1)}}
-
-      {:error, _} = error ->
-        error
+    with {:ok, pages} <- result,
+         sorted_pages = Enum.sort(pages, &(&1.order < &2.order)),
+         {:ok, pages2} <- Plugin.processed_pages(sorted_pages) do
+      {:ok, {pages2, Enum.map(pages2, &Page.compact/1)}}
+    else
+      {:error, _} = error -> error
     end
   end
 
