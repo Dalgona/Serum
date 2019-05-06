@@ -4,15 +4,21 @@
 
 ### Added
 
-- The following optional callbacks are added for plugins.
+- The following optional callbacks were added for plugins.
     - `processed_pages/1`
     - `processed_posts/1`
     - `rendering_fragment/2`
 
 ### Changed
 
-- The internal implementation of the Table of Contents plugin has slightly
-  changed. There will be no notable change in the usage and the output.
+- The behavior of the Table of Contents plugin has slightly changed.
+
+    - This plugin no longer prepends a `<a name="...">` tag to each heading
+      tag. Instead, it will use the `id` attribute of each one of them. If a
+      tag does not have an `id`, it will be set appropriately by the plugin.
+
+    - The TOC element (`ul.serum-toc`) will also be given an ID (`#toc`), so
+      that you can make hyperlinks back to the list.
 
 ## v1.0.0 &mdash; 2019-05-03
 
