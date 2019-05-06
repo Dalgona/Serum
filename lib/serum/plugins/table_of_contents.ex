@@ -22,6 +22,27 @@ defmodule Serum.Plugins.TableOfContents do
   recognizes. In the case of the above example, `<h1>`, `<h5>`, and `<h6>` tags
   are ignored when generating a table of contents.
 
+  After this plugin has run, each `<serum-toc>` tag is replaced with an
+  unordered list:
+
+      <ul id="toc" class="serum-toc">
+        <li class="indent-0">
+          <a href="#s_1">
+            <span class="number">1</span>
+            Section 1
+          </a>
+        </li>
+        <!-- More list items here... -->
+      </ul>
+
+  This plugin produces a "flat" unordered list. However, each list item tag has
+  an `indent-x` class, where `x` is an indentation level (from 0 to 5) of the
+  current item in the list. You can utilize this when working on stylesheets.
+
+  The `id` attribute of each target heading tag is used when hyperlinks are
+  generated. If the element does not have an `id`, the plugin will set one
+  appropriately.
+
   ## Notes
 
   You may use `<serum-toc>` tag more than once in a single page. However, all
