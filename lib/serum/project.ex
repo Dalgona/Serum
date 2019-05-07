@@ -23,7 +23,8 @@ defmodule Serum.Project do
             preview_length: 200,
             src: nil,
             dest: nil,
-            plugins: []
+            plugins: [],
+            theme: nil
 
   @type t :: %__MODULE__{
           src: binary(),
@@ -40,7 +41,8 @@ defmodule Serum.Project do
           pagination: boolean(),
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
-          plugins: [Plugin.plugin_spec()]
+          plugins: [Plugin.plugin_spec()],
+          theme: atom()
         }
 
   @spec default_date_format() :: binary()

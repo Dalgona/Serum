@@ -42,7 +42,8 @@ defmodule Serum.Project.ElixirValidatorTest do
           pagination: true,
           posts_per_page: 10,
           preview_length: 200,
-          plugins: [Serum.TestPlugin1, Serum.TestPlugin2]
+          plugins: [Serum.TestPlugin1, Serum.TestPlugin2],
+          theme: Serum.TestTheme
         })
 
       assert :ok = validate(map)
@@ -98,12 +99,13 @@ defmodule Serum.Project.ElixirValidatorTest do
           server_root: "htttps://foo.bar/baz",
           date_format: 3,
           posts_per_page: 0,
-          preview_length: -1
+          preview_length: -1,
+          theme: "Serum.TestTheme"
         })
 
       {:invalid, l} = validate(map)
 
-      assert length(l) == 5
+      assert length(l) == 6
     end
   end
 end
