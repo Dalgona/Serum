@@ -96,8 +96,8 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_fragment(t(), map(), Project.t()) :: Result.t(Fragment.t())
-  def to_fragment(post, templates, _proj) do
+  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
+  def to_fragment(post, templates) do
     metadata = compact(post)
     template = templates["post"]
     bindings = [page: metadata, contents: post.html]
@@ -112,12 +112,11 @@ defmodule Serum.Post do
 
   defimpl Fragment.Source do
     alias Serum.Post
-    alias Serum.Project
     alias Serum.Result
 
-    @spec to_fragment(Post.t(), map(), Project.t()) :: Result.t(Fragment.t())
-    def to_fragment(post, templates, proj) do
-      Post.to_fragment(post, templates, proj)
+    @spec to_fragment(Post.t(), map()) :: Result.t(Fragment.t())
+    def to_fragment(post, templates) do
+      Post.to_fragment(post, templates)
     end
   end
 end

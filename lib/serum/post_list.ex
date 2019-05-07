@@ -120,20 +120,6 @@ defmodule Serum.PostList do
     Enum.chunk_every(posts, num_posts)
   end
 
-  @spec to_fragment(t(), map(), Project.t()) :: Result.t(Fragment.t())
-  def to_fragment(post_list, templates, _) do
-    metadata = compact(post_list)
-    bindings = [page: metadata]
-    template = templates["list"]
-
-    with {:ok, html} <- Renderer.render_fragment(template, bindings),
-         {:ok, frag} <- Fragment.new(nil, post_list.output, metadata, html) do
-      Plugin.rendered_fragment(frag)
-    else
-      {:error, _} = error -> error
-    end
-  end
-
   @spec list_title(maybe_tag(), map()) :: binary()
   defp list_title(tag, proj)
   defp list_title(nil, proj), do: proj.list_title_all
@@ -144,14 +130,27 @@ defmodule Serum.PostList do
     |> IO.iodata_to_binary()
   end
 
+  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
+  def to_fragment(post_list, templates) do
+    metadata = compact(post_list)
+    template = templates["list"]
+    bindings = [page: metadata]
+
+    with {:ok, html} <- Renderer.render_fragment(template, bindings),
+         {:ok, frag} <- Fragment.new(nil, post_list.output, metadata, html) do
+      Plugin.rendered_fragment(frag)
+    else
+      {:error, _} = error -> error
+    end
+  end
+
   defimpl Fragment.Source do
     alias Serum.PostList
-    alias Serum.Project
     alias Serum.Result
 
-    @spec to_fragment(PostList.t(), map(), Project.t()) :: Result.t(Fragment.t())
-    def to_fragment(fragment, templates, proj) do
-      PostList.to_fragment(fragment, templates, proj)
+    @spec to_fragment(PostList.t(), map()) :: Result.t(Fragment.t())
+    def to_fragment(fragment, templates) do
+      PostList.to_fragment(fragment, templates)
     end
   end
 end
