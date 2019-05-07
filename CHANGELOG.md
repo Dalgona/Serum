@@ -24,6 +24,14 @@
     - The TOC element (`ul.serum-toc`) will also be given an ID (`#toc`), so
       that you can make hyperlinks back to the list.
 
+- Serum now automatically generates an `id` attribute for each HTML heading
+  tag. (by @igalic, Issue #44)
+
+    - If a heading tag already has an ID, it won't be modified.
+    - Each ID is generated based on the tag's text content.
+    - Generated IDs are always unique. If a duplicate ID is to be generated,
+      a number will be appended.
+
 ## v1.0.0 &mdash; 2019-05-03
 
 This is the first official release of Serum! 🎉
