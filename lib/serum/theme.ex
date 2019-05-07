@@ -64,6 +64,8 @@ defmodule Serum.Theme do
   require Serum.Util
   import Serum.Util
 
+  @type t :: module() | nil
+
   @serum_version Version.parse!(Mix.Project.config()[:version])
 
   @doc "Returns the theme name."
@@ -139,7 +141,10 @@ defmodule Serum.Theme do
   #
 
   @doc false
-  @spec get_info(atom()) :: Result.t(map())
+  @spec get_info(t()) :: Result.t(map() | nil)
+  def get_info(module)
+  def get_info(nil), do: {:ok, nil}
+
   def get_info(module) do
     name = module.name()
     version = Version.parse!(module.version())

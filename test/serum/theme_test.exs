@@ -44,5 +44,9 @@ defmodule Serum.ThemeTest do
 
       assert String.contains?(output, "not compatible")
     end
+
+    test "does nothing if the theme module is nil" do
+      assert {:ok, nil} === Theme.get_info(nil)
+    end
   end
 end
