@@ -60,6 +60,12 @@ defmodule Serum.Theme do
       $ MIX_ENV=prod mix serum.build
   """
 
+  alias Serum.Result
+  require Serum.Util
+  import Serum.Util
+
+  @serum_version Version.parse!(Mix.Project.config()[:version])
+
   @doc "Returns the theme name."
   @callback name() :: binary()
 
@@ -127,4 +133,46 @@ defmodule Serum.Theme do
   the destination assets directory using `File.cp_r/2`.
   """
   @callback get_assets() :: binary()
+
+  #
+  # Theme Consumer Functions
+  #
+
+  @doc false
+  @spec get_info(atom()) :: Result.t(map())
+  def get_info(module) do
+    name = module.name()
+    version = Version.parse!(module.version())
+
+    unless Version.match?(@serum_version, module.serum()) do
+      warn(
+        "The theme \"#{name}\" is not compatible with " <>
+          "the current version of Serum(#{@serum_version}). " <>
+          "This theme may not work as intended."
+      )
+    end
+
+    map = %{
+      name: name,
+      description: module.description(),
+      author: module.author(),
+      legal: module.legal(),
+      version: version
+    }
+
+    {:ok, map}
+  rescue
+    exception ->
+      ex_name = module_name(exception.__struct__)
+      ex_msg = Exception.message(exception)
+      mod_name = module_name(module)
+      msg = "#{ex_name} while loading theme (module: #{mod_name}): #{ex_msg}"
+
+      {:error, msg}
+  end
+
+  @spec module_name(atom()) :: binary()
+  defp module_name(module) do
+    module |> to_string() |> String.replace_prefix("Elixir.", "")
+  end
 end
