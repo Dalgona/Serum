@@ -1,4 +1,4 @@
-defmodule Serum.DummyTheme do
+defmodule Serum.WeirdTheme do
   @behaviour Serum.Theme
 
   def name, do: "Dummy Theme"
@@ -11,7 +11,9 @@ defmodule Serum.DummyTheme do
   def get_includes do
     [
       "/foo/bar/includes/nav.html.eex",
-      "/foo/bar/includes/sidebar.html.eex"
+      "/foo/bar/includes/sidebar.html.eex",
+      "/foo/bar/includes/test.png",
+      "/foo/bar/includes/test.md"
     ]
   end
 
@@ -19,7 +21,9 @@ defmodule Serum.DummyTheme do
     [
       "/foo/bar/templates/base.html.eex",
       "/foo/bar/templates/list.html.eex",
-      "/foo/bar/templates/post.html.eex"
+      "/foo/bar/templates/post.html.eex",
+      "/foo/bar/templates/magic.html.eex",
+      "/foo/bar/templates/test.png"
     ]
   end
 
