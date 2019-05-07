@@ -36,13 +36,11 @@ defmodule Serum.Mixfile do
   defp deps do
     [
       {:earmark, "~> 1.3"},
-      {:poison, "~> 3.1"},
-      {:file_system, "~> 0.2.6"},
+      {:file_system, "~> 0.2"},
       {:microscope, "1.2.0"},
-      {:timex, "~> 3.2"},
-      {:ex_json_schema, "~> 0.5"},
+      {:timex, "~> 3.5"},
       {:credo, "~> 1.0", only: [:dev, :test]},
-      {:excoveralls, "~> 0.10", only: [:test]},
+      {:excoveralls, "~> 0.11", only: [:test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
       {:floki, "~> 0.20"},
       {:ex_doc, "~> 0.20", only: :dev, runtime: false}
