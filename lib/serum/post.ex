@@ -16,7 +16,6 @@ defmodule Serum.Post do
   """
 
   alias Serum.Fragment
-  alias Serum.Plugin
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
@@ -102,10 +101,8 @@ defmodule Serum.Post do
     template = templates["post"]
     bindings = [page: metadata, contents: post.html]
 
-    with {:ok, html} <- Renderer.render_fragment(template, bindings),
-         {:ok, frag} <- Fragment.new(post.file, post.output, metadata, html) do
-      Plugin.rendered_fragment(frag)
-    else
+    case Renderer.render_fragment(template, bindings) do
+      {:ok, html} -> Fragment.new(post.file, post.output, metadata, html)
       {:error, _} = error -> error
     end
   end

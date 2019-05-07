@@ -4,6 +4,7 @@ defmodule Serum.Build.FragmentGenerator do
   """
 
   alias Serum.Fragment
+  alias Serum.Plugin
   alias Serum.Result
 
   @spec to_fragment(map()) :: Result.t([Fragment.t()])
@@ -14,22 +15,18 @@ defmodule Serum.Build.FragmentGenerator do
 
     map
     |> Map.take([:pages, :posts, :lists])
-    |> Enum.map(fn {_, v} ->
-      Task.async(fn -> task_fun(v, templates) end)
-    end)
-    |> Enum.map(&Task.await/1)
-    |> Result.aggregate_values(:fragment_generator)
-    |> case do
-      {:ok, results} -> {:ok, List.flatten(results)}
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec task_fun([struct()], map()) :: Result.t([Fragment.t()])
-  defp task_fun(items, templates) do
-    items
-    |> Task.async_stream(&Fragment.Source.to_fragment(&1, templates))
+    |> Enum.map(&elem(&1, 1))
+    |> List.flatten()
+    |> Task.async_stream(&task_fun(&1, templates))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:fragment_generator)
+  end
+
+  @spec task_fun(struct(), map()) :: Result.t(Fragment.t())
+  defp task_fun(fragment_source, templates) do
+    case Fragment.Source.to_fragment(fragment_source, templates) do
+      {:ok, fragment} -> Plugin.rendered_fragment(fragment)
+      {:error, _} = error -> error
+    end
   end
 end

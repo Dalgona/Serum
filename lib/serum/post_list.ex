@@ -136,10 +136,8 @@ defmodule Serum.PostList do
     template = templates["list"]
     bindings = [page: metadata]
 
-    with {:ok, html} <- Renderer.render_fragment(template, bindings),
-         {:ok, frag} <- Fragment.new(nil, post_list.output, metadata, html) do
-      Plugin.rendered_fragment(frag)
-    else
+    case Renderer.render_fragment(template, bindings) do
+      {:ok, html} -> Fragment.new(nil, post_list.output, metadata, html)
       {:error, _} = error -> error
     end
   end
