@@ -176,6 +176,40 @@ defmodule Serum.Theme do
       {:error, msg}
   end
 
+  @doc false
+  @spec get_assets(t()) :: Result.t(binary() | nil)
+  def get_assets(module)
+  def get_assets(nil), do: {:ok, nil}
+
+  def get_assets(module) do
+    case call_function(module, :get_assets, []) do
+      {:ok, path} -> do_get_assets(path)
+      {:error, _} = error -> error
+    end
+  end
+
+  @spec do_get_assets(binary()) :: Result.t(binary())
+  defp do_get_assets(path) do
+    case File.stat(path) do
+      {:ok, %File.Stat{type: :directory}} -> {:ok, path}
+      {:ok, %File.Stat{}} -> {:error, {:enotdir, path, 0}}
+      {:error, reason} -> {:error, {reason, path, 0}}
+    end
+  end
+
+  @spec call_function(atom(), atom(), list()) :: Result.t(term())
+  defp call_function(module, fun, args) do
+    {:ok, apply(module, fun, args)}
+  rescue
+    exception ->
+      ex_name = module_name(exception.__struct__)
+      ex_msg = Exception.message(exception)
+      mod_name = module_name(module)
+      msg = "#{ex_name} from #{mod_name}.#{fun}: #{ex_msg}"
+
+      {:error, msg}
+  end
+
   @spec module_name(atom()) :: binary()
   defp module_name(module) do
     module |> to_string() |> String.replace_prefix("Elixir.", "")

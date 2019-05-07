@@ -49,4 +49,40 @@ defmodule Serum.ThemeTest do
       assert {:ok, nil} === Theme.get_info(nil)
     end
   end
+
+  describe "get_assets/1" do
+    test "successfully retrieves a path" do
+      uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
+      tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+      {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
+
+      File.mkdir_p!(tmp_path)
+      assert {:ok, tmp_path} === Theme.get_assets(Serum.DummyTheme)
+      File.rm_rf!(tmp_path)
+
+      :ok = Agent.stop(agent)
+    end
+
+    test "fails if the returned path is not a directory" do
+      uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
+      tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+      {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
+      expected = {:error, {:enotdir, tmp_path, 0}}
+
+      File.touch!(tmp_path)
+      assert expected === Theme.get_assets(Serum.WeirdTheme)
+      File.rm_rf!(tmp_path)
+
+      :ok = Agent.stop(agent)
+    end
+
+    test "may also fail in some other cases" do
+      assert {:error, msg} = Theme.get_assets(Serum.FailingTheme)
+      assert String.contains?(msg, "test error from get_assets/0")
+    end
+
+    test "does nothing if the theme module is nil" do
+      assert {:ok, nil} === Theme.get_assets(nil)
+    end
+  end
 end
