@@ -47,7 +47,7 @@ defmodule Serum.Build do
   """
   @spec build(binary(), binary()) :: Result.t(binary())
   def build(src, dest) do
-    with {:ok, %Project{} = proj} <- load_project(src, dest),
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
          :ok <- Plugin.build_started(src, dest),
          :ok <- pre_check(dest),
          :ok <- do_build(proj),
@@ -63,17 +63,6 @@ defmodule Serum.Build do
         else
           {:error, _} = plugin_error -> plugin_error
         end
-    end
-  end
-
-  @spec load_project(binary(), binary()) :: Result.t(Project.t())
-  defp load_project(src, dest) do
-    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
-         {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
-         :ok <- Plugin.show_info(plugins) do
-      {:ok, proj}
-    else
-      {:error, _} = error -> error
     end
   end
 

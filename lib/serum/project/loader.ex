@@ -5,6 +5,7 @@ defmodule Serum.Project.Loader do
 
   require Serum.Util
   alias Serum.GlobalBindings
+  alias Serum.Plugin
   alias Serum.Project
   alias Serum.Project.ElixirValidator
   alias Serum.Result
@@ -17,21 +18,22 @@ defmodule Serum.Project.Loader do
   """
   @spec load(binary(), binary()) :: Result.t(Project.t())
   def load(src, dest) do
-    case do_load(src) do
-      {:ok, proj} ->
-        GlobalBindings.put(:site, %{
-          name: proj.site_name,
-          description: proj.site_description,
-          author: proj.author,
-          author_email: proj.author_email,
-          server_root: proj.server_root,
-          base_url: proj.base_url
-        })
+    with {:ok, %Project{} = proj} <- do_load(src),
+         {:ok, plugins} <- Plugin.load_plugins(proj.plugins) do
+      Plugin.show_info(plugins)
 
-        {:ok, %Project{proj | src: src, dest: dest}}
+      GlobalBindings.put(:site, %{
+        name: proj.site_name,
+        description: proj.site_description,
+        author: proj.author,
+        author_email: proj.author_email,
+        server_root: proj.server_root,
+        base_url: proj.base_url
+      })
 
-      {:error, _} = error ->
-        error
+      {:ok, %Project{proj | src: src, dest: dest}}
+    else
+      {:error, _} = error -> error
     end
   end
 
