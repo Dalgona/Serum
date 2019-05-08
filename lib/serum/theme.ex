@@ -177,18 +177,24 @@ defmodule Serum.Theme do
   end
 
   @doc false
-  @spec get_includes(t()) :: no_return()
+  @spec get_includes(t()) :: Result.t([binary()])
   def get_includes(module)
   def get_includes(nil), do: {:ok, []}
 
   def get_includes(module) do
-    raise "not implemented"
+    case call_function(module, :get_includes, []) do
+      {:ok, paths} when is_list(paths) ->
+        {:ok, Enum.filter(paths, &String.ends_with?(&1, ".html.eex"))}
+
+      {:error, _} = error ->
+        error
+    end
   end
 
   @accepted_templates MapSet.new(["base", "list", "page", "post"])
 
   @doc false
-  @spec get_templates(t()) :: no_return()
+  @spec get_templates(t()) :: Result.t([binary()])
   def get_templates(module)
   def get_templates(nil), do: {:ok, []}
 
