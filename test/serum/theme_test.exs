@@ -17,7 +17,8 @@ defmodule Serum.ThemeTest do
         failing: Serum.FailingTheme,
         weird: Serum.WeirdTheme,
         super_weird_1: Serum.SuperWeirdTheme1,
-        super_weird_2: Serum.SuperWeirdTheme2
+        super_weird_2: Serum.SuperWeirdTheme2,
+        empty: Serum.EmptyTheme
       ]
       |> Enum.map(fn {k, v} -> {k, load(v)} end)
       |> Enum.map(fn {k, {:ok, theme}} -> {k, theme} end)
@@ -172,6 +173,10 @@ defmodule Serum.ThemeTest do
       :ok = Agent.stop(agent)
     end
 
+    test "returns false to indicate that no asset will be copied", ctx do
+      assert {:ok, false} === get_assets(ctx.empty)
+    end
+
     test "fails if the returned path is not a directory", ctx do
       uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
       tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
@@ -196,7 +201,7 @@ defmodule Serum.ThemeTest do
     end
 
     test "does nothing if the theme module is nil", ctx do
-      assert {:ok, nil} === get_assets(ctx.null)
+      assert {:ok, false} === get_assets(ctx.null)
     end
   end
 end

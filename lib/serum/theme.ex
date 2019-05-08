@@ -147,8 +147,10 @@ defmodule Serum.Theme do
 
   All files in the directory pointed by the returned value will be copied to
   the destination assets directory using `File.cp_r/2`.
+
+  This callback may return `false` to indicate that no asset will be copied.
   """
-  @callback get_assets() :: binary()
+  @callback get_assets() :: binary() | false
 
   #
   # Theme Consumer Functions
@@ -260,14 +262,17 @@ defmodule Serum.Theme do
   defp check_list_type(x), do: {:bad, x}
 
   @doc false
-  @spec get_assets(t()) :: Result.t(binary() | nil)
+  @spec get_assets(t()) :: Result.t(binary() | false)
   def get_assets(theme)
-  def get_assets(%__MODULE__{module: nil}), do: {:ok, nil}
+  def get_assets(%__MODULE__{module: nil}), do: {:ok, false}
 
   def get_assets(%__MODULE__{module: module}) do
     case call_function(module, :get_assets, []) do
       {:ok, path} when is_binary(path) ->
         do_get_assets(path)
+
+      {:ok, false} ->
+        {:ok, false}
 
       {:error, _} = error ->
         error
