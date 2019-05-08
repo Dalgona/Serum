@@ -64,7 +64,21 @@ defmodule Serum.Theme do
   require Serum.Util
   import Serum.Util
 
-  @type t :: module() | nil
+  defstruct module: nil,
+            name: "",
+            description: "",
+            author: "",
+            legal: "",
+            version: Version.parse!("0.0.0")
+
+  @type t :: %__MODULE__{
+          module: module() | nil,
+          name: binary(),
+          description: binary(),
+          author: binary(),
+          legal: binary(),
+          version: Version.t()
+        }
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
 
@@ -141,11 +155,11 @@ defmodule Serum.Theme do
   #
 
   @doc false
-  @spec get_info(t()) :: Result.t(map() | nil)
-  def get_info(module)
-  def get_info(nil), do: {:ok, nil}
+  @spec load(module() | nil) :: Result.t(t())
+  def load(module_or_nil)
+  def load(nil), do: {:ok, %__MODULE__{}}
 
-  def get_info(module) do
+  def load(module) do
     name = module.name()
     version = Version.parse!(module.version())
 
@@ -157,7 +171,8 @@ defmodule Serum.Theme do
       )
     end
 
-    map = %{
+    result = %__MODULE__{
+      module: module,
       name: name,
       description: module.description(),
       author: module.author(),
@@ -165,7 +180,7 @@ defmodule Serum.Theme do
       version: version
     }
 
-    {:ok, map}
+    {:ok, result}
   rescue
     exception ->
       ex_name = module_name(exception.__struct__)
@@ -178,10 +193,10 @@ defmodule Serum.Theme do
 
   @doc false
   @spec get_includes(t()) :: Result.t([binary()])
-  def get_includes(module)
-  def get_includes(nil), do: {:ok, []}
+  def get_includes(theme)
+  def get_includes(%__MODULE__{module: nil}), do: {:ok, []}
 
-  def get_includes(module) do
+  def get_includes(%__MODULE__{module: module}) do
     case get_list(module, :get_includes, []) do
       {:ok, paths} ->
         {:ok, Enum.filter(paths, &String.ends_with?(&1, ".html.eex"))}
@@ -195,10 +210,10 @@ defmodule Serum.Theme do
 
   @doc false
   @spec get_templates(t()) :: Result.t([binary()])
-  def get_templates(module)
-  def get_templates(nil), do: {:ok, []}
+  def get_templates(theme)
+  def get_templates(%__MODULE__{module: nil}), do: {:ok, []}
 
-  def get_templates(module) do
+  def get_templates(%__MODULE__{module: module}) do
     case get_list(module, :get_templates, []) do
       {:ok, paths} ->
         filtered_paths =
@@ -246,10 +261,10 @@ defmodule Serum.Theme do
 
   @doc false
   @spec get_assets(t()) :: Result.t(binary() | nil)
-  def get_assets(module)
-  def get_assets(nil), do: {:ok, nil}
+  def get_assets(theme)
+  def get_assets(%__MODULE__{module: nil}), do: {:ok, nil}
 
-  def get_assets(module) do
+  def get_assets(%__MODULE__{module: module}) do
     case call_function(module, :get_assets, []) do
       {:ok, path} when is_binary(path) ->
         do_get_assets(path)

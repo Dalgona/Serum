@@ -2,18 +2,35 @@ defmodule Serum.ThemeTest do
   use ExUnit.Case
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
-  alias Serum.Theme
+  import Serum.Theme
 
   "theme_modules/*.ex"
   |> fixture()
   |> Path.wildcard()
   |> Enum.each(&Code.require_file/1)
 
-  describe "get_info/1" do
-    test "successfully loads info for valid theme module" do
-      assert {:ok, info} = Theme.get_info(Serum.DummyTheme)
+  setup_all do
+    themes =
+      [
+        null: nil,
+        dummy: Serum.DummyTheme,
+        failing: Serum.FailingTheme,
+        weird: Serum.WeirdTheme,
+        super_weird_1: Serum.SuperWeirdTheme1,
+        super_weird_2: Serum.SuperWeirdTheme2
+      ]
+      |> Enum.map(fn {k, v} -> {k, load(v)} end)
+      |> Enum.map(fn {k, {:ok, theme}} -> {k, theme} end)
 
-      expected = %{
+    {:ok, themes}
+  end
+
+  describe "load/1" do
+    test "successfully loads info for valid theme module" do
+      assert {:ok, %Serum.Theme{} = info} = load(Serum.DummyTheme)
+
+      expected = %Serum.Theme{
+        module: Serum.DummyTheme,
         name: "Dummy Theme",
         description: "This is a dummy theme for testing.",
         author: "John Doe",
@@ -25,34 +42,34 @@ defmodule Serum.ThemeTest do
     end
 
     test "fails to load due to non-existent callbacks" do
-      assert {:error, _} = Theme.get_info(Serum.NotATheme)
+      assert {:error, _} = load(Serum.NotATheme)
     end
 
     test "fails to load due to the bad version format" do
-      assert {:error, _} = Theme.get_info(Serum.BadVersionTheme)
+      assert {:error, _} = load(Serum.BadVersionTheme)
     end
 
     test "fails to load due to the bad requirement format" do
-      assert {:error, _} = Theme.get_info(Serum.BadRequirementTheme)
+      assert {:error, _} = load(Serum.BadRequirementTheme)
     end
 
     test "prints warning if Serum requirement does not match" do
       output =
         ExUnit.CaptureIO.capture_io(:stderr, fn ->
-          assert {:ok, _} = Theme.get_info(Serum.IncompatibleTheme)
+          assert {:ok, _} = load(Serum.IncompatibleTheme)
         end)
 
       assert String.contains?(output, "not compatible")
     end
 
-    test "does nothing if the theme module is nil" do
-      assert {:ok, nil} === Theme.get_info(nil)
+    test "returns an empty struct if the theme module is nil" do
+      assert {:ok, %Serum.Theme{}} === load(nil)
     end
   end
 
   describe "get_includes/1" do
-    test "successfully retirves a list of paths" do
-      assert {:ok, paths} = Theme.get_includes(Serum.DummyTheme)
+    test "successfully retirves a list of paths", ctx do
+      assert {:ok, paths} = get_includes(ctx.dummy)
 
       expected_paths = [
         "/foo/bar/includes/nav.html.eex",
@@ -62,8 +79,8 @@ defmodule Serum.ThemeTest do
       assert paths === expected_paths
     end
 
-    test "ignores invalid items" do
-      assert {:ok, paths} = Theme.get_includes(Serum.WeirdTheme)
+    test "ignores invalid items", ctx do
+      assert {:ok, paths} = get_includes(ctx.weird)
 
       expected_paths = [
         "/foo/bar/includes/nav.html.eex",
@@ -73,31 +90,31 @@ defmodule Serum.ThemeTest do
       assert paths === expected_paths
     end
 
-    test "fails if the returned value is not a list" do
-      assert {:error, msg} = Theme.get_includes(Serum.SuperWeirdTheme1)
+    test "fails if the returned value is not a list", ctx do
+      assert {:error, msg} = get_includes(ctx.super_weird_1)
       assert String.contains?(msg, "Serum.SuperWeirdTheme1.get_includes")
       assert String.contains?(msg, inspect("/foo/bar/baz.html.eex"))
     end
 
-    test "fails if the returned list has non-binary values" do
-      assert {:error, msg} = Theme.get_includes(Serum.SuperWeirdTheme2)
+    test "fails if the returned list has non-binary values", ctx do
+      assert {:error, msg} = get_includes(ctx.super_weird_2)
       assert String.contains?(msg, "Serum.SuperWeirdTheme2.get_includes")
       assert String.contains?(msg, inspect(42))
     end
 
-    test "may also fail in some other cases" do
-      assert {:error, msg} = Theme.get_includes(Serum.FailingTheme)
+    test "may also fail in some other cases", ctx do
+      assert {:error, msg} = get_includes(ctx.failing)
       assert String.contains?(msg, "test error from get_includes/0")
     end
 
-    test "does nothing if the theme module is nil" do
-      assert {:ok, []} === Theme.get_includes(nil)
+    test "does nothing if the theme module is nil", ctx do
+      assert {:ok, []} === get_includes(ctx.null)
     end
   end
 
   describe "get_templates/1" do
-    test "successfully retirves a list of paths" do
-      assert {:ok, paths} = Theme.get_templates(Serum.DummyTheme)
+    test "successfully retirves a list of paths", ctx do
+      assert {:ok, paths} = get_templates(ctx.dummy)
 
       expected_paths = [
         "/foo/bar/templates/base.html.eex",
@@ -108,8 +125,8 @@ defmodule Serum.ThemeTest do
       assert paths === expected_paths
     end
 
-    test "ignores invalid items" do
-      assert {:ok, paths} = Theme.get_templates(Serum.WeirdTheme)
+    test "ignores invalid items", ctx do
+      assert {:ok, paths} = get_templates(ctx.weird)
 
       expected_paths = [
         "/foo/bar/templates/base.html.eex",
@@ -120,66 +137,66 @@ defmodule Serum.ThemeTest do
       assert paths === expected_paths
     end
 
-    test "fails if the returned value is not a list" do
-      assert {:error, msg} = Theme.get_templates(Serum.SuperWeirdTheme1)
+    test "fails if the returned value is not a list", ctx do
+      assert {:error, msg} = get_templates(ctx.super_weird_1)
       assert String.contains?(msg, "Serum.SuperWeirdTheme1.get_templates")
       assert String.contains?(msg, inspect("/foo/bar/baz.html.eex"))
     end
 
-    test "fails if the returned list has non-binary values" do
-      assert {:error, msg} = Theme.get_templates(Serum.SuperWeirdTheme2)
+    test "fails if the returned list has non-binary values", ctx do
+      assert {:error, msg} = get_templates(ctx.super_weird_2)
       assert String.contains?(msg, "Serum.SuperWeirdTheme2.get_templates")
       assert String.contains?(msg, inspect(42))
     end
 
-    test "may also fail in some other cases" do
-      assert {:error, msg} = Theme.get_templates(Serum.FailingTheme)
+    test "may also fail in some other cases", ctx do
+      assert {:error, msg} = get_templates(ctx.failing)
       assert String.contains?(msg, "test error from get_templates/0")
     end
 
-    test "does nothing if the theme module is nil" do
-      assert {:ok, []} === Theme.get_templates(nil)
+    test "does nothing if the theme module is nil", ctx do
+      assert {:ok, []} === get_templates(ctx.null)
     end
   end
 
   describe "get_assets/1" do
-    test "successfully retrieves a path" do
+    test "successfully retrieves a path", ctx do
       uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
       tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
       {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
 
       File.mkdir_p!(tmp_path)
-      assert {:ok, tmp_path} === Theme.get_assets(Serum.DummyTheme)
+      assert {:ok, tmp_path} === get_assets(ctx.dummy)
       File.rm_rf!(tmp_path)
 
       :ok = Agent.stop(agent)
     end
 
-    test "fails if the returned path is not a directory" do
+    test "fails if the returned path is not a directory", ctx do
       uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
       tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
       {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
       expected = {:error, {:enotdir, tmp_path, 0}}
 
       File.touch!(tmp_path)
-      assert expected === Theme.get_assets(Serum.WeirdTheme)
+      assert expected === get_assets(ctx.weird)
       File.rm_rf!(tmp_path)
 
       :ok = Agent.stop(agent)
     end
 
-    test "fails if the returned value is not a binary" do
-      assert {:error, msg} = Theme.get_assets(Serum.SuperWeirdTheme1)
+    test "fails if the returned value is not a binary", ctx do
+      assert {:error, msg} = get_assets(ctx.super_weird_1)
       assert String.contains?(msg, inspect(42))
     end
 
-    test "may also fail in some other cases" do
-      assert {:error, msg} = Theme.get_assets(Serum.FailingTheme)
+    test "may also fail in some other cases", ctx do
+      assert {:error, msg} = get_assets(ctx.failing)
       assert String.contains?(msg, "test error from get_assets/0")
     end
 
-    test "does nothing if the theme module is nil" do
-      assert {:ok, nil} === Theme.get_assets(nil)
+    test "does nothing if the theme module is nil", ctx do
+      assert {:ok, nil} === get_assets(ctx.null)
     end
   end
 end
