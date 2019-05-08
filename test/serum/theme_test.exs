@@ -73,7 +73,19 @@ defmodule Serum.ThemeTest do
       assert paths === expected_paths
     end
 
-    test "may fail in some cases" do
+    test "fails if the returned value is not a list" do
+      assert {:error, msg} = Theme.get_includes(Serum.SuperWeirdTheme1)
+      assert String.contains?(msg, "Serum.SuperWeirdTheme1.get_includes")
+      assert String.contains?(msg, inspect("/foo/bar/baz.html.eex"))
+    end
+
+    test "fails if the returned list has non-binary values" do
+      assert {:error, msg} = Theme.get_includes(Serum.SuperWeirdTheme2)
+      assert String.contains?(msg, "Serum.SuperWeirdTheme2.get_includes")
+      assert String.contains?(msg, inspect(42))
+    end
+
+    test "may also fail in some other cases" do
       assert {:error, msg} = Theme.get_includes(Serum.FailingTheme)
       assert String.contains?(msg, "test error from get_includes/0")
     end
@@ -108,7 +120,19 @@ defmodule Serum.ThemeTest do
       assert paths === expected_paths
     end
 
-    test "may fail in some cases" do
+    test "fails if the returned value is not a list" do
+      assert {:error, msg} = Theme.get_templates(Serum.SuperWeirdTheme1)
+      assert String.contains?(msg, "Serum.SuperWeirdTheme1.get_templates")
+      assert String.contains?(msg, inspect("/foo/bar/baz.html.eex"))
+    end
+
+    test "fails if the returned list has non-binary values" do
+      assert {:error, msg} = Theme.get_templates(Serum.SuperWeirdTheme2)
+      assert String.contains?(msg, "Serum.SuperWeirdTheme2.get_templates")
+      assert String.contains?(msg, inspect(42))
+    end
+
+    test "may also fail in some other cases" do
       assert {:error, msg} = Theme.get_templates(Serum.FailingTheme)
       assert String.contains?(msg, "test error from get_templates/0")
     end
@@ -142,6 +166,11 @@ defmodule Serum.ThemeTest do
       File.rm_rf!(tmp_path)
 
       :ok = Agent.stop(agent)
+    end
+
+    test "fails if the returned value is not a binary" do
+      assert {:error, msg} = Theme.get_assets(Serum.SuperWeirdTheme1)
+      assert String.contains?(msg, inspect(42))
     end
 
     test "may also fail in some other cases" do
