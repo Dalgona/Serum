@@ -182,8 +182,8 @@ defmodule Serum.Theme do
   def get_includes(nil), do: {:ok, []}
 
   def get_includes(module) do
-    case call_function(module, :get_includes, []) do
-      {:ok, paths} when is_list(paths) ->
+    case get_list(module, :get_includes, []) do
+      {:ok, paths} ->
         {:ok, Enum.filter(paths, &String.ends_with?(&1, ".html.eex"))}
 
       {:error, _} = error ->
@@ -199,8 +199,8 @@ defmodule Serum.Theme do
   def get_templates(nil), do: {:ok, []}
 
   def get_templates(module) do
-    case call_function(module, :get_templates, []) do
-      {:ok, paths} when is_list(paths) ->
+    case get_list(module, :get_templates, []) do
+      {:ok, paths} ->
         filtered_paths =
           paths
           |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
@@ -214,6 +214,36 @@ defmodule Serum.Theme do
     end
   end
 
+  @spec get_list(atom(), atom(), list()) :: Result.t([binary()])
+  defp get_list(module, fun, args) do
+    with {:ok, paths} <- call_function(module, fun, args),
+         :ok <- check_list_type(paths) do
+      {:ok, paths}
+    else
+      {:error, _} = error ->
+        error
+
+      {:bad, x} ->
+        callee = "#{module_name(module)}.#{fun}"
+        msg = "#{callee}: expected a list of strings, got: #{inspect(x)}"
+
+        {:error, msg}
+
+      {:bad_item, x} ->
+        callee = "#{module_name(module)}.#{fun}"
+        msg = "#{callee} expected a list of strings, got: #{inspect(x)} in the list"
+
+        {:error, msg}
+    end
+  end
+
+  @spec check_list_type(term()) :: :ok | {:bad, term()} | {:bad_item, term()}
+  defp check_list_type(maybe_list)
+  defp check_list_type([]), do: :ok
+  defp check_list_type([x | xs]) when is_binary(x), do: check_list_type(xs)
+  defp check_list_type([x | _xs]), do: {:bad_item, x}
+  defp check_list_type(x), do: {:bad, x}
+
   @doc false
   @spec get_assets(t()) :: Result.t(binary() | nil)
   def get_assets(module)
@@ -221,8 +251,17 @@ defmodule Serum.Theme do
 
   def get_assets(module) do
     case call_function(module, :get_assets, []) do
-      {:ok, path} -> do_get_assets(path)
-      {:error, _} = error -> error
+      {:ok, path} when is_binary(path) ->
+        do_get_assets(path)
+
+      {:error, _} = error ->
+        error
+
+      x ->
+        mod_name = module_name(module)
+        msg = "#{mod_name}.get_assets: expected a string, got: #{inspect(x)}"
+
+        {:error, msg}
     end
   end
 
