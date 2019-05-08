@@ -70,23 +70,23 @@ defmodule Serum.ThemeTest do
 
   describe "get_includes/1" do
     test "successfully retirves a list of paths", ctx do
-      assert {:ok, paths} = get_includes(ctx.dummy)
+      assert {:ok, %{} = paths} = get_includes(ctx.dummy)
 
-      expected_paths = [
-        "/foo/bar/includes/nav.html.eex",
-        "/foo/bar/includes/sidebar.html.eex"
-      ]
+      expected_paths = %{
+        "nav" => "/foo/bar/includes/nav.html.eex",
+        "sidebar" => "/foo/bar/includes/sidebar.html.eex"
+      }
 
       assert paths === expected_paths
     end
 
     test "ignores invalid items", ctx do
-      assert {:ok, paths} = get_includes(ctx.weird)
+      assert {:ok, %{} = paths} = get_includes(ctx.weird)
 
-      expected_paths = [
-        "/foo/bar/includes/nav.html.eex",
-        "/foo/bar/includes/sidebar.html.eex"
-      ]
+      expected_paths = %{
+        "nav" => "/foo/bar/includes/nav.html.eex",
+        "sidebar" => "/foo/bar/includes/sidebar.html.eex"
+      }
 
       assert paths === expected_paths
     end
@@ -109,31 +109,31 @@ defmodule Serum.ThemeTest do
     end
 
     test "does nothing if the theme module is nil", ctx do
-      assert {:ok, []} === get_includes(ctx.null)
+      assert {:ok, %{}} === get_includes(ctx.null)
     end
   end
 
   describe "get_templates/1" do
     test "successfully retirves a list of paths", ctx do
-      assert {:ok, paths} = get_templates(ctx.dummy)
+      assert {:ok, %{} = paths} = get_templates(ctx.dummy)
 
-      expected_paths = [
-        "/foo/bar/templates/base.html.eex",
-        "/foo/bar/templates/list.html.eex",
-        "/foo/bar/templates/post.html.eex"
-      ]
+      expected_paths = %{
+        "base" => "/foo/bar/templates/base.html.eex",
+        "list" => "/foo/bar/templates/list.html.eex",
+        "post" => "/foo/bar/templates/post.html.eex"
+      }
 
       assert paths === expected_paths
     end
 
     test "ignores invalid items", ctx do
-      assert {:ok, paths} = get_templates(ctx.weird)
+      assert {:ok, %{} = paths} = get_templates(ctx.weird)
 
-      expected_paths = [
-        "/foo/bar/templates/base.html.eex",
-        "/foo/bar/templates/list.html.eex",
-        "/foo/bar/templates/post.html.eex"
-      ]
+      expected_paths = %{
+        "base" => "/foo/bar/templates/base.html.eex",
+        "list" => "/foo/bar/templates/list.html.eex",
+        "post" => "/foo/bar/templates/post.html.eex"
+      }
 
       assert paths === expected_paths
     end
@@ -156,7 +156,7 @@ defmodule Serum.ThemeTest do
     end
 
     test "does nothing if the theme module is nil", ctx do
-      assert {:ok, []} === get_templates(ctx.null)
+      assert {:ok, %{}} === get_templates(ctx.null)
     end
   end
 

@@ -194,14 +194,20 @@ defmodule Serum.Theme do
   end
 
   @doc false
-  @spec get_includes(t()) :: Result.t([binary()])
+  @spec get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
   def get_includes(theme)
-  def get_includes(%__MODULE__{module: nil}), do: {:ok, []}
+  def get_includes(%__MODULE__{module: nil}), do: {:ok, %{}}
 
   def get_includes(%__MODULE__{module: module}) do
     case get_list(module, :get_includes, []) do
       {:ok, paths} ->
-        {:ok, Enum.filter(paths, &String.ends_with?(&1, ".html.eex"))}
+        result =
+          paths
+          |> Enum.filter(&String.ends_with?(&1, ".html.eex"))
+          |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
+          |> Map.new()
+
+        {:ok, result}
 
       {:error, _} = error ->
         error
@@ -211,20 +217,20 @@ defmodule Serum.Theme do
   @accepted_templates MapSet.new(["base", "list", "page", "post"])
 
   @doc false
-  @spec get_templates(t()) :: Result.t([binary()])
+  @spec get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
   def get_templates(theme)
-  def get_templates(%__MODULE__{module: nil}), do: {:ok, []}
+  def get_templates(%__MODULE__{module: nil}), do: {:ok, %{}}
 
   def get_templates(%__MODULE__{module: module}) do
     case get_list(module, :get_templates, []) do
       {:ok, paths} ->
-        filtered_paths =
+        result =
           paths
           |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
           |> Enum.filter(&(elem(&1, 0) in @accepted_templates))
-          |> Enum.map(&elem(&1, 1))
+          |> Map.new()
 
-        {:ok, filtered_paths}
+        {:ok, result}
 
       {:error, _} = error ->
         error
