@@ -50,6 +50,74 @@ defmodule Serum.ThemeTest do
     end
   end
 
+  describe "get_includes/1" do
+    test "successfully retirves a list of paths" do
+      assert {:ok, paths} = Theme.get_includes(Serum.DummyTheme)
+
+      expected_paths = [
+        "/foo/bar/includes/nav.html.eex",
+        "/foo/bar/includes/sidebar.html.eex"
+      ]
+
+      assert paths === expected_paths
+    end
+
+    test "ignores invalid items" do
+      assert {:ok, paths} = Theme.get_includes(Serum.WeirdTheme)
+
+      expected_paths = [
+        "/foo/bar/includes/nav.html.eex",
+        "/foo/bar/includes/sidebar.html.eex"
+      ]
+
+      assert paths === expected_paths
+    end
+
+    test "may fail in some cases" do
+      assert {:error, msg} = Theme.get_includes(Serum.FailingTheme)
+      assert String.contains?(msg, "test error from get_includes/0")
+    end
+
+    test "does nothing if the theme module is nil" do
+      assert {:ok, []} === Theme.get_includes(nil)
+    end
+  end
+
+  describe "get_templates/1" do
+    test "successfully retirves a list of paths" do
+      assert {:ok, paths} = Theme.get_templates(Serum.DummyTheme)
+
+      expected_paths = [
+        "/foo/bar/templates/base.html.eex",
+        "/foo/bar/templates/list.html.eex",
+        "/foo/bar/templates/post.html.eex"
+      ]
+
+      assert paths === expected_paths
+    end
+
+    test "ignores invalid items" do
+      assert {:ok, paths} = Theme.get_templates(Serum.WeirdTheme)
+
+      expected_paths = [
+        "/foo/bar/templates/base.html.eex",
+        "/foo/bar/templates/list.html.eex",
+        "/foo/bar/templates/post.html.eex"
+      ]
+
+      assert paths === expected_paths
+    end
+
+    test "may fail in some cases" do
+      assert {:error, msg} = Theme.get_templates(Serum.FailingTheme)
+      assert String.contains?(msg, "test error from get_templates/0")
+    end
+
+    test "does nothing if the theme module is nil" do
+      assert {:ok, []} === Theme.get_templates(nil)
+    end
+  end
+
   describe "get_assets/1" do
     test "successfully retrieves a path" do
       uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
