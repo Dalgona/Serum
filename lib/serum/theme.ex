@@ -177,6 +177,38 @@ defmodule Serum.Theme do
   end
 
   @doc false
+  @spec get_includes(t()) :: no_return()
+  def get_includes(module)
+  def get_includes(nil), do: {:ok, []}
+
+  def get_includes(module) do
+    raise "not implemented"
+  end
+
+  @accepted_templates MapSet.new(["base", "list", "page", "post"])
+
+  @doc false
+  @spec get_templates(t()) :: no_return()
+  def get_templates(module)
+  def get_templates(nil), do: {:ok, []}
+
+  def get_templates(module) do
+    case call_function(module, :get_templates, []) do
+      {:ok, paths} when is_list(paths) ->
+        filtered_paths =
+          paths
+          |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
+          |> Enum.filter(&(elem(&1, 0) in @accepted_templates))
+          |> Enum.map(&elem(&1, 1))
+
+        {:ok, filtered_paths}
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @doc false
   @spec get_assets(t()) :: Result.t(binary() | nil)
   def get_assets(module)
   def get_assets(nil), do: {:ok, nil}
