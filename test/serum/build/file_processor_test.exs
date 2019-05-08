@@ -13,7 +13,10 @@ defmodule Serum.Build.FileProcessorTest do
   # - Serum.Build.PostListTest
 
   setup_all do
-    {:ok, proj} = ProjectLoader.load(fixture("proj/good"), "/tmp/dest/")
+    {:ok, proj} =
+      mute_stdio do
+        ProjectLoader.load(fixture("proj/good"), "/tmp/dest/")
+      end
 
     good_page_files =
       fixture("pages")

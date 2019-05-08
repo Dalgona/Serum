@@ -6,7 +6,10 @@ defmodule Serum.Build.FileProcessor.PostTest do
   alias Serum.Project.Loader, as: ProjectLoader
 
   setup_all do
-    {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+    {:ok, proj} =
+      mute_stdio do
+        ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+      end
 
     {:ok, [proj: proj]}
   end

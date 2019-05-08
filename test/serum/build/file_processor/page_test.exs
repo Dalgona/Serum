@@ -8,7 +8,11 @@ defmodule Serum.Build.FileProcessor.PageTest do
   alias Serum.Template.Compiler, as: TC
 
   setup_all do
-    {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+    {:ok, proj} =
+      mute_stdio do
+        ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+      end
+
     {:ok, ast} = TC.compile_string(~S(<%= "Hello, world!" %>), type: :template)
     includes = %{"test" => Template.new(ast, :template, "test.html.eex")}
 
