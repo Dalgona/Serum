@@ -70,7 +70,7 @@ defmodule Serum.Build do
   defp load_project(src, dest) do
     with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
          {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
-         :ok <- print_plugins(plugins) do
+         :ok <- Plugin.show_info(plugins) do
       {:ok, proj}
     else
       {:error, _} = error -> error
@@ -164,24 +164,5 @@ defmodule Serum.Build do
       {:ok, _} ->
         :ok
     end
-  end
-
-  @spec print_plugins([Plugin.t()]) :: :ok
-  defp print_plugins([]), do: :ok
-
-  defp print_plugins(plugins) do
-    IO.puts("\x1b[93m=== Loaded Plugins ===\x1b[0m")
-
-    Enum.each(plugins, fn plugin ->
-      mod_name =
-        plugin.module
-        |> to_string()
-        |> String.replace_prefix("Elixir.", "")
-
-      IO.puts("\x1b[1m#{plugin.name} v#{plugin.version}\x1b[0m (#{mod_name})")
-      IO.puts("    " <> plugin.description)
-    end)
-
-    IO.puts("")
   end
 end

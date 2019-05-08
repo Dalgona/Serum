@@ -433,6 +433,24 @@ defmodule Serum.Plugin do
   end
 
   @doc false
+  @spec show_info([t()]) :: :ok
+  def show_info(plugins)
+  def show_info([]), do: :ok
+
+  def show_info(plugins) do
+    IO.puts("\x1b[93m=== Loaded Plugins ===\x1b[0m")
+
+    Enum.each(plugins, fn plugin ->
+      mod_name = module_name(plugin.module)
+
+      IO.puts("\x1b[1m#{plugin.name} v#{plugin.version}\x1b[0m (#{mod_name})")
+      IO.puts("    " <> plugin.description)
+    end)
+
+    IO.puts("")
+  end
+
+  @doc false
   @spec build_started(src :: binary(), dest :: binary()) :: Result.t()
   def build_started(src, dest) do
     call_action(:build_started, [src, dest])

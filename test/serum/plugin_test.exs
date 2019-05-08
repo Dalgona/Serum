@@ -108,4 +108,27 @@ defmodule Serum.PluginTest do
     assert {:error, {_, [h | _]}} = load_plugins([Serum.FailingPlugin2])
     assert {:error, "RuntimeError" <> _} = h
   end
+
+  describe "show_info/1" do
+    test "prints enough information about loaded plugins" do
+      {:ok, plugins} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2])
+      output = capture_io(fn -> show_info(plugins) end)
+
+      expected = [
+        "dummy_plugin_1",
+        "0.0.1",
+        "Serum.DummyPlugin1",
+        "This is dummy plugin no. 1",
+        "dummy_plugin_2",
+        "Serum.DummyPlugin2",
+        "This is dummy plugin no. 2"
+      ]
+
+      Enum.each(expected, &assert(String.contains?(output, &1)))
+    end
+
+    test "prints nothing when the argument is an empty list" do
+      assert "" === capture_io(fn -> show_info([]) end)
+    end
+  end
 end
