@@ -13,6 +13,7 @@ defmodule Serum.Build do
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
+  alias Serum.Theme
 
   @doc """
   Builds the given Serum project.
@@ -51,7 +52,7 @@ defmodule Serum.Build do
          :ok <- Plugin.build_started(src, dest),
          :ok <- pre_check(dest),
          :ok <- do_build(proj),
-         :ok <- copy_assets(src, dest),
+         :ok <- copy_assets(src, dest, proj.theme),
          :ok <- Plugin.build_succeeded(src, dest),
          :ok <- Plugin.finalizing(src, dest) do
       {:ok, dest}
@@ -137,11 +138,27 @@ defmodule Serum.Build do
     |> Result.aggregate(:clean_dest)
   end
 
-  @spec copy_assets(binary(), binary()) :: :ok
-  defp copy_assets(src, dest) do
+  @spec copy_assets(binary(), binary(), Theme.t()) :: Result.t()
+  defp copy_assets(src, dest, theme) do
     IO.puts("Copying assets and media...")
-    try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
-    try_copy(Path.join(src, "media"), Path.join(dest, "media"))
+
+    case copy_theme_assets(theme, dest) do
+      :ok ->
+        try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
+        try_copy(Path.join(src, "media"), Path.join(dest, "media"))
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @spec copy_theme_assets(Theme.t(), binary()) :: Result.t()
+  defp copy_theme_assets(theme, dest) do
+    case Theme.get_assets(theme) do
+      {:ok, false} -> :ok
+      {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
+      {:error, _} = error -> error
+    end
   end
 
   @spec try_copy(binary, binary) :: :ok
