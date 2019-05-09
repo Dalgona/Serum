@@ -4,6 +4,7 @@ defmodule Serum.Build.FileLoader do
   import Serum.Util
   alias Serum.Plugin
   alias Serum.Result
+  alias Serum.Theme
 
   @type result :: %{
           templates: [Serum.File.t()],
@@ -26,10 +27,10 @@ defmodule Serum.Build.FileLoader do
   this function won't fail even if they don't exist. The corresponding lists
   in the resulting map will be empty.
   """
-  @spec load_files(binary()) :: Result.t(result())
-  def load_files(src) do
-    with {:ok, template_files} <- load_templates(src),
-         {:ok, include_files} <- load_includes(src),
+  @spec load_files(binary(), Theme.t()) :: Result.t(result())
+  def load_files(src, theme) do
+    with {:ok, template_files} <- load_templates(src, theme),
+         {:ok, include_files} <- load_includes(src, theme),
          {:ok, page_files} <- load_pages(src),
          {:ok, post_files} <- load_posts(src) do
       {:ok,
@@ -44,25 +45,59 @@ defmodule Serum.Build.FileLoader do
     end
   end
 
-  @spec load_templates(binary()) :: Result.t([Serum.File.t()])
-  defp load_templates(src) do
+  @spec load_templates(binary(), Theme.t()) :: Result.t([Serum.File.t()])
+  defp load_templates(src, theme) do
     IO.puts("Loading template files...")
 
-    templates_dir = get_subdir(src, "templates")
+    case Theme.get_templates(theme) do
+      {:ok, paths} ->
+        paths
+        |> Map.merge(get_project_templates(src), fn _, v1, v2 ->
+          (File.exists?(v2) && v2) || v1
+        end)
+        |> Enum.map(&elem(&1, 1))
+        |> Plugin.reading_templates()
+        |> case do
+          {:ok, files} -> read_files(files)
+          {:error, _} = plugin_error -> plugin_error
+        end
 
-    ["base", "list", "page", "post"]
-    |> Enum.map(&Path.join(templates_dir, &1 <> ".html.eex"))
-    |> Plugin.reading_templates()
-    |> case do
-      {:ok, files} -> read_files(files)
-      {:error, _} = plugin_error -> plugin_error
+      {:error, _} = error ->
+        error
     end
   end
 
-  @spec load_includes(binary()) :: Result.t([Serum.File.t()])
-  defp load_includes(src) do
+  @spec get_project_templates(binary()) :: map()
+  defp get_project_templates(src) do
+    templates_dir = get_subdir(src, "templates")
+
+    ["base", "list", "page", "post"]
+    |> Enum.map(&{&1, Path.join(templates_dir, &1 <> ".html.eex")})
+    |> Map.new()
+  end
+
+  @spec load_includes(binary(), Theme.t()) :: Result.t([Serum.File.t()])
+  defp load_includes(src, theme) do
     IO.puts("Loading include files...")
 
+    case Theme.get_includes(theme) do
+      {:ok, paths} ->
+        paths
+        |> Map.merge(get_project_includes(src))
+        |> Enum.map(&elem(&1, 1))
+        |> Plugin.reading_templates()
+        |> case do
+          {:ok, files} -> read_files(files)
+          {:error, _} = plugin_error -> plugin_error
+        end
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @spec get_project_includes(binary()) :: map()
+  defp get_project_includes(src) do
     includes_dir = get_subdir(src, "includes")
 
     if File.exists?(includes_dir) do
@@ -70,13 +105,10 @@ defmodule Serum.Build.FileLoader do
       |> File.ls!()
       |> Enum.filter(&String.ends_with?(&1, ".html.eex"))
       |> Enum.map(&Path.join(includes_dir, &1))
-      |> Plugin.reading_templates()
-      |> case do
-        {:ok, files} -> read_files(files)
-        {:error, _} = plugin_error -> plugin_error
-      end
+      |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
+      |> Map.new()
     else
-      {:ok, []}
+      %{}
     end
   end
 

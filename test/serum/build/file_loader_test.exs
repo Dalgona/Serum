@@ -3,6 +3,7 @@ defmodule Serum.Build.FileLoaderTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Build.FileLoader
+  alias Serum.Theme
 
   setup do
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
@@ -35,7 +36,7 @@ defmodule Serum.Build.FileLoaderTest do
     test "successfully loaded files", %{tmp_dir: tmp_dir} do
       {:ok, %{pages: pages, posts: posts, templates: temps, includes: incls}} =
         mute_stdio do
-          FileLoader.load_files(tmp_dir)
+          FileLoader.load_files(tmp_dir, %Theme{})
         end
 
       assert length(pages) === 1
@@ -50,7 +51,7 @@ defmodule Serum.Build.FileLoaderTest do
 
       {:ok, %{pages: pages, posts: [], templates: temps, includes: []}} =
         mute_stdio do
-          FileLoader.load_files(tmp_dir)
+          FileLoader.load_files(tmp_dir, %Theme{})
         end
 
       assert length(pages) === 1
@@ -62,7 +63,7 @@ defmodule Serum.Build.FileLoaderTest do
 
       {:error, {:enoent, _, _}} =
         mute_stdio do
-          FileLoader.load_files(tmp_dir)
+          FileLoader.load_files(tmp_dir, %Theme{})
         end
     end
 
@@ -71,7 +72,7 @@ defmodule Serum.Build.FileLoaderTest do
 
       {:error, {_, [{:error, {:enoent, _, _}} | _]}} =
         mute_stdio do
-          FileLoader.load_files(tmp_dir)
+          FileLoader.load_files(tmp_dir, %Theme{})
         end
     end
   end
