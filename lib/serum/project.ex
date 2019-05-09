@@ -5,6 +5,7 @@ defmodule Serum.Project do
 
   import Serum.Util
   alias Serum.Plugin
+  alias Serum.Theme
 
   @default_date_format "{YYYY}-{0M}-{0D}"
   @default_list_title_tag "Posts Tagged ~s"
@@ -24,7 +25,7 @@ defmodule Serum.Project do
             src: nil,
             dest: nil,
             plugins: [],
-            theme: nil
+            theme: %Theme{module: nil}
 
   @type t :: %__MODULE__{
           src: binary(),
@@ -42,7 +43,7 @@ defmodule Serum.Project do
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
           plugins: [Plugin.plugin_spec()],
-          theme: atom()
+          theme: Theme.t()
         }
 
   @spec default_date_format() :: binary()

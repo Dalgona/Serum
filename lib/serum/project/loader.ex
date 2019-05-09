@@ -9,6 +9,7 @@ defmodule Serum.Project.Loader do
   alias Serum.Project
   alias Serum.Project.ElixirValidator
   alias Serum.Result
+  alias Serum.Theme
 
   @doc """
   Detects and loads Serum project definition file from the source directory.
@@ -19,7 +20,8 @@ defmodule Serum.Project.Loader do
   @spec load(binary(), binary()) :: Result.t(Project.t())
   def load(src, dest) do
     with {:ok, %Project{} = proj} <- do_load(src),
-         {:ok, plugins} <- Plugin.load_plugins(proj.plugins) do
+         {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
+         {:ok, %Theme{} = theme} <- Theme.load(proj.theme.module) do
       Plugin.show_info(plugins)
 
       GlobalBindings.put(:site, %{
@@ -31,7 +33,7 @@ defmodule Serum.Project.Loader do
         base_url: proj.base_url
       })
 
-      {:ok, %Project{proj | src: src, dest: dest}}
+      {:ok, %Project{proj | src: src, dest: dest, theme: theme}}
     else
       {:error, _} = error -> error
     end
@@ -53,7 +55,7 @@ defmodule Serum.Project.Loader do
     with {:ok, data} <- File.read(exs_path),
          {map, _} <- Code.eval_string(data, [], file: exs_path),
          :ok <- ElixirValidator.validate(map) do
-      {:ok, Project.new(map)}
+      {:ok, Project.new(Map.put(map, :theme, %Theme{module: map[:theme]}))}
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
