@@ -7,50 +7,41 @@ defmodule Serum.DevServer.Looper do
   alias Serum.DevServer.Service
 
   @doc "Starts the infinite command prompt loop."
-  @spec looper() :: no_return
-
+  @spec looper() :: no_return()
   def looper do
     IO.write("#{Service.port()}> ")
-    cmd = "" |> IO.gets() |> String.trim()
+    command = "" |> IO.gets() |> String.trim()
 
-    case cmd do
-      "help" ->
-        cmd(:help)
-
-      "build" ->
-        cmd(:build)
-
-      "quit" ->
-        cmd(:quit, Service.site_dir())
-
-      "" ->
-        looper()
-
-      _ ->
-        warn("Type `help` for the list of available commands.")
-        looper()
-    end
-  end
-
-  @spec cmd(atom) :: no_return
-  @spec cmd(:quit, binary) :: no_return
-  defp cmd(:help) do
-    IO.puts("Available commands are:")
-    IO.puts("  help   Displays this help message")
-    IO.puts("  build  Rebuilds the project")
-    IO.puts("  quit   Stops the server and quit")
+    run_command(command, [Service.site_dir()])
     looper()
   end
 
-  defp cmd(:build) do
+  @spec run_command(binary(), list()) :: :ok | no_return()
+  def run_command(command, args)
+  def run_command("", _), do: :ok
+
+  def run_command("help", _) do
+    """
+    Available commands are:
+      help   Displays this help message
+      build  Rebuilds the project
+      quit   Stops the server and quit
+    """
+    |> IO.write()
+  end
+
+  def run_command("build", _) do
     Service.rebuild()
-    looper()
   end
 
-  defp cmd(:quit, site) do
-    IO.puts("Removing temporary directory `#{site}`...")
-    File.rm_rf!(site)
+  def run_command("quit", [site_dir]) do
+    IO.puts("Removing temporary directory \"#{site_dir}\"...")
+    File.rm_rf!(site_dir)
     IO.puts("Shutting down...")
     System.halt(0)
+  end
+
+  def run_command(_, _) do
+    warn("Type \"help\" for the list of available commands.")
   end
 end
