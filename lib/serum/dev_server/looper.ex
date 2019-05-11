@@ -10,10 +10,15 @@ defmodule Serum.DevServer.Looper do
   @spec looper() :: no_return()
   def looper do
     IO.write("#{Service.port()}> ")
-    command = "" |> IO.gets() |> String.trim()
 
-    run_command(command, [Service.site_dir()])
-    looper()
+    case IO.gets("") do
+      :eof ->
+        run_command("quit", [Service.site_dir()])
+
+      command when is_binary(command) ->
+        run_command(String.trim(command), [Service.site_dir()])
+        looper()
+    end
   end
 
   @spec run_command(binary(), list()) :: :ok | no_return()
