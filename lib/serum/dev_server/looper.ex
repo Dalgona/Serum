@@ -11,21 +11,20 @@ defmodule Serum.DevServer.Looper do
   def looper do
     IO.write("#{Service.port()}> ")
 
-    case IO.gets("") do
-      :eof ->
-        run_command("quit", [Service.site_dir()])
-
-      command when is_binary(command) ->
-        run_command(String.trim(command), [Service.site_dir()])
-        looper()
-    end
+    if run_command(IO.gets("")), do: looper()
   end
 
-  @spec run_command(binary(), list()) :: :ok | no_return()
-  def run_command(command, args)
-  def run_command("", _), do: :ok
+  @doc false
+  @spec run_command(binary() | :eof) :: boolean()
+  def run_command(input)
+  def run_command(:eof), do: do_run_command("quit")
+  def run_command(cmd), do: do_run_command(String.trim(cmd))
 
-  def run_command("help", _) do
+  @spec do_run_command(binary()) :: boolean()
+  defp do_run_command(command)
+  defp do_run_command(""), do: :ok
+
+  defp do_run_command("help") do
     """
     Available commands are:
       help   Displays this help message
@@ -33,20 +32,29 @@ defmodule Serum.DevServer.Looper do
       quit   Stops the server and quit
     """
     |> IO.write()
+
+    true
   end
 
-  def run_command("build", _) do
+  defp do_run_command("build") do
     Service.rebuild()
+
+    true
   end
 
-  def run_command("quit", [site_dir]) do
+  defp do_run_command("quit") do
+    site_dir = Service.site_dir()
+
     IO.puts("Removing temporary directory \"#{site_dir}\"...")
     File.rm_rf!(site_dir)
     IO.puts("Shutting down...")
-    System.halt(0)
+
+    false
   end
 
-  def run_command(_, _) do
+  defp do_run_command(_) do
     warn("Type \"help\" for the list of available commands.")
+
+    true
   end
 end
