@@ -16,7 +16,6 @@ defmodule Serum.DevServer do
     import Supervisor.Spec
 
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-
     site = Path.expand("serum_" <> uniq, System.tmp_dir!())
 
     case ProjectLoader.load(dir, site) do
@@ -38,7 +37,7 @@ defmodule Serum.DevServer do
         ]
 
         children = [
-          worker(Service, [dir, site, port]),
+          {Service.GenServer, {dir, site, port}},
           worker(Microscope, [site, ms_options])
         ]
 

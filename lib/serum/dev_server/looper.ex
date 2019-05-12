@@ -9,7 +9,7 @@ defmodule Serum.DevServer.Looper do
   @doc "Starts the infinite command prompt loop."
   @spec looper() :: no_return()
   def looper do
-    IO.write("#{Service.port()}> ")
+    IO.write("#{Service.GenServer.port()}> ")
 
     if run_command(IO.gets("")), do: looper()
   end
@@ -37,13 +37,13 @@ defmodule Serum.DevServer.Looper do
   end
 
   defp do_run_command("build") do
-    Service.rebuild()
+    Service.GenServer.rebuild()
 
     true
   end
 
   defp do_run_command("quit") do
-    site_dir = Service.site_dir()
+    site_dir = Service.GenServer.site_dir()
 
     IO.puts("Removing temporary directory \"#{site_dir}\"...")
     File.rm_rf!(site_dir)
