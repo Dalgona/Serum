@@ -2,6 +2,11 @@
 
 ## v1.1.0 &mdash; To be released
 
+### Fixed
+
+- The development server now quits gracefully when the user sends EOF (Ctrl+D)
+  (Issue #45)
+
 ### Added
 
 - The following optional callbacks were added for plugins.
