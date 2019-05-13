@@ -18,18 +18,18 @@ defmodule Mix.Tasks.Serum.New do
   ## Options
 
   - `--force` (boolean): Forces creation of the new Serum project even if
-    `PATH` is not empty.
+    `PATH` already exists and is not empty.
   """
 
   @shortdoc "Creates a new Serum project"
 
   use Mix.Task
   require Mix.Generator
-  alias IO.ANSI, as: A
+  import Serum.New
   alias Serum.New.Files
+  alias IO.ANSI, as: A
 
   @version Mix.Project.config()[:version]
-  @mix_env Mix.env()
   @options [force: :boolean]
 
   @impl true
@@ -42,87 +42,27 @@ defmodule Mix.Tasks.Serum.New do
   def run(args) do
     {options, argv} = OptionParser.parse!(args, strict: @options)
 
-    case argv do
+    with [path | _] <- argv,
+         {:ok, app_name} <- process_path(path, options[:force] || false) do
+      assigns = [
+        app_name: app_name,
+        mod_name: Macro.camelize(app_name),
+        elixir_version: get_elixir_version!(),
+        serum_dep: get_serum_dep()
+      ]
+
+      if path != "." do
+        Mix.Generator.create_directory(path)
+      end
+
+      File.cd!(path, fn -> generate_project(path, assigns) end)
+    else
       [] ->
         Mix.raise("expected PATH to be given. Run mix help serum.new for help")
 
-      [path | _] ->
-        force? = options[:force] || false
-        :ok = check_path!(path, force?)
-        app_name = Path.basename(Path.expand(path))
-        :ok = check_app_name!(app_name)
-
-        assigns = [
-          app_name: app_name,
-          mod_name: Macro.camelize(app_name),
-          elixir_version: get_elixir_version!(),
-          serum_dep: get_serum_dep(@mix_env)
-        ]
-
-        if path != "." do
-          Mix.Generator.create_directory(path)
-        end
-
-        File.cd!(path, fn -> generate_project(path, assigns) end)
+      {:error, msg} ->
+        Mix.raise(msg)
     end
-  end
-
-  @spec check_path!(binary(), boolean()) :: :ok | no_return()
-  defp check_path!(path, force?)
-  defp check_path!(_path, true), do: :ok
-
-  defp check_path!(path, false) do
-    if File.exists?(path) do
-      case File.ls!(path) do
-        [] ->
-          :ok
-
-        [_ | _] ->
-          Mix.raise(
-            "#{path} already exists and is not empty. " <>
-              "Try again with a --force option to override"
-          )
-      end
-    else
-      :ok
-    end
-  end
-
-  @spec check_app_name!(binary()) :: :ok | no_return()
-  defp check_app_name!(app_name) do
-    if app_name =~ ~r/^[a-z][a-z0-9_]*$/ do
-      :ok
-    else
-      Mix.raise(
-        "PATH must start with a lowercase ASCII letter, " <>
-          "followed by zero or more lowercase ASCII letters, digits, " <>
-          "or underscores. Got: #{inspect(app_name)}"
-      )
-    end
-  end
-
-  @spec get_elixir_version!() :: binary()
-  defp get_elixir_version! do
-    ver = Version.parse!(System.version())
-
-    pre_release =
-      case ver.pre do
-        [] -> ""
-        [x | _xs] -> "-#{x}"
-      end
-
-    "#{ver.major}.#{ver.minor}#{pre_release}"
-  end
-
-  @spec get_serum_dep(atom()) :: binary()
-  defp get_serum_dep(env)
-
-  defp get_serum_dep(:prod) do
-    ~s({:serum, "~> #{@version}"})
-  end
-
-  defp get_serum_dep(_) do
-    ~s({:serum, path: "#{Path.expand(Path.join(File.cwd!(), ".."))}"})
   end
 
   @spec generate_project(binary(), keyword()) :: :ok
