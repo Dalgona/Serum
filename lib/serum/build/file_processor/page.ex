@@ -21,12 +21,14 @@ defmodule Serum.Build.FileProcessor.Page do
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values(:file_processor)
 
-    with {:ok, pages} <- result,
-         sorted_pages = Enum.sort(pages, &(&1.order < &2.order)),
-         {:ok, pages2} <- Plugin.processed_pages(sorted_pages) do
-      {:ok, {pages2, Enum.map(pages2, &Page.compact/1)}}
-    else
-      {:error, _} = error -> error
+    case result do
+      {:ok, pages} ->
+        sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
+
+        {:ok, {sorted_pages, Enum.map(sorted_pages, &Page.compact/1)}}
+
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -46,9 +48,8 @@ defmodule Serum.Build.FileProcessor.Page do
     with {:ok, file2} <- Plugin.processing_page(file),
          {:ok, {header, rest}} <- parse_header(file2.in_data, opts, required) do
       header = Map.put(header, :label, header[:label] || header.title)
-      page = Page.new(file2.src, header, rest, proj)
 
-      Plugin.processed_page(page)
+      {:ok, Page.new(file2.src, header, rest, proj)}
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
       {:error, _} = plugin_error -> plugin_error
@@ -62,20 +63,32 @@ defmodule Serum.Build.FileProcessor.Page do
     |> Task.async_stream(&process_page(&1, includes, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
+    |> case do
+      {:ok, pages} -> Plugin.processed_pages(pages)
+      {:error, _} = error -> error
+    end
   end
 
   @spec process_page(Page.t(), map(), Project.t()) :: Result.t(Page.t())
-  defp process_page(page, includes, proj)
+  defp process_page(page, includes, proj) do
+    case do_process_page(page, includes, proj) do
+      {:ok, page} -> Plugin.processed_page(page)
+      {:error, _} = error -> error
+    end
+  end
 
-  defp process_page(%Page{type: ".md"} = page, _includes, proj) do
+  @spec do_process_page(Page.t(), map(), Project.t()) :: Result.t(Page.t())
+  defp do_process_page(page, includes, proj)
+
+  defp do_process_page(%Page{type: ".md"} = page, _includes, proj) do
     {:ok, %Page{page | data: Markdown.to_html(page.data, proj)}}
   end
 
-  defp process_page(%Page{type: ".html"} = page, _includes, _proj) do
+  defp do_process_page(%Page{type: ".html"} = page, _includes, _proj) do
     {:ok, page}
   end
 
-  defp process_page(%Page{type: ".html.eex"} = page, includes, _proj) do
+  defp do_process_page(%Page{type: ".html.eex"} = page, includes, _proj) do
     tc_options = [type: :template, includes: includes]
 
     with {:ok, ast} <- TC.compile_string(page.data, tc_options),
