@@ -1,0 +1,76 @@
+defmodule <%= @mod_name %> do
+  @moduledoc false
+
+  @behaviour Serum.Theme
+
+  # TODO: Change the name as necessary.
+  @impl true
+  def name, do: "<%= @orig_mod_name %>"
+
+  # TODO: Put a short descriptive text about your theme.
+  @impl true
+  def description, do: raise "not implemented"
+
+  # TODO: Put contact information of the theme author.
+  @impl true
+  def author, do: raise "not implemented"
+
+  # TODO: Put legal information of the theme, such as license.
+  @impl true
+  def legal, do: raise "not implemented"
+
+  @impl true
+  def version, do: "0.1.0"
+
+  @impl true
+  def serum, do: "~> <%= @serum_version %>"
+
+  _quick_start_guide = """
+  +-------------------------------------------+
+  | Serum Theme Development QUICK START GUIDE |
+  +-------------------------------------------+
+
+  A Serum theme is a set of resource files (templates and assets),
+  and a module which is capable of providing Serum with information
+  about which files should be used while building a project.
+
+  First, go ahead and put some templates and assets in this project.
+  It is recommended to put them in "priv/" directory, because this
+  directory is included in the package by default. This means that
+  you won't need to explicitly configure your "mix.exs" to include
+  your theme resources.
+
+  As of now, Serum will ask this module three times by calling
+  these callback functions: "get_includes/0", "get_templates/0",
+  and "get_assets/0".
+
+  If you have decided to put theme resources into the "priv/"
+  directory, it's easy to answer those questions. The code,
+
+      :code.priv_dir(:<%= @app_name %>)
+
+  will give you an absolute path to the "priv/" directory. You can
+  then use "Path.join/1,2" or "Path.expand/2" to get an absolute
+  path to a specific theme resource file.
+
+  Please read the documentation:
+
+      https://hexdocs.pm/serum/Serum.Theme.html
+
+  For more information about the callbacks below. Thank you!
+  """
+
+  @impl true
+  def get_includes do
+    []
+  end
+
+  @impl true
+  def get_templates do
+    []
+  end
+
+  # This function may return `false` if the theme does not have any asset.
+  @impl true
+  def get_assets, do: false
+end

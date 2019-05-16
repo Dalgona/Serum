@@ -10,7 +10,8 @@ defmodule Serum.New.Files do
   [
     {:gitignore, get_priv.("gitignore.eex")},
     {:mix_exs, get_priv.("mix.exs.eex")},
-    {:serum_exs, get_priv.("serum.exs.eex")}
+    {:serum_exs, get_priv.("serum.exs.eex")},
+    {:theme_module, get_priv.("theme_module.ex.eex")}
   ]
   |> Enum.each(fn {name, contents} ->
     def template(unquote(name), assigns) do
