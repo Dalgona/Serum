@@ -3,6 +3,7 @@ defmodule Serum.BuildTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Build
+  alias Serum.Project.Loader, as: ProjectLoader
 
   setup do
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
@@ -21,6 +22,7 @@ defmodule Serum.BuildTest do
 
     File.cp!(fixture("proj/good/serum.exs"), Path.join(src, "serum.exs"))
     File.cp!(fixture("templates/nav.html.eex"), Path.join(src, "includes/nav.html.eex"))
+    {:ok, proj} = ProjectLoader.load(src, dest)
 
     [
       "base.html.eex",
@@ -48,33 +50,27 @@ defmodule Serum.BuildTest do
 
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 
-    {:ok, [src: src, dest: dest]}
+    {:ok, [src: src, dest: dest, proj: proj]}
   end
 
-  test "everything went well", %{src: src, dest: dest} do
-    assert {:ok, ^dest} = build(src, dest)
+  test "everything went well", %{dest: dest, proj: proj} do
+    assert {:ok, ^dest} = mute_stdio(do: Build.build(proj))
 
     # Clean the destination dir when is not empty
-    assert {:ok, ^dest} = build(src, dest)
+    assert {:ok, ^dest} = mute_stdio(do: Build.build(proj))
   end
 
-  test "skip copying assets and media", %{src: src, dest: dest} do
+  test "skip copying assets and media", %{src: src, dest: dest, proj: proj} do
     File.rm_rf!(Path.join(src, "assets"))
     File.rm_rf!(Path.join(src, "media"))
 
-    assert {:ok, ^dest} = build(src, dest)
+    assert {:ok, ^dest} = mute_stdio(do: Build.build(proj))
   end
 
-  test "failed to process proj", %{src: src, dest: dest} do
-    File.rm!(Path.join(src, "serum.exs"))
-
-    assert {:error, _} = build(src, dest)
-  end
-
-  test "no write permission on dest", %{src: src, dest: dest} do
+  test "no write permission on dest", %{dest: dest, proj: proj} do
     File.chmod!(dest, 0o555)
 
-    assert {:error, _} = build(src, dest)
+    assert {:error, _} = mute_stdio(do: Build.build(proj))
 
     File.chmod!(dest, 0o755)
     File.rm_rf!(dest)
@@ -83,18 +79,18 @@ defmodule Serum.BuildTest do
 
     File.chmod!(parent, 0o555)
 
-    assert {:error, _} = build(src, dest)
+    assert {:error, _} = mute_stdio(do: Build.build(proj))
 
     File.chmod!(parent, 0o755)
   end
 
-  test "failed to load required files", %{src: src, dest: dest} do
+  test "failed to load required files", %{src: src, proj: proj} do
     File.rm_rf!(Path.join(src, "templates"))
 
-    assert {:error, _} = build(src, dest)
+    assert {:error, _} = mute_stdio(do: Build.build(proj))
   end
 
-  test "failed to process some files", %{src: src, dest: dest} do
+  test "failed to process some files", %{src: src, proj: proj} do
     "pages/bad-*.*"
     |> fixture()
     |> Path.wildcard()
@@ -102,8 +98,6 @@ defmodule Serum.BuildTest do
       File.cp!(file, Path.join([src, "pages", Path.basename(file)]))
     end)
 
-    assert {:error, _} = build(src, dest)
+    assert {:error, _} = mute_stdio(do: Build.build(proj))
   end
-
-  defp build(src, dest), do: mute_stdio(do: Build.build(src, dest))
 end
