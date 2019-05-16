@@ -26,6 +26,8 @@ defmodule Mix.Tasks.Serum.Build do
   alias Mix.Tasks.Serum.CLIHelper
   alias OptionParser.ParseError
   alias Serum.Build
+  alias Serum.Project
+  alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
 
   @options [
@@ -51,17 +53,17 @@ defmodule Mix.Tasks.Serum.Build do
 
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    case Build.build(src, dest) do
-      {:ok, ^dest} ->
-        """
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
+         {:ok, ^dest} <- Build.build(proj) do
+      """
 
-        #{A.bright()}Your website is now ready!#{A.reset()}
-        Copy(or move) the contents of `#{dest}` directory
-        into your public webpages directory.
-        """
-        |> String.trim_trailing()
-        |> Mix.shell().info()
-
+      #{A.bright()}Your website is now ready!#{A.reset()}
+      Copy(or move) the contents of `#{dest}` directory
+      into your public webpages directory.
+      """
+      |> String.trim_trailing()
+      |> Mix.shell().info()
+    else
       {:error, _} = error ->
         Result.show(error)
         Mix.raise("could not build the website due to above error(s)")

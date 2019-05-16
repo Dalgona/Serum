@@ -11,7 +11,6 @@ defmodule Serum.Build do
   alias Serum.Build.PageGenerator
   alias Serum.Plugin
   alias Serum.Project
-  alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
   alias Serum.Theme
 
@@ -20,36 +19,32 @@ defmodule Serum.Build do
 
   ## Build Procedure
 
-  1. Checks if a project definition file exists under `src`, checks if it's
-    well-formed and valid, then loads it.
+  1. Tries to load plugins and a theme.
 
-  2. Tries to load plugins listed in the project definition file.
-
-  3. Checks if the system timezone is properly set.
+  2. Checks if the system timezone is properly set.
 
       Timex requires the local timezone information to format the date/time
       string. If it's not set or invalid, Timex will fail.
 
-  4. Checks if the current user has enough permission on the destination
+  3. Checks if the current user has enough permission on the destination
     directory and cleans it if it already exists.
 
-  5. Loads source files. See `Serum.Build.FileLoader`.
+  4. Loads source files. See `Serum.Build.FileLoader`.
 
-  6. Processes source files and produces intermediate data structures.
+  5. Processes source files and produces intermediate data structures.
     See `Serum.Build.FileProcessor`.
 
-  7. Generates HTML fragments from the intermediate data.
+  6. Generates HTML fragments from the intermediate data.
     See `Serum.Build.FragmentGenerator`.
 
-  8. Renders full HTML pages from fragments and writes them to files.
+  7. Renders full HTML pages from fragments and writes them to files.
     See `Serum.Build.FileEmitter`.
 
-  9. Copies `assets/` and `media/` directories if they exist.
+  8. Copies `assets/` and `media/` directories if they exist.
   """
-  @spec build(binary(), binary()) :: Result.t(binary())
-  def build(src, dest) do
-    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
-         {:ok, proj} <- load_plugins(proj),
+  @spec build(Project.t()) :: Result.t(binary())
+  def build(%Project{src: src, dest: dest} = proj) do
+    with {:ok, proj} <- load_plugins(proj),
          :ok <- Plugin.build_started(src, dest),
          :ok <- pre_check(dest),
          :ok <- do_build(proj),

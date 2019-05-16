@@ -7,6 +7,8 @@ defmodule Serum.DevServer.Service.GenServer do
   import Serum.Util
   alias Serum.Build
   alias Serum.DevServer.Service
+  alias Serum.Project
+  alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
 
   @behaviour Service
@@ -141,8 +143,10 @@ defmodule Serum.DevServer.Service.GenServer do
 
   @spec do_rebuild(binary(), binary()) :: :ok
   defp do_rebuild(src, dest) do
-    case Build.build(src, dest) do
-      {:ok, _} -> :ok
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
+         {:ok, ^dest} <- Build.build(proj) do
+      :ok
+    else
       {:error, _} = error -> build_failed(error)
     end
   end
