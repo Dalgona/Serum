@@ -29,6 +29,7 @@ defmodule Mix.Tasks.Serum.New do
   alias Serum.New.Files
   alias IO.ANSI, as: A
 
+  @elixir_version Version.parse!(System.version())
   @version Mix.Project.config()[:version]
   @options [force: :boolean]
 
@@ -47,7 +48,7 @@ defmodule Mix.Tasks.Serum.New do
       assigns = [
         app_name: app_name,
         mod_name: Macro.camelize(app_name),
-        elixir_version: get_elixir_version!(),
+        elixir_version: get_version_req(@elixir_version),
         serum_dep: get_serum_dep()
       ]
 
@@ -79,20 +80,18 @@ defmodule Mix.Tasks.Serum.New do
     ]
     |> Enum.each(&Mix.Generator.create_directory/1)
 
-    create_file = &Mix.Generator.create_file(&1, &2, force: true)
+    create_file(".formatter.exs", Files.text(:formatter_exs))
+    create_file(".gitignore", Files.template(:gitignore, assigns))
+    create_file("mix.exs", Files.template(:mix_exs, assigns))
+    create_file("serum.exs", Files.template(:serum_exs, assigns))
 
-    create_file.(".formatter.exs", Files.text(:formatter_exs))
-    create_file.(".gitignore", Files.template(:gitignore, assigns))
-    create_file.("mix.exs", Files.template(:mix_exs, assigns))
-    create_file.("serum.exs", Files.template(:serum_exs, assigns))
+    create_file("includes/nav.html.eex", Files.text(:nav_html_eex))
+    create_file("templates/base.html.eex", Files.text(:base_html_eex))
+    create_file("templates/list.html.eex", Files.text(:list_html_eex))
+    create_file("templates/page.html.eex", Files.text(:page_html_eex))
+    create_file("templates/post.html.eex", Files.text(:post_html_eex))
 
-    create_file.("includes/nav.html.eex", Files.text(:nav_html_eex))
-    create_file.("templates/base.html.eex", Files.text(:base_html_eex))
-    create_file.("templates/list.html.eex", Files.text(:list_html_eex))
-    create_file.("templates/page.html.eex", Files.text(:page_html_eex))
-    create_file.("templates/post.html.eex", Files.text(:post_html_eex))
-
-    create_file.("pages/index.md", Files.text(:index_md))
+    create_file("pages/index.md", Files.text(:index_md))
 
     cd =
       case path do

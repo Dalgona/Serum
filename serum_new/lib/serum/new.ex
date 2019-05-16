@@ -49,17 +49,7 @@ defmodule Serum.New do
 
   @doc false
   @spec get_elixir_version!() :: binary()
-  def get_elixir_version! do
-    ver = @elixir_version
-
-    pre_release =
-      case ver.pre do
-        [] -> ""
-        [x | _xs] -> "-#{x}"
-      end
-
-    "#{ver.major}.#{ver.minor}#{pre_release}"
-  end
+  def get_elixir_version!, do: get_version_req(@elixir_version)
 
   @doc false
   @spec get_serum_dep() :: binary()
@@ -80,5 +70,23 @@ defmodule Serum.New do
     def get_serum_dep do
       ~s({:serum, path: "#{Path.expand(Path.join(File.cwd!(), ".."))}"})
     end
+  end
+
+  @doc false
+  @spec create_file(binary(), iodata()) :: any()
+  def create_file(path, data) do
+    Mix.Generator.create_file(path, data, force: true)
+  end
+
+  @doc false
+  @spec get_version_req(Version.t()) :: binary()
+  def get_version_req(version) do
+    pre_release =
+      case version.pre do
+        [] -> ""
+        [x | _xs] -> "-#{x}"
+      end
+
+    "#{version.major}.#{version.minor}#{pre_release}"
   end
 end
