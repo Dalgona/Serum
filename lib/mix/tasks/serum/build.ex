@@ -23,11 +23,10 @@ defmodule Mix.Tasks.Serum.Build do
 
   use Mix.Task
   alias IO.ANSI, as: A
+  alias Mix.Tasks.Serum.CLIHelper
   alias OptionParser.ParseError
   alias Serum.Build
   alias Serum.Result
-
-  @version Mix.Project.config()[:version]
 
   @options [
     strict: [output: :string],
@@ -38,11 +37,7 @@ defmodule Mix.Tasks.Serum.Build do
   def run(args) do
     Mix.Project.compile([])
 
-    """
-    #{A.bright()}Serum -- Yet another simple static website generator
-    Version #{@version}. Copyright (C) 2019 Dalgona. <dalgona@hontou.moe>
-    #{A.reset()}
-    """
+    CLIHelper.version_string()
     |> String.trim_trailing()
     |> Mix.shell().info()
 
