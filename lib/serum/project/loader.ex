@@ -5,7 +5,6 @@ defmodule Serum.Project.Loader do
 
   require Serum.Util
   alias Serum.GlobalBindings
-  alias Serum.Plugin
   alias Serum.Project
   alias Serum.Project.ElixirValidator
   alias Serum.Result
@@ -13,29 +12,24 @@ defmodule Serum.Project.Loader do
 
   @doc """
   Detects and loads Serum project definition file from the source directory.
-
-  This function first looks for `serum.exs`. If it does not exist, it checks if
-  `serum.json` exists. If none of them exists, an error is returned.
   """
   @spec load(binary(), binary()) :: Result.t(Project.t())
   def load(src, dest) do
-    with {:ok, %Project{} = proj} <- do_load(src),
-         {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
-         {:ok, %Theme{} = theme} <- Theme.load(proj.theme.module) do
-      Plugin.show_info(plugins)
+    case do_load(src) do
+      {:ok, %Project{} = proj} ->
+        GlobalBindings.put(:site, %{
+          name: proj.site_name,
+          description: proj.site_description,
+          author: proj.author,
+          author_email: proj.author_email,
+          server_root: proj.server_root,
+          base_url: proj.base_url
+        })
 
-      GlobalBindings.put(:site, %{
-        name: proj.site_name,
-        description: proj.site_description,
-        author: proj.author,
-        author_email: proj.author_email,
-        server_root: proj.server_root,
-        base_url: proj.base_url
-      })
+        {:ok, %Project{proj | src: src, dest: dest}}
 
-      {:ok, %Project{proj | src: src, dest: dest, theme: theme}}
-    else
-      {:error, _} = error -> error
+      {:error, _} = error ->
+        error
     end
   end
 
