@@ -9,6 +9,12 @@
 
 ### Added
 
+- **Serum now supports themes!** Please visit the official website to learn
+  more about Serum themes.
+
+- Installer: Added `serum.new.theme` Mix task, which helps you create a new
+  Serum theme project.
+
 - The following optional callbacks were added for plugins.
     - `processed_pages/1`
     - `processed_posts/1`
