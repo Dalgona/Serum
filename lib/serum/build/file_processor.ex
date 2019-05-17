@@ -9,7 +9,6 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Project
   alias Serum.Result
   alias Serum.Tag
-  alias Serum.Template.Compiler, as: TC
 
   @type result() :: %{
           pages: [Page.t()],
@@ -37,7 +36,7 @@ defmodule Serum.Build.FileProcessor do
   """
   @spec process_files(FileLoader.result(), Project.t()) :: Result.t(result())
   def process_files(files, proj) do
-    import Serum.Build.FileProcessor.{Page, Post, PostList}
+    import Serum.Build.FileProcessor.{Page, Post, PostList, Template}
 
     %{pages: page_files, posts: post_files} = files
 
@@ -56,19 +55,6 @@ defmodule Serum.Build.FileProcessor do
       }
 
       {:ok, result}
-    else
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec compile_templates(map()) :: Result.t({map(), map()})
-  defp compile_templates(%{templates: templates, includes: includes}) do
-    IO.puts("Compiling templates...")
-
-    with {:ok, includes} <- TC.compile_files(includes, type: :include),
-         tc_options = [type: :template, includes: includes],
-         {:ok, templates} <- TC.compile_files(templates, tc_options) do
-      {:ok, {templates, includes}}
     else
       {:error, _} = error -> error
     end
