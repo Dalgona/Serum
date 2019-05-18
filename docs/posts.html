@@ -25,72 +25,48 @@
   
     <li><a href="/Serum/docs/index.html">Docs</a></li>
   
-  <li><a href="/Serum/posts">Posts</a></li>
+  <li><a href="/Serum/posts">News</a></li>
 </ul>
 </nav>
       <hr>
-      <main>
-<article>
-  <div>
-    <p><a href="/Serum/docs/index.html">Back to the index</a></p>
-<h1>Writing Blog Posts</h1>
-<p>Serum processes blog posts differently compared to other pages, so that posts
-have additional features such as tagging, list generation, etc.</p>
-<p>Source files for blog posts should be saved under <code class="inline">posts</code> directory in your
+      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="writing-blog-posts">Writing Blog Posts</h1><p>Serum processes blog posts differently compared to other pages, so that posts
+have additional features such as tagging, list generation, etc.</p><p>Source files for blog posts should be saved under <code class="inline">posts</code> directory in your
 project directory. File name is not important to Serum, but it is recommended to
-name your files like below for pretty directory listings.</p>
-<pre><code class="">YYYY-MM-DD-&lt;title-slug&gt;.md</code></pre>
-<ul>
-<li><code class="inline">YYYY</code> &mdash; Four digits of the year. (e.g. <code class="inline">2016</code>)
-</li>
-<li><code class="inline">MM</code> &mdash; Two digits of the month, zero padded. (e.g. <code class="inline">05</code>, <code class="inline">11</code>)
-</li>
-<li><code class="inline">DD</code> &mdash; Two digits of the date, zero padded. (e.g. <code class="inline">03</code>, <code class="inline">27</code>)
-</li>
-</ul>
-<h2>Providing Metadata</h2>
-<p>At the beginning of each post source file, you need to write the post header
+name your files like below for pretty directory listings.</p><pre><code class="">YYYY-MM-DD-&lt;title-slug&gt;.md</code></pre><ul><li><code class="inline">YYYY</code> — Four digits of the year. (e.g. <code class="inline">2016</code>)
+</li><li><code class="inline">MM</code> — Two digits of the month, zero padded. (e.g. <code class="inline">05</code>, <code class="inline">11</code>)
+</li><li><code class="inline">DD</code> — Two digits of the date, zero padded. (e.g. <code class="inline">03</code>, <code class="inline">27</code>)
+</li></ul><h2 id="providing-metadata">Providing Metadata</h2><p>At the beginning of each post source file, you need to write the post header
 to define metadata of each post. The format of the header area can be found in
 <a href="/Serum/docs/pages.html">Adding Pages to Your Website</a> document. Currently there are
-three post metadata you can define:</p>
-<ul>
-<li><p><code class="inline">title</code> (string, <strong>required</strong>)</p>
-<p>Defines the title of the blog post. This title will be displayed in the
-title bar of a web browser and post listings.</p>
-</li>
-<li><p><code class="inline">date</code> (date and time, <strong>required</strong>)</p>
-<p>Defines the date and time when the post is written. The accepted formats
-are <code class="inline">YYYY-MM-DD hh:mm:ss</code> and <code class="inline">YYYY-MM-DD</code>.</p>
-</li>
-<li><p><code class="inline">tags</code> (comma-separated strings, optional)</p>
-<p>Defines one or more tags.</p>
-</li>
-</ul>
-<p>Following is an example of a valid source markdown file. Note that Serum doesn’t
-care about spaces between a comma and tags.</p>
-<pre><code class="">---
+three post metadata you can define:</p><ul><li><p><code class="inline">title</code> (string, <strong>required</strong>)</p><p>Defines the title of the blog post. This title will be displayed in the
+title bar of a web browser and post listings.</p></li><li><p><code class="inline">date</code> (date and time, <strong>required</strong>)</p><p>Defines the date and time when the post is written. The accepted formats
+are <code class="inline">YYYY-MM-DD hh:mm:ss</code> and <code class="inline">YYYY-MM-DD</code>.</p></li><li><p><code class="inline">tags</code> (comma-separated strings, optional)</p><p>Defines one or more tags.</p></li></ul><p>Following is an example of a valid source markdown file. Note that Serum doesn’t
+care about spaces between a comma and tags.</p><pre><code class="">---
 title: About GenServer in Elixir
 date: 2017-06-15 13:27:00
 tags: elixir,otp, study , foo
 ---
 
-Lorem ipsum dolor sit amet ...</code></pre>
-<p>If you want to leave a post untagged, just drop the <code class="inline">tags: ...</code> line.</p>
-<pre><code class="">---
+Lorem ipsum dolor sit amet ...</code></pre><p>If you want to leave a post untagged, just drop the <code class="inline">tags: ...</code> line.</p><pre><code class="">---
 title: About GenServer in Elixir
 date: 2017-06-15 13:27:00
 ---
 
-Lorem ipsum dolor sit amet ...</code></pre>
-
-  </div>
-</article>
-</main>
+Lorem ipsum dolor sit amet ...</code></pre></div></article></main>
       <hr>
       <footer>
         
-        <p>Copyright &copy; 2019 Dalgona. <a href="https://dalgona.github.io/">[Website]</a> <a href="https://github.com/Dalgona">[GitHub]</a></p>
-        <p>This website was generated by <a href="https://github.com/Dalgona/Serum">Serum</a>.
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
       </footer>
     </div>
     <script src="/Serum/assets/js/prism.js"></script>

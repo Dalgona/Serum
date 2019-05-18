@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Serum News/news - Serum</title>
+    <title>Sitemap Generator Plugin - Serum</title>
     <link rel="stylesheet" href="/Serum/assets/css/style.css">
     <link rel="stylesheet" href="/Serum/assets/css/prism.css">
   </head>
@@ -29,17 +29,16 @@
 </ul>
 </nav>
       <hr>
-      <main><article class="list"><header><h1 id="serum-news/news">Serum News/news</h1></header><div><ul><li class="article"><h2 id="serum-v1.0.0-released-"><a href="/Serum/posts/2019-05-03-serum-v1.0.0-released.html">Serum v1.0.0 Released</a><br/></h2><p class="post-date">
-            Friday, 3 May 2019
-            
-              <span class="tags">
-                Tags:
-                
-                  <a class="tag" href="/Serum/tags/news">news</a><a class="tag" href="/Serum/tags/release">release</a></span></p><p class="preview">The first commit in 2016, lots of codes, lots of changes, lots of improvements, …and finally, I’m so excited to announce the release of Serum v1.0.0! Many thanks to those who have shown their interest…</p></li></ul></div><p class="pagination">
-    Showing Page 1 of 1.
-    
-    
-  </p></article></main>
+      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="sitemap-generator-plugin">Sitemap Generator Plugin</h1><p>Use <code class="inline">Serum.Plugins.SitemapGenerator</code> Plugin to have a <code class="inline">sitemap.xml</code> and the
+corresponding <code class="inline">robots.txt</code> generated. These files can later be used to help
+search engines index your blog posts. This plugin is included in the <code class="inline">serum</code>
+package, so you don’t need to add an extra dependency to use this plugin.</p><pre><code class="lang-elixir"># serum.exs:
+%{
+  server_root: &quot;https://example.io&quot;,
+  plugins: [
+    {Serum.Plugins.SitemapGenerator, only: :prod}
+  ]
+}</code></pre></div></article></main>
       <hr>
       <footer>
         

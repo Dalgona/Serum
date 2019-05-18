@@ -25,24 +25,16 @@
   
     <li><a href="/Serum/docs/index.html">Docs</a></li>
   
-  <li><a href="/Serum/posts">Posts</a></li>
+  <li><a href="/Serum/posts">News</a></li>
 </ul>
 </nav>
       <hr>
-      <main>
-<article>
-  <div>
-    <p><a href="/Serum/docs/index.html">Back to the index</a></p>
-<h1>Project Definition</h1>
-<p>Every Serum project has a file named <code class="inline">serum.exs</code> right under the project’s
+      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="project-definition">Project Definition</h1><p>Every Serum project has a file named <code class="inline">serum.exs</code> right under the project’s
 root directory. This file indicates that the containing directory is a Serum
 project directory, and it contains various metadata and options which are used
 while Serum builds the project. This document describes how to configure your
-own <code class="inline">serum.exs</code> file properly.</p>
-<h2>Properties</h2>
-<p>Below is an example of <code class="inline">serum.exs</code>. Note that the code in this file must be
-evaluated to a map.</p>
-<pre><code class="lang-elixir">%{
+own <code class="inline">serum.exs</code> file properly.</p><h2 id="properties">Properties</h2><p>Below is an example of <code class="inline">serum.exs</code>. Note that the code in this file must be
+evaluated to a map.</p><pre><code class="lang-elixir">%{
   site_name: &quot;Serum&quot;,
   site_description: &quot;A simple static website generator&quot;,
   author: &quot;John Doe&quot;,
@@ -60,91 +52,50 @@ evaluated to a map.</p>
   plugins: [
     Serum.Plugins.TableOfContents,
     {Serum.Plugins.LiveReloader, only: :dev}
-  ]
-}</code></pre>
-<h3>Website Identification</h3>
-<ul>
-<li><p><code class="inline">site_name</code> (string, <strong>required</strong>)</p>
-<p>The name (title) of your website.</p>
-</li>
-<li><p><code class="inline">site_description</code> (string, <strong>required</strong>)</p>
-<p>A short description of your website.</p>
-</li>
-<li><p><code class="inline">author</code> (string, <strong>required</strong>)</p>
-<p>The name of the website author.</p>
-</li>
-<li><p><code class="inline">author_email</code> (string, <strong>required</strong>)</p>
-<p>The email address of the website author.</p>
-</li>
-<li><p><code class="inline">base_url</code> (string, <strong>required</strong>)</p>
-<p>The root path of the website on the web server. For example, if
+  ],
+
+  theme: Serum.Themes.Essence
+}</code></pre><h3 id="website-identification">Website Identification</h3><ul><li><p><code class="inline">site_name</code> (string, <strong>required</strong>)</p><p>The name (title) of your website.</p></li><li><p><code class="inline">site_description</code> (string, <strong>required</strong>)</p><p>A short description of your website.</p></li><li><p><code class="inline">author</code> (string, <strong>required</strong>)</p><p>The name of the website author.</p></li><li><p><code class="inline">author_email</code> (string, <strong>required</strong>)</p><p>The email address of the website author.</p></li><li><p><code class="inline">base_url</code> (string, <strong>required</strong>)</p><p>The root path of the website on the web server. For example, if
 you want to make the front page of the website accessible from
 <code class="inline">https://example.com/~user/site1/</code>, you must set this property to
-<code class="inline">/~user/site1/</code>.</p>
-<p>Make sure you append a slash (<code class="inline">/</code>) at the end of the value, or build will
-fail with a validation error.</p>
-</li>
-<li><p><code class="inline">server_root</code> (string, optional)</p>
-<p>This is useful when you need to build an absolute URL of a page. It must
-start with <code class="inline">http://</code> or <code class="inline">https://</code>.</p>
-</li>
-</ul>
-<h3>Blog Configuration</h3>
-<ul>
-<li><p><code class="inline">date_format</code> (string, optional)</p>
-<p>Determines how the date and time should be represented in blog posts and
+<code class="inline">/~user/site1/</code>.</p><p>Make sure you append a slash (<code class="inline">/</code>) at the end of the value, or build will
+fail with a validation error.</p></li><li><p><code class="inline">server_root</code> (string, optional)</p><p>This is useful when you need to build an absolute URL of a page. It must
+start with <code class="inline">http://</code> or <code class="inline">https://</code>.</p></li></ul><h3 id="blog-configuration">Blog Configuration</h3><ul><li><p><code class="inline">date_format</code> (string, optional)</p><p>Determines how the date and time should be represented in blog posts and
 blog post lists. It uses the default formatting language of
 <a href="https://github.com/bitwalker/timex">Timex</a>. Please read
 <a href="https://hexdocs.pm/timex/Timex.Format.DateTime.Formatters.Default.html">this documentation</a>
-for detailed explanation of the formatting syntax.</p>
-<p>If this property is not defined or invalid, Serum will fall back to
-<code class="inline">&quot;{YYYY}-{0M}-{0D}&quot;</code>.</p>
-</li>
-<li><p><code class="inline">list_title_all</code> (string, optional)</p>
-<p>Sets the title text of “all posts” list page. If not given, <code class="inline">&quot;All Posts&quot;</code>
-will be used as the default title string.</p>
-</li>
-<li><p><code class="inline">list_title_tag</code> (string, optional)</p>
-<p>Defines title text format of tag-filtered list page. The default format is
+for detailed explanation of the formatting syntax.</p><p>If this property is not defined or invalid, Serum will fall back to
+<code class="inline">&quot;{YYYY}-{0M}-{0D}&quot;</code>.</p></li><li><p><code class="inline">list_title_all</code> (string, optional)</p><p>Sets the title text of “all posts” list page. If not given, <code class="inline">&quot;All Posts&quot;</code>
+will be used as the default title string.</p></li><li><p><code class="inline">list_title_tag</code> (string, optional)</p><p>Defines title text format of tag-filtered list page. The default format is
 <code class="inline">&quot;Posts Tagged ~s&quot;</code>. Note that you must put exactly one <code class="inline">~s</code> in the format
 string, as this is the placeholder for tag name. If you need to display
-<code class="inline">~</code> character in pages, insert <code class="inline">~~</code> (two consecutive tildes).</p>
-</li>
-<li><p><code class="inline">pagination</code> (boolean, optional)<br>
-  <code class="inline">posts_per_page</code> (integer, optional)</p>
-<p><code class="inline">pagination</code> Determines if pagination will be used while building post
+<code class="inline">~</code> character in pages, insert <code class="inline">~~</code> (two consecutive tildes).</p></li><li><p><code class="inline">pagination</code> (boolean, optional)<br/><code class="inline">posts_per_page</code> (integer, optional)</p><p><code class="inline">pagination</code> Determines if pagination will be used while building post
 lists. If set to <code class="inline">true</code>, each post list will be split into pages, and each
-page will have at most <code class="inline">posts_per_page</code> post entries.</p>
-<p>Default values of <code class="inline">pagination</code> and <code class="inline">posts_per_page</code> are <code class="inline">false</code> and <code class="inline">5</code>,
-respectively.</p>
-</li>
-<li><p><code class="inline">preview_length</code> (integer, optional)</p>
-<p>A non-negative integer which sets the maximum number of characters in the
-preview text of each blog post. Defaults to <code class="inline">200</code>.</p>
-<p>It is recommended to explicitly set this property to zero if you are not
+page will have at most <code class="inline">posts_per_page</code> post entries.</p><p>Default values of <code class="inline">pagination</code> and <code class="inline">posts_per_page</code> are <code class="inline">false</code> and <code class="inline">5</code>,
+respectively.</p></li><li><p><code class="inline">preview_length</code> (integer, optional)</p><p>A non-negative integer which sets the maximum number of characters in the
+preview text of each blog post. Defaults to <code class="inline">200</code>.</p><p>It is recommended to explicitly set this property to zero if you are not
 going to use preview texts, as by doing so some unnecessary HTML processing
-can be skipped.</p>
-</li>
-</ul>
-<h3>Miscellaneous</h3>
-<ul>
-<li><p><code class="inline">plugins</code> (list, optional)</p>
-<p>Plugins extend the functionality of Serum by altering source data,
-intermediate data, or final outputs during the build process.</p>
-<p>The documentation for <a href="https://hexdocs.pm/serum/Serum.Plugin.html"><code class="inline">Serum.Plugin</code>
+can be skipped.</p></li></ul><h3 id="miscellaneous">Miscellaneous</h3><ul><li><p><code class="inline">plugins</code> (list, optional)</p><p>Plugins extend the functionality of Serum by altering source data,
+intermediate data, or final outputs during the build process.</p><p>The documentation for <a href="https://hexdocs.pm/serum/Serum.Plugin.html"><code class="inline">Serum.Plugin</code>
 module</a> describes what Serum
-plugins are, how to use them, and how to create your own Serum plugin.</p>
-</li>
-</ul>
-
-  </div>
-</article>
-</main>
+plugins are, how to use them, and how to create your own Serum plugin.</p></li><li><p><code class="inline">theme</code> (atom, optional)</p><p>A theme is a set of predefined templates and assets that helps you quickly
+setup the look and feel of your website. Read the documentation for
+<a href="https://hexdocs.pm/serum/Serum.Theme.html"><code class="inline">Serum.Theme</code> module</a> to learn
+more about Serum themes.</p></li></ul></div></article></main>
       <hr>
       <footer>
         
-        <p>Copyright &copy; 2019 Dalgona. <a href="https://dalgona.github.io/">[Website]</a> <a href="https://github.com/Dalgona">[GitHub]</a></p>
-        <p>This website was generated by <a href="https://github.com/Dalgona/Serum">Serum</a>.
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
       </footer>
     </div>
     <script src="/Serum/assets/js/prism.js"></script>

@@ -1,0 +1,90 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Serum Plugin Overview - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+        <h1><a href="/Serum/">Serum</a></h1>
+        <p>A simple static website generator</p>
+      </header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+  <li><a href="/Serum/posts">News</a></li>
+</ul>
+</nav>
+      <hr>
+      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="serum-plugin-overview">Serum Plugin Overview</h1><p><code class="inline">Serum.Plugin</code> is a behaviour that all Serum plugin module must implement.
+This behaviour allows experienced Serum users and developers to make their own
+Serum plugins which can extend the functionality of Serum.</p><p>A Serum plugin can…</p><ul><li>Alter contents of input or output files,
+</li><li>Execute arbitrary codes during some stages of site building,
+</li><li>And optionally provide extra Mix tasks that extend Serum.
+</li></ul><h2 id="for-plugin-developers">For Plugin Developers</h2><p>In order for a Serum plugin to work, you must implement at least these
+six callbacks:</p><ul><li><code class="inline">name/0</code></li><li><code class="inline">version/0</code></li><li><code class="inline">elixir/0</code></li><li><code class="inline">serum/0</code></li><li><code class="inline">description/0</code></li><li><code class="inline">implements/0</code></li></ul><p>Also there are a number of other callbacks you can optionally implement.
+Read <a href="https://hexdocs.pm/serum/Serum.Plugin.html#callbacks">the documentation for this
+module</a> to see which
+callbacks you can implement and what each callback should do.</p><h2 id="for-plugin-users">For Plugin Users</h2><p>To enable Serum plugins, add a <code class="inline">plugins</code> key to your <code class="inline">serum.exs</code>(if it does
+not exist), and put names of Serum plugin modules there.</p><pre><code class="lang-elixir">%{
+  plugins: [
+    Awesome.Serum.Plugin,
+    Great.Serum.Plugin
+  ]
+}</code></pre><p>You can also restrict some plugins to run only in specific Mix environments.
+For example, if plugins are configured like the code below, only
+<code class="inline">Awesome.Serum.Plugin</code> plugin will be loaded when <code class="inline">MIX_ENV</code> is set to <code class="inline">prod</code>.</p><pre><code class="lang-elixir">%{
+  plugins: [
+    Awesome.Serum.Plugin,
+    {Great.Serum.Plugin, only: :dev},
+    {Another.Serum.Plugin, only: [:dev, :test]}
+  ]
+}</code></pre><p>Finally, The order of plugins is important, as Serum will call plugins one by
+one, from the first item to the last one. Therefore these two configurations
+below may produce different results.</p><pre><code class="lang-elixir"># Configuration 1:
+%{
+  plugins: [
+    Awesome.Serum.Plugin,
+    Another.Serum.Plugin
+  ]
+}
+
+# Configuration 2:
+%{
+  plugins: [
+    Another.Serum.Plugin,
+    Awesome.Serum.Plugin
+  ]
+}</code></pre></div></article></main>
+      <hr>
+      <footer>
+        
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>

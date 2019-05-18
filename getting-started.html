@@ -25,86 +25,60 @@
   
     <li><a href="/Serum/docs/index.html">Docs</a></li>
   
-  <li><a href="/Serum/posts">Posts</a></li>
+  <li><a href="/Serum/posts">News</a></li>
 </ul>
 </nav>
       <hr>
-      <main>
-<article>
-  <div>
-    <h1>Getting Started</h1>
-<h2>Requirements</h2>
-<ul>
-<li><p>Elixir 1.7.0 or newer</p>
-<p>Please visit <a href="http://elixir-lang.org">the official Elixir website</a> for
-installation instructions.</p>
-</li>
-<li><p>UNIX-based operating system</p>
-<p>Serum has never been tested on the native Windows build of Erlang runtime,
-so there is no guarantee that Serum will work well on Windows. If you need
-to work on Microsoft Windows, please install Serum on Windows Subsystem for
-Linux (WSL), which comes with the latest version of Windows 10.</p>
-</li>
-<li><p>To enable the automatic rebuild feature, you’ll need to install an external
-  package depending on your operating system.</p>
-<ul>
-<li>For Linux-based OS (including WSL): Install <code class="inline">inotify-tools</code> with the
+      <main><article><div><h1 id="getting-started">Getting Started</h1><h2 id="requirements">Requirements</h2><ul><li><p><strong>Elixir 1.7.0 or newer</strong></p><p>Please visit <a href="http://elixir-lang.org">the official Elixir website</a> for
+installation instructions.</p></li><li><p><strong>UNIX-based operating system or Microsoft Windows</strong></p><p>Serum has not been thoroughly tested on Microsoft Windows, but most of
+functions should work. If you have any issue with Serum on Windows, please
+open an issue on GitHub. Also, if you are running the latest update of
+Windows 10, you could try using Serum on Windows Subsystem for Linux (WSL).</p></li><li><p>To enable the automatic rebuild feature, you’ll need to install an external
+  package depending on your operating system.</p><ul><li>For Linux-based OS (including WSL): Install <code class="inline">inotify-tools</code> with the
   package manager provided by your Linux distribution.
-</li>
-<li>For macOS: Install <code class="inline">fsevent_watch</code> with brew.
-</li>
-</ul>
-</li>
-</ul>
-<h2>Installing Serum</h2>
-<p>First, run the following command in your shell to install the Serum installer
-archive under your home directory.</p>
-<pre><code class="">$ mix archive.install hex serum_new</code></pre>
-<p>Now, you can create a new Serum project using <code class="inline">mix serum.new</code> command
-from anywhere.</p>
-<h2>My First Website</h2>
-<p>Now you can create and test your first website in a few minutes.</p>
-<ol>
-<li><p>Run <code class="inline">mix serum.new &lt;PATH&gt;</code> to create a new Serum project.</p>
-<pre><code class="">$ mix serum.new /path/to/project</code></pre>
-</li>
-<li><p>Enter your project directory and install Serum into your new project.</p>
-<pre><code class="">$ cd /path/to/project
-$ mix do deps.get, deps.compile</code></pre>
-</li>
-<li><p>Try building your new website with <code class="inline">serum.build</code> Mix task. Unless the <code class="inline">-o</code>
-   option is given, the website will be built at <code class="inline">/path/to/project/site</code>.</p>
-<pre><code class="">$ mix serum.build</code></pre>
-</li>
-<li><p>Or, you can test your project right away by running <code class="inline">serum.server</code>. The
-Serum development server is useful when you need to check your website before
-publishing it.</p>
-<pre><code class="">$ mix serum.server [--port &lt;PORT&gt;]</code></pre>
-<p>Open a web browser and navigate to your website (i.e. <code class="inline">http://localhost</code>).</p>
-<p><blockquote class="note">
-  <header>NOTE 1</header>
-  <p>The server will listen on port 8080 if <code class="inline">--port</code> (or <code class="inline">-p</code>) option is
-  not specified.</p>
-</blockquote></p>
-<p><blockquote class="note">
-  <header>NOTE 2</header>
-  <p>Always type <code class="inline">quit</code> command instead of pressing Control-C to quit the
-  development server.</p>
-</blockquote></p>
-</li>
-</ol>
-<p>Congratulations! Yet it looks empty, you have successfully built your first
-website with Serum. Now continue reading <a href="/Serum/docs/index.html">documentations</a> to
-customize your project and fill your website with your own contents.</p>
-
-  </div>
-</article>
-</main>
+</li><li>For macOS: Install <code class="inline">fsevent_watch</code> with brew.
+</li></ul></li></ul><h2 id="installing-serum">Installing Serum</h2><p>First, run the following command in your shell to install the Serum installer
+archive under your home directory.</p><pre><code class="">$ mix archive.install hex serum_new</code></pre><p>Now, you can create a new Serum project using <code class="inline">mix serum.new</code> command
+from anywhere.</p><h2 id="my-first-website">My First Website</h2><p>Now you can create and test your first website in a few minutes.</p><p>First, run <code class="inline">mix serum.new &lt;PATH&gt;</code> to create a new Serum project.</p><pre><code class="">$ mix serum.new /path/to/project</code></pre><p>Enter your project directory and install Serum to your new project.</p><pre><code class="">$ cd /path/to/project
+$ mix do deps.get, deps.compile</code></pre><p>Try building your new website with <code class="inline">serum.build</code> Mix task. Unless the <code class="inline">-o</code>
+option is given, the website will be built at <code class="inline">/path/to/project/site</code>.</p><pre><code class="">$ MIX_ENV=prod mix serum.build</code></pre><p>Or you can test your project right away by running <code class="inline">serum.server</code>. The Serum
+development server is useful when you need to check your website before
+publishing it.</p><pre><code class="">$ mix serum.server [--port &lt;PORT&gt;]</code></pre><blockquote class="note"><p class="title">Note 1</p><p>The server will listen on port 8080 if <code class="inline">--port</code> (or <code class="inline">-p</code>) option is
+not given.</p></blockquote><blockquote class="note"><p class="title">Note 2</p><p>Always type the <code class="inline">quit</code> command, instead of pressing <kbd>Ctrl</kbd> +
+<kbd>C</kbd>, to quit the development server.</p></blockquote><p>Open a web browser and navigate to your website (i.e. <code class="inline">http://localhost</code>).
+You should be able to see a web page like this:</p><p><img src="/Serum/media/getting-started/new-website.png" alt="Your new website seen in a web browser"/></p><p>You are not the only one who thinks it looks ugly. There are two ways to make
+your website look nicer: One is to modify the templates and add CSS files to
+get your own look and feel, and the other is to use <strong>Serum themes</strong>. We are
+going to use a theme this time. <em>Essence</em> is a Serum theme which makes your
+website look like… “this one.”</p><p>In order to use a Serum theme, you need to add a theme package to your
+dependencies list in <code class="inline">mix.exs</code>.</p><pre><code class="lang-elixir">def deps do
+  [
+    # Append this line
+    {:serum_theme_essence, &quot;~&gt; 1.0&quot;}
+  ]
+end</code></pre><p>Fetch the dependency using <code class="inline">mix</code>.</p><pre><code class="">$ mix deps.get</code></pre><p>Then, edit your <code class="inline">serum.exs</code> to configure your project to use
+<code class="inline">Serum.Themes.Essence</code> as a theme provider module.</p><pre><code class="lang-elixir">%{
+  # Append this line
+  theme: Serum.Themes.Essence
+}</code></pre><p>Any resources provided by a theme are overridden by files in your project
+directory. So you will need to remove the <code class="inline">templates/</code> directory, or move that
+directory to somewhere outside your project directory.</p><p>Now, start the Serum development server to check your website.</p><pre><code class="">$ mix serum.server</code></pre><p>You should be able to see a page with <em>Essence</em> theme applied this time:</p><p><img src="/Serum/media/getting-started/new-website-with-theme.png" alt="Your new website seen in a web browser, with a theme applied"/></p><p>Congratulations! You have successfully built your first website with Serum.
+Now continue reading the <a href="/Serum/docs/index.html">docs</a> to customize your project and
+fill your website with your own contents.</p></div></article></main>
       <hr>
       <footer>
         
-        <p>Copyright &copy; 2019 Dalgona. <a href="https://dalgona.github.io/">[Website]</a> <a href="https://github.com/Dalgona">[GitHub]</a></p>
-        <p>This website was generated by <a href="https://github.com/Dalgona/Serum">Serum</a>.
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
       </footer>
     </div>
     <script src="/Serum/assets/js/prism.js"></script>

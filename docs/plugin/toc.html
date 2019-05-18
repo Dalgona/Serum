@@ -1,0 +1,84 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>TOC Generator Plugin - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+        <h1><a href="/Serum/">Serum</a></h1>
+        <p>A simple static website generator</p>
+      </header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+  <li><a href="/Serum/posts">News</a></li>
+</ul>
+</nav>
+      <hr>
+      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="toc-generator-plugin">TOC Generator Plugin</h1><p><code class="inline">Serum.Plugins.TableOfContents</code> is a module for the Serum plugin that inserts a
+table of contents. This plugin is included in the <code class="inline">serum</code> package, so you don’t
+need to add an extra dependency to use this plugin.</p><h2 id="using-the-plugin">Using the Plugin</h2><p>First, add this plugin to your <code class="inline">serum.exs</code>:</p><pre><code class="lang-elixir">%{
+  plugins: [
+    Serum.Plugins.TableOfContents
+  ]
+}</code></pre><p>This plugin works with both pages(<code class="inline">.md</code>, <code class="inline">.html</code>, and <code class="inline">.html.eex</code>) and blog
+posts(<code class="inline">.md</code>). Insert the <code class="inline">&lt;serum-toc&gt;</code> tag at the position you want to
+display a table of contents.</p><pre><code class="lang-markup">&lt;serum-toc start=&quot;2&quot; end=&quot;4&quot;&gt;&lt;/serum-toc&gt;</code></pre><p>The <code class="inline">start</code> and <code class="inline">end</code> attributes define a range of heading level this plugin
+recognizes. In the case of the above example, <code class="inline">&lt;h1&gt;</code>, <code class="inline">&lt;h5&gt;</code>, and <code class="inline">&lt;h6&gt;</code> tags
+are ignored when generating a table of contents.</p><p>After this plugin has run, each <code class="inline">&lt;serum-toc&gt;</code> tag is replaced with an
+unordered list:</p><pre><code class="lang-markup">&lt;ul id=&quot;toc&quot; class=&quot;serum-toc&quot;&gt;
+  &lt;li class=&quot;indent-0&quot;&gt;
+    &lt;a href=&quot;#s_1&quot;&gt;
+      &lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;
+      Section 1
+    &lt;/a&gt;
+  &lt;/li&gt;
+  &lt;!-- More list items here... --&gt;
+&lt;/ul&gt;</code></pre><p>This plugin produces a “flat” unordered list. However, each list item tag has
+an <code class="inline">indent-x</code> class, where <code class="inline">x</code> is an indentation level (from 0 to 5) of the
+current item in the list. You can utilize this when working on stylesheets.</p><p>The <code class="inline">id</code> attribute of each target heading tag is used when hyperlinks are
+generated. If the element does not have an <code class="inline">id</code>, the plugin will set one
+appropriately.</p><h2 id="notes">Notes</h2><p>You may use <code class="inline">&lt;serum-toc&gt;</code> tag more than once in a single page. However, all
+occurrences of this tag will be replaced with a table of contents generated
+using the attributes of the first one. That is, for example, all three tags
+in the code below expand to the same table of contents, showing a 2-level
+deep list.</p><pre><code class="lang-markup">&lt;serum-toc start=&quot;2&quot; end=&quot;3&quot;&gt;&lt;/serum-toc&gt;
+...
+&lt;serum-toc&gt;&lt;/serum-toc&gt;
+...
+&lt;serum-toc&gt;&lt;/serum-toc&gt;</code></pre><p>It’s recommended that you wrap a <code class="inline">&lt;serum-toc&gt;</code> tag with a <code class="inline">&lt;div&gt;</code> tag when
+using in a markdown file, to ensure a well-formed structure of HTML output.</p><pre><code class="lang-markup">&lt;div&gt;&lt;serum-toc ...&gt;&lt;/serum-toc&gt;&lt;/div&gt;</code></pre><p>And finally, make sure you close every <code class="inline">&lt;serum-toc&gt;</code> tag properly
+with <code class="inline">&lt;/serum-toc&gt;</code>.</p></div></article></main>
+      <hr>
+      <footer>
+        
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>
