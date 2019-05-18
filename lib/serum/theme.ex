@@ -115,7 +115,7 @@ defmodule Serum.Theme do
   All paths in the list must end with `".html.eex"`. Anything that does not end
   with `".html.eex"` will be ignored.
 
-  # Example Return Value
+  ## Example Return Value
 
       [
         "/path/to/theme/priv/includes/nav.html.eex",
@@ -132,7 +132,7 @@ defmodule Serum.Theme do
   `"/list.html.eex"`, `"/page.html.eex"`, and `"/post.html.eex"`. Anything else
   will be ignored.
 
-  # Example Return Value
+  ## Example Return Value
 
       [
         "/path/to/theme/priv/templates/base.html.eex",
