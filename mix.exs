@@ -14,9 +14,7 @@ defmodule Serum.Mixfile do
       preferred_cli_env: preferred_cli_env(),
       deps: deps(),
       package: package(),
-      docs: [
-        main: "Serum"
-      ]
+      docs: docs()
     ]
   end
 
@@ -57,6 +55,44 @@ defmodule Serum.Mixfile do
         "GitHub" => "https://github.com/Dalgona/Serum",
         "Website" => "http://dalgona.github.io/Serum"
       }
+    ]
+  end
+
+  defp docs do
+    [
+      main: "Serum",
+      groups_for_modules: [
+        "Entry Points": [
+          Serum,
+          Serum.Build,
+          Serum.DevServer
+        ],
+        "Core Types": [
+          Serum.File,
+          Serum.Fragment,
+          Serum.Page,
+          Serum.Post,
+          Serum.PostList,
+          Serum.Project,
+          Serum.Result,
+          Serum.Tag,
+          Serum.Template
+        ],
+        "Built-in Plugins": [
+          Serum.Plugins.LiveReloader,
+          Serum.Plugins.SitemapGenerator,
+          Serum.Plugins.TableOfContents
+        ],
+        "Extension Development": [
+          Serum.HtmlTreeHelper,
+          Serum.Plugin,
+          Serum.Theme
+        ]
+      ],
+      nest_modules_by_prefix: [
+        Serum,
+        Serum.Plugins
+      ]
     ]
   end
 end
