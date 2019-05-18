@@ -1,5 +1,7 @@
 defmodule Serum.DevServer.Service.GenServer do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   A GenServer-based implementation of `Serum.DevServer.Service` behaviour.
   """
 

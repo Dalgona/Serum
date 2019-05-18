@@ -1,5 +1,7 @@
 defmodule Serum.Build.FileProcessor do
-  @moduledoc "Processes the input files to produce the intermediate data."
+  @moduledoc false
+
+  _moduledocp = "Processes the input files to produce the intermediate data."
 
   alias Serum.Build.FileLoader
   alias Serum.GlobalBindings

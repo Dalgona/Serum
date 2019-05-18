@@ -1,5 +1,7 @@
 defmodule Serum.DevServer.Service do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   Provides some useful functions while the Serum development server is running.
   """
 

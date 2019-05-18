@@ -1,5 +1,7 @@
 defmodule Serum.Build.FileLoader do
-  @moduledoc "A module responsible for loading project files."
+  @moduledoc false
+
+  _moduledocp = "A module responsible for loading project files."
 
   import Serum.Util
   alias Serum.Plugin

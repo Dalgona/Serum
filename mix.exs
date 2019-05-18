@@ -61,6 +61,8 @@ defmodule Serum.Mixfile do
   defp docs do
     [
       main: "Serum",
+      source_url: "https://github.com/Dalgona/Serum",
+      homepage_url: "https://dalgona.github.io/Serum",
       groups_for_modules: [
         "Entry Points": [
           Serum,

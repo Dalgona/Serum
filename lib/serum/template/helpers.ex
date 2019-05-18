@@ -1,5 +1,7 @@
 defmodule Serum.Template.Helpers do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   Provides helper macros for EEx templates.
 
   This module provides some helper macros for use in any templates in your

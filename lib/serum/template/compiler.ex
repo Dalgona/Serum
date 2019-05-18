@@ -1,7 +1,7 @@
 defmodule Serum.Template.Compiler do
-  @moduledoc """
-  This module handles template loading and preprocessing.
-  """
+  @moduledoc false
+
+  _moduledocp = "This module handles template loading and preprocessing."
 
   alias Serum.Plugin
   alias Serum.Result

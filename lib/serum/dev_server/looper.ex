@@ -1,5 +1,7 @@
 defmodule Serum.DevServer.Looper do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   A looper which accepts user inputs as server commands and processes them.
   """
 

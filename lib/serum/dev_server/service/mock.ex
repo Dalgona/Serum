@@ -1,5 +1,7 @@
 defmodule Serum.DevServer.Service.Mock do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   A fake implementation of `Serum.DevServer.Service` behaviour for testing.
   """
 

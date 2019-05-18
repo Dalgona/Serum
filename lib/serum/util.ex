@@ -1,7 +1,9 @@
 defmodule Serum.Util do
-  @moduledoc """
-  This module provides some frequently used shortcut functions. These functions
-  are inlined by the compiler.
+  @moduledoc false
+
+  _moduledocp = """
+  This module provides some frequently used shortcut functions.
+  These functions are inlined by the compiler.
   """
 
   @doc "Prints a warning message to stderr."

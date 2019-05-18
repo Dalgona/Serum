@@ -1,5 +1,7 @@
 defmodule Serum.Build.FileEmitter do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   A module responsible for writing each complete HTML page to a file.
   """
 

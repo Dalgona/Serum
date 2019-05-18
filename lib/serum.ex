@@ -9,6 +9,10 @@ defmodule Serum do
   This documentation is for developers and advanced users. For the getting
   started guide and the user manual, please visit [the official Serum
   website](https://dalgona.github.io/Serum).
+
+  Also, documentations for modules related to the internal operation of Serum
+  are hidden. But such modules are still documented in [their source
+  codes](https://github.com/Dalgona/Serum).
   """
 
   use Application

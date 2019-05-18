@@ -1,7 +1,7 @@
 defmodule Serum.Build.PageGenerator do
-  @moduledoc """
-  A module responsible for rendering complete HTML pages.
-  """
+  @moduledoc false
+
+  _moduledocp = "A module responsible for rendering complete HTML pages."
 
   alias Serum.Fragment
   alias Serum.Plugin

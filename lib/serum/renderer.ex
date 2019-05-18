@@ -1,7 +1,7 @@
 defmodule Serum.Renderer do
-  @moduledoc """
-  This module provides functions for rendering pages into HTML.
-  """
+  @moduledoc false
+
+  _moduledocp = "This module provides functions for rendering pages into HTML."
 
   alias Serum.GlobalBindings
   alias Serum.Result

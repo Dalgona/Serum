@@ -1,7 +1,7 @@
 defmodule Serum.Project.Loader do
-  @moduledoc """
-  A module for loading Serum project definition files.
-  """
+  @moduledoc false
+
+  _moduledocp = "A module for loading Serum project definition files."
 
   require Serum.Util
   alias Serum.GlobalBindings

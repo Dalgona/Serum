@@ -1,5 +1,7 @@
 defmodule Serum.Markdown do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   This module provides functions related to dealing with markdown data.
   """
 

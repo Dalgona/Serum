@@ -1,5 +1,7 @@
 defmodule Serum.GlobalBindings do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   Provides an interface to an Agent which stores site-wide
   template variable bindings.
   """

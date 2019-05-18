@@ -1,5 +1,7 @@
 defmodule Serum.HeaderParser do
-  @moduledoc """
+  @moduledoc false
+
+  _moduledocp = """
   This module takes care of parsing headers of page (or post) source files.
 
   Header is where all page or post metadata goes into, and has the following
