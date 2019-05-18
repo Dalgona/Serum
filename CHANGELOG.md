@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## v1.1.0 &mdash; To be released
+## v1.1.0 &mdash; 2019-05-18
 
 ### Fixed
 
