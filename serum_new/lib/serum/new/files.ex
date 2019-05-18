@@ -29,7 +29,8 @@ defmodule Serum.New.Files do
     {:list_html_eex, get_priv.("templates/list.html.eex")},
     {:page_html_eex, get_priv.("templates/page.html.eex")},
     {:post_html_eex, get_priv.("templates/post.html.eex")},
-    {:index_md, get_priv.("pages/index.md")}
+    {:index_md, get_priv.("pages/index.md")},
+    {:sample_post_md, get_priv.("posts/sample_post.md")}
   ]
   |> Enum.each(fn {name, contents} ->
     def text(unquote(name)) do

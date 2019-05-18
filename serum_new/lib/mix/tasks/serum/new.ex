@@ -92,6 +92,7 @@ defmodule Mix.Tasks.Serum.New do
     create_file("templates/post.html.eex", Files.text(:post_html_eex))
 
     create_file("pages/index.md", Files.text(:index_md))
+    create_file("posts/2019-01-01-sample-post.md", Files.text(:sample_post_md))
 
     cd =
       case path do
