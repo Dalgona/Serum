@@ -1,5 +1,12 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Changed
+
+- Docs: Marked some docs for internal modules as hidden, and organized
+  moduledocs by categories. Hidden docs are still accessible via source codes.
+
 ## v1.1.0 &mdash; 2019-05-18
 
 ### Fixed
