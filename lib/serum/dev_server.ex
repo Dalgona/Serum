@@ -13,8 +13,6 @@ defmodule Serum.DevServer do
   """
   @spec run(binary, pos_integer) :: no_return()
   def run(dir, port) do
-    import Supervisor.Spec
-
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
     site = Path.expand("serum_" <> uniq, System.tmp_dir!())
 
@@ -38,7 +36,10 @@ defmodule Serum.DevServer do
 
         children = [
           {Service.GenServer, {dir, site, port}},
-          worker(Microscope, [site, ms_options])
+          %{
+            id: Microscope,
+            start: {Microscope, :start_link, [site, ms_options]}
+          }
         ]
 
         opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
