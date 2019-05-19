@@ -47,11 +47,7 @@ defmodule Serum.DevServer.Looper do
   end
 
   defp do_run_command("quit") do
-    site_dir = @service.site_dir()
-
-    IO.puts("Removing temporary directory \"#{site_dir}\"...")
-    File.rm_rf!(site_dir)
-    IO.puts("Shutting down...")
+    Supervisor.stop(Serum.DevServer.Supervisor)
 
     false
   end
