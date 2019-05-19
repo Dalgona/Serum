@@ -35,7 +35,7 @@ defmodule Serum.Mixfile do
     [
       {:earmark, "~> 1.3"},
       {:file_system, "~> 0.2"},
-      {:microscope, "1.2.0"},
+      {:microscope, "~> 1.3"},
       {:timex, "~> 3.5"},
       {:credo, "~> 1.0", only: [:dev, :test]},
       {:excoveralls, "~> 0.11", only: [:test]},
