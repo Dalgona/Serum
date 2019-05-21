@@ -5,7 +5,7 @@ defmodule Serum.DevServer.Service.Mock do
   A fake implementation of `Serum.DevServer.Service` behaviour for testing.
   """
 
-  use Agent
+  use GenServer
   alias Serum.DevServer.Service
 
   @behaviour Service
@@ -13,7 +13,7 @@ defmodule Serum.DevServer.Service.Mock do
   @doc false
   @spec start_link(binary(), binary()) :: {:ok, pid()} | {:error, term()}
   def start_link(src, site) do
-    Agent.start_link(fn -> {src, site} end, name: __MODULE__)
+    GenServer.start_link(__MODULE__, {src, site}, name: __MODULE__)
   end
 
   @impl Service
@@ -22,11 +22,11 @@ defmodule Serum.DevServer.Service.Mock do
 
   @impl Service
   @spec source_dir() :: binary()
-  def source_dir, do: Agent.get(__MODULE__, fn {src, _} -> src end)
+  def source_dir, do: GenServer.call(__MODULE__, :src)
 
   @impl Service
   @spec site_dir() :: binary()
-  def site_dir, do: Agent.get(__MODULE__, fn {_, site} -> site end)
+  def site_dir, do: GenServer.call(__MODULE__, :site)
 
   @impl Service
   @spec port() :: pos_integer()
@@ -39,4 +39,19 @@ defmodule Serum.DevServer.Service.Mock do
   @impl Service
   @spec subscribe() :: :ok
   def subscribe, do: :ok
+
+  @impl GenServer
+  def init(args) do
+    Process.flag(:trap_exit, true)
+
+    {:ok, args}
+  end
+
+  @impl GenServer
+  def handle_call(msg, from, state)
+  def handle_call(:src, _, {src, _} = state), do: {:reply, src, state}
+  def handle_call(:site, _, {_, site} = state), do: {:reply, site, state}
+
+  @impl GenServer
+  def terminate(_reason, {_, site}), do: File.rm_rf!(site)
 end
