@@ -58,7 +58,12 @@ defmodule Serum.DevServer.Service.GenServer do
   @impl GenServer
   def init({dir, site, portnum}) do
     false = Process.flag(:trap_exit, true)
-    {:ok, watcher} = FileSystem.start_link(dirs: [Path.absname(dir)])
+
+    watcher =
+      case FileSystem.start_link(dirs: [Path.absname(dir)]) do
+        {:ok, pid} -> pid
+        :ignore -> nil
+      end
 
     state = %{
       watcher: watcher,
@@ -70,7 +75,7 @@ defmodule Serum.DevServer.Service.GenServer do
     }
 
     do_rebuild(dir, site)
-    FileSystem.subscribe(watcher)
+    unless(is_nil(watcher), do: FileSystem.subscribe(watcher))
 
     {:ok, state}
   end
@@ -151,7 +156,7 @@ defmodule Serum.DevServer.Service.GenServer do
     IO.puts("Removing temporary directory \"#{site}\"...")
     File.rm_rf!(site)
     IO.puts("Shutting down...")
-    Process.exit(watcher, :shutdown)
+    unless(is_nil(watcher), do: Process.exit(watcher, :shutdown))
   end
 
   @spec do_rebuild(binary(), binary()) :: :ok
