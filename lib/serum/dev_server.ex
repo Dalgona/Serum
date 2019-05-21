@@ -3,7 +3,7 @@ defmodule Serum.DevServer do
   The Serum development server.
   """
 
-  alias Serum.DevServer.{Looper, Service}
+  alias Serum.DevServer.{Prompt, Service}
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Result
@@ -44,7 +44,7 @@ defmodule Serum.DevServer do
 
         opts = [strategy: :one_for_one, name: Serum.DevServer.Supervisor]
         Supervisor.start_link(children, opts)
-        Looper.looper()
+        Prompt.start(allow_detach: false)
     end
   end
 end

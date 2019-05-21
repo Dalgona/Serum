@@ -67,7 +67,8 @@ defmodule Serum.Mixfile do
         "Entry Points": [
           Serum,
           Serum.Build,
-          Serum.DevServer
+          Serum.DevServer,
+          Serum.DevServer.Prompt
         ],
         "Core Types": [
           Serum.File,
