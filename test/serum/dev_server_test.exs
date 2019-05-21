@@ -9,23 +9,9 @@ defmodule Serum.DevServerTest do
 
   setup_all do
     tmp_dir = get_tmp_dir("serum_test_")
-
-    ["" | ~w(assets media pages posts includes templates)]
-    |> Enum.map(&Path.join(tmp_dir, &1))
-    |> Enum.each(&File.mkdir_p!/1)
-
-    on_exit(fn -> File.rm_rf!(tmp_dir) end)
-    File.cp!(fixture("proj/good/serum.exs"), Path.join(tmp_dir, "serum.exs"))
-
-    ~w(base list page post)
-    |> Enum.map(&["templates/", &1, ".html.eex"])
-    |> Enum.each(fn name ->
-      File.cp!(fixture(name), Path.join(tmp_dir, name))
-    end)
-
-    File.cp!(fixture("templates/nav.html.eex"), Path.join(tmp_dir, "includes/nav.html.eex"))
-
     pid = start_supervised!(%{id: :ignore_io, start: {__MODULE__, :ignore_io, []}})
+
+    make_project(tmp_dir)
 
     {:ok, tmp_dir: tmp_dir, ignore_io: pid}
   end

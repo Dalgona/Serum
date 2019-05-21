@@ -11,41 +11,9 @@ defmodule Serum.BuildTest do
     dest = Path.join(tmp_dir, "dest")
 
     Enum.each([tmp_dir, src, dest], &File.mkdir_p!/1)
+    make_project(src)
 
-    ~w(pages posts includes templates assets media)
-    |> Enum.map(&Path.join(src, &1))
-    |> Enum.each(&File.mkdir_p!/1)
-
-    File.touch!(Path.join([src, "assets", "test_asset"]))
-    File.touch!(Path.join([src, "media", "test_media"]))
-
-    File.cp!(fixture("proj/good/serum.exs"), Path.join(src, "serum.exs"))
-    File.cp!(fixture("templates/nav.html.eex"), Path.join(src, "includes/nav.html.eex"))
     {:ok, proj} = ProjectLoader.load(src, dest)
-
-    [
-      "base.html.eex",
-      "page.html.eex",
-      "post.html.eex",
-      "list.html.eex"
-    ]
-    |> Enum.each(fn file ->
-      File.cp!(Path.join(fixture("templates"), file), Path.join([src, "templates", file]))
-    end)
-
-    "pages/good-*.md"
-    |> fixture()
-    |> Path.wildcard()
-    |> Enum.each(fn file ->
-      File.cp!(file, Path.join([src, "pages", Path.basename(file)]))
-    end)
-
-    "posts/good-*.md"
-    |> fixture()
-    |> Path.wildcard()
-    |> Enum.each(fn file ->
-      File.cp!(file, Path.join([src, "posts", Path.basename(file)]))
-    end)
 
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 

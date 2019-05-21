@@ -26,4 +26,27 @@ defmodule Serum.TestHelper do
 
     Path.expand(prefix <> uniq, System.tmp_dir!())
   end
+
+  def make_project(target) do
+    ["" | ~w(pages posts includes templates assets media)]
+    |> Enum.map(&Path.join(target, &1))
+    |> Enum.each(&File.mkdir_p!/1)
+
+    File.touch!(Path.join([target, "assets", "test_asset"]))
+    File.touch!(Path.join([target, "media", "test_media"]))
+    File.cp!(fixture("proj/good/serum.exs"), Path.join(target, "serum.exs"))
+    File.cp!(fixture("templates/nav.html.eex"), Path.join(target, "includes/nav.html.eex"))
+
+    ~w(base list page post)
+    |> Enum.map(&["templates/", &1, ".html.eex"])
+    |> Enum.each(fn file ->
+      File.cp!(fixture(file), Path.join([target, file]))
+    end)
+
+    page = "pages/good-*.md" |> fixture() |> Path.wildcard() |> List.first()
+    post = "posts/good-*.md" |> fixture() |> Path.wildcard() |> List.first()
+
+    File.cp!(page, Path.join([target, "pages", Path.basename(page)]))
+    File.cp!(post, Path.join([target, "posts", Path.basename(post)]))
+  end
 end
