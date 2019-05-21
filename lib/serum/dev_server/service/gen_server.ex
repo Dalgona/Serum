@@ -133,16 +133,18 @@ defmodule Serum.DevServer.Service.GenServer do
     end
   end
 
-  def handle_info({:DOWN, ref, :process, _, _}, state) do
-    {:noreply, %{state | subscribers: Map.delete(state.subscribers, ref)}}
-  end
-
   def handle_info(:tick, state) do
     do_rebuild(state.dir, state.site)
     Enum.each(state.subscribers, fn {_, pid} -> send(pid, :send_reload) end)
 
     {:noreply, %{state | is_dirty: false}}
   end
+
+  def handle_info({:DOWN, ref, :process, _, _}, state) do
+    {:noreply, %{state | subscribers: Map.delete(state.subscribers, ref)}}
+  end
+
+  def handle_info({:EXIT, _pid, :normal}, state), do: {:noreply, state}
 
   @impl GenServer
   def terminate(_reason, %{site: site, watcher: watcher}) do
