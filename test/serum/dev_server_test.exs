@@ -1,15 +1,14 @@
 defmodule Serum.DevServerTest do
   use ExUnit.Case, async: false
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
+  import Serum.TestHelper
   alias Serum.DevServer
 
   # IMPORTANT NOTE: PLEASE MAKE SURE THE TCP PORT 8080 IS NOT IN USE
   #                 BEFORE RUNNING THIS TEST.
 
   setup_all do
-    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    tmp_dir = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+    tmp_dir = get_tmp_dir("serum_test_")
 
     ["" | ~w(assets media pages posts includes templates)]
     |> Enum.map(&Path.join(tmp_dir, &1))

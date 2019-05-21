@@ -1,12 +1,11 @@
 defmodule Serum.Build.FileEmitterTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
+  import Serum.TestHelper
   alias Serum.Build.FileEmitter
 
   setup do
-    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    tmp_dir = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+    tmp_dir = get_tmp_dir("serum_test_")
 
     File.mkdir_p!(tmp_dir)
 

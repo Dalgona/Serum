@@ -1,7 +1,7 @@
 defmodule Serum.ThemeTest do
   use ExUnit.Case
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
+  import Serum.TestHelper
   import Serum.Theme
 
   "theme_modules/*.ex"
@@ -162,8 +162,7 @@ defmodule Serum.ThemeTest do
 
   describe "get_assets/1" do
     test "successfully retrieves a path", ctx do
-      uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-      tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+      tmp_path = get_tmp_dir("serum_test_")
       {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
 
       File.mkdir_p!(tmp_path)
@@ -178,8 +177,7 @@ defmodule Serum.ThemeTest do
     end
 
     test "fails if the returned path is not a directory", ctx do
-      uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-      tmp_path = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+      tmp_path = get_tmp_dir("serum_test_")
       {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
       expected = {:error, {:enotdir, tmp_path, 0}}
 

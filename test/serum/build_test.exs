@@ -1,13 +1,12 @@
 defmodule Serum.BuildTest do
   use ExUnit.Case
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
+  import Serum.TestHelper
   alias Serum.Build
   alias Serum.Project.Loader, as: ProjectLoader
 
   setup do
-    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    tmp_dir = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+    tmp_dir = get_tmp_dir("serum_test_")
     src = Path.join(tmp_dir, "src")
     dest = Path.join(tmp_dir, "dest")
 

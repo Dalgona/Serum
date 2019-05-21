@@ -2,13 +2,12 @@ defmodule Serum.FileTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import ExUnit.CaptureIO
-  import Serum.TestHelper, only: :macros
+  import Serum.TestHelper
 
   @content1 "The quick brown fox jumps over the lazy dog.\n"
 
   setup_all do
-    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    tmp_dir = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+    tmp_dir = get_tmp_dir("serum_test_")
 
     File.mkdir_p!(tmp_dir)
 

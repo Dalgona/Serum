@@ -2,13 +2,13 @@ defmodule Serum.DevServer.PromptTest do
   use ExUnit.Case
   import ExUnit.CaptureIO
   import Serum.DevServer.Prompt
+  import Serum.TestHelper
   alias Serum.DevServer.Service
 
   @commands ~w(build help quit)
 
   setup do
-    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    src = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+    src = get_tmp_dir("serum_test_")
     site = Path.join(src, "site")
     sup_opts = [name: Serum.DevServer.Supervisor, strategy: :one_for_one]
     service = %{id: Service, start: {Service.Mock, :start_link, [src, site]}}

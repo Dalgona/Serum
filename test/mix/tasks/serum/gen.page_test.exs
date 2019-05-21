@@ -1,12 +1,11 @@
 defmodule Mix.Tasks.Serum.Gen.PageTest do
   use ExUnit.Case
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
+  import Serum.TestHelper
   alias Mix.Tasks.Serum.Gen.Page, as: GenPage
 
   setup do
-    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
-    tmp_dir = Path.expand("serum_test_" <> uniq, System.tmp_dir!())
+    tmp_dir = get_tmp_dir("serum_test_")
 
     File.mkdir_p!(tmp_dir)
     on_exit(fn -> File.rm_rf!(tmp_dir) end)

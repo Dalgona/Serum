@@ -20,4 +20,10 @@ defmodule Serum.TestHelper do
       end
     end
   end
+
+  def get_tmp_dir(prefix) do
+    uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
+
+    Path.expand(prefix <> uniq, System.tmp_dir!())
+  end
 end
