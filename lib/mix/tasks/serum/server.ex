@@ -19,6 +19,7 @@ defmodule Mix.Tasks.Serum.Server do
   alias Mix.Tasks.Serum.CLIHelper
   alias OptionParser.ParseError
   alias Serum.DevServer
+  alias Serum.Result
 
   @options [
     strict: [port: :integer],
@@ -41,6 +42,13 @@ defmodule Mix.Tasks.Serum.Server do
 
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    DevServer.run(File.cwd!(), options[:port] || 8080)
+    case DevServer.run(File.cwd!(), options[:port] || 8080) do
+      {:ok, _pid} ->
+        DevServer.Prompt.start(allow_detach: false)
+
+      {:error, _} = error ->
+        Result.show(error)
+        System.halt(1)
+    end
   end
 end
