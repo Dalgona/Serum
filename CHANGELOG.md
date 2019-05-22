@@ -2,10 +2,31 @@
 
 ## Unreleased Changes
 
+### Fixed
+
+- Fixed an issue where the Serum development server crashes if the file system
+  watcher backend is not available on the user's system. The server will work
+  now, but features related to automatic reloading will be disabled.
+
 ### Changed
 
 - Docs: Marked some docs for internal modules as hidden, and organized
   moduledocs by categories. Hidden docs are still accessible via source codes.
+
+- Overhauled codes which start and stop the Serum development server. The
+  temporary output directory created by the server will now be cleaned up in
+  most exit situations. Additionally, users will be able to see less horrifying
+  error output when the server failed to start.
+
+  For developers: The Serum development server and its command line interface
+  have been decoupled. Starting the server with `Serum.DevServer.run/2` does
+  not take you to the command line interface. Instead, you can call
+  `Serum.DevServer.Prompt.start/1` to enter the server CLI.
+
+  There are now two ways to get out of the CLI: The `quit` command stops the
+  development server and returns. If you want to keep the server running, use
+  the `detach` command. You can later enter the CLI again using the same
+  `Serum.DevServer.Prompt.start/1` function.
 
 ## v1.1.0 &mdash; 2019-05-18
 
