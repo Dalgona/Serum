@@ -3,6 +3,7 @@ defmodule Serum.Build.PageGenerator do
 
   _moduledocp = "A module responsible for rendering complete HTML pages."
 
+  import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Fragment
   alias Serum.Plugin
   alias Serum.Renderer
@@ -11,7 +12,7 @@ defmodule Serum.Build.PageGenerator do
 
   @spec run([Fragment.t()], Template.t()) :: Result.t([Serum.File.t()])
   def run(fragments, template) do
-    IO.puts("Generating complete HTML pages...")
+    put_msg(:info, "Generating complete HTML pages...")
 
     fragments
     |> Task.async_stream(&render(&1, template))

@@ -1,6 +1,7 @@
 defmodule Serum.Build.FileProcessor.Post do
   @moduledoc false
 
+  import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Markdown
   alias Serum.Plugin
   alias Serum.Post
@@ -13,7 +14,7 @@ defmodule Serum.Build.FileProcessor.Post do
   def process_posts([], _proj), do: {:ok, {[], []}}
 
   def process_posts(files, proj) do
-    IO.puts("Processing post files...")
+    put_msg(:info, "Processing post files...")
 
     result =
       files

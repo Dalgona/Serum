@@ -3,7 +3,7 @@ defmodule Serum.Build.FileLoader do
 
   _moduledocp = "A module responsible for loading project files."
 
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
   alias Serum.Plugin
   alias Serum.Result
   alias Serum.Theme
@@ -49,7 +49,7 @@ defmodule Serum.Build.FileLoader do
 
   @spec load_templates(binary(), Theme.t()) :: Result.t([Serum.File.t()])
   defp load_templates(src, theme) do
-    IO.puts("Loading template files...")
+    put_msg(:info, "Loading template files...")
 
     case Theme.get_templates(theme) do
       {:ok, paths} ->
@@ -80,7 +80,7 @@ defmodule Serum.Build.FileLoader do
 
   @spec load_includes(binary(), Theme.t()) :: Result.t([Serum.File.t()])
   defp load_includes(src, theme) do
-    IO.puts("Loading include files...")
+    put_msg(:info, "Loading include files...")
 
     case Theme.get_includes(theme) do
       {:ok, paths} ->
@@ -116,7 +116,7 @@ defmodule Serum.Build.FileLoader do
 
   @spec load_pages(binary()) :: Result.t([Serum.File.t()])
   defp load_pages(src) do
-    IO.puts("Loading page files...")
+    put_msg(:info, "Loading page files...")
 
     pages_dir = get_subdir(src, "pages")
 
@@ -136,7 +136,7 @@ defmodule Serum.Build.FileLoader do
 
   @spec load_posts(binary()) :: Result.t([Serum.File.t()])
   defp load_posts(src) do
-    IO.puts("Loading post files...")
+    put_msg(:info, "Loading post files...")
 
     posts_dir = get_subdir(src, "posts")
 
@@ -151,7 +151,7 @@ defmodule Serum.Build.FileLoader do
         {:error, _} = plugin_error -> plugin_error
       end
     else
-      warn("Cannot access `posts/'. No post will be generated.")
+      put_err(:warn, "Cannot access `posts/'. No post will be generated.")
 
       {:ok, []}
     end

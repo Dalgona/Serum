@@ -1,6 +1,7 @@
 defmodule Serum.Build.FileProcessor.Page do
   @moduledoc false
 
+  import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Markdown
   alias Serum.Page
   alias Serum.Plugin
@@ -13,7 +14,7 @@ defmodule Serum.Build.FileProcessor.Page do
   @doc false
   @spec preprocess_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
   def preprocess_pages(files, proj) do
-    IO.puts("Processing page files...")
+    put_msg(:info, "Processing page files...")
 
     result =
       files

@@ -61,8 +61,7 @@ defmodule Serum.Theme do
   """
 
   alias Serum.Result
-  require Serum.Util
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2]
 
   defstruct module: nil,
             name: "",
@@ -166,11 +165,12 @@ defmodule Serum.Theme do
     version = Version.parse!(module.version())
 
     unless Version.match?(@serum_version, module.serum()) do
-      warn(
+      msg =
         "The theme \"#{name}\" is not compatible with " <>
           "the current version of Serum(#{@serum_version}). " <>
           "This theme may not work as intended."
-      )
+
+      put_err(:warn, msg)
     end
 
     result = %__MODULE__{

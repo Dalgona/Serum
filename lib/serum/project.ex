@@ -3,7 +3,7 @@ defmodule Serum.Project do
   This module defines a struct for storing Serum project metadata.
   """
 
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2]
   alias Serum.Plugin
   alias Serum.Theme
 
@@ -75,9 +75,13 @@ defmodule Serum.Project do
             map
 
           {:error, message} ->
-            warn("Invalid date format string `date_format`:")
-            warn("  " <> message)
-            warn("The default format string will be used instead.")
+            msg = """
+            Invalid date format string `date_format`:
+              #{message}
+            The default format string will be used instead.
+            """
+
+            put_err(:warn, String.trim(msg))
             Map.delete(map, :date_format)
         end
     end
@@ -95,8 +99,12 @@ defmodule Serum.Project do
     end
   rescue
     ArgumentError ->
-      warn("Invalid post list title format string `list_title_tag`.")
-      warn("The default format string will be used instead.")
+      msg = """
+      Invalid post list title format string `list_title_tag`.
+      The default format string will be used instead.
+      """
+
+      put_err(:warn, String.trim(msg))
       Map.delete(map, :list_title_tag)
   end
 end

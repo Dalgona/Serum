@@ -3,13 +3,14 @@ defmodule Serum.Build.FragmentGenerator do
 
   _moduledocp = "Renders page/post/post list structs into a page fragment."
 
+  import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Fragment
   alias Serum.Plugin
   alias Serum.Result
 
   @spec to_fragment(map()) :: Result.t([Fragment.t()])
   def to_fragment(map) do
-    IO.puts("Generating fragments...")
+    put_msg(:info, "Generating fragments...")
 
     templates = map.templates
 

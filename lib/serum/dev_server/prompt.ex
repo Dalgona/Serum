@@ -3,7 +3,7 @@ defmodule Serum.DevServer.Prompt do
   Provides access to the Serum development server command line interface.
   """
 
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2]
   alias Serum.DevServer.Service
 
   @type options :: [allow_detach: boolean()]
@@ -93,10 +93,12 @@ defmodule Serum.DevServer.Prompt do
   end
 
   defp do_run_command("detach", %{allow_detach: false}) do
-    warn("You cannot detach from this command line interface.")
-    warn("Run \"quit\" to stop the server and quit.")
+    msg = """
+    You cannot detach from this command line interface.
+    Run "quit" to stop the server and quit.
+    """
 
-    :ok
+    put_err(:warn, String.trim(msg))
   end
 
   defp do_run_command("detach", %{allow_detach: true}) do
@@ -110,8 +112,6 @@ defmodule Serum.DevServer.Prompt do
   end
 
   defp do_run_command(_, _options) do
-    warn("Type \"help\" for the list of available commands.")
-
-    :ok
+    put_err(:warn, "Type \"help\" for the list of available commands.")
   end
 end

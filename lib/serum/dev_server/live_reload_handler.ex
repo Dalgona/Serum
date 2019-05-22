@@ -7,8 +7,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
 
   @behaviour :cowboy_websocket
 
-  require Serum.Util
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
   alias Serum.DevServer.Service
 
   @impl true
@@ -18,7 +17,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
 
   @impl true
   def websocket_init(state) do
-    warn("Live Reloader: WebSocket connected.")
+    put_msg(:info, "Live Reloader: WebSocket connected.")
     Service.GenServer.subscribe()
 
     {:ok, state}
@@ -26,7 +25,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
 
   @impl true
   def websocket_handle(message, state) do
-    warn("Live Reloader: Ignoring a message from client: #{inspect(message)}")
+    put_err(:warn, "Live Reloader: Ignoring a message from client: #{inspect(message)}")
 
     {:ok, state}
   end
@@ -42,7 +41,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
 
   @impl true
   def terminate(_reason, _mini_req, _state) do
-    warn("Live Reloader: WebSocket disconnected.")
+    put_msg(:info, "Live Reloader: WebSocket disconnected.")
 
     :ok
   end

@@ -3,7 +3,7 @@ defmodule Serum.Build do
   A module for managing the overall project build procedure.
   """
 
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
   alias Serum.Build.FileEmitter
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
@@ -131,7 +131,7 @@ defmodule Serum.Build do
   @spec clean_dest(binary) :: Result.t()
   defp clean_dest(dest) do
     File.mkdir_p!(dest)
-    msg_mkdir(dest)
+    put_msg(:mkdir, dest)
 
     dest
     |> File.ls!()
@@ -148,7 +148,7 @@ defmodule Serum.Build do
 
   @spec copy_assets(binary(), binary(), Theme.t()) :: Result.t()
   defp copy_assets(src, dest, theme) do
-    IO.puts("Copying assets and media...")
+    put_msg(:info, "Copying assets and media...")
 
     case copy_theme_assets(theme, dest) do
       :ok ->
@@ -173,7 +173,7 @@ defmodule Serum.Build do
   defp try_copy(src, dest) do
     case File.cp_r(src, dest) do
       {:error, reason, _} ->
-        warn("Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
+        put_err(:warn, "Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
 
       {:ok, _} ->
         :ok

@@ -6,7 +6,7 @@ defmodule Serum.DevServer.Service.GenServer do
   """
 
   use GenServer
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
   alias Serum.Build
   alias Serum.DevServer.Service
   alias Serum.Project
@@ -153,9 +153,9 @@ defmodule Serum.DevServer.Service.GenServer do
 
   @impl GenServer
   def terminate(_reason, %{site: site, watcher: watcher}) do
-    IO.puts("Removing temporary directory \"#{site}\"...")
+    put_msg(:info, "Removing temporary directory \"#{site}\"...")
     File.rm_rf!(site)
-    IO.puts("Shutting down...")
+    put_msg(:info, "Shutting down...")
     unless(is_nil(watcher), do: Process.exit(watcher, :shutdown))
   end
 
@@ -172,8 +172,8 @@ defmodule Serum.DevServer.Service.GenServer do
   @spec build_failed(Result.t()) :: :ok
   defp build_failed(error) do
     Result.show(error)
-    warn("Error occurred while building the website.")
-    warn("The website may not be displayed correctly.")
+    put_err(:warn, "Error occurred while building the website.")
+    put_err(:warn, "The website may not be displayed correctly.")
   end
 
   @spec dotfile?(binary()) :: boolean()

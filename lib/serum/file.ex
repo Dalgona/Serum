@@ -10,6 +10,7 @@ defmodule Serum.File do
   * `out_data`: Data to be written to a file
   """
 
+  import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Result
 
   defstruct [:src, :dest, :in_data, :out_data]
@@ -49,12 +50,8 @@ defmodule Serum.File do
   end
 
   @spec print_read(binary()) :: :ok
-  defp print_read(src) do
-    IO.puts("\x1b[93m  READ \x1b[0m#{src}")
-  end
+  defp print_read(src), do: put_msg(:read, src)
 
   @spec print_write(binary()) :: :ok
-  defp print_write(dest) do
-    IO.puts("\x1b[92m   GEN \x1b[0m#{dest}")
-  end
+  defp print_write(dest), do: put_msg(:gen, dest)
 end

@@ -1,6 +1,7 @@
 defmodule Serum.Build.FileProcessor.PostList do
   @moduledoc false
 
+  import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.PostList
   alias Serum.Project
   alias Serum.Result
@@ -14,7 +15,7 @@ defmodule Serum.Build.FileProcessor.PostList do
   def generate_lists([], _proj), do: {:ok, {[], []}}
 
   def generate_lists(compact_posts, proj) do
-    IO.puts("Generating post lists...")
+    put_msg(:info, "Generating post lists...")
 
     tag_groups = group_posts_by_tag(compact_posts)
 

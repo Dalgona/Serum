@@ -75,8 +75,7 @@ defmodule Serum.Plugin do
   """
 
   use Agent
-  require Serum.Util
-  import Serum.Util
+  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
@@ -381,19 +380,21 @@ defmodule Serum.Plugin do
     serum = module.serum()
 
     unless Version.match?(@elixir_version, elixir) do
-      warn(
+      msg =
         "The plugin \"#{name}\" is not compatible with " <>
           "the current version of Elixir(#{@elixir_version}). " <>
           "This plugin may not work as intended."
-      )
+
+      put_err(:warn, msg)
     end
 
     unless Version.match?(@serum_version, serum) do
-      warn(
+      msg =
         "The plugin \"#{name}\" is not compatible with " <>
           "the current version of Serum(#{@serum_version}). " <>
           "This plugin may not work as intended."
-      )
+
+      put_err(:warn, msg)
     end
 
     plugin = %__MODULE__{
@@ -438,16 +439,14 @@ defmodule Serum.Plugin do
   def show_info([]), do: :ok
 
   def show_info(plugins) do
-    IO.puts("\x1b[93m=== Loaded Plugins ===\x1b[0m")
+    Enum.each(plugins, fn p ->
+      msg = """
+      \x1b[1m#{p.name} v#{p.version}\x1b[0m (#{module_name(p.module)})
+      \x1b[90m#{p.description}
+      """
 
-    Enum.each(plugins, fn plugin ->
-      mod_name = module_name(plugin.module)
-
-      IO.puts("\x1b[1m#{plugin.name} v#{plugin.version}\x1b[0m (#{mod_name})")
-      IO.puts("    " <> plugin.description)
+      put_msg(:plugin, String.trim(msg))
     end)
-
-    IO.puts("")
   end
 
   @doc false
