@@ -17,6 +17,7 @@ defmodule Serum do
 
   use Application
   alias Serum.GlobalBindings
+  alias Serum.IOProxy
   alias Serum.Plugin
 
   @doc """
@@ -28,6 +29,7 @@ defmodule Serum do
   def start(_type, _args) do
     children = [
       GlobalBindings,
+      IOProxy,
       Plugin
     ]
 
