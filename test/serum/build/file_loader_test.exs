@@ -1,6 +1,5 @@
 defmodule Serum.Build.FileLoaderTest do
   use ExUnit.Case, async: true
-  require Serum.TestHelper
   import Serum.TestHelper
   alias Serum.Build.FileLoader
   alias Serum.Theme

@@ -1,6 +1,5 @@
 defmodule Serum.DevServer.Service.GenServerTest do
   use ExUnit.Case, async: false
-  require Serum.TestHelper
   import ExUnit.CaptureIO
   import Serum.TestHelper
   alias Serum.DevServer

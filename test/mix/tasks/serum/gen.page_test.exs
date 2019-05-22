@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Serum.Gen.PageTest do
   use ExUnit.Case
-  require Serum.TestHelper
+  import ExUnit.CaptureIO
   import Serum.TestHelper
   alias Mix.Tasks.Serum.Gen.Page, as: GenPage
 
@@ -16,8 +16,10 @@ defmodule Mix.Tasks.Serum.Gen.PageTest do
   describe "mix serum.gen.page" do
     test "works well with required options only", %{tmp_dir: tmp_dir} do
       File.cd!(tmp_dir, fn ->
-        GenPage.run(~w(-t Hello -o hello.md))
-        GenPage.run(~w(-t Hello -o hello.html.eex))
+        capture_io(fn ->
+          GenPage.run(~w(-t Hello -o hello.md))
+          GenPage.run(~w(-t Hello -o hello.html.eex))
+        end)
 
         data = File.read!(Path.join([tmp_dir, "pages", "hello.md"]))
 
@@ -31,7 +33,9 @@ defmodule Mix.Tasks.Serum.Gen.PageTest do
 
     test "works well with all options", %{tmp_dir: tmp_dir} do
       File.cd!(tmp_dir, fn ->
-        GenPage.run(~w(-t Hello -o hello.html -l wow -g test -r 3))
+        capture_io(fn ->
+          GenPage.run(~w(-t Hello -o hello.html -l wow -g test -r 3))
+        end)
 
         data = File.read!(Path.join([tmp_dir, "pages", "hello.html"]))
 

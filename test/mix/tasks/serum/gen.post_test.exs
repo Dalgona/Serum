@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Serum.Gen.PostTest do
   use ExUnit.Case
-  require Serum.TestHelper
+  import ExUnit.CaptureIO
   import Serum.TestHelper
   alias Mix.Tasks.Serum.Gen.Post, as: GenPost
 
@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Serum.Gen.PostTest do
   describe "mix serum.gen.post" do
     test "works well with required options only", %{tmp_dir: tmp_dir} do
       File.cd!(tmp_dir, fn ->
-        GenPost.run(~w(-t Hello -o hello))
+        capture_io(fn -> GenPost.run(~w(-t Hello -o hello)) end)
 
         [path] = tmp_dir |> Path.join("posts/*.md") |> Path.wildcard()
         [date] = path |> (&Regex.run(@re_date, &1)).()
@@ -34,7 +34,9 @@ defmodule Mix.Tasks.Serum.Gen.PostTest do
 
     test "works well with all options", %{tmp_dir: tmp_dir} do
       File.cd!(tmp_dir, fn ->
-        GenPost.run(~w(-t Hello -o hello.html -g test -g wow))
+        capture_io(fn ->
+          GenPost.run(~w(-t Hello -o hello.html -g test -g wow))
+        end)
 
         [path] = tmp_dir |> Path.join("posts/*.md") |> Path.wildcard()
         [date] = path |> (&Regex.run(@re_date, &1)).()

@@ -1,6 +1,5 @@
 defmodule Serum.FileTest do
   use ExUnit.Case, async: true
-  require Serum.TestHelper
   import ExUnit.CaptureIO
   import Serum.TestHelper
 

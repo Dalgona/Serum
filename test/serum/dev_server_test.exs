@@ -1,6 +1,5 @@
 defmodule Serum.DevServerTest do
   use ExUnit.Case, async: false
-  require Serum.TestHelper
   import Serum.TestHelper
   alias Serum.DevServer
 
