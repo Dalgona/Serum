@@ -8,11 +8,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
   alias Serum.Template.Compiler, as: TC
 
   setup_all do
-    {:ok, proj} =
-      mute_stdio do
-        ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
-      end
-
+    {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
     {:ok, ast} = TC.compile_string(~S(<%= "Hello, world!" %>), type: :template)
     includes = %{"test" => Template.new(ast, :template, "test.html.eex")}
 
@@ -22,23 +18,17 @@ defmodule Serum.Build.FileProcessor.PageTest do
   describe "preprocess_pages/2" do
     test "supported file types", %{proj: proj, includes: includes} do
       page_files =
-        mute_stdio do
-          [
-            "pages/good-md.md",
-            "pages/good-html.html",
-            "pages/good-eex.html.eex"
-          ]
-          |> Enum.map(&fixture/1)
-          |> Enum.map(&%Serum.File{src: &1})
-          |> Enum.map(&Serum.File.read/1)
-          |> Enum.map(fn {:ok, file} -> file end)
-        end
+        [
+          "pages/good-md.md",
+          "pages/good-html.html",
+          "pages/good-eex.html.eex"
+        ]
+        |> Enum.map(&fixture/1)
+        |> Enum.map(&%Serum.File{src: &1})
+        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(fn {:ok, file} -> file end)
 
-      {:ok, {pages, compact_pages}} =
-        mute_stdio do
-          preprocess_pages(page_files, proj)
-        end
-
+      {:ok, {pages, compact_pages}} = preprocess_pages(page_files, proj)
       {:ok, pages} = process_pages(pages, includes, proj)
       [page1, page2, page3] = pages
 
@@ -79,12 +69,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
     test "use default label", ctx do
       file = %Serum.File{src: fixture("pages/good-minimal-header.md")}
-      {:ok, file} = mute_stdio(do: Serum.File.read(file))
-
-      {:ok, {[page], [compact_page]}} =
-        mute_stdio do
-          preprocess_pages([file], ctx.proj)
-        end
+      {:ok, file} = Serum.File.read(file)
+      {:ok, {[page], [compact_page]}} = preprocess_pages([file], ctx.proj)
 
       assert page.label === "Test Page"
       assert compact_page.label === "Test Page"
@@ -92,39 +78,29 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
     test "fail on pages with bad headers", ctx do
       files =
-        mute_stdio do
-          fixture("pages")
-          |> Path.join("bad-*.md")
-          |> Path.wildcard()
-          |> Enum.map(&%Serum.File{src: &1})
-          |> Enum.map(&Serum.File.read/1)
-          |> Enum.map(fn {:ok, file} -> file end)
-        end
+        fixture("pages")
+        |> Path.join("bad-*.md")
+        |> Path.wildcard()
+        |> Enum.map(&%Serum.File{src: &1})
+        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, {_, errors}} =
-        mute_stdio do
-          preprocess_pages(files, ctx.proj)
-        end
+      {:error, {_, errors}} = preprocess_pages(files, ctx.proj)
 
       assert length(errors) === length(files)
     end
 
     test "fail on bad EEx pages", ctx do
       files =
-        mute_stdio do
-          fixture("pages")
-          |> Path.join("bad-*.html.eex")
-          |> Path.wildcard()
-          |> Enum.map(&%Serum.File{src: &1})
-          |> Enum.map(&Serum.File.read/1)
-          |> Enum.map(fn {:ok, file} -> file end)
-        end
+        fixture("pages")
+        |> Path.join("bad-*.html.eex")
+        |> Path.wildcard()
+        |> Enum.map(&%Serum.File{src: &1})
+        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, {_, errors}} =
-        mute_stdio do
-          {:ok, {pages, _}} = preprocess_pages(files, ctx.proj)
-          {:error, _} = process_pages(pages, ctx.includes, ctx.proj)
-        end
+      {:ok, {pages, _}} = preprocess_pages(files, ctx.proj)
+      {:error, {_, errors}} = process_pages(pages, ctx.includes, ctx.proj)
 
       assert length(errors) === length(files)
     end

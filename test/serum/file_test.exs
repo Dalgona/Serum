@@ -31,13 +31,9 @@ defmodule Serum.FileTest do
         out_data: nil
       }
 
-      result =
-        mute_stdio do
-          {:ok, read_file} = Serum.File.read(file)
-          %Serum.File{} = read_file
-        end
+      {:ok, %Serum.File{} = read_file} = Serum.File.read(file)
 
-      assert result.in_data === @content1
+      assert read_file.in_data === @content1
     end
 
     test "try to read a file that does not exist", context do

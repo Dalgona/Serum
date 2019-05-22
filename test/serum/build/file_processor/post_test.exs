@@ -6,10 +6,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
   alias Serum.Project.Loader, as: ProjectLoader
 
   setup_all do
-    {:ok, proj} =
-      mute_stdio do
-        ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
-      end
+    {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
 
     {:ok, [proj: proj]}
   end
@@ -59,31 +56,23 @@ defmodule Serum.Build.FileProcessor.PostTest do
 
     test "fail on bad posts", ctx do
       files =
-        mute_stdio do
-          fixture("posts")
-          |> Path.join("bad-*.md")
-          |> Path.wildcard()
-          |> Enum.map(&%Serum.File{src: &1})
-          |> Enum.map(&Serum.File.read/1)
-          |> Enum.map(fn {:ok, file} -> file end)
-        end
+        fixture("posts")
+        |> Path.join("bad-*.md")
+        |> Path.wildcard()
+        |> Enum.map(&%Serum.File{src: &1})
+        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, {_, errors}} =
-        mute_stdio do
-          PostProcessor.process_posts(files, ctx.proj)
-        end
+      {:error, {_, errors}} = PostProcessor.process_posts(files, ctx.proj)
 
       assert length(errors) === length(files)
     end
   end
 
   defp process(fixture_path, proj) do
-    {:ok, file} =
-      mute_stdio do
-        Serum.File.read(%Serum.File{src: fixture(fixture_path)})
-      end
+    {:ok, file} = Serum.File.read(%Serum.File{src: fixture(fixture_path)})
 
-    mute_stdio(do: PostProcessor.process_posts([file], proj))
+    PostProcessor.process_posts([file], proj)
   end
 
   defp assert_compact(map) do

@@ -21,23 +21,23 @@ defmodule Serum.BuildTest do
   end
 
   test "everything went well", %{dest: dest, proj: proj} do
-    assert {:ok, ^dest} = mute_stdio(do: Build.build(proj))
+    assert {:ok, ^dest} = Build.build(proj)
 
     # Clean the destination dir when is not empty
-    assert {:ok, ^dest} = mute_stdio(do: Build.build(proj))
+    assert {:ok, ^dest} = Build.build(proj)
   end
 
   test "skip copying assets and media", %{src: src, dest: dest, proj: proj} do
     File.rm_rf!(Path.join(src, "assets"))
     File.rm_rf!(Path.join(src, "media"))
 
-    assert {:ok, ^dest} = mute_stdio(do: Build.build(proj))
+    assert {:ok, ^dest} = Build.build(proj)
   end
 
   test "no write permission on dest", %{dest: dest, proj: proj} do
     File.chmod!(dest, 0o555)
 
-    assert {:error, _} = mute_stdio(do: Build.build(proj))
+    assert {:error, _} = Build.build(proj)
 
     File.chmod!(dest, 0o755)
     File.rm_rf!(dest)
@@ -46,7 +46,7 @@ defmodule Serum.BuildTest do
 
     File.chmod!(parent, 0o555)
 
-    assert {:error, _} = mute_stdio(do: Build.build(proj))
+    assert {:error, _} = Build.build(proj)
 
     File.chmod!(parent, 0o755)
   end
@@ -54,7 +54,7 @@ defmodule Serum.BuildTest do
   test "failed to load required files", %{src: src, proj: proj} do
     File.rm_rf!(Path.join(src, "templates"))
 
-    assert {:error, _} = mute_stdio(do: Build.build(proj))
+    assert {:error, _} = Build.build(proj)
   end
 
   test "failed to process some files", %{src: src, proj: proj} do
@@ -65,6 +65,6 @@ defmodule Serum.BuildTest do
       File.cp!(file, Path.join([src, "pages", Path.basename(file)]))
     end)
 
-    assert {:error, _} = mute_stdio(do: Build.build(proj))
+    assert {:error, _} = Build.build(proj)
   end
 end
