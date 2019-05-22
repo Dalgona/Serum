@@ -13,10 +13,7 @@ defmodule Serum.Build.FileProcessorTest do
   # - Serum.Build.PostListTest
 
   setup_all do
-    {:ok, proj} =
-      mute_stdio do
-        ProjectLoader.load(fixture("proj/good"), "/tmp/dest/")
-      end
+    {:ok, proj} = ProjectLoader.load(fixture("proj/good"), "/tmp/dest/")
 
     good_page_files =
       fixture("pages")
@@ -77,13 +74,13 @@ defmodule Serum.Build.FileProcessorTest do
 
   describe "process_files/2" do
     test "everything went all", ctx do
-      assert {:ok, processed} = process_files(ctx.good, ctx.proj)
+      assert {:ok, processed} = FileProcessor.process_files(ctx.good, ctx.proj)
     end
 
     test "bad templates", ctx do
       files = %{ctx.good | includes: [], templates: ctx.bad.templates}
 
-      assert {:error, {_, errors}} = process_files(files, ctx.proj)
+      assert {:error, {_, errors}} = FileProcessor.process_files(files, ctx.proj)
 
       assert Enum.all?(errors, fn {:error, {_, f, _}} ->
                String.contains?(f, ".html.eex")
@@ -93,7 +90,7 @@ defmodule Serum.Build.FileProcessorTest do
     test "bad pages", ctx do
       files = %{ctx.good | pages: ctx.bad.pages}
 
-      assert {:error, {_, errors}} = process_files(files, ctx.proj)
+      assert {:error, {_, errors}} = FileProcessor.process_files(files, ctx.proj)
 
       assert Enum.all?(errors, fn {:error, {_, f, _}} ->
                String.contains?(f, "pages")
@@ -103,7 +100,7 @@ defmodule Serum.Build.FileProcessorTest do
     test "bad posts", ctx do
       files = %{ctx.good | posts: ctx.bad.posts}
 
-      assert {:error, {_, errors}} = process_files(files, ctx.proj)
+      assert {:error, {_, errors}} = FileProcessor.process_files(files, ctx.proj)
 
       assert Enum.all?(errors, fn {:error, {_, f, _}} ->
                String.contains?(f, "posts")
@@ -112,15 +109,9 @@ defmodule Serum.Build.FileProcessorTest do
   end
 
   defp read_files(paths) do
-    mute_stdio do
-      paths
-      |> Enum.map(&%Serum.File{src: &1})
-      |> Enum.map(&Serum.File.read/1)
-      |> Enum.map(fn {:ok, file} -> file end)
-    end
-  end
-
-  defp process_files(files, proj) do
-    mute_stdio(do: FileProcessor.process_files(files, proj))
+    paths
+    |> Enum.map(&%Serum.File{src: &1})
+    |> Enum.map(&Serum.File.read/1)
+    |> Enum.map(fn {:ok, file} -> file end)
   end
 end

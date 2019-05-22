@@ -34,9 +34,7 @@ defmodule Serum.Build.FileLoaderTest do
   describe "load_files/1" do
     test "successfully loaded files", %{tmp_dir: tmp_dir} do
       {:ok, %{pages: pages, posts: posts, templates: temps, includes: incls}} =
-        mute_stdio do
-          FileLoader.load_files(tmp_dir, %Theme{})
-        end
+        FileLoader.load_files(tmp_dir, %Theme{})
 
       assert length(pages) === 1
       assert length(posts) === 1
@@ -49,9 +47,7 @@ defmodule Serum.Build.FileLoaderTest do
       File.rm_rf!(Path.join(tmp_dir, "includes"))
 
       {:ok, %{pages: pages, posts: [], templates: temps, includes: []}} =
-        mute_stdio do
-          FileLoader.load_files(tmp_dir, %Theme{})
-        end
+        FileLoader.load_files(tmp_dir, %Theme{})
 
       assert length(pages) === 1
       assert length(temps) === 4
@@ -60,19 +56,13 @@ defmodule Serum.Build.FileLoaderTest do
     test "pages directory is missing", %{tmp_dir: tmp_dir} do
       File.rm_rf!(Path.join(tmp_dir, "pages"))
 
-      {:error, {:enoent, _, _}} =
-        mute_stdio do
-          FileLoader.load_files(tmp_dir, %Theme{})
-        end
+      {:error, {:enoent, _, _}} = FileLoader.load_files(tmp_dir, %Theme{})
     end
 
     test "some templates are missing", %{tmp_dir: tmp_dir} do
       File.rm_rf!(Path.join(tmp_dir, "templates/base.html.eex"))
 
-      {:error, {_, [{:error, {:enoent, _, _}} | _]}} =
-        mute_stdio do
-          FileLoader.load_files(tmp_dir, %Theme{})
-        end
+      {:error, {_, [{:error, {:enoent, _, _}} | _]}} = FileLoader.load_files(tmp_dir, %Theme{})
     end
   end
 end

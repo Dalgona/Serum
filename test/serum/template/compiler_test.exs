@@ -7,7 +7,7 @@ defmodule Serum.Template.CompilerTest do
   describe "compile_files/2" do
     test "compile includable templates" do
       file = %Serum.File{src: fixture("templates/good.html.eex")}
-      {:ok, file} = mute_stdio(do: Serum.File.read(file))
+      {:ok, file} = Serum.File.read(file)
       {:ok, includes} = TC.compile_files([file], type: :include)
       {output, _} = Code.eval_quoted(includes["good"].ast)
 
@@ -17,7 +17,7 @@ defmodule Serum.Template.CompilerTest do
       tc_options = [type: :template, includes: includes]
       key = "good-using-includes"
       file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
-      {:ok, file} = mute_stdio(do: Serum.File.read(file))
+      {:ok, file} = Serum.File.read(file)
       {:ok, %{^key => template}} = TC.compile_files([file], tc_options)
       {output, _} = Code.eval_quoted(template.ast)
 
@@ -29,7 +29,7 @@ defmodule Serum.Template.CompilerTest do
     test "compile templates" do
       key = "good-using-helpers"
       file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
-      {:ok, file} = mute_stdio(do: Serum.File.read(file))
+      {:ok, file} = Serum.File.read(file)
       {:ok, %{^key => template}} = TC.compile_files([file], type: :template)
       assigns = [site: %{base_url: "/test_site/"}]
       {output, _} = Code.eval_quoted(template.ast, assigns: assigns)
@@ -40,14 +40,12 @@ defmodule Serum.Template.CompilerTest do
 
     test "handle ill-formed templates" do
       files =
-        mute_stdio do
-          fixture("templates")
-          |> Path.join("bad-*.html.eex")
-          |> Path.wildcard()
-          |> Enum.map(&%Serum.File{src: &1})
-          |> Enum.map(&Serum.File.read/1)
-          |> Enum.map(fn {:ok, file} -> file end)
-        end
+        fixture("templates")
+        |> Path.join("bad-*.html.eex")
+        |> Path.wildcard()
+        |> Enum.map(&%Serum.File{src: &1})
+        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(fn {:ok, file} -> file end)
 
       {:error, {_, errors}} = TC.compile_files(files, type: :template)
 

@@ -20,18 +20,14 @@ defmodule Serum.Build.PageGeneratorTest do
     test "good", ctx do
       GlobalBindings.load(ctx.state)
 
-      assert {:ok, files} = run(ctx.fragments, ctx.good)
+      assert {:ok, files} = PageGenerator.run(ctx.fragments, ctx.good)
       assert length(files) === length(ctx.fragments)
     end
 
     test "bad base template", ctx do
       GlobalBindings.load(ctx.state)
 
-      assert {:error, {_, _errors}} = run(ctx.fragments, ctx.bad)
+      assert {:error, {_, _errors}} = PageGenerator.run(ctx.fragments, ctx.bad)
     end
-  end
-
-  defp run(fragments, template) do
-    mute_stdio(do: PageGenerator.run(fragments, template))
   end
 end

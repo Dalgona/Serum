@@ -29,7 +29,7 @@ defmodule Serum.Build.FileEmitterTest do
 
   describe "run/1" do
     test "successful", ctx do
-      :ok = mute_stdio(do: FileEmitter.run(ctx.files))
+      :ok = FileEmitter.run(ctx.files)
 
       entry_count =
         ctx.tmp_dir
@@ -42,7 +42,7 @@ defmodule Serum.Build.FileEmitterTest do
     test "super rare situation here", ctx do
       File.chmod!(ctx.tmp_dir, 0o500)
 
-      {:error, _} = mute_stdio(do: FileEmitter.run(ctx.files))
+      {:error, _} = FileEmitter.run(ctx.files)
 
       File.chmod!(ctx.tmp_dir, 0o755)
     end

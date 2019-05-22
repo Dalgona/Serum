@@ -34,7 +34,7 @@ defmodule Serum.Build.FragmentGeneratorTest do
         includes: []
       }
 
-      {:ok, fragments} = mute_stdio(do: FragmentGenerator.to_fragment(processed))
+      {:ok, fragments} = FragmentGenerator.to_fragment(processed)
       actual_count = length(ctx.pages) + length(ctx.posts) + length(ctx.lists)
 
       assert length(fragments) === actual_count
@@ -53,7 +53,7 @@ defmodule Serum.Build.FragmentGeneratorTest do
         includes: []
       }
 
-      assert {:error, _} = mute_stdio(do: FragmentGenerator.to_fragment(processed))
+      assert {:error, _} = FragmentGenerator.to_fragment(processed)
     end
   end
 end
