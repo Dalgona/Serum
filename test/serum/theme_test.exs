@@ -3,6 +3,7 @@ defmodule Serum.ThemeTest do
   require Serum.TestHelper
   import Serum.TestHelper
   import Serum.Theme
+  alias Serum.IOProxy
 
   "theme_modules/*.ex"
   |> fixture()
@@ -22,6 +23,11 @@ defmodule Serum.ThemeTest do
       ]
       |> Enum.map(fn {k, v} -> {k, load(v)} end)
       |> Enum.map(fn {k, {:ok, theme}} -> {k, theme} end)
+
+    {:ok, io_opts} = IOProxy.config()
+
+    IOProxy.config(mute_err: false)
+    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
 
     {:ok, themes}
   end

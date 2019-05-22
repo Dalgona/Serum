@@ -1,4 +1,5 @@
 ExUnit.start()
+Serum.IOProxy.config(mute_err: true, mute_msg: true)
 
 defmodule Serum.TestHelper do
   @test_dir Path.join(File.cwd!(), "test_fixtures")

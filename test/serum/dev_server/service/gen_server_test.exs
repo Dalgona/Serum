@@ -1,9 +1,10 @@
 defmodule Serum.DevServer.Service.GenServerTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case
   import ExUnit.CaptureIO
   import Serum.TestHelper
   alias Serum.DevServer
   alias Serum.DevServer.Service.GenServer, as: GS
+  alias Serum.IOProxy
 
   # IMPORTANT NOTE: PLEASE MAKE SURE THE TCP PORT 8080 IS NOT IN USE
   #                 BEFORE RUNNING THIS TEST.
@@ -13,11 +14,14 @@ defmodule Serum.DevServer.Service.GenServerTest do
     pid = start_supervised!(%{id: :ignore_io, start: {StringIO, :open, [""]}})
     test_sup! = hd(Process.info(self())[:links])
     old_group_leader! = Process.info(test_sup!)[:group_leader]
+    {:ok, io_config} = IOProxy.config()
 
     make_project(tmp_dir)
     Process.group_leader(test_sup!, pid)
     start_supervised!(%{id: :dev_server, start: {DevServer, :run, [tmp_dir, 8080]}})
     Process.group_leader(test_sup!, old_group_leader!)
+    IOProxy.config(mute_err: false)
+    on_exit(fn -> IOProxy.config(Keyword.new(io_config)) end)
 
     {:ok, tmp_dir: tmp_dir}
   end

@@ -6,6 +6,7 @@ defmodule Serum.PluginTest do
   import Serum.TestHelper, only: :macros
   alias Serum.File
   alias Serum.Fragment
+  alias Serum.IOProxy
   alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
@@ -16,10 +17,15 @@ defmodule Serum.PluginTest do
   |> Path.wildcard()
   |> Enum.each(&Code.require_file/1)
 
+  setup_all do
+    {:ok, io_opts} = IOProxy.config()
+
+    IOProxy.config(mute_err: false, mute_msg: false)
+    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+  end
+
   setup do
     on_exit(fn -> Agent.update(Serum.Plugin, fn _ -> %{} end) end)
-
-    :ok
   end
 
   test "load_plugins/1" do
@@ -112,7 +118,15 @@ defmodule Serum.PluginTest do
   describe "show_info/1" do
     test "prints enough information about loaded plugins" do
       {:ok, plugins} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2])
-      output = capture_io(fn -> show_info(plugins) end)
+      io_proxy = Process.whereis(IOProxy)
+      original_gl = io_proxy |> Process.info() |> Access.get(:group_leader)
+      {:ok, string_io} = StringIO.open("")
+
+      Process.group_leader(io_proxy, string_io)
+      show_info(plugins)
+      Process.group_leader(io_proxy, original_gl)
+
+      {:ok, {_, output}} = StringIO.close(string_io)
 
       expected = [
         "dummy_plugin_1",

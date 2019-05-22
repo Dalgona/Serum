@@ -4,8 +4,16 @@ defmodule Serum.DevServer.PromptTest do
   import Serum.DevServer.Prompt
   import Serum.TestHelper
   alias Serum.DevServer.Service
+  alias Serum.IOProxy
 
   @commands ~w(build help quit)
+
+  setup_all do
+    {:ok, io_opts} = IOProxy.config()
+
+    IOProxy.config(mute_err: false)
+    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+  end
 
   setup do
     src = get_tmp_dir("serum_test_")

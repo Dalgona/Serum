@@ -8,7 +8,7 @@ defmodule Serum.DevServerTest do
 
   setup_all do
     tmp_dir = get_tmp_dir("serum_test_")
-    pid = start_supervised!(%{id: :ignore_io, start: {__MODULE__, :ignore_io, []}})
+    pid = start_supervised!(%{id: :ignore_io, start: {StringIO, :open, [""]}})
 
     make_project(tmp_dir)
 
@@ -42,16 +42,5 @@ defmodule Serum.DevServerTest do
       assert String.contains?(msg, "8080")
       :ok = :gen_tcp.close(sock)
     end
-  end
-
-  def ignore_io, do: {:ok, spawn_link(&ignore_io_loop/0)}
-
-  defp ignore_io_loop do
-    receive do
-      {:io_request, from, reply_as, _request} ->
-        send(from, {:io_reply, reply_as, :ok})
-    end
-
-    ignore_io_loop()
   end
 end

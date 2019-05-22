@@ -1,7 +1,15 @@
 defmodule Serum.ProjecTest do
   use ExUnit.Case, async: true
   import ExUnit.CaptureIO
+  alias Serum.IOProxy
   alias Serum.Project
+
+  setup_all do
+    {:ok, io_opts} = IOProxy.config()
+
+    IOProxy.config(mute_err: false)
+    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+  end
 
   describe "fallback string format" do
     test "default" do
