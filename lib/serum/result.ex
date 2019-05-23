@@ -10,16 +10,10 @@ defmodule Serum.Result do
   @type t(type) :: {:ok, type} | error()
 
   @type error :: {:error, err_details()}
-
   @type err_details :: msg_detail() | full_detail() | nest_detail()
-
-  @type msg_detail :: message()
-  @type full_detail :: {message(), file(), line()}
+  @type msg_detail :: binary()
+  @type full_detail :: {binary(), binary(), non_neg_integer()}
   @type nest_detail :: {term(), [error()]}
-
-  @type message :: binary()
-  @type file :: binary()
-  @type line :: non_neg_integer()
 
   @doc """
   Takes a list of result objects (without returned values) and checks if there
@@ -61,20 +55,27 @@ defmodule Serum.Result do
   defp succeeded?({:error, _}), do: false
 
   @doc "Prints an error object in a beautiful format."
-  @spec show(t(), non_neg_integer()) :: :ok
+  @spec show(t() | t(term()), non_neg_integer()) :: :ok
   def show(result, indent \\ 0)
   def show(:ok, depth), do: put_err(:info, get_message(:ok, depth))
-  def show({:ok, _}, depth), do: show(:ok, depth)
+  def show({:ok, _} = result, depth), do: put_err(:info, get_message(result, depth))
   def show(error, depth), do: put_err(:error, get_message(error, depth))
 
-  @spec get_message(t(), non_neg_integer()) :: binary()
-  defp get_message(result, depth) do
+  @doc """
+  Gets a human friendly message from the given `result`.
+
+  You can control the indentation level by passing a non-negative integer to
+  the `depth` parameter.
+  """
+  @spec get_message(t() | t(term), non_neg_integer()) :: binary()
+  def get_message(result, depth) do
     result |> do_get_message(depth) |> IO.iodata_to_binary()
   end
 
-  @spec do_get_message(t(), non_neg_integer()) :: IO.chardata()
+  @spec do_get_message(t() | t(term), non_neg_integer()) :: IO.chardata()
   defp do_get_message(result, depth)
   defp do_get_message(:ok, depth), do: indented("No error detected", depth)
+  defp do_get_message({:ok, _}, depth), do: do_get_message(:ok, depth)
 
   defp do_get_message({:error, msg}, depth) when is_binary(msg) do
     indented(msg, depth)
