@@ -63,45 +63,45 @@ defmodule Serum.Result do
   @doc "Prints an error object in a beautiful format."
   @spec show(t(), non_neg_integer()) :: :ok
   def show(result, indent \\ 0)
+  def show(:ok, depth), do: put_err(:info, get_message(:ok, depth))
+  def show({:ok, _}, depth), do: show(:ok, depth)
+  def show(error, depth), do: put_err(:error, get_message(error, depth))
 
-  def show(:ok, indent) do
-    pad = String.duplicate("  ", indent)
-
-    put_err(:info, pad <> "No error detected.")
+  @spec get_message(t(), non_neg_integer()) :: binary()
+  defp get_message(result, depth) do
+    result |> do_get_message(depth) |> IO.iodata_to_binary()
   end
 
-  def show({:ok, _result}, indent) do
-    show(:ok, indent)
+  @spec do_get_message(t(), non_neg_integer()) :: IO.chardata()
+  defp do_get_message(result, depth)
+  defp do_get_message(:ok, depth), do: indented("No error detected", depth)
+
+  defp do_get_message({:error, msg}, depth) when is_binary(msg) do
+    indented(msg, depth)
   end
 
-  def show({:error, message}, indent) when is_binary(message) do
-    pad = String.duplicate("  ", indent)
+  defp do_get_message({:error, {posix, file, line}}, depth) when is_atom(posix) do
+    msg = posix |> :file.format_error() |> IO.iodata_to_binary()
 
-    put_err(:error, pad <> message)
+    do_get_message({:error, {msg, file, line}}, depth)
   end
 
-  def show({:error, {posix, file, 0}}, indent) when is_atom(posix) do
-    message = posix |> :file.format_error() |> IO.iodata_to_binary()
-
-    show({:error, {message, file, 0}}, indent)
+  defp do_get_message({:error, {msg, file, 0}}, depth) when is_binary(msg) do
+    indented([file, ": ", msg], depth)
   end
 
-  def show({:error, {message, file, 0}}, indent) do
-    pad = String.duplicate("  ", indent)
-
-    put_err(:error, pad <> "#{file}: #{message}")
+  defp do_get_message({:error, {msg, file, line}}, depth) when is_binary(msg) do
+    indented([file, ?:, to_string(line), ": ", msg], depth)
   end
 
-  def show({:error, {message, file, line}}, indent) do
-    pad = String.duplicate("  ", indent)
+  defp do_get_message({:error, {msg, errors}}, depth) when is_list(errors) do
+    head = indented(["\x1b[1;31m", to_string(msg), ":\x1b[0m"], depth)
+    children = Enum.map(errors, &do_get_message(&1, depth + 1))
 
-    put_err(:error, pad <> "#{file}:#{line}: #{message}")
+    Enum.intersperse([head | children], ?\n)
   end
 
-  def show({:error, {from, errors}}, indent) do
-    pad = String.duplicate("  ", indent)
-
-    put_err(:error, pad <> "\x1b[1;31m#{from} (#{length(errors)}):")
-    Enum.each(errors, &show(&1, indent + 1))
-  end
+  @spec indented(IO.chardata(), non_neg_integer()) :: IO.chardata()
+  defp indented(str, 0), do: str
+  defp indented(str, depth), do: [List.duplicate("  ", depth - 1), "\x1b[31m-\x1b[0m ", str]
 end
