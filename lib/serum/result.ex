@@ -16,43 +16,63 @@ defmodule Serum.Result do
   @type nest_detail :: {term(), [error()]}
 
   @doc """
-  Takes a list of result objects (without returned values) and checks if there
-  is no error.
+  Takes a list of results without value and checks if there is no error.
 
   Returns `:ok` if there is no error.
 
   Returns an aggregated error object if there is one or more errors.
   """
   @spec aggregate([t()], term()) :: t()
-  def aggregate(results, from) do
-    case Enum.reject(results, &succeeded?/1) do
+  def aggregate(results, msg) do
+    results
+    |> do_aggregate([])
+    |> case do
       [] -> :ok
-      errors when is_list(errors) -> {:error, {from, errors}}
+      errors when is_list(errors) -> {:error, {msg, errors}}
     end
   end
 
+  @spec do_aggregate([t()], [t()]) :: [t()]
+  defp do_aggregate(results, errors)
+  defp do_aggregate([], errors), do: errors |> Enum.reverse() |> Enum.uniq()
+  defp do_aggregate([:ok | results], errors), do: do_aggregate(results, errors)
+
+  defp do_aggregate([{:error, _} = error | results], errors) do
+    do_aggregate(results, [error | errors])
+  end
+
   @doc """
-  Takes a list of result objects (with returned values) and checks if there is
-  no error.
+  Takes a list of results with values and checks if there is no error.
 
   If there is no error, it returns `{:ok, list}` where `list` is a list of
   returned values.
 
   Returns an aggregated error object if there is one or more errors.
   """
-  @spec aggregate_values([t(term)], term()) :: t([term()])
-  def aggregate_values(results, from) do
-    case Enum.reject(results, &succeeded?/1) do
-      [] -> {:ok, Enum.map(results, &elem(&1, 1))}
-      errors when is_list(errors) -> {:error, {from, errors}}
+  @spec aggregate_values([t(term())], term()) :: t([term()])
+  def aggregate_values(results, msg) do
+    results
+    |> do_aggregate_values([], [])
+    |> case do
+      {values, []} -> {:ok, values}
+      {_, errors} when is_list(errors) -> {:error, {msg, errors}}
     end
   end
 
-  @spec succeeded?(t() | t(term)) :: boolean()
-  defp succeeded?(result)
-  defp succeeded?(:ok), do: true
-  defp succeeded?({:ok, _}), do: true
-  defp succeeded?({:error, _}), do: false
+  @spec do_aggregate_values([t(term())], [term()], [t()]) :: {[term()], [t()]}
+  defp do_aggregate_values(results, values, errors)
+
+  defp do_aggregate_values([], values, errors) do
+    {Enum.reverse(values), errors |> Enum.reverse() |> Enum.uniq()}
+  end
+
+  defp do_aggregate_values([{:ok, value} | results], values, errors) do
+    do_aggregate_values(results, [value | values], errors)
+  end
+
+  defp do_aggregate_values([{:error, _} = error | results], values, errors) do
+    do_aggregate_values(results, values, [error | errors])
+  end
 
   @doc "Prints an error object in a beautiful format."
   @spec show(t() | t(term()), non_neg_integer()) :: :ok
