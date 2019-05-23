@@ -4,6 +4,8 @@ defmodule Serum.Result do
   functions in this project.
   """
 
+  import Serum.IOProxy, only: [put_err: 2]
+
   @type t :: :ok | error()
   @type t(type) :: {:ok, type} | error()
 
@@ -63,8 +65,9 @@ defmodule Serum.Result do
   def show(result, indent \\ 0)
 
   def show(:ok, indent) do
-    IO.write(String.duplicate("  ", indent))
-    IO.puts("No errors detected.")
+    pad = String.duplicate("  ", indent)
+
+    put_err(:info, pad <> "No error detected.")
   end
 
   def show({:ok, _result}, indent) do
@@ -72,32 +75,33 @@ defmodule Serum.Result do
   end
 
   def show({:error, message}, indent) when is_binary(message) do
-    IO.write(String.duplicate("  ", indent))
-    perr("#{message}")
+    pad = String.duplicate("  ", indent)
+
+    put_err(:error, pad <> message)
   end
 
   def show({:error, {posix, file, 0}}, indent) when is_atom(posix) do
     message = posix |> :file.format_error() |> IO.iodata_to_binary()
+
     show({:error, {message, file, 0}}, indent)
   end
 
   def show({:error, {message, file, 0}}, indent) do
-    IO.write(String.duplicate("  ", indent))
-    perr("\x1b[97m#{file}:\x1b[0m #{message}")
+    pad = String.duplicate("  ", indent)
+
+    put_err(:error, pad <> "#{file}: #{message}")
   end
 
   def show({:error, {message, file, line}}, indent) do
-    IO.write(String.duplicate("  ", indent))
-    perr("\x1b[97m#{file}:#{line}:\x1b[0m #{message}")
+    pad = String.duplicate("  ", indent)
+
+    put_err(:error, pad <> "#{file}:#{line}: #{message}")
   end
 
   def show({:error, {from, errors}}, indent) do
-    IO.write(String.duplicate("  ", indent))
-    IO.puts("\x1b[1;31mSeveral errors occurred from #{from}:\x1b[0m")
-    Enum.each(errors, &show(&1, indent + 1))
-  end
+    pad = String.duplicate("  ", indent)
 
-  defp perr(str) do
-    IO.puts("\x1b[31m\u274c\x1b[0m  #{str}")
+    put_err(:error, pad <> "\x1b[1;31m#{from} (#{length(errors)}):")
+    Enum.each(errors, &show(&1, indent + 1))
   end
 end
