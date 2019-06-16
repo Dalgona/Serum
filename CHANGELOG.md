@@ -8,6 +8,9 @@
   watcher backend is not available on the user's system. The server will work
   now, but features related to automatic reloading will be disabled.
 
+- Now the prompt text (`8080>`) in the Serum development server CLI will catch
+  up the console output, instead of lagging behind.
+
 ### Changed
 
 - Docs: Marked some docs for internal modules as hidden, and organized
@@ -27,6 +30,16 @@
   development server and returns. If you want to keep the server running, use
   the `detach` command. You can later enter the CLI again using the same
   `Serum.DevServer.Prompt.start/1` function.
+
+- Changed format of the message output, with a new internal module which
+  controls the console output.
+
+    - TODO: Disable emitting ANSI escape sequences when the output device is
+      not a terminal.
+
+- If there are more than one _identical_ errors, only one of them will be
+  displayed. Usually these errors are from _one_ source and they will be gone
+  all together if one error in the project source gets fixed.
 
 ## v1.1.0 &mdash; 2019-05-18
 
