@@ -22,7 +22,11 @@ defmodule Serum.File do
           out_data: IO.chardata() | String.Chars.t() | nil
         }
 
-  @doc "Reads data from a file described by the given `Serum.File` struct."
+  @doc """
+  Reads data from a file described by the given `Serum.File` struct.
+
+  An error will be returned if `src` is `nil`.
+  """
   @spec read(t()) :: Result.t(t())
   def read(%__MODULE__{src: nil}) do
     msg = "a Serum.File struct with 'src = nil' cannot be used with Serum.File.read/1"
@@ -41,7 +45,11 @@ defmodule Serum.File do
     end
   end
 
-  @doc "Writes data to a file described by the given `Serum.File` struct."
+  @doc """
+  Writes data to a file described by the given `Serum.File` struct.
+
+  An error will be returned if `dest` is `nil`.
+  """
   @spec write(t()) :: Result.t(t())
   def write(%__MODULE__{dest: nil}) do
     msg = "a Serum.File struct with 'dest = nil' cannot be used with Serum.File.write/1"

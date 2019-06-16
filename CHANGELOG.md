@@ -11,6 +11,12 @@
 - Now the prompt text (`8080>`) in the Serum development server CLI will catch
   up the console output, instead of lagging behind.
 
+### Improved
+
+- `Serum.File.read/1` now checks if the value of `src` key in the input struct
+  is nil. An error will be returned if so. Likewise, `Serum.File.write/1`
+  checks the value of `dest` key.
+
 ### Changed
 
 - Docs: Marked some docs for internal modules as hidden, and organized
