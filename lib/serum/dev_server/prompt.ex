@@ -41,9 +41,9 @@ defmodule Serum.DevServer.Prompt do
 
   @spec looper(map()) :: result()
   defp looper(options) do
-    IO.write("#{@service.port()}> ")
+    prompt = [to_string(@service.port()), "> "]
 
-    case run_command(IO.gets(""), options) do
+    case run_command(IO.gets(prompt), options) do
       :quit -> {:ok, :quitted}
       :detach -> {:ok, :detached}
       :ok -> looper(options)

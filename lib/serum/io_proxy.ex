@@ -117,7 +117,7 @@ defmodule Serum.IOProxy do
     defp format_message(unquote(category), msg) do
       formatted = :io_lib.format(unquote(body_fmt), [format_newlines(msg)])
 
-      [unquote(header), ?\s, formatted]
+      [?\r, unquote(header), ?\s, formatted]
     end
   end)
 
