@@ -47,6 +47,10 @@ defmodule Serum.FileTest do
 
       assert {:error, {:enoent, ^src, 0}} = Serum.File.read(file)
     end
+
+    test "returns an error when src is nil" do
+      assert {:error, _} = Serum.File.read(%Serum.File{})
+    end
   end
 
   describe "write/1" do
@@ -81,6 +85,10 @@ defmodule Serum.FileTest do
       dest = file.dest
 
       assert {:error, {:eacces, ^dest, 0}} = Serum.File.write(file)
+    end
+
+    test "returns an error when dest is nil" do
+      assert {:error, _} = Serum.File.write(%Serum.File{})
     end
   end
 end

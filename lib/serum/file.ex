@@ -18,12 +18,18 @@ defmodule Serum.File do
   @type t :: %__MODULE__{
           src: binary() | nil,
           dest: binary() | nil,
-          in_data: binary() | nil,
-          out_data: binary() | nil
+          in_data: IO.chardata() | String.Chars.t() | nil,
+          out_data: IO.chardata() | String.Chars.t() | nil
         }
 
   @doc "Reads data from a file described by the given `Serum.File` struct."
   @spec read(t()) :: Result.t(t())
+  def read(%__MODULE__{src: nil}) do
+    msg = "a Serum.File struct with 'src = nil' cannot be used with Serum.File.read/1"
+
+    {:error, msg}
+  end
+
   def read(%__MODULE__{src: src} = file) do
     case File.read(src) do
       {:ok, data} when is_binary(data) ->
@@ -37,15 +43,21 @@ defmodule Serum.File do
 
   @doc "Writes data to a file described by the given `Serum.File` struct."
   @spec write(t()) :: Result.t(t())
-  def write(%__MODULE__{dest: dest, out_data: data} = file) do
-    with {:ok, pid} <- File.open(dest, [:write, :utf8]),
-         :ok = IO.write(pid, data),
-         :ok <- File.close(pid) do
-      print_write(dest)
+  def write(%__MODULE__{dest: nil}) do
+    msg = "a Serum.File struct with 'dest = nil' cannot be used with Serum.File.write/1"
 
-      {:ok, file}
-    else
-      {:error, reason} -> {:error, {reason, dest, 0}}
+    {:error, msg}
+  end
+
+  def write(%__MODULE__{dest: dest, out_data: data} = file) do
+    case File.open(dest, [:write, :utf8], &IO.write(&1, data)) do
+      {:ok, _} ->
+        print_write(dest)
+
+        {:ok, file}
+
+      {:error, reason} ->
+        {:error, {reason, dest, 0}}
     end
   end
 
