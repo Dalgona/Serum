@@ -3,6 +3,7 @@ defmodule Serum.DevServer do
   The Serum development server.
   """
 
+  alias Serum.DevServer.Logger
   alias Serum.DevServer.Service
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
@@ -48,7 +49,7 @@ defmodule Serum.DevServer do
     ms_options = [
       port: port,
       base: base,
-      callbacks: [Microscope.Logger],
+      callbacks: [Logger],
       index: true,
       extra_routes: [
         {"/serum_live_reloader", Serum.DevServer.LiveReloadHandler, nil}
