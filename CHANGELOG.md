@@ -17,6 +17,12 @@
   is nil. An error will be returned if so. Likewise, `Serum.File.write/1`
   checks the value of `dest` key.
 
+### Added
+
+- If you put any extra files and directories in `files/` directory, they will
+  be copied to the root of your website. `files/` directory is a good place for
+  your favicons, `robots.txt`, and so on.
+
 ### Changed
 
 - Docs: Marked some docs for internal modules as hidden, and organized
