@@ -15,12 +15,13 @@ defmodule Serum.TestHelper do
   end
 
   def make_project(target) do
-    ["" | ~w(pages posts includes templates assets media)]
+    ["" | ~w(pages posts includes templates assets media files)]
     |> Enum.map(&Path.join(target, &1))
     |> Enum.each(&File.mkdir_p!/1)
 
     File.touch!(Path.join([target, "assets", "test_asset"]))
     File.touch!(Path.join([target, "media", "test_media"]))
+    File.touch!(Path.join([target, "files", "test_file.txt"]))
     File.cp!(fixture("proj/good/serum.exs"), Path.join(target, "serum.exs"))
     File.cp!(fixture("templates/nav.html.eex"), Path.join(target, "includes/nav.html.eex"))
 

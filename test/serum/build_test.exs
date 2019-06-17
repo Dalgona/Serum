@@ -25,6 +25,11 @@ defmodule Serum.BuildTest do
 
     # Clean the destination dir when is not empty
     assert {:ok, ^dest} = Build.build(proj)
+
+    ~w(assets media posts test_file.txt)
+    |> Enum.each(fn x ->
+      assert x |> Path.expand(dest) |> File.exists?()
+    end)
   end
 
   test "skip copying assets and media", %{src: src, dest: dest, proj: proj} do
