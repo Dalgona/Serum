@@ -48,7 +48,7 @@ defmodule Serum.Build do
          :ok <- Plugin.build_started(src, dest),
          :ok <- pre_check(dest),
          :ok <- do_build(proj),
-         :ok <- copy_assets(src, dest, proj.theme),
+         :ok <- copy_files(src, dest, proj.theme),
          :ok <- Plugin.build_succeeded(src, dest),
          :ok <- Plugin.finalizing(src, dest) do
       {:ok, dest}
@@ -146,14 +146,12 @@ defmodule Serum.Build do
     |> Result.aggregate(:clean_dest)
   end
 
-  @spec copy_assets(binary(), binary(), Theme.t()) :: Result.t()
-  defp copy_assets(src, dest, theme) do
-    put_msg(:info, "Copying assets and media...")
-
+  @spec copy_files(binary(), binary(), Theme.t()) :: Result.t()
+  defp copy_files(src, dest, theme) do
     case copy_theme_assets(theme, dest) do
       :ok ->
-        try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
-        try_copy(Path.join(src, "media"), Path.join(dest, "media"))
+        copy_assets(src, dest)
+        do_copy_files(src, dest)
 
       {:error, _} = error ->
         error
@@ -169,7 +167,21 @@ defmodule Serum.Build do
     end
   end
 
-  @spec try_copy(binary, binary) :: :ok
+  @spec copy_assets(binary(), binary()) :: :ok
+  defp copy_assets(src, dest) do
+    put_msg(:info, "Copying assets and media...")
+    try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
+    try_copy(Path.join(src, "media"), Path.join(dest, "media"))
+  end
+
+  @spec do_copy_files(binary(), binary()) :: :ok
+  defp do_copy_files(src, dest) do
+    files_dir = Path.join(src, "files")
+
+    if File.exists?(files_dir), do: try_copy(files_dir, dest), else: :ok
+  end
+
+  @spec try_copy(binary(), binary()) :: :ok
   defp try_copy(src, dest) do
     case File.cp_r(src, dest) do
       {:error, reason, _} ->
