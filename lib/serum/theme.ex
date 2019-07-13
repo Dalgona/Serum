@@ -322,14 +322,8 @@ defmodule Serum.Theme do
     end
   end
 
-  # TODO: Make this function private
-  @doc false
   @spec get_assets(t()) :: Result.t(binary() | false)
-  def get_assets(theme)
-  # TODO: Remove this clause
-  def get_assets(%__MODULE__{module: nil}), do: {:ok, false}
-
-  def get_assets(%__MODULE__{module: module}) do
+  defp get_assets(%__MODULE__{module: module}) do
     case call_function(module, :get_assets, []) do
       {:ok, path} when is_binary(path) ->
         do_get_assets(path)
