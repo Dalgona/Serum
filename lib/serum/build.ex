@@ -48,7 +48,7 @@ defmodule Serum.Build do
          :ok <- Plugin.build_started(src, dest),
          :ok <- pre_check(dest),
          :ok <- do_build(proj),
-         :ok <- copy_files(src, dest, proj.theme),
+         :ok <- copy_files(src, dest),
          :ok <- Plugin.build_succeeded(src, dest),
          :ok <- Plugin.finalizing(src, dest) do
       {:ok, dest}
@@ -87,7 +87,7 @@ defmodule Serum.Build do
 
   @spec do_build(Project.t()) :: Result.t()
   defp do_build(proj) do
-    with {:ok, files} <- FileLoader.load_files(proj.src, proj.theme),
+    with {:ok, files} <- FileLoader.load_files(proj.src),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map),
          {:ok, files} <- PageGenerator.run(fragments, map.templates["base"]) do
@@ -146,9 +146,9 @@ defmodule Serum.Build do
     |> Result.aggregate(:clean_dest)
   end
 
-  @spec copy_files(binary(), binary(), Theme.t()) :: Result.t()
-  defp copy_files(src, dest, theme) do
-    case copy_theme_assets(theme, dest) do
+  @spec copy_files(binary(), binary()) :: Result.t()
+  defp copy_files(src, dest) do
+    case copy_theme_assets(dest) do
       :ok ->
         copy_assets(src, dest)
         do_copy_files(src, dest)
@@ -158,9 +158,9 @@ defmodule Serum.Build do
     end
   end
 
-  @spec copy_theme_assets(Theme.t(), binary()) :: Result.t()
-  defp copy_theme_assets(theme, dest) do
-    case Theme.get_assets(theme) do
+  @spec copy_theme_assets(binary()) :: Result.t()
+  defp copy_theme_assets(dest) do
+    case Theme.get_assets() do
       {:ok, false} -> :ok
       {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
       {:error, _} = error -> error

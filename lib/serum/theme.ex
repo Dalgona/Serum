@@ -60,8 +60,9 @@ defmodule Serum.Theme do
       $ MIX_ENV=prod mix serum.build
   """
 
-  alias Serum.Result
+  use Agent
   import Serum.IOProxy, only: [put_err: 2]
+  alias Serum.Result
 
   defstruct module: nil,
             name: "",
@@ -80,6 +81,10 @@ defmodule Serum.Theme do
         }
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
+
+  #
+  # Callbacks
+  #
 
   @doc "Returns the theme name."
   @callback name() :: binary()
@@ -156,22 +161,39 @@ defmodule Serum.Theme do
   #
 
   @doc false
+  @spec start_link(any()) :: Agent.on_start()
+  def start_link(_) do
+    Agent.start_link(fn -> nil end, name: __MODULE__)
+  end
+
+  @doc false
   @spec load(module() | nil) :: Result.t(t())
   def load(module_or_nil)
-  def load(nil), do: {:ok, %__MODULE__{}}
+
+  def load(nil) do
+    Agent.update(__MODULE__, fn _ -> nil end)
+
+    {:ok, %__MODULE__{}}
+  end
 
   def load(module) do
+    case make_theme(module) do
+      {:ok, theme} ->
+        Agent.update(__MODULE__, fn _ -> theme end)
+
+        {:ok, theme}
+
+      {:error, _} = error ->
+        error
+    end
+  end
+
+  @spec make_theme(module()) :: Result.t(t())
+  defp make_theme(module) do
     name = module.name()
     version = Version.parse!(module.version())
 
-    unless Version.match?(@serum_version, module.serum()) do
-      msg =
-        "The theme \"#{name}\" is not compatible with " <>
-          "the current version of Serum(#{@serum_version}). " <>
-          "This theme may not work as intended."
-
-      put_err(:warn, msg)
-    end
+    validate_serum_version(name, module.serum())
 
     result = %__MODULE__{
       module: module,
@@ -193,12 +215,31 @@ defmodule Serum.Theme do
       {:error, msg}
   end
 
-  @doc false
-  @spec get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
-  def get_includes(theme)
-  def get_includes(%__MODULE__{module: nil}), do: {:ok, %{}}
+  @spec validate_serum_version(binary(), Version.requirement()) :: :ok
+  defp validate_serum_version(name, requirement) do
+    if Version.match?(@serum_version, requirement) do
+      :ok
+    else
+      msg =
+        "The theme \"#{name}\" is not compatible with " <>
+          "the current version of Serum(#{@serum_version}). " <>
+          "This theme may not work as intended."
 
-  def get_includes(%__MODULE__{module: module}) do
+      put_err(:warn, msg)
+    end
+  end
+
+  @doc false
+  @spec get_includes() :: Result.t(%{optional(binary()) => binary()})
+  def get_includes do
+    case Agent.get(__MODULE__, & &1) do
+      %__MODULE__{} = theme -> do_get_includes(theme)
+      nil -> {:ok, %{}}
+    end
+  end
+
+  @spec do_get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
+  defp do_get_includes(%__MODULE__{module: module}) do
     case get_list(module, :get_includes, []) do
       {:ok, paths} ->
         result =
@@ -217,11 +258,16 @@ defmodule Serum.Theme do
   @accepted_templates MapSet.new(["base", "list", "page", "post"])
 
   @doc false
-  @spec get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
-  def get_templates(theme)
-  def get_templates(%__MODULE__{module: nil}), do: {:ok, %{}}
+  @spec get_templates() :: Result.t(%{optional(binary()) => binary()})
+  def get_templates do
+    case Agent.get(__MODULE__, & &1) do
+      %__MODULE__{} = theme -> do_get_templates(theme)
+      nil -> {:ok, %{}}
+    end
+  end
 
-  def get_templates(%__MODULE__{module: module}) do
+  @spec do_get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
+  defp do_get_templates(%__MODULE__{module: module}) do
     case get_list(module, :get_templates, []) do
       {:ok, paths} ->
         result =
@@ -268,11 +314,16 @@ defmodule Serum.Theme do
   defp check_list_type(x), do: {:bad, x}
 
   @doc false
-  @spec get_assets(t()) :: Result.t(binary() | false)
-  def get_assets(theme)
-  def get_assets(%__MODULE__{module: nil}), do: {:ok, false}
+  @spec get_assets() :: Result.t(binary() | false)
+  def get_assets do
+    case Agent.get(__MODULE__, & &1) do
+      %__MODULE__{} = theme -> get_assets(theme)
+      nil -> {:ok, false}
+    end
+  end
 
-  def get_assets(%__MODULE__{module: module}) do
+  @spec get_assets(t()) :: Result.t(binary() | false)
+  defp get_assets(%__MODULE__{module: module}) do
     case call_function(module, :get_assets, []) do
       {:ok, path} when is_binary(path) ->
         do_get_assets(path)

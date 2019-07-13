@@ -29,10 +29,10 @@ defmodule Serum.Build.FileLoader do
   this function won't fail even if they don't exist. The corresponding lists
   in the resulting map will be empty.
   """
-  @spec load_files(binary(), Theme.t()) :: Result.t(result())
-  def load_files(src, theme) do
-    with {:ok, template_files} <- load_templates(src, theme),
-         {:ok, include_files} <- load_includes(src, theme),
+  @spec load_files(binary()) :: Result.t(result())
+  def load_files(src) do
+    with {:ok, template_files} <- load_templates(src),
+         {:ok, include_files} <- load_includes(src),
          {:ok, page_files} <- load_pages(src),
          {:ok, post_files} <- load_posts(src) do
       {:ok,
@@ -47,11 +47,11 @@ defmodule Serum.Build.FileLoader do
     end
   end
 
-  @spec load_templates(binary(), Theme.t()) :: Result.t([Serum.File.t()])
-  defp load_templates(src, theme) do
+  @spec load_templates(binary()) :: Result.t([Serum.File.t()])
+  defp load_templates(src) do
     put_msg(:info, "Loading template files...")
 
-    case Theme.get_templates(theme) do
+    case Theme.get_templates() do
       {:ok, paths} ->
         paths
         |> Map.merge(get_project_templates(src), fn _, v1, v2 ->
@@ -78,11 +78,11 @@ defmodule Serum.Build.FileLoader do
     |> Map.new()
   end
 
-  @spec load_includes(binary(), Theme.t()) :: Result.t([Serum.File.t()])
-  defp load_includes(src, theme) do
+  @spec load_includes(binary()) :: Result.t([Serum.File.t()])
+  defp load_includes(src) do
     put_msg(:info, "Loading include files...")
 
-    case Theme.get_includes(theme) do
+    case Theme.get_includes() do
       {:ok, paths} ->
         paths
         |> Map.merge(get_project_includes(src))

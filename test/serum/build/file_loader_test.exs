@@ -2,7 +2,6 @@ defmodule Serum.Build.FileLoaderTest do
   use ExUnit.Case, async: true
   import Serum.TestHelper
   alias Serum.Build.FileLoader
-  alias Serum.Theme
 
   setup do
     tmp_dir = get_tmp_dir("serum_test_")
@@ -33,7 +32,7 @@ defmodule Serum.Build.FileLoaderTest do
   describe "load_files/1" do
     test "successfully loaded files", %{tmp_dir: tmp_dir} do
       {:ok, %{pages: pages, posts: posts, templates: temps, includes: incls}} =
-        FileLoader.load_files(tmp_dir, %Theme{})
+        FileLoader.load_files(tmp_dir)
 
       assert length(pages) === 1
       assert length(posts) === 1
@@ -46,7 +45,7 @@ defmodule Serum.Build.FileLoaderTest do
       File.rm_rf!(Path.join(tmp_dir, "includes"))
 
       {:ok, %{pages: pages, posts: [], templates: temps, includes: []}} =
-        FileLoader.load_files(tmp_dir, %Theme{})
+        FileLoader.load_files(tmp_dir)
 
       assert length(pages) === 1
       assert length(temps) === 4
@@ -55,13 +54,13 @@ defmodule Serum.Build.FileLoaderTest do
     test "pages directory is missing", %{tmp_dir: tmp_dir} do
       File.rm_rf!(Path.join(tmp_dir, "pages"))
 
-      {:error, {:enoent, _, _}} = FileLoader.load_files(tmp_dir, %Theme{})
+      {:error, {:enoent, _, _}} = FileLoader.load_files(tmp_dir)
     end
 
     test "some templates are missing", %{tmp_dir: tmp_dir} do
       File.rm_rf!(Path.join(tmp_dir, "templates/base.html.eex"))
 
-      {:error, {_, [{:error, {:enoent, _, _}} | _]}} = FileLoader.load_files(tmp_dir, %Theme{})
+      {:error, {_, [{:error, {:enoent, _, _}} | _]}} = FileLoader.load_files(tmp_dir)
     end
   end
 end
