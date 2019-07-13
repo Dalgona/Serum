@@ -60,8 +60,8 @@ defmodule Serum.Theme do
       $ MIX_ENV=prod mix serum.build
   """
 
-  alias Serum.Result
   import Serum.IOProxy, only: [put_err: 2]
+  alias Serum.Result
 
   defstruct module: nil,
             name: "",
@@ -164,14 +164,7 @@ defmodule Serum.Theme do
     name = module.name()
     version = Version.parse!(module.version())
 
-    unless Version.match?(@serum_version, module.serum()) do
-      msg =
-        "The theme \"#{name}\" is not compatible with " <>
-          "the current version of Serum(#{@serum_version}). " <>
-          "This theme may not work as intended."
-
-      put_err(:warn, msg)
-    end
+    validate_serum_version(name, module.serum())
 
     result = %__MODULE__{
       module: module,
@@ -191,6 +184,20 @@ defmodule Serum.Theme do
       msg = "#{ex_name} while loading theme (module: #{mod_name}): #{ex_msg}"
 
       {:error, msg}
+  end
+
+  @spec validate_serum_version(binary(), Version.requirement()) :: :ok
+  defp validate_serum_version(name, requirement) do
+    if Version.match?(@serum_version, requirement) do
+      :ok
+    else
+      msg =
+        "The theme \"#{name}\" is not compatible with " <>
+          "the current version of Serum(#{@serum_version}). " <>
+          "This theme may not work as intended."
+
+      put_err(:warn, msg)
+    end
   end
 
   @doc false
