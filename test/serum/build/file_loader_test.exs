@@ -2,7 +2,6 @@ defmodule Serum.Build.FileLoaderTest do
   use ExUnit.Case, async: true
   import Serum.TestHelper
   alias Serum.Build.FileLoader
-  alias Serum.Theme
 
   setup do
     tmp_dir = get_tmp_dir("serum_test_")
