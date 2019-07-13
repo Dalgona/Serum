@@ -233,19 +233,13 @@ defmodule Serum.Theme do
   @spec get_includes() :: Result.t(%{optional(binary()) => binary()})
   def get_includes do
     case Agent.get(__MODULE__, & &1) do
-      %__MODULE__{} = theme -> get_includes(theme)
+      %__MODULE__{} = theme -> do_get_includes(theme)
       nil -> {:ok, %{}}
     end
   end
 
-  # TODO: Make this function private
-  @doc false
-  @spec get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
-  def get_includes(theme)
-  # TODO: Remove this clause
-  def get_includes(%__MODULE__{module: nil}), do: {:ok, %{}}
-
-  def get_includes(%__MODULE__{module: module}) do
+  @spec do_get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
+  defp do_get_includes(%__MODULE__{module: module}) do
     case get_list(module, :get_includes, []) do
       {:ok, paths} ->
         result =
@@ -267,19 +261,13 @@ defmodule Serum.Theme do
   @spec get_templates() :: Result.t(%{optional(binary()) => binary()})
   def get_templates do
     case Agent.get(__MODULE__, & &1) do
-      %__MODULE__{} = theme -> get_templates(theme)
+      %__MODULE__{} = theme -> do_get_templates(theme)
       nil -> {:ok, %{}}
     end
   end
 
-  # TODO: Make this function private
-  @doc false
-  @spec get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
-  def get_templates(theme)
-  # TODO: Remove this clause
-  def get_templates(%__MODULE__{module: nil}), do: {:ok, %{}}
-
-  def get_templates(%__MODULE__{module: module}) do
+  @spec do_get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
+  defp do_get_templates(%__MODULE__{module: module}) do
     case get_list(module, :get_templates, []) do
       {:ok, paths} ->
         result =
