@@ -379,23 +379,8 @@ defmodule Serum.Plugin do
     elixir = module.elixir()
     serum = module.serum()
 
-    unless Version.match?(@elixir_version, elixir) do
-      msg =
-        "The plugin \"#{name}\" is not compatible with " <>
-          "the current version of Elixir(#{@elixir_version}). " <>
-          "This plugin may not work as intended."
-
-      put_err(:warn, msg)
-    end
-
-    unless Version.match?(@serum_version, serum) do
-      msg =
-        "The plugin \"#{name}\" is not compatible with " <>
-          "the current version of Serum(#{@serum_version}). " <>
-          "This plugin may not work as intended."
-
-      put_err(:warn, msg)
-    end
+    validate_elixir_version(name, elixir)
+    validate_serum_version(name, serum)
 
     plugin = %__MODULE__{
       module: module,
@@ -413,6 +398,34 @@ defmodule Serum.Plugin do
       msg = "#{ex_name} while loading plugin (module: #{module}): #{ex_msg}"
 
       {:error, msg}
+  end
+
+  @spec validate_elixir_version(binary(), Version.requirement()) :: :ok
+  defp validate_elixir_version(name, requirement) do
+    if Version.match?(@elixir_version, requirement) do
+      :ok
+    else
+      msg =
+        "The plugin \"#{name}\" is not compatible with " <>
+          "the current version of Elixir(#{@elixir_version}). " <>
+          "This plugin may not work as intended."
+
+      put_err(:warn, msg)
+    end
+  end
+
+  @spec validate_serum_version(binary(), Version.requirement()) :: :ok
+  defp validate_serum_version(name, requirement) do
+    if Version.match?(@serum_version, requirement) do
+      :ok
+    else
+      msg =
+        "The plugin \"#{name}\" is not compatible with " <>
+          "the current version of Serum(#{@serum_version}). " <>
+          "This plugin may not work as intended."
+
+      put_err(:warn, msg)
+    end
   end
 
   @spec update_agent([t()]) :: :ok
