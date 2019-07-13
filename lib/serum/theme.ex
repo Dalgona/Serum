@@ -60,6 +60,7 @@ defmodule Serum.Theme do
       $ MIX_ENV=prod mix serum.build
   """
 
+  use Agent
   import Serum.IOProxy, only: [put_err: 2]
   alias Serum.Result
 
@@ -80,6 +81,10 @@ defmodule Serum.Theme do
         }
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
+
+  #
+  # Callbacks
+  #
 
   @doc "Returns the theme name."
   @callback name() :: binary()
@@ -156,10 +161,27 @@ defmodule Serum.Theme do
   #
 
   @doc false
+  @spec start_link(any()) :: Agent.on_start()
+  def start_link(_) do
+    Agent.start_link(fn -> nil end, name: __MODULE__)
+  end
+
+  @doc false
   @spec load(module() | nil) :: Result.t(t())
   def load(module_or_nil)
   def load(nil), do: {:ok, %__MODULE__{}}
-  def load(module), do: make_theme(module)
+
+  def load(module) do
+    case make_theme(module) do
+      {:ok, theme} ->
+        Agent.update(__MODULE__, fn _ -> theme end)
+
+        {:ok, theme}
+
+      {:error, _} = error ->
+        error
+    end
+  end
 
   @spec make_theme(module()) :: Result.t(t())
   defp make_theme(module) do
@@ -203,8 +225,19 @@ defmodule Serum.Theme do
   end
 
   @doc false
+  @spec get_includes() :: Result.t(%{optional(binary()) => binary()})
+  def get_includes do
+    case Agent.get(__MODULE__, & &1) do
+      %__MODULE__{} = theme -> get_includes(theme)
+      nil -> {:ok, %{}}
+    end
+  end
+
+  # TODO: Make this function private
+  @doc false
   @spec get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
   def get_includes(theme)
+  # TODO: Remove this clause
   def get_includes(%__MODULE__{module: nil}), do: {:ok, %{}}
 
   def get_includes(%__MODULE__{module: module}) do
@@ -226,8 +259,19 @@ defmodule Serum.Theme do
   @accepted_templates MapSet.new(["base", "list", "page", "post"])
 
   @doc false
+  @spec get_templates() :: Result.t(%{optional(binary()) => binary()})
+  def get_templates do
+    case Agent.get(__MODULE__, & &1) do
+      %__MODULE__{} = theme -> get_templates(theme)
+      nil -> {:ok, %{}}
+    end
+  end
+
+  # TODO: Make this function private
+  @doc false
   @spec get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
   def get_templates(theme)
+  # TODO: Remove this clause
   def get_templates(%__MODULE__{module: nil}), do: {:ok, %{}}
 
   def get_templates(%__MODULE__{module: module}) do
@@ -277,8 +321,19 @@ defmodule Serum.Theme do
   defp check_list_type(x), do: {:bad, x}
 
   @doc false
+  @spec get_assets() :: Result.t(binary() | false)
+  def get_assets do
+    case Agent.get(__MODULE__, & &1) do
+      %__MODULE__{} = theme -> get_assets(theme)
+      nil -> {:ok, false}
+    end
+  end
+
+  # TODO: Make this function private
+  @doc false
   @spec get_assets(t()) :: Result.t(binary() | false)
   def get_assets(theme)
+  # TODO: Remove this clause
   def get_assets(%__MODULE__{module: nil}), do: {:ok, false}
 
   def get_assets(%__MODULE__{module: module}) do

@@ -19,6 +19,7 @@ defmodule Serum do
   alias Serum.GlobalBindings
   alias Serum.IOProxy
   alias Serum.Plugin
+  alias Serum.Theme
 
   @doc """
   Starts the `:serum` application.
@@ -30,7 +31,8 @@ defmodule Serum do
     children = [
       GlobalBindings,
       IOProxy,
-      Plugin
+      Plugin,
+      Theme
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
