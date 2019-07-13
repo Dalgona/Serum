@@ -159,8 +159,10 @@ defmodule Serum.Theme do
   @spec load(module() | nil) :: Result.t(t())
   def load(module_or_nil)
   def load(nil), do: {:ok, %__MODULE__{}}
+  def load(module), do: make_theme(module)
 
-  def load(module) do
+  @spec make_theme(module()) :: Result.t(t())
+  defp make_theme(module) do
     name = module.name()
     version = Version.parse!(module.version())
 
