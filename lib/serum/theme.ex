@@ -169,7 +169,12 @@ defmodule Serum.Theme do
   @doc false
   @spec load(module() | nil) :: Result.t(t())
   def load(module_or_nil)
-  def load(nil), do: {:ok, %__MODULE__{}}
+
+  def load(nil) do
+    Agent.update(__MODULE__, fn _ -> nil end)
+
+    {:ok, %__MODULE__{}}
+  end
 
   def load(module) do
     case make_theme(module) do
