@@ -3,7 +3,8 @@ defmodule Serum.Build do
   A module for managing the overall project build procedure.
   """
 
-  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
+  import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Build.FileCopier
   alias Serum.Build.FileEmitter
   alias Serum.Build.FileLoader
   alias Serum.Build.FileProcessor
@@ -48,7 +49,6 @@ defmodule Serum.Build do
          :ok <- Plugin.build_started(src, dest),
          :ok <- pre_check(dest),
          :ok <- do_build(proj),
-         :ok <- copy_files(src, dest),
          :ok <- Plugin.build_succeeded(src, dest),
          :ok <- Plugin.finalizing(src, dest) do
       {:ok, dest}
@@ -86,12 +86,13 @@ defmodule Serum.Build do
   end
 
   @spec do_build(Project.t()) :: Result.t()
-  defp do_build(proj) do
-    with {:ok, files} <- FileLoader.load_files(proj.src),
+  defp do_build(%{src: src, dest: dest} = proj) do
+    with {:ok, files} <- FileLoader.load_files(src),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map),
-         {:ok, files} <- PageGenerator.run(fragments, map.templates["base"]) do
-      FileEmitter.run(files)
+         {:ok, files} <- PageGenerator.run(fragments, map.templates["base"]),
+         :ok <- FileEmitter.run(files) do
+      FileCopier.copy_files(src, dest)
     else
       {:error, _} = error -> error
     end
@@ -144,51 +145,5 @@ defmodule Serum.Build do
       end
     end)
     |> Result.aggregate(:clean_dest)
-  end
-
-  @spec copy_files(binary(), binary()) :: Result.t()
-  defp copy_files(src, dest) do
-    case copy_theme_assets(dest) do
-      :ok ->
-        copy_assets(src, dest)
-        do_copy_files(src, dest)
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  @spec copy_theme_assets(binary()) :: Result.t()
-  defp copy_theme_assets(dest) do
-    case Theme.get_assets() do
-      {:ok, false} -> :ok
-      {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
-      {:error, _} = error -> error
-    end
-  end
-
-  @spec copy_assets(binary(), binary()) :: :ok
-  defp copy_assets(src, dest) do
-    put_msg(:info, "Copying assets and media...")
-    try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
-    try_copy(Path.join(src, "media"), Path.join(dest, "media"))
-  end
-
-  @spec do_copy_files(binary(), binary()) :: :ok
-  defp do_copy_files(src, dest) do
-    files_dir = Path.join(src, "files")
-
-    if File.exists?(files_dir), do: try_copy(files_dir, dest), else: :ok
-  end
-
-  @spec try_copy(binary(), binary()) :: :ok
-  defp try_copy(src, dest) do
-    case File.cp_r(src, dest) do
-      {:error, reason, _} ->
-        put_err(:warn, "Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
-
-      {:ok, _} ->
-        :ok
-    end
   end
 end
