@@ -11,6 +11,9 @@
 - Now the prompt text (`8080>`) in the Serum development server CLI will catch
   up the console output, instead of lagging behind.
 
+- Updated one of Serum's dependencies. Users will no longer see strange errors
+  from "Tzdata" once a day.
+
 ### Improved
 
 - `Serum.File.read/1` now checks if the value of `src` key in the input struct
