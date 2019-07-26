@@ -15,7 +15,7 @@ defmodule Serum.HeaderParserTest do
   @required [:my_str, :my_int]
 
   describe "parse_header/3" do
-    test "good, contains required keys only" do
+    test "parses header with required keys only" do
       data = """
       ---
       my_str: Hello, world!
@@ -31,23 +31,7 @@ defmodule Serum.HeaderParserTest do
       assert {:ok, {^expected, _}} = parse_header(data, @options, @required)
     end
 
-    test "good, number parsed as a string" do
-      data = """
-      ---
-      my_str: 12345
-      my_int: 42
-      ---
-      """
-
-      expected = %{
-        my_str: "12345",
-        my_int: 42
-      }
-
-      assert {:ok, {^expected, _}} = parse_header(data, @options, @required)
-    end
-
-    test "missing required key" do
+    test "fails when single required key is missing" do
       data = """
       ---
       my_str: Hello
@@ -58,7 +42,7 @@ defmodule Serum.HeaderParserTest do
       assert String.ends_with?(msg, "it's missing")
     end
 
-    test "missing required keys" do
+    test "fails when multiple required keys are missing" do
       data = """
       ---
       my_ints: 1, 2, 3
@@ -69,7 +53,7 @@ defmodule Serum.HeaderParserTest do
       assert String.ends_with?(msg, "they are missing")
     end
 
-    test "invalid integer" do
+    test "fails when an invalid integer is given" do
       data = """
       ---
       my_int: 42abcd123
@@ -79,7 +63,7 @@ defmodule Serum.HeaderParserTest do
       assert {:invalid, _} = parse_header(data, @options)
     end
 
-    test "valid datetime" do
+    test "parses valid datetime values" do
       data = """
       ---
       my_date1: 2019-01-01
@@ -93,7 +77,7 @@ defmodule Serum.HeaderParserTest do
       assert {{2019, 1, 1}, {12, 34, 56}} == Timex.to_erl(map.my_date2)
     end
 
-    test "valid list of values" do
+    test "parses valid lists of values" do
       data = """
       ---
       my_strs: lorem, ipsum,dolor , sit
@@ -112,7 +96,7 @@ defmodule Serum.HeaderParserTest do
                Enum.map(dates, &Timex.to_erl/1)
     end
 
-    test "invalid list of integers" do
+    test "fails when an invalid list of integers is given" do
       data = """
       ---
       my_ints: 10, 20, a, 40b
@@ -122,7 +106,7 @@ defmodule Serum.HeaderParserTest do
       assert {:invalid, _} = parse_header(data, @options)
     end
 
-    test "invalid list of dates" do
+    test "fails when an invalid list of dates is given" do
       data = """
       ---
       my_dates: 2019-01-01, 20190101
@@ -132,7 +116,7 @@ defmodule Serum.HeaderParserTest do
       assert {:invalid, _} = parse_header(data, @options)
     end
 
-    test "list of lists is not valid" do
+    test "rejects list of lists" do
       data = """
       ---
       x: how, does, one, know, how, many, sub, lists, exist, here
@@ -142,7 +126,7 @@ defmodule Serum.HeaderParserTest do
       assert {:invalid, _} = parse_header(data, x: {:list, {:list, :string}})
     end
 
-    test "invalid value type" do
+    test "rejects a value with an invalid type" do
       data = """
       ---
       magic: <!#>$#*&(*)
@@ -170,7 +154,7 @@ defmodule Serum.HeaderParserTest do
       assert {:ok, {^expected, _}} = parse_header(data, @options)
     end
 
-    test "no header" do
+    test "fails when no header is found" do
       data = """
       NOTICE!
       ME!
