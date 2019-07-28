@@ -60,18 +60,27 @@ defmodule Serum.HeaderParser do
   def parse_header(data, options, required \\ []) do
     case extract_header(data, [], false) do
       {:ok, header_lines, rest_data} ->
-        key_strings = options |> Keyword.keys() |> Enum.map(&Atom.to_string/1)
-
+        key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
         req_strings = Enum.map(required, &to_string/1)
 
-        kv_list =
+        kv_lists =
           header_lines
           |> Enum.map(&split_kv/1)
-          |> Enum.filter(fn {k, _} -> k in key_strings end)
+          |> Enum.group_by(&(elem(&1, 0) in key_strings))
 
-        with [] <- find_missing(kv_list, req_strings),
-             {:ok, new_kv} <- transform_values(kv_list, options, []) do
-          {:ok, {Map.new(new_kv), rest_data}}
+        %{
+          true: accepted_kv,
+          false: extra_kv
+        } = Map.merge(%{true: [], false: []}, kv_lists)
+
+        with [] <- find_missing(accepted_kv, req_strings),
+             {:ok, parsed} <- transform_values(accepted_kv, options, []) do
+          extras =
+            Enum.map(extra_kv, fn {k, v} ->
+              {k, ValueTransformer.transform_value(k, v, :string)}
+            end)
+
+          {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
         else
           error -> handle_error(error)
         end
@@ -113,8 +122,11 @@ defmodule Serum.HeaderParser do
   @spec split_kv(binary) :: {binary, binary}
 
   defp split_kv(line) do
-    case String.split(line, ":", parts: 2) do
-      [x] -> {String.trim(x), ""}
+    line
+    |> String.split(":", parts: 2)
+    |> Enum.map(&String.trim/1)
+    |> case do
+      [k] -> {k, ""}
       [k, v] -> {k, v}
     end
   end
@@ -146,7 +158,7 @@ defmodule Serum.HeaderParser do
   defp transform_values([{k, v} | rest], options, acc) do
     atom_k = String.to_existing_atom(k)
 
-    case ValueTransformer.transform_value(k, String.trim(v), options[atom_k]) do
+    case ValueTransformer.transform_value(k, v, options[atom_k]) do
       {:error, _} = error -> error
       value -> transform_values(rest, options, [{atom_k, value} | acc])
     end
