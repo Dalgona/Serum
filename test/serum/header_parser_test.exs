@@ -28,7 +28,7 @@ defmodule Serum.HeaderParserTest do
         my_int: 42
       }
 
-      assert {:ok, {^expected, _}} = parse_header(data, @options, @required)
+      assert {:ok, {^expected, %{}, _}} = parse_header(data, @options, @required)
     end
 
     test "fails when single required key is missing" do
@@ -71,7 +71,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      {:ok, {map, _}} = parse_header(data, @options)
+      {:ok, {map, %{}, _}} = parse_header(data, @options)
 
       assert {{2019, 1, 1}, {0, 0, 0}} == Timex.to_erl(map.my_date1)
       assert {{2019, 1, 1}, {12, 34, 56}} == Timex.to_erl(map.my_date2)
@@ -89,7 +89,7 @@ defmodule Serum.HeaderParserTest do
       strs = ["lorem", "ipsum", "dolor", "sit"]
       ints = [10, 20, 30, 40, 50]
 
-      assert {:ok, {%{my_strs: ^strs, my_ints: ^ints, my_dates: dates}, _}} =
+      assert {:ok, {%{my_strs: ^strs, my_ints: ^ints, my_dates: dates}, %{}, _}} =
                parse_header(data, @options)
 
       assert [{{2019, 1, 1}, {0, 0, 0}}, {{2019, 1, 1}, {12, 34, 56}}] ==
@@ -136,6 +136,20 @@ defmodule Serum.HeaderParserTest do
       assert {:invalid, _} = parse_header(data, magic: :spell)
     end
 
+    test "parses extra metadata" do
+      data = """
+      ---
+      my_str: Hello, world!
+      extra1: Lorem ipsum
+      ---
+      """
+
+      expected = %{my_str: "Hello, world!"}
+      expected_extra = %{"extra1" => "Lorem ipsum"}
+
+      assert {:ok, {^expected, ^expected_extra, _}} = parse_header(data, @options)
+    end
+
     test "ignores preceding data" do
       data = """
       notice me
@@ -151,7 +165,7 @@ defmodule Serum.HeaderParserTest do
         my_int: 42
       }
 
-      assert {:ok, {^expected, _}} = parse_header(data, @options)
+      assert {:ok, {^expected, %{}, _}} = parse_header(data, @options)
     end
 
     test "fails when no header is found" do
