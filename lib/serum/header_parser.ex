@@ -62,12 +62,14 @@ defmodule Serum.HeaderParser do
       {:ok, header_lines, rest_data} ->
         key_strings = options |> Keyword.keys() |> Enum.map(&Atom.to_string/1)
 
+        req_strings = Enum.map(required, &to_string/1)
+
         kv_list =
           header_lines
           |> Enum.map(&split_kv/1)
           |> Enum.filter(fn {k, _} -> k in key_strings end)
 
-        with [] <- find_missing(kv_list, required),
+        with [] <- find_missing(kv_list, req_strings),
              {:ok, new_kv} <- transform_values(kv_list, options, []) do
           {:ok, {Map.new(new_kv), rest_data}}
         else
@@ -77,23 +79,6 @@ defmodule Serum.HeaderParser do
       error ->
         handle_error(error)
     end
-  end
-
-  @spec handle_error(term) :: {:invalid, binary()}
-  defp handle_error(term)
-
-  defp handle_error([missing]) do
-    {:invalid, "`#{missing}` is required, but it's missing"}
-  end
-
-  defp handle_error([_ | _] = missing) do
-    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
-
-    {:invalid, "#{repr} are required, but they are missing"}
-  end
-
-  defp handle_error({:error, error}) do
-    {:invalid, "header parse error: #{error}"}
   end
 
   @spec extract_header(binary, [binary], boolean) :: extract_ok | extract_err
@@ -134,23 +119,17 @@ defmodule Serum.HeaderParser do
     end
   end
 
-  @spec find_missing([{binary, binary}], [atom]) :: [atom]
-
-  defp find_missing(kvlist, required) do
-    keys = Enum.map(kvlist, fn {k, _} -> k end)
-    do_find_missing(keys, required)
+  @spec find_missing([{binary(), binary()}], [binary()]) :: [binary()]
+  defp find_missing(kv_list, req_strings) do
+    kv_list |> Enum.map(&elem(&1, 0)) |> do_find_missing(req_strings)
   end
 
   @spec do_find_missing([binary], [atom], [atom]) :: [atom]
-
   defp do_find_missing(keys, required, acc \\ [])
-
-  defp do_find_missing(_keys, [], acc) do
-    acc
-  end
+  defp do_find_missing(_keys, [], acc), do: acc
 
   defp do_find_missing(keys, [h | t], acc) do
-    if Atom.to_string(h) in keys do
+    if h in keys do
       do_find_missing(keys, t, acc)
     else
       do_find_missing(keys, t, [h | acc])
@@ -171,5 +150,22 @@ defmodule Serum.HeaderParser do
       {:error, _} = error -> error
       value -> transform_values(rest, options, [{atom_k, value} | acc])
     end
+  end
+
+  @spec handle_error(term) :: {:invalid, binary()}
+  defp handle_error(term)
+
+  defp handle_error([missing]) do
+    {:invalid, "`#{missing}` is required, but it's missing"}
+  end
+
+  defp handle_error([_ | _] = missing) do
+    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
+
+    {:invalid, "#{repr} are required, but they are missing"}
+  end
+
+  defp handle_error({:error, error}) do
+    {:invalid, "header parse error: #{error}"}
   end
 end
