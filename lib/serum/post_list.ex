@@ -32,7 +32,8 @@ defmodule Serum.PostList do
           url: binary(),
           prev_url: binary() | nil,
           next_url: binary() | nil,
-          output: binary()
+          output: binary(),
+          extras: %{optional(binary()) => binary()}
         }
 
   @type maybe_tag :: Tag.t() | nil
@@ -46,7 +47,8 @@ defmodule Serum.PostList do
     :url,
     :prev_url,
     :next_url,
-    :output
+    :output,
+    :extras
   ]
 
   @spec generate(maybe_tag(), [map()], map()) :: Result.t([t()])
@@ -71,7 +73,8 @@ defmodule Serum.PostList do
           title: list_title(tag, proj),
           posts: posts,
           url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
-          output: Path.join([proj.dest, list_dir, "page-#{page}.html"])
+          output: Path.join([proj.dest, list_dir, "page-#{page}.html"]),
+          extras: %{}
         }
       end)
 

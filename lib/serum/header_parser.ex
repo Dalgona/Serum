@@ -20,12 +20,11 @@ defmodule Serum.HeaderParser do
   actual value of a metadata.
   """
 
-  @date_format1 "{YYYY}-{0M}-{0D} {h24}:{m}:{s}"
-  @date_format2 "{YYYY}-{0M}-{0D}"
+  alias Serum.HeaderParser.ValueTransformer
 
   @type options :: [{atom, value_type}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type}
-  @type value :: binary | integer | [binary] | [integer]
+  @type value :: binary | integer | DateTime.t() | [binary] | [integer] | [DateTime.t()]
   @type parse_result :: {:ok, {map(), binary()}} | {:invalid, binary()}
 
   @typep extract_ok :: {:ok, [binary], binary}
@@ -61,16 +60,27 @@ defmodule Serum.HeaderParser do
   def parse_header(data, options, required \\ []) do
     case extract_header(data, [], false) do
       {:ok, header_lines, rest_data} ->
-        key_strings = options |> Keyword.keys() |> Enum.map(&Atom.to_string/1)
+        key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
+        req_strings = Enum.map(required, &to_string/1)
 
-        kv_list =
+        kv_lists =
           header_lines
           |> Enum.map(&split_kv/1)
-          |> Enum.filter(fn {k, _} -> k in key_strings end)
+          |> Enum.group_by(&(elem(&1, 0) in key_strings))
 
-        with [] <- find_missing(kv_list, required),
-             {:ok, new_kv} <- transform_values(kv_list, options, []) do
-          {:ok, {Map.new(new_kv), rest_data}}
+        %{
+          true: accepted_kv,
+          false: extra_kv
+        } = Map.merge(%{true: [], false: []}, kv_lists)
+
+        with [] <- find_missing(accepted_kv, req_strings),
+             {:ok, parsed} <- transform_values(accepted_kv, options, []) do
+          extras =
+            Enum.map(extra_kv, fn {k, v} ->
+              {k, ValueTransformer.transform_value(k, v, :string)}
+            end)
+
+          {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
         else
           error -> handle_error(error)
         end
@@ -78,23 +88,6 @@ defmodule Serum.HeaderParser do
       error ->
         handle_error(error)
     end
-  end
-
-  @spec handle_error(term) :: {:invalid, binary()}
-  defp handle_error(term)
-
-  defp handle_error([missing]) do
-    {:invalid, "`#{missing}` is required, but it's missing"}
-  end
-
-  defp handle_error([_ | _] = missing) do
-    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
-
-    {:invalid, "#{repr} are required, but they are missing"}
-  end
-
-  defp handle_error({:error, error}) do
-    {:invalid, "header parse error: #{error}"}
   end
 
   @spec extract_header(binary, [binary], boolean) :: extract_ok | extract_err
@@ -129,29 +122,26 @@ defmodule Serum.HeaderParser do
   @spec split_kv(binary) :: {binary, binary}
 
   defp split_kv(line) do
-    case String.split(line, ":", parts: 2) do
-      [x] -> {String.trim(x), ""}
+    line
+    |> String.split(":", parts: 2)
+    |> Enum.map(&String.trim/1)
+    |> case do
+      [k] -> {k, ""}
       [k, v] -> {k, v}
     end
   end
 
-  @spec find_missing([{binary, binary}], [atom]) :: [atom]
-
-  defp find_missing(kvlist, required) do
-    keys = Enum.map(kvlist, fn {k, _} -> k end)
-    do_find_missing(keys, required)
+  @spec find_missing([{binary(), binary()}], [binary()]) :: [binary()]
+  defp find_missing(kv_list, req_strings) do
+    kv_list |> Enum.map(&elem(&1, 0)) |> do_find_missing(req_strings)
   end
 
   @spec do_find_missing([binary], [atom], [atom]) :: [atom]
-
   defp do_find_missing(keys, required, acc \\ [])
-
-  defp do_find_missing(_keys, [], acc) do
-    acc
-  end
+  defp do_find_missing(_keys, [], acc), do: acc
 
   defp do_find_missing(keys, [h | t], acc) do
-    if Atom.to_string(h) in keys do
+    if h in keys do
       do_find_missing(keys, t, acc)
     else
       do_find_missing(keys, t, [h | acc])
@@ -168,65 +158,26 @@ defmodule Serum.HeaderParser do
   defp transform_values([{k, v} | rest], options, acc) do
     atom_k = String.to_existing_atom(k)
 
-    case transform_value(k, String.trim(v), options[atom_k]) do
+    case ValueTransformer.transform_value(k, v, options[atom_k]) do
       {:error, _} = error -> error
       value -> transform_values(rest, options, [{atom_k, value} | acc])
     end
   end
 
-  @spec transform_value(binary, binary, value_type) :: value | {:error, binary}
+  @spec handle_error(term) :: {:invalid, binary()}
+  defp handle_error(term)
 
-  defp transform_value(_key, valstr, :string) do
-    valstr
+  defp handle_error([missing]) do
+    {:invalid, "`#{missing}` is required, but it's missing"}
   end
 
-  defp transform_value(key, valstr, :integer) do
-    case Integer.parse(valstr) do
-      {value, ""} -> value
-      _ -> {:error, "`#{key}`: invalid integer"}
-    end
+  defp handle_error([_ | _] = missing) do
+    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
+
+    {:invalid, "#{repr} are required, but they are missing"}
   end
 
-  defp transform_value(key, valstr, :datetime) do
-    case Timex.parse(valstr, @date_format1) do
-      {:ok, dt} ->
-        dt |> Timex.to_erl() |> Timex.to_datetime(:local)
-
-      {:error, _msg} ->
-        case Timex.parse(valstr, @date_format2) do
-          {:ok, dt} ->
-            dt |> Timex.to_erl() |> Timex.to_datetime(:local)
-
-          {:error, msg} ->
-            {:error, "`#{key}`: " <> msg}
-        end
-    end
+  defp handle_error({:error, error}) do
+    {:invalid, "header parse error: #{error}"}
   end
-
-  defp transform_value(key, _valstr, {:list, {:list, _type}}) do
-    {:error, "`#{key}`: \"list of lists\" type is not supported"}
-  end
-
-  defp transform_value(key, valstr, {:list, type}) when is_atom(type) do
-    list =
-      valstr
-      |> String.split(",")
-      |> Stream.map(&String.trim/1)
-      |> Stream.reject(&(&1 == ""))
-      |> Stream.map(&transform_value(key, &1, type))
-
-    case Enum.filter(list, &error?/1) do
-      [] -> Enum.to_list(list)
-      [{:error, _} = error | _] -> error
-    end
-  end
-
-  defp transform_value(key, _valstr, _type) do
-    {:error, "`#{key}`: invalid value type"}
-  end
-
-  @spec error?(term) :: boolean
-
-  defp error?({:error, _}), do: true
-  defp error?(_), do: false
 end

@@ -20,6 +20,10 @@
   is nil. An error will be returned if so. Likewise, `Serum.File.write/1`
   checks the value of `dest` key.
 
+- Now you can add any user-defined metadata to your pages and posts. Just put
+  some lines like `key: value` in the header, and these metadata will be
+  available at `@page.extras` (or `@post.extras`) in your templates.
+
 ### Added
 
 - If you put any extra files and directories in `files/` directory, they will

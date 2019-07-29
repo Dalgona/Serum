@@ -43,8 +43,8 @@ defmodule Serum.Build.FileProcessor.Post do
 
     required = [:title, :date]
 
-    with {:ok, file2} <- Plugin.processing_post(file),
-         {:ok, {header, rest}} <- parse_header(file2.in_data, opts, required) do
+    with {:ok, %{in_data: data} = file2} <- Plugin.processing_post(file),
+         {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
       header = %{
         header
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
@@ -52,7 +52,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
       post = Post.new(file2.src, header, Markdown.to_html(rest, proj), proj)
 
-      Plugin.processed_post(post)
+      Plugin.processed_post(%Post{post | extras: extras})
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
       {:error, _} = plugin_error -> plugin_error
