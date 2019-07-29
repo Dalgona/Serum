@@ -23,14 +23,26 @@ defmodule Serum.Page do
           order: integer(),
           url: binary(),
           output: binary(),
-          data: binary()
+          data: binary(),
+          extras: %{optional(binary()) => binary()}
         }
 
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Result
 
-  defstruct [:file, :type, :title, :label, :group, :order, :url, :output, :data]
+  defstruct [
+    :file,
+    :type,
+    :title,
+    :label,
+    :group,
+    :order,
+    :url,
+    :output,
+    :data,
+    :extras
+  ]
 
   @spec new(binary(), map(), binary(), map()) :: t()
   def new(path, header, data, proj) do

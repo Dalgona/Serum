@@ -29,7 +29,8 @@ defmodule Serum.Post do
           url: binary(),
           html: binary(),
           preview: binary(),
-          output: binary()
+          output: binary(),
+          extras: %{optional(binary()) => binary()}
         }
 
   defstruct [
@@ -41,7 +42,8 @@ defmodule Serum.Post do
     :url,
     :html,
     :preview,
-    :output
+    :output,
+    :extras
   ]
 
   @spec new(binary(), map(), binary(), map()) :: t()
