@@ -25,7 +25,7 @@ defmodule Serum.HeaderParser do
   @type options :: [{atom, value_type}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type}
   @type value :: binary | integer | DateTime.t() | [binary] | [integer] | [DateTime.t()]
-  @type parse_result :: {:ok, {map(), binary()}} | {:invalid, binary()}
+  @type parse_result :: {:ok, {map(), map(), binary()}} | {:invalid, binary()}
 
   @typep extract_ok :: {:ok, [binary], binary}
   @typep extract_err :: {:error, binary}
