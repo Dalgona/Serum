@@ -4,7 +4,7 @@ defmodule Serum.Build.FileLoader do
   _moduledocp = "A module responsible for loading project files."
 
   import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
-  alias Serum.Build.FileLoader.Includes
+  alias Serum.Build.FileLoader.{Includes, Pages}
   alias Serum.Plugin
   alias Serum.Result
   alias Serum.Theme
@@ -34,7 +34,7 @@ defmodule Serum.Build.FileLoader do
   def load_files(src) do
     with {:ok, template_files} <- load_templates(src),
          {:ok, include_files} <- Includes.load(src),
-         {:ok, page_files} <- load_pages(src),
+         {:ok, page_files} <- Pages.load(src),
          {:ok, post_files} <- load_posts(src) do
       {:ok,
        %{
@@ -77,26 +77,6 @@ defmodule Serum.Build.FileLoader do
     ["base", "list", "page", "post"]
     |> Enum.map(&{&1, Path.join(templates_dir, &1 <> ".html.eex")})
     |> Map.new()
-  end
-
-  @spec load_pages(binary()) :: Result.t([Serum.File.t()])
-  defp load_pages(src) do
-    put_msg(:info, "Loading page files...")
-
-    pages_dir = get_subdir(src, "pages")
-
-    if File.exists?(pages_dir) do
-      [pages_dir, "**", "*.{md,html,html.eex}"]
-      |> Path.join()
-      |> Path.wildcard()
-      |> Plugin.reading_pages()
-      |> case do
-        {:ok, files} -> read_files(files)
-        {:error, _} = plugin_error -> plugin_error
-      end
-    else
-      {:error, {:enoent, pages_dir, 0}}
-    end
   end
 
   @spec load_posts(binary()) :: Result.t([Serum.File.t()])
