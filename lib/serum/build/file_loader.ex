@@ -4,6 +4,7 @@ defmodule Serum.Build.FileLoader do
   _moduledocp = "A module responsible for loading project files."
 
   import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
+  alias Serum.Build.FileLoader.Includes
   alias Serum.Plugin
   alias Serum.Result
   alias Serum.Theme
@@ -32,7 +33,7 @@ defmodule Serum.Build.FileLoader do
   @spec load_files(binary()) :: Result.t(result())
   def load_files(src) do
     with {:ok, template_files} <- load_templates(src),
-         {:ok, include_files} <- load_includes(src),
+         {:ok, include_files} <- Includes.load(src),
          {:ok, page_files} <- load_pages(src),
          {:ok, post_files} <- load_posts(src) do
       {:ok,
@@ -76,42 +77,6 @@ defmodule Serum.Build.FileLoader do
     ["base", "list", "page", "post"]
     |> Enum.map(&{&1, Path.join(templates_dir, &1 <> ".html.eex")})
     |> Map.new()
-  end
-
-  @spec load_includes(binary()) :: Result.t([Serum.File.t()])
-  defp load_includes(src) do
-    put_msg(:info, "Loading include files...")
-
-    case Theme.get_includes() do
-      {:ok, paths} ->
-        paths
-        |> Map.merge(get_project_includes(src))
-        |> Enum.map(&elem(&1, 1))
-        |> Plugin.reading_templates()
-        |> case do
-          {:ok, files} -> read_files(files)
-          {:error, _} = plugin_error -> plugin_error
-        end
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  @spec get_project_includes(binary()) :: map()
-  defp get_project_includes(src) do
-    includes_dir = get_subdir(src, "includes")
-
-    if File.exists?(includes_dir) do
-      includes_dir
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, ".html.eex"))
-      |> Enum.map(&Path.join(includes_dir, &1))
-      |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
-      |> Map.new()
-    else
-      %{}
-    end
   end
 
   @spec load_pages(binary()) :: Result.t([Serum.File.t()])
