@@ -30,7 +30,8 @@ defmodule Serum.Post do
           html: binary(),
           preview: binary(),
           output: binary(),
-          extras: %{optional(binary()) => binary()}
+          extras: %{optional(binary()) => binary()},
+          template: binary()
         }
 
   defstruct [
@@ -43,7 +44,8 @@ defmodule Serum.Post do
     :html,
     :preview,
     :output,
-    :extras
+    :extras,
+    :template
   ]
 
   @spec new(binary(), map(), binary(), map()) :: t()

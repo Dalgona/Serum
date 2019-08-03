@@ -24,7 +24,8 @@ defmodule Serum.Page do
           url: binary(),
           output: binary(),
           data: binary(),
-          extras: %{optional(binary()) => binary()}
+          extras: %{optional(binary()) => binary()},
+          template: binary()
         }
 
   alias Serum.Fragment
@@ -41,7 +42,8 @@ defmodule Serum.Page do
     :url,
     :output,
     :data,
-    :extras
+    :extras,
+    :template
   ]
 
   @spec new(binary(), map(), binary(), map()) :: t()
