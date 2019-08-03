@@ -136,7 +136,8 @@ defmodule Serum.ThemeTest do
       expected_paths = %{
         "base" => "/foo/bar/templates/base.html.eex",
         "list" => "/foo/bar/templates/list.html.eex",
-        "post" => "/foo/bar/templates/post.html.eex"
+        "post" => "/foo/bar/templates/post.html.eex",
+        "magic" => "/foo/bar/templates/magic.html.eex"
       }
 
       assert paths === expected_paths

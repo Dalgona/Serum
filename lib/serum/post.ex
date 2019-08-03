@@ -19,6 +19,7 @@ defmodule Serum.Post do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
+  alias Serum.Template
 
   @type t :: %__MODULE__{
           file: binary(),
@@ -30,7 +31,8 @@ defmodule Serum.Post do
           html: binary(),
           preview: binary(),
           output: binary(),
-          extras: %{optional(binary()) => binary()}
+          extras: %{optional(binary()) => binary()},
+          template: binary()
         }
 
   defstruct [
@@ -43,7 +45,8 @@ defmodule Serum.Post do
     :html,
     :preview,
     :output,
-    :extras
+    :extras,
+    :template
   ]
 
   @spec new(binary(), map(), binary(), map()) :: t()
@@ -100,11 +103,14 @@ defmodule Serum.Post do
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, templates) do
     metadata = compact(post)
-    template = templates["post"]
+    template_name = post.template || "post"
     bindings = [page: metadata, contents: post.html]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, html} -> Fragment.new(post.file, post.output, metadata, html)
+    with %Template{} = template <- templates[template_name],
+         {:ok, html} <- Renderer.render_fragment(template, bindings) do
+      Fragment.new(post.file, post.output, metadata, html)
+    else
+      nil -> {:error, "the template \"#{template_name}\" is not available"}
       {:error, _} = error -> error
     end
   end

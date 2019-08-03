@@ -24,12 +24,14 @@ defmodule Serum.Page do
           url: binary(),
           output: binary(),
           data: binary(),
-          extras: %{optional(binary()) => binary()}
+          extras: %{optional(binary()) => binary()},
+          template: binary()
         }
 
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Result
+  alias Serum.Template
 
   defstruct [
     :file,
@@ -41,7 +43,8 @@ defmodule Serum.Page do
     :url,
     :output,
     :data,
-    :extras
+    :extras,
+    :template
   ]
 
   @spec new(binary(), map(), binary(), map()) :: t()
@@ -90,11 +93,14 @@ defmodule Serum.Page do
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(page, templates) do
     metadata = compact(page)
-    template = templates["page"]
+    template_name = page.template || "page"
     bindings = [page: metadata, contents: page.data]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, html} -> Fragment.new(page.file, page.output, metadata, html)
+    with %Template{} = template <- templates[template_name],
+         {:ok, html} <- Renderer.render_fragment(template, bindings) do
+      Fragment.new(page.file, page.output, metadata, html)
+    else
+      nil -> {:error, "the template \"#{template_name}\" is not available"}
       {:error, _} = error -> error
     end
   end

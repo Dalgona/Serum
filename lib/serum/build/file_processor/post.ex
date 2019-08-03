@@ -38,7 +38,8 @@ defmodule Serum.Build.FileProcessor.Post do
     opts = [
       title: :string,
       tags: {:list, :string},
-      date: :datetime
+      date: :datetime,
+      template: :string
     ]
 
     required = [:title, :date]

@@ -34,7 +34,7 @@ defmodule Serum.Build.FileLoader.TemplatesTest do
       make_files(templates_dir)
 
       assert {:ok, files} = load(tmp_dir)
-      assert 4 === length(files)
+      assert 6 === length(files)
     end
 
     test "loads template files with a theme", %{tmp_dir: tmp_dir} do
@@ -55,7 +55,7 @@ defmodule Serum.Build.FileLoader.TemplatesTest do
       {:ok, agent} = Agent.start_link(fn -> theme_dir end, name: Serum.TestAgent)
 
       assert {:ok, files} = load(tmp_dir)
-      assert 4 === length(files)
+      assert 8 === length(files)
 
       :ok = Agent.stop(agent)
 

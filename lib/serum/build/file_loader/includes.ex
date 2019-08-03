@@ -38,9 +38,8 @@ defmodule Serum.Build.FileLoader.Includes do
 
     if File.exists?(includes_dir) do
       includes_dir
-      |> File.ls!()
-      |> Enum.filter(&String.ends_with?(&1, ".html.eex"))
-      |> Enum.map(&Path.join(includes_dir, &1))
+      |> Path.join("*.html.eex")
+      |> Path.wildcard()
       |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
       |> Map.new()
     else
