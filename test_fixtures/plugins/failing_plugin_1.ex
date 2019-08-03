@@ -9,7 +9,10 @@ defmodule Serum.FailingPlugin1 do
 
   def implements, do: [
     :build_started,
+    :reading_pages,
     :reading_posts,
+    :reading_templates,
+    :reading_includes,
     :processing_page,
     :processing_template,
     :build_succeeded,

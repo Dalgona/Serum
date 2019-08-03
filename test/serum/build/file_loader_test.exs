@@ -30,7 +30,7 @@ defmodule Serum.Build.FileLoaderTest do
   end
 
   describe "load_files/1" do
-    test "successfully loaded files", %{tmp_dir: tmp_dir} do
+    test "loads four kinds of files", %{tmp_dir: tmp_dir} do
       {:ok, %{pages: pages, posts: posts, templates: temps, includes: incls}} =
         FileLoader.load_files(tmp_dir)
 
@@ -40,27 +40,10 @@ defmodule Serum.Build.FileLoaderTest do
       assert length(incls) === 1
     end
 
-    test "ignore optional directories", %{tmp_dir: tmp_dir} do
-      File.rm_rf!(Path.join(tmp_dir, "posts"))
-      File.rm_rf!(Path.join(tmp_dir, "includes"))
-
-      {:ok, %{pages: pages, posts: [], templates: temps, includes: []}} =
-        FileLoader.load_files(tmp_dir)
-
-      assert length(pages) === 1
-      assert length(temps) === 4
-    end
-
-    test "pages directory is missing", %{tmp_dir: tmp_dir} do
+    test "fails when one or more sub tasks fail", %{tmp_dir: tmp_dir} do
       File.rm_rf!(Path.join(tmp_dir, "pages"))
 
       {:error, {:enoent, _, _}} = FileLoader.load_files(tmp_dir)
-    end
-
-    test "some templates are missing", %{tmp_dir: tmp_dir} do
-      File.rm_rf!(Path.join(tmp_dir, "templates/base.html.eex"))
-
-      {:error, {_, [{:error, {:enoent, _, _}} | _]}} = FileLoader.load_files(tmp_dir)
     end
   end
 end
