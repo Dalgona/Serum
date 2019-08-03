@@ -255,8 +255,6 @@ defmodule Serum.Theme do
     end
   end
 
-  @accepted_templates MapSet.new(["base", "list", "page", "post"])
-
   @doc false
   @spec get_templates() :: Result.t(%{optional(binary()) => binary()})
   def get_templates do
@@ -273,7 +271,7 @@ defmodule Serum.Theme do
         result =
           paths
           |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
-          |> Enum.filter(&(elem(&1, 0) in @accepted_templates))
+          |> Enum.filter(&String.ends_with?(elem(&1, 1), ".html.eex"))
           |> Map.new()
 
         {:ok, result}
