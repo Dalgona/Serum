@@ -30,6 +30,9 @@
   be copied to the root of your website. `files/` directory is a good place for
   your favicons, `robots.txt`, and so on.
 
+- Added support for custom templates. Pages and blog posts now recognize the
+  `template` key in their headers.
+
 ### Changed
 
 - Docs: Marked some docs for internal modules as hidden, and organized
