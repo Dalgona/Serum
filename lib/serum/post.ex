@@ -102,7 +102,7 @@ defmodule Serum.Post do
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, templates) do
     metadata = compact(post)
-    template = templates["post"]
+    template = (post.template && templates[post.template]) || templates["post"]
     bindings = [page: metadata, contents: post.html]
 
     case Renderer.render_fragment(template, bindings) do

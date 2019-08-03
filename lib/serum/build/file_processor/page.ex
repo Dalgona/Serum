@@ -41,7 +41,8 @@ defmodule Serum.Build.FileProcessor.Page do
       title: :string,
       label: :string,
       group: :string,
-      order: :integer
+      order: :integer,
+      template: :string
     ]
 
     required = [:title]
