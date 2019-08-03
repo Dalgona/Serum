@@ -132,9 +132,8 @@ defmodule Serum.Theme do
   @doc """
   Returns a list of paths to template files.
 
-  Each path in the list must end with one of these: `"/base.html.eex"`,
-  `"/list.html.eex"`, `"/page.html.eex"`, and `"/post.html.eex"`. Anything else
-  will be ignored.
+  All paths in the list must end with `".html.eex"`. Anything that does not end
+  with `".html.eex"` will be ignored.
 
   ## Example Return Value
 
