@@ -55,5 +55,41 @@ defmodule Serum.Build.FragmentGeneratorTest do
 
       assert {:error, _} = FragmentGenerator.to_fragment(processed)
     end
+
+    test "fails when pages use custom templates which are unavailable", ctx do
+      GlobalBindings.load(ctx.state)
+
+      {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
+      [page | pages] = ctx.pages
+      bad_page = %{page | template: "foobarbaz"}
+
+      processed = %{
+        pages: [bad_page | pages],
+        posts: [],
+        lists: [],
+        templates: templates,
+        includes: []
+      }
+
+      assert {:error, _} = FragmentGenerator.to_fragment(processed)
+    end
+
+    test "fails when posts use custom templates which are unavailable", ctx do
+      GlobalBindings.load(ctx.state)
+
+      {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
+      [post | posts] = ctx.posts
+      bad_post = %{post | template: "foobarbaz"}
+
+      processed = %{
+        pages: [],
+        posts: [bad_post | posts],
+        lists: [],
+        templates: templates,
+        includes: []
+      }
+
+      assert {:error, _} = FragmentGenerator.to_fragment(processed)
+    end
   end
 end
