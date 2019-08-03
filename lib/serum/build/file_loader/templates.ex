@@ -39,18 +39,14 @@ defmodule Serum.Build.FileLoader.Templates do
   defp get_project_templates(src) do
     templates_dir = get_subdir(src, "templates")
 
-    if File.exists?(templates_dir) do
-      map =
-        templates_dir
-        |> Path.join("*.html.eex")
-        |> Path.wildcard()
-        |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
-        |> Map.new()
+    map =
+      templates_dir
+      |> Path.join("*.html.eex")
+      |> Path.wildcard()
+      |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
+      |> Map.new()
 
-      {:ok, map}
-    else
-      {:error, {:enoent, templates_dir, 0}}
-    end
+    {:ok, map}
   end
 
   @spec merge_fun(binary(), binary(), binary()) :: binary()

@@ -83,10 +83,6 @@ defmodule Serum.Build.FileLoader.TemplatesTest do
       assert {:error, _} = load(tmp_dir)
     end
 
-    test "fails when the templates directory does not exist", %{tmp_dir: tmp_dir} do
-      assert {:error, _} = load(tmp_dir)
-    end
-
     test "fails when a theme fails", %{tmp_dir: tmp_dir} do
       templates_dir = Path.join(tmp_dir, "templates")
 
