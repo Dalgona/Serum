@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v1.2.0 &mdash; 2019-08-04
 
 ### Fixed
 
