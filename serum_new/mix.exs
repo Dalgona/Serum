@@ -7,7 +7,7 @@ defmodule Serum.New.MixProject do
     [
       app: :serum_new,
       version: @serum_version,
-      elixir: ">= 1.7.0",
+      elixir: ">= 1.8.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package()
