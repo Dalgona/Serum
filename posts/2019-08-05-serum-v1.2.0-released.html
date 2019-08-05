@@ -1,0 +1,100 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Serum v1.2.0 Released - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+        <h1><a href="/Serum/">Serum</a></h1>
+        <p>A simple static website generator</p>
+      </header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+  <li><a href="/Serum/posts">News</a></li>
+</ul>
+</nav>
+      <hr>
+      <main><article class="post"><header><h1 id="serum-v1.2.0-released">Serum v1.2.0 Released</h1><p>
+      Monday, 5 Aug 2019
+      
+        <span class="tags">
+          Tags:
+          
+            <a class="tag" href="/Serum/tags/news">news</a><a class="tag" href="/Serum/tags/release">release</a></span></p></header><div><p>Let me announce the minor update of Serum, <strong>Serum v1.2.0!</strong></p><p>This update contains several usability and stability improvements, and new
+features that can add more flexibility to your websites.
+The notable changes are:</p><h2 id="copying-extra-files-to-the-website-root">Copying Extra Files to the Website Root</h2><p>See <a href="/Serum/docs/project-structure.html#files-directory"><code class="inline">files</code> directory</a>.</p><h2 id="custom-templates">Custom Templates</h2><p>See <a href="/Serum/docs/templates.html#custom-templates">Custom Templates</a>.</p><h2 id="custom-page/post-metadata">Custom Page/Post Metadata</h2><p>Now you can add any key-value metadata to your pages or posts. Suppose that
+a page has the following header:</p><pre><code class="">---
+title: Hello, world!
+label: Sample
+summary: This is an example page.
+magic-number: 42
+---</code></pre><p>The <code class="inline">&quot;summary&quot;</code> and <code class="inline">&quot;magic-number&quot;</code> are custom metadata, and they will be
+exposed through the <code class="inline">:extras</code> key, so that you can freely use them anywhere in
+EEx templates:</p><pre><code class="lang-elixir">%Serum.Page{
+  type: :page
+  title: &quot;Hello, world!&quot;,
+  label: &quot;Sample&quot;,
+  extras: %{
+    &quot;summary&quot; =&gt; &quot;This is an example page.&quot;,
+    &quot;magic-number&quot; =&gt; &quot;42&quot; # Note that values are always strings.
+  },
+  ...
+}</code></pre><hr class="thin"/><p>Here’s the full changelog for Serum v1.2.0. Please enjoy!</p><h2 id="fixed">Fixed</h2><ul><li><p>Fixed an issue where the Serum development server crashes if the file system
+watcher backend is not available on the user’s system. The server will work
+now, but features related to automatic reloading will be disabled.</p></li><li><p>Now the prompt text (<code class="inline">8080&gt;</code>) in the Serum development server CLI will catch
+up the console output, instead of lagging behind.</p></li><li><p>Updated one of Serum’s dependencies. Users will no longer see strange errors
+from “Tzdata” once a day.</p></li></ul><h2 id="improved">Improved</h2><ul><li><p><code class="inline">Serum.File.read/1</code> now checks if the value of <code class="inline">src</code> key in the input struct
+is nil. An error will be returned if so. Likewise, <code class="inline">Serum.File.write/1</code>
+checks the value of <code class="inline">dest</code> key.</p></li><li><p>Now you can add any user-defined metadata to your pages and posts. Just put
+some lines like <code class="inline">key: value</code> in the header, and these metadata will be
+available at <code class="inline">@page.extras</code> (or <code class="inline">@post.extras</code>) in your templates.</p></li></ul><h2 id="added">Added</h2><ul><li><p>If you put any extra files and directories in <code class="inline">files/</code> directory, they will
+be copied to the root of your website. <code class="inline">files/</code> directory is a good place for
+your favicons, <code class="inline">robots.txt</code>, and so on.</p></li><li><p>Added support for custom templates. Pages and blog posts now recognize the
+<code class="inline">template</code> key in their headers.</p></li></ul><h2 id="changed">Changed</h2><ul><li><p>Docs: Marked some docs for internal modules as hidden, and organized
+moduledocs by categories. Hidden docs are still accessible via source codes.</p></li><li><p>Overhauled codes which start and stop the Serum development server. The
+temporary output directory created by the server will now be cleaned up in
+most exit situations. Additionally, users will be able to see less horrifying
+error output when the server failed to start.</p><p>For developers: The Serum development server and its command line interface
+have been decoupled. Starting the server with <code class="inline">Serum.DevServer.run/2</code> does
+not take you to the command line interface. Instead, you can call
+<code class="inline">Serum.DevServer.Prompt.start/1</code> to enter the server CLI.</p><p>There are now two ways to get out of the CLI: The <code class="inline">quit</code> command stops the
+development server and returns. If you want to keep the server running, use
+the <code class="inline">detach</code> command. You can later enter the CLI again using the same
+<code class="inline">Serum.DevServer.Prompt.start/1</code> function.</p></li><li><p>Changed format of the message output, with a new internal module which
+controls the console output.</p></li><li><p>If there are more than one <em>identical</em> errors, only one of them will be
+displayed. Usually these errors are from <em>one</em> source and they will be gone
+all together if one error in the project source gets fixed.</p></li></ul></div></article></main>
+      <hr>
+      <footer>
+        
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.2.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>

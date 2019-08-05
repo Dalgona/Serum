@@ -31,12 +31,24 @@
       <hr>
       <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="templates">Templates</h1><p>Serum generates HTML pages by applying templates to your contents. Templates
 are <em>Embedded Elixir (EEx)</em> files. Please read <a href="https://hexdocs.pm/eex">the official EEx
-documentation</a> for more information about EEx.</p><div><ul id="toc" class="serum-toc"><li class="indent-0"><a href="#list-of-templates"><span class="number">1</span>List of Templates</a></li><li class="indent-1"><a href="#base.html.eex"><span class="number">1.1</span><code class="inline">base.html.eex</code></a></li><li class="indent-1"><a href="#page.html.eex"><span class="number">1.2</span><code class="inline">page.html.eex</code></a></li><li class="indent-1"><a href="#post.html.eex"><span class="number">1.3</span><code class="inline">post.html.eex</code></a></li><li class="indent-1"><a href="#list.html.eex"><span class="number">1.4</span><code class="inline">list.html.eex</code></a></li><li class="indent-0"><a href="#variables"><span class="number">2</span>Variables</a></li><li class="indent-1"><a href="#common-variables"><span class="number">2.1</span>Common Variables</a></li><li class="indent-2"><a href="#@site---website-information"><span class="number">2.1.1</span><code class="inline">@site</code> - Website Information</a></li><li class="indent-2"><a href="#@all_pages---list-of-all-pages"><span class="number">2.1.2</span><code class="inline">@all_pages</code> - List of All Pages</a></li><li class="indent-2"><a href="#@all_posts---list-of-all-posts"><span class="number">2.1.3</span><code class="inline">@all_posts</code> - List of All Posts</a></li><li class="indent-2"><a href="#@all_tags---list-of-all-tags"><span class="number">2.1.4</span><code class="inline">@all_tags</code> - List of All Tags</a></li><li class="indent-1"><a href="#page-specific-variables"><span class="number">2.2</span>Page-specific Variables</a></li><li class="indent-2"><a href="#@page---current-page"><span class="number">2.2.1</span><code class="inline">@page</code> - Current Page</a></li><li class="indent-2"><a href="#@contents---page-contents"><span class="number">2.2.2</span><code class="inline">@contents</code> - Page Contents</a></li><li class="indent-0"><a href="#helper-macros"><span class="number">3</span>Helper Macros</a></li><li class="indent-1"><a href="#base/0"><span class="number">3.1</span><code class="inline">base/0</code></a></li><li class="indent-1"><a href="#base/1"><span class="number">3.2</span><code class="inline">base/1</code></a></li><li class="indent-1"><a href="#page/1"><span class="number">3.3</span><code class="inline">page/1</code></a></li><li class="indent-1"><a href="#post/1"><span class="number">3.4</span><code class="inline">post/1</code></a></li><li class="indent-1"><a href="#asset/1"><span class="number">3.5</span><code class="inline">asset/1</code></a></li><li class="indent-1"><a href="#include/1"><span class="number">3.6</span><code class="inline">include/1</code></a></li></ul></div><h2 id="list-of-templates">List of Templates</h2><p>These four template files must be present in the <code class="inline">templates/</code> directory, and
-their names must not be changed. Specifying a custom template for a specific
-page is not supported yet, this feature can be added in the future.</p><h3 id="base.html.eex"><code class="inline">base.html.eex</code></h3><p>This template defines the overall structure and visual layout of the page. That
+documentation</a> for more information about EEx.</p><div><ul id="toc" class="serum-toc"><li class="indent-0"><a href="#list-of-required-templates"><span class="number">1</span>List of Required Templates</a></li><li class="indent-1"><a href="#base.html.eex"><span class="number">1.1</span><code class="inline">base.html.eex</code></a></li><li class="indent-1"><a href="#page.html.eex"><span class="number">1.2</span><code class="inline">page.html.eex</code></a></li><li class="indent-1"><a href="#post.html.eex"><span class="number">1.3</span><code class="inline">post.html.eex</code></a></li><li class="indent-1"><a href="#list.html.eex"><span class="number">1.4</span><code class="inline">list.html.eex</code></a></li><li class="indent-0"><a href="#custom-templates"><span class="number">2</span>Custom Templates</a></li><li class="indent-0"><a href="#variables"><span class="number">3</span>Variables</a></li><li class="indent-1"><a href="#common-variables"><span class="number">3.1</span>Common Variables</a></li><li class="indent-2"><a href="#@site---website-information"><span class="number">3.1.1</span><code class="inline">@site</code> - Website Information</a></li><li class="indent-2"><a href="#@all_pages---list-of-all-pages"><span class="number">3.1.2</span><code class="inline">@all_pages</code> - List of All Pages</a></li><li class="indent-2"><a href="#@all_posts---list-of-all-posts"><span class="number">3.1.3</span><code class="inline">@all_posts</code> - List of All Posts</a></li><li class="indent-2"><a href="#@all_tags---list-of-all-tags"><span class="number">3.1.4</span><code class="inline">@all_tags</code> - List of All Tags</a></li><li class="indent-1"><a href="#page-specific-variables"><span class="number">3.2</span>Page-specific Variables</a></li><li class="indent-2"><a href="#@page---current-page"><span class="number">3.2.1</span><code class="inline">@page</code> - Current Page</a></li><li class="indent-2"><a href="#@contents---page-contents"><span class="number">3.2.2</span><code class="inline">@contents</code> - Page Contents</a></li><li class="indent-0"><a href="#helper-macros"><span class="number">4</span>Helper Macros</a></li><li class="indent-1"><a href="#base/0"><span class="number">4.1</span><code class="inline">base/0</code></a></li><li class="indent-1"><a href="#base/1"><span class="number">4.2</span><code class="inline">base/1</code></a></li><li class="indent-1"><a href="#page/1"><span class="number">4.3</span><code class="inline">page/1</code></a></li><li class="indent-1"><a href="#post/1"><span class="number">4.4</span><code class="inline">post/1</code></a></li><li class="indent-1"><a href="#asset/1"><span class="number">4.5</span><code class="inline">asset/1</code></a></li><li class="indent-1"><a href="#include/1"><span class="number">4.6</span><code class="inline">include/1</code></a></li></ul></div><h2 id="list-of-required-templates">List of Required Templates</h2><p>Unless provided by Serum <a href="https://hexdocs.pm/serum/Serum.Theme.html">themes</a>,
+these four template files must be present in the <code class="inline">templates/</code> directory, and
+their names must not be changed.</p><h3 id="base.html.eex"><code class="inline">base.html.eex</code></h3><p>This template defines the overall structure and visual layout of the page. That
 is, you should place the root <code class="inline">&lt;html&gt;</code> tag in this template.</p><h3 id="page.html.eex"><code class="inline">page.html.eex</code></h3><p>This template simply wraps the contents of your pages. Any file in the <code class="inline">pages/</code>
 directory is processed, rendered as HTML, and its contents are merged into
-this template.</p><h3 id="post.html.eex"><code class="inline">post.html.eex</code></h3><p>This template is used to display the contents and metadata of your blog posts.</p><h3 id="list.html.eex"><code class="inline">list.html.eex</code></h3><p>This template defines how a list of blog posts is displayed.</p><h2 id="variables">Variables</h2><p>Serum provides a number of variables for use in templates described above. Some
+this template.</p><h3 id="post.html.eex"><code class="inline">post.html.eex</code></h3><p>This template is used to display the contents and metadata of your blog posts.</p><h3 id="list.html.eex"><code class="inline">list.html.eex</code></h3><p>This template defines how a list of blog posts is displayed.</p><h2 id="custom-templates">Custom Templates</h2><p>Since Serum v1.2.0, you can use custom templates for your pages and blog posts.
+Simply add template files with names of your choice, <code class="inline">foo.html.eex</code> for
+example. Then you can have your pages or blog posts rendered using your custom
+templates by setting <code class="inline">template</code> property in the page or post header area:</p><pre><code class="">---
+title: Example Page
+label: Example
+group: sample
+order: 3
+template: foo
+---
+
+This page will be rendered using `foo.html.eex` template,
+instead of `page.html.eex`!</code></pre><h2 id="variables">Variables</h2><p>Serum provides a number of variables for use in templates described above. Some
 of them are always available and constant all the time, and some of them are
 not available in all templates and may have different values depending on the
 page being rendered at the moment.</p><h3 id="common-variables">Common Variables</h3><p>These variables are available in any template and have constant values.</p><h4 id="@site---website-information"><code class="inline">@site</code> - Website Information</h4><pre><code class="lang-elixir">%{
@@ -59,7 +71,12 @@ customize its values by editing the
     label: &quot;Home&quot;,
     group: &quot;main-menu&quot;,
     order: &quot;1&quot;,
-    url: &quot;/Serum/index.html&quot;
+    url: &quot;/Serum/index.html&quot;,
+    extras: %{
+      &quot;key-1&quot; =&gt; &quot;value-1&quot;,
+      &quot;key-2&quot; =&gt; &quot;value-2&quot;,
+      ...
+    }
   },
   ...
 ]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
@@ -80,7 +97,12 @@ navigation list or a table of contents.</p><h4 id="@all_posts---list-of-all-post
       %{name: &quot;Tag1&quot;, list_url: &quot;/Serum/tags/Tag1/&quot;},
       %{name: &quot;Tag3&quot;, list_url: &quot;/Serum/tags/Tag3/&quot;}
     ],
-    url: &quot;/Serum/posts/2019-04-18-my-first-post.html&quot;
+    url: &quot;/Serum/posts/2019-04-18-my-first-post.html&quot;,
+    extras: %{
+      &quot;key-1&quot; =&gt; &quot;value-1&quot;,
+      &quot;key-2&quot; =&gt; &quot;value-2&quot;,
+      ...
+    }
   },
   ...
 ]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
@@ -186,7 +208,7 @@ includable template.</p><pre><code class="lang-html">&lt;!-- includes/nav.html.e
 </p>
 
         <p>
-          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.2.0,
           with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
         </p>
       </footer>

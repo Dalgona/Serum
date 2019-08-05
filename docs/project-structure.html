@@ -30,24 +30,25 @@
 </nav>
       <hr>
       <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="project-structure">Project Structure</h1><p>When you create a new Serum project by running <code class="inline">mix serum.new</code>, the following
-directories and files are created.</p><pre><code class="">/path/to/project
-├── serum.exs (or serum.json)
-├── pages/
-│   └── index.md
-├── posts/
-├── templates/
-│   ├── base.html.eex
-│   ├── list.html.eex
-│   ├── page.html.eex
-│   └── post.html.eex
-├── includes/
-│   └── nav.html.eex
-├── assets/
-│   ├── css/
-│   ├── js/
-│   └── images/
-├── media/
-└── mix.exs</code></pre><h2 id="serum.exs-(or-serum.json)"><code class="inline">serum.exs</code> (or <code class="inline">serum.json</code>)</h2><p>This file indicates that the containing directory is a Serum project. And it
+directories and files are created.</p><pre><code><span style="color:#4078c0">/path/to/project/</span>
+├── <b>serum.exs</b>
+├── <span style="color:#4078c0">pages/</span>
+│   └── <b>index.md</b>
+├── <span style="color:#4078c0">posts/</span>
+├── <span style="color:#4078c0">templates/</span>
+│   ├── <b>base.html.eex</b>
+│   ├── <b>list.html.eex</b>
+│   ├── <b>page.html.eex</b>
+│   └── <b>post.html.eex</b>
+├── <span style="color:#4078c0">includes/</span>
+│   └── <b>nav.html.eex</b>
+├── <span style="color:#4078c0">assets/</span>
+│   ├── <span style="color:#4078c0">css/</span>
+│   ├── <span style="color:#4078c0">js/</span>
+│   └── <span style="color:#4078c0">images/</span>
+├── <span style="color:#4078c0">media/</span>
+├── <span style="color:#4078c0">files/</span>
+└── <b>mix.exs</b></code></pre><h2 id="serum.exs-(or-serum.json)"><code class="inline">serum.exs</code> (or <code class="inline">serum.json</code>)</h2><p>This file indicates that the containing directory is a Serum project. And it
 contains various metadata and options which are used while Serum builds the
 project. See <a href="/Serum/docs/project_definition.html">Project Definition</a> document for
 more information.</p><h2 id="pages-directory"><code class="inline">pages</code> Directory</h2><p>This is where source files for your pages should be saved. You may create
@@ -67,7 +68,9 @@ this directory if your website is supposed to have no assets at all. Read
 <a href="/Serum/docs/asset_media.html">Assets and Media</a> document for more information.</p><h2 id="media-directory"><code class="inline">media</code> Directory</h2><p>Media files are static files which are referenced by a few pages or blog posts,
 such as pictures, video clips, audio files, etc. You may remove this directory
 if none of your pages or blog posts uses media files. Read
-<a href="/Serum/docs/asset_media.html">Assets and Media</a> document for more information.</p><h2 id="mix.exs"><code class="inline">mix.exs</code></h2><p>A Serum project is also a Mix project. You need to keep this file in order to
+<a href="/Serum/docs/asset_media.html">Assets and Media</a> document for more information.</p><h2 id="files-directory"><code class="inline">files</code> Directory</h2><p>Files or directories in this directory will be copied to the root directory of
+your website after Serum has successfully built your project. This is useful,
+for example, when you need to set favicons for your website.</p><h2 id="mix.exs"><code class="inline">mix.exs</code></h2><p>A Serum project is also a Mix project. You need to keep this file in order to
 install and use Serum. You will also need this file to manage dependencies for
 your own codes.</p><p>Note that some files or directories may be created by Mix to store dependencies
 and build artifacts.</p></div></article></main>
@@ -82,7 +85,7 @@ and build artifacts.</p></div></article></main>
 </p>
 
         <p>
-          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.2.0,
           with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
         </p>
       </footer>

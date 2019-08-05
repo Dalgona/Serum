@@ -48,19 +48,19 @@ the world provide themes for Serum in the future, but in the meantime I will
 also try to release some more themes when I have some more free time.</p><p>Oh, I almost forgot to tell you to check the <a href="/Serum/getting-started.html">getting started
 guide</a> once again. You will be able to learn how to
 install and apply Serum themes to your project.</p><hr class="thin"/><p>Here’s the changelog since Serum v1.0.0. Thank you!</p><h2 id="fixed">Fixed</h2><ul><li>The development server now quits gracefully when the user sends EOF (Ctrl+D)
-  (Issue #45)
+(Issue #45)
 </li></ul><h2 id="added">Added</h2><ul><li><p><strong>Serum now supports themes!</strong> Please visit the official website to learn
-  more about Serum themes.</p></li><li><p>Installer: Added <code class="inline">serum.new.theme</code> Mix task, which helps you create a new
-  Serum theme project.</p></li><li><p>The following optional callbacks were added for plugins.</p><ul><li><code class="inline">processed_pages/1</code></li><li><code class="inline">processed_posts/1</code></li><li><code class="inline">rendering_fragment/2</code></li></ul></li><li><p>Added <code class="inline">Serum.HtmlTreeHelper</code> module, which provides <code class="inline">traverse/2</code> and
-  <code class="inline">traverse/3</code> function. You will find this module useful when you need to
-  manipulate HTML trees from your plugins.</p></li></ul><h2 id="changed">Changed</h2><ul><li><p>The behavior of the Table of Contents plugin has slightly changed.</p><ul><li><p>This plugin no longer prepends a <code class="inline">&lt;a name=&quot;...&quot;&gt;</code> tag to each heading
-  tag. Instead, it will use the <code class="inline">id</code> attribute of each one of them. If a
-  tag does not have an <code class="inline">id</code>, it will be set appropriately by the plugin.</p></li><li><p>The TOC element (<code class="inline">ul.serum-toc</code>) will also be given an ID (<code class="inline">#toc</code>), so
-  that you can make hyperlinks back to the list.</p></li></ul></li><li><p>Serum now automatically generates an <code class="inline">id</code> attribute for each HTML heading
-  tag. (by @igalic, Issue #44)</p><ul><li>If a heading tag already has an ID, it won’t be modified.
+more about Serum themes.</p></li><li><p>Installer: Added <code class="inline">serum.new.theme</code> Mix task, which helps you create a new
+Serum theme project.</p></li><li><p>The following optional callbacks were added for plugins.</p><ul><li><code class="inline">processed_pages/1</code></li><li><code class="inline">processed_posts/1</code></li><li><code class="inline">rendering_fragment/2</code></li></ul></li><li><p>Added <code class="inline">Serum.HtmlTreeHelper</code> module, which provides <code class="inline">traverse/2</code> and
+<code class="inline">traverse/3</code> function. You will find this module useful when you need to
+manipulate HTML trees from your plugins.</p></li></ul><h2 id="changed">Changed</h2><ul><li><p>The behavior of the Table of Contents plugin has slightly changed.</p><ul><li><p>This plugin no longer prepends a <code class="inline">&lt;a name=&quot;...&quot;&gt;</code> tag to each heading
+tag. Instead, it will use the <code class="inline">id</code> attribute of each one of them. If a
+tag does not have an <code class="inline">id</code>, it will be set appropriately by the plugin.</p></li><li><p>The TOC element (<code class="inline">ul.serum-toc</code>) will also be given an ID (<code class="inline">#toc</code>), so
+that you can make hyperlinks back to the list.</p></li></ul></li><li><p>Serum now automatically generates an <code class="inline">id</code> attribute for each HTML heading
+tag. (by @igalic, Issue #44)</p><ul><li>If a heading tag already has an ID, it won’t be modified.
 </li><li>Each ID is generated based on the tag’s text content.
 </li><li>Generated IDs are always unique. If a duplicate ID is to be generated,
-  a number will be appended.
+a number will be appended.
 </li></ul></li></ul></div></article></main>
       <hr>
       <footer>
@@ -73,7 +73,7 @@ install and apply Serum themes to your project.</p><hr class="thin"/><p>Here’s
 </p>
 
         <p>
-          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.1.0,
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.2.0,
           with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
         </p>
       </footer>
