@@ -46,7 +46,7 @@ more guides and documentations.
 
 ## LICENSE
 
-Copyright (c) 2018 Eunbin Jeong (Dalgona.) <dalgona@hontou.moe>
+Copyright (c) 2019 Eunbin Jeong (Dalgona.) <dalgona@hontou.moe>
 
 MIT License. Read `LICENSE` for the full text.
 
