@@ -7,6 +7,12 @@
     <title>Mix Tasks - Serum</title>
     <link rel="stylesheet" href="/Serum/assets/css/style.css">
     <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+    
+<!--==========================================-->
+<!-- Override "includes/head-extras.html.eex" -->
+<!-- to add more tags inside this <head> tag. -->
+<!--==========================================-->
+
   </head>
   <body>
     <div id="wrapper">
@@ -29,7 +35,7 @@
 </ul>
 </nav>
       <hr>
-      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="mix-tasks">Mix Tasks</h1><p>Once you have installed Serum locally in your project, you now have the access
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="mix-tasks">Mix Tasks</h1><p>About 4 minutes to read</p><hr/></header><p>Once you have installed Serum locally in your project, you now have the access
 to Serum’s functionalities through Mix tasks. Use these Mix tasks to build,
 test, and manage your Serum project.</p><div><ul id="toc" class="serum-toc"><li class="indent-0"><a href="#serum"><span class="number">1</span><code class="inline">serum</code> - Prints all Serum Tasks</a></li><li class="indent-0"><a href="#serum.new"><span class="number">2</span><code class="inline">serum.new</code> - Creates a New Serum Project</a></li><li class="indent-0"><a href="#serum.new.theme"><span class="number">3</span><code class="inline">serum.new.theme</code> - Creates a New Serum Theme Project</a></li><li class="indent-0"><a href="#serum.build"><span class="number">4</span><code class="inline">serum.build</code> - Builds the Current Serum Project</a></li><li class="indent-0"><a href="#serum.server"><span class="number">5</span><code class="inline">serum.server</code> - Starts the Development Server</a></li><li class="indent-0"><a href="#serum.gen.page"><span class="number">6</span><code class="inline">serum.gen.page</code> - Adds a New Page</a></li><li class="indent-0"><a href="#serum.gen.post"><span class="number">7</span><code class="inline">serum.gen.post</code> - Adds a New Blog Post</a></li></ul></div><h2 id="serum"><code class="inline">serum</code> - Prints all Serum Tasks</h2><pre><code class="">$ mix serum</code></pre><p>This Mix task simply prints a list of all Serum-related Mix tasks currently
 available. This task does not take any command line argument.</p><p>If you want to read the help text for a specific task, <code class="inline">serum.build</code>

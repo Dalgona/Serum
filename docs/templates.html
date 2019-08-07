@@ -7,6 +7,12 @@
     <title>Templates - Serum</title>
     <link rel="stylesheet" href="/Serum/assets/css/style.css">
     <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+    
+<!--==========================================-->
+<!-- Override "includes/head-extras.html.eex" -->
+<!-- to add more tags inside this <head> tag. -->
+<!--==========================================-->
+
   </head>
   <body>
     <div id="wrapper">
@@ -29,7 +35,7 @@
 </ul>
 </nav>
       <hr>
-      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="templates">Templates</h1><p>Serum generates HTML pages by applying templates to your contents. Templates
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="templates">Templates</h1><p>About 6 minutes to read</p><hr/></header><p>Serum generates HTML pages by applying templates to your contents. Templates
 are <em>Embedded Elixir (EEx)</em> files. Please read <a href="https://hexdocs.pm/eex">the official EEx
 documentation</a> for more information about EEx.</p><div><ul id="toc" class="serum-toc"><li class="indent-0"><a href="#list-of-required-templates"><span class="number">1</span>List of Required Templates</a></li><li class="indent-1"><a href="#base.html.eex"><span class="number">1.1</span><code class="inline">base.html.eex</code></a></li><li class="indent-1"><a href="#page.html.eex"><span class="number">1.2</span><code class="inline">page.html.eex</code></a></li><li class="indent-1"><a href="#post.html.eex"><span class="number">1.3</span><code class="inline">post.html.eex</code></a></li><li class="indent-1"><a href="#list.html.eex"><span class="number">1.4</span><code class="inline">list.html.eex</code></a></li><li class="indent-0"><a href="#custom-templates"><span class="number">2</span>Custom Templates</a></li><li class="indent-0"><a href="#variables"><span class="number">3</span>Variables</a></li><li class="indent-1"><a href="#common-variables"><span class="number">3.1</span>Common Variables</a></li><li class="indent-2"><a href="#@site---website-information"><span class="number">3.1.1</span><code class="inline">@site</code> - Website Information</a></li><li class="indent-2"><a href="#@all_pages---list-of-all-pages"><span class="number">3.1.2</span><code class="inline">@all_pages</code> - List of All Pages</a></li><li class="indent-2"><a href="#@all_posts---list-of-all-posts"><span class="number">3.1.3</span><code class="inline">@all_posts</code> - List of All Posts</a></li><li class="indent-2"><a href="#@all_tags---list-of-all-tags"><span class="number">3.1.4</span><code class="inline">@all_tags</code> - List of All Tags</a></li><li class="indent-1"><a href="#page-specific-variables"><span class="number">3.2</span>Page-specific Variables</a></li><li class="indent-2"><a href="#@page---current-page"><span class="number">3.2.1</span><code class="inline">@page</code> - Current Page</a></li><li class="indent-2"><a href="#@contents---page-contents"><span class="number">3.2.2</span><code class="inline">@contents</code> - Page Contents</a></li><li class="indent-0"><a href="#helper-macros"><span class="number">4</span>Helper Macros</a></li><li class="indent-1"><a href="#base/0"><span class="number">4.1</span><code class="inline">base/0</code></a></li><li class="indent-1"><a href="#base/1"><span class="number">4.2</span><code class="inline">base/1</code></a></li><li class="indent-1"><a href="#page/1"><span class="number">4.3</span><code class="inline">page/1</code></a></li><li class="indent-1"><a href="#post/1"><span class="number">4.4</span><code class="inline">post/1</code></a></li><li class="indent-1"><a href="#asset/1"><span class="number">4.5</span><code class="inline">asset/1</code></a></li><li class="indent-1"><a href="#include/1"><span class="number">4.6</span><code class="inline">include/1</code></a></li></ul></div><h2 id="list-of-required-templates">List of Required Templates</h2><p>Unless provided by Serum <a href="https://hexdocs.pm/serum/Serum.Theme.html">themes</a>,
 these four template files must be present in the <code class="inline">templates/</code> directory, and

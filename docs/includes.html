@@ -7,6 +7,12 @@
     <title>Includable Templates - Serum</title>
     <link rel="stylesheet" href="/Serum/assets/css/style.css">
     <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+    
+<!--==========================================-->
+<!-- Override "includes/head-extras.html.eex" -->
+<!-- to add more tags inside this <head> tag. -->
+<!--==========================================-->
+
   </head>
   <body>
     <div id="wrapper">
@@ -29,7 +35,7 @@
 </ul>
 </nav>
       <hr>
-      <main><article><div><p><a href="/Serum/docs/index.html">Back to the index</a></p><h1 id="includable-templates">Includable Templates</h1><p>Includable templates are special kind of EEx templates which are compiled and
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="includable-templates">Includable Templates</h1><p>About 1 minute to read</p><hr/></header><p>Includable templates are special kind of EEx templates which are compiled and
 rendered as HTML stubs before any other mandatory templates are processed. This
 document explains how to create and use includes in your Serum project.</p><h2 id="creating-a-new-includable-template">Creating a new includable template</h2><p>All includable template should be saved under <code class="inline">includes/</code> directory, and its
 format is almost the same as regular template’s. For example, if you want to
