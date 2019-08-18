@@ -110,7 +110,7 @@ defmodule Serum.IOProxy do
       |> IO.iodata_to_binary()
 
     body_fmt =
-      [body_fmt, "~s"]
+      [body_fmt, "~ts"]
       |> IO.ANSI.format(true)
       |> IO.iodata_to_binary()
 
