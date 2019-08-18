@@ -99,21 +99,33 @@ defmodule Serum.Template.Compiler do
           {:ok, Macro.t()}
           | {:ct_error, binary(), integer()}
   defp expand_includes(ast, includes) do
-    {:ok, Macro.prewalk(ast, &do_expand_includes(&1, includes))}
+    {new_ast, _} = Macro.prewalk(ast, [], &do_expand_includes(&1, &2, includes))
+
+    {:ok, new_ast}
   rescue
-    e in RuntimeError ->
+    e in ArgumentError ->
       {:ct_error, "no includable template named \"#{e.message}\"", 0}
+
+    e in RuntimeError ->
+      {:ct_error, e.message, 0}
   end
 
-  @spec do_expand_includes(Macro.t(), map()) :: Macro.t()
-  defp do_expand_includes(ast, includes)
+  @spec do_expand_includes(Macro.t(), [binary()], map()) :: {Macro.t(), [binary()]}
+  defp do_expand_includes(ast, stack, includes)
 
-  defp do_expand_includes({:include, _, [arg]}, includes) do
+  defp do_expand_includes({:include, _, [arg]}, stack, includes) do
     case includes[arg] do
-      nil -> raise arg
-      include -> quote do: (fn -> unquote(include.ast) end).()
+      nil ->
+        raise ArgumentError, arg
+
+      include ->
+        if arg in stack do
+          raise "cycle detected while expanding includes"
+        end
+
+        {quote(do: (fn -> unquote(include.ast) end).()), [arg | stack]}
     end
   end
 
-  defp do_expand_includes(anything_else, _), do: anything_else
+  defp do_expand_includes(anything_else, stack, _), do: {anything_else, stack}
 end
