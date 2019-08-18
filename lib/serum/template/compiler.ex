@@ -99,7 +99,7 @@ defmodule Serum.Template.Compiler do
           {:ok, Macro.t()}
           | {:ct_error, binary(), integer()}
   defp expand_includes(ast, includes) do
-    {:ok, Macro.postwalk(ast, &do_expand_includes(&1, includes))}
+    {:ok, Macro.prewalk(ast, &do_expand_includes(&1, includes))}
   rescue
     e in RuntimeError ->
       {:ct_error, "no includable template named \"#{e.message}\"", 0}
