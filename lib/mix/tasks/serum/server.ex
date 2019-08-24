@@ -42,7 +42,7 @@ defmodule Mix.Tasks.Serum.Server do
 
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    case DevServer.run(File.cwd!(), options[:port] || 8080) do
+    case DevServer.run("", options[:port] || 8080) do
       {:ok, _pid} ->
         DevServer.Prompt.start(allow_detach: false)
 

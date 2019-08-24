@@ -44,8 +44,7 @@ defmodule Mix.Tasks.Serum.Build do
     |> Mix.shell().info()
 
     {options, argv} = OptionParser.parse!(args, @options)
-    src = File.cwd!()
-    dest = options[:output] || Path.join(src, "site")
+    dest = options[:output] || "site"
 
     if argv != [] do
       raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
@@ -53,7 +52,7 @@ defmodule Mix.Tasks.Serum.Build do
 
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
+    with {:ok, %Project{} = proj} <- ProjectLoader.load("", dest),
          {:ok, ^dest} <- Build.build(proj) do
       """
 
