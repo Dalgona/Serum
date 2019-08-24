@@ -1,5 +1,12 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Improved
+
+- Serum now displays relative paths from the current working directory, instead
+  of absolute paths, whenever possible.
+
 ## v1.2.0 &mdash; 2019-08-04
 
 ### Fixed
