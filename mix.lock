@@ -9,7 +9,7 @@
   "earmark": {:hex, :earmark, "1.3.4", "52aba89c60529284df5fc18adc4c808b7346e72668bc2fb2b68d7394996c4af8", [:mix], [], "hexpm"},
   "ex_doc": {:hex, :ex_doc, "0.21.1", "5ac36660846967cd869255f4426467a11672fec3d8db602c429425ce5b613b90", [:mix], [{:earmark, "~> 1.3", [hex: :earmark, repo: "hexpm", optional: false]}, {:makeup_elixir, "~> 0.14", [hex: :makeup_elixir, repo: "hexpm", optional: false]}], "hexpm"},
   "ex_json_schema": {:hex, :ex_json_schema, "0.5.6", "9a96edd51a00fc005e12a773a7a79e507a77855e69fcb3d9a02f7f39c3265c03", [:mix], [], "hexpm"},
-  "excoveralls": {:hex, :excoveralls, "0.11.1", "dd677fbdd49114fdbdbf445540ec735808250d56b011077798316505064edb2c", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
+  "excoveralls": {:hex, :excoveralls, "0.11.2", "0c6f2c8db7683b0caa9d490fb8125709c54580b4255ffa7ad35f3264b075a643", [:mix], [{:hackney, "~> 1.0", [hex: :hackney, repo: "hexpm", optional: false]}, {:jason, "~> 1.0", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm"},
   "exjsx": {:hex, :exjsx, "4.0.0", "60548841e0212df401e38e63c0078ec57b33e7ea49b032c796ccad8cde794b5c", [:mix], [{:jsx, "~> 2.8.0", [hex: :jsx, repo: "hexpm", optional: false]}], "hexpm"},
   "file_system": {:hex, :file_system, "0.2.7", "e6f7f155970975789f26e77b8b8d8ab084c59844d8ecfaf58cbda31c494d14aa", [:mix], [], "hexpm"},
   "floki": {:hex, :floki, "0.21.0", "0c0191a6dbc559300bac232f716c55fb5738d45ae846b3141b19e5f5741c1907", [:mix], [{:html_entities, "~> 0.4.0", [hex: :html_entities, repo: "hexpm", optional: false]}, {:mochiweb, "~> 2.15", [hex: :mochiweb, repo: "hexpm", optional: false]}], "hexpm"},
