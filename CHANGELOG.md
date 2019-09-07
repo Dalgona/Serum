@@ -2,6 +2,10 @@
 
 ## Unreleased Changes
 
+### Fixed
+
+- Fixes an issue which ignored custom template settings for blog posts.
+
 ### Improved
 
 - Serum now displays relative paths from the current working directory, instead
