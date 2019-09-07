@@ -10,6 +10,9 @@
 
 - Serum now displays relative paths from the current working directory, instead
   of absolute paths, whenever possible.
+- Support for nested includes has been added. Now users can use the `include/1`
+  macro inside their includes. Self-including or circular includes are
+  intentionally not supported and these will result in errors.
 
 ## v1.2.0 &mdash; 2019-08-04
 
