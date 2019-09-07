@@ -6,6 +6,7 @@ defmodule Serum.Template.Compiler do
   alias Serum.Plugin
   alias Serum.Result
   alias Serum.Template
+  alias Serum.Template.Compiler.Include
 
   @type templates() :: %{optional(binary()) => Template.t()}
 
@@ -85,7 +86,7 @@ defmodule Serum.Template.Compiler do
 
     case options[:type] do
       :include -> {:ok, compiled}
-      _ -> expand_includes(compiled, includes)
+      _ -> Include.expand(compiled, includes)
     end
   rescue
     e in EEx.SyntaxError ->
@@ -94,26 +95,4 @@ defmodule Serum.Template.Compiler do
     e in [SyntaxError, TokenMissingError] ->
       {:ct_error, e.description, e.line}
   end
-
-  @spec expand_includes(Macro.t(), map()) ::
-          {:ok, Macro.t()}
-          | {:ct_error, binary(), integer()}
-  defp expand_includes(ast, includes) do
-    {:ok, Macro.postwalk(ast, &do_expand_includes(&1, includes))}
-  rescue
-    e in RuntimeError ->
-      {:ct_error, "no includable template named \"#{e.message}\"", 0}
-  end
-
-  @spec do_expand_includes(Macro.t(), map()) :: Macro.t()
-  defp do_expand_includes(ast, includes)
-
-  defp do_expand_includes({:include, _, [arg]}, includes) do
-    case includes[arg] do
-      nil -> raise arg
-      include -> quote do: (fn -> unquote(include.ast) end).()
-    end
-  end
-
-  defp do_expand_includes(anything_else, _), do: anything_else
 end
