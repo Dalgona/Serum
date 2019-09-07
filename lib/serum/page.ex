@@ -24,8 +24,8 @@ defmodule Serum.Page do
           url: binary(),
           output: binary(),
           data: binary(),
-          extras: %{optional(binary()) => binary()},
-          template: binary()
+          extras: map(),
+          template: binary() | nil
         }
 
   alias Serum.Fragment
@@ -47,8 +47,8 @@ defmodule Serum.Page do
     :template
   ]
 
-  @spec new(binary(), map(), binary(), map()) :: t()
-  def new(path, header, data, proj) do
+  @spec new(binary(), {map(), map()}, binary(), map()) :: t()
+  def new(path, {header, extras}, data, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
     filename = Path.relative_to(path, page_dir)
     type = get_type(filename)
@@ -65,7 +65,8 @@ defmodule Serum.Page do
       type: type,
       url: url,
       output: output,
-      data: data
+      data: data,
+      extras: extras
     })
   end
 

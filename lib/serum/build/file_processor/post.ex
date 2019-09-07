@@ -51,9 +51,10 @@ defmodule Serum.Build.FileProcessor.Post do
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
 
-      post = Post.new(file2.src, header, Markdown.to_html(rest, proj), proj)
+      html = Markdown.to_html(rest, proj)
+      post = Post.new(file2.src, {header, extras}, html, proj)
 
-      Plugin.processed_post(%Post{post | extras: extras})
+      Plugin.processed_post(post)
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
       {:error, _} = plugin_error -> plugin_error

@@ -11,8 +11,6 @@ defmodule Serum.Build.FileLoader.Templates do
   alias Serum.Result
   alias Serum.Theme
 
-  @required_templates MapSet.new(~w(base list page post))
-
   @doc false
   @spec load(binary()) :: Result.t([Serum.File.t()])
   def load(src) do
@@ -58,7 +56,8 @@ defmodule Serum.Build.FileLoader.Templates do
   defp validate_required(map, src) do
     existing_templates = map |> Map.keys() |> MapSet.new()
 
-    @required_templates
+    ~w(base list page post)
+    |> MapSet.new()
     |> MapSet.difference(existing_templates)
     |> MapSet.to_list()
     |> case do

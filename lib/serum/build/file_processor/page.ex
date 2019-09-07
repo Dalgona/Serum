@@ -50,9 +50,9 @@ defmodule Serum.Build.FileProcessor.Page do
     with {:ok, %{in_data: data} = file2} <- Plugin.processing_page(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
       header = Map.put(header, :label, header[:label] || header.title)
-      page = Page.new(file2.src, header, rest, proj)
+      page = Page.new(file2.src, {header, extras}, rest, proj)
 
-      {:ok, %Page{page | extras: extras}}
+      {:ok, page}
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
       {:error, _} = plugin_error -> plugin_error

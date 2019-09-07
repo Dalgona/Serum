@@ -25,14 +25,14 @@ defmodule Serum.Post do
           file: binary(),
           title: binary(),
           date: binary(),
-          raw_date: {:calendar.date(), :calendar.time()},
+          raw_date: :calendar.datetime(),
           tags: [Tag.t()],
           url: binary(),
           html: binary(),
           preview: binary(),
           output: binary(),
-          extras: %{optional(binary()) => binary()},
-          template: binary()
+          extras: map(),
+          template: binary() | nil
         }
 
   defstruct [
@@ -49,12 +49,12 @@ defmodule Serum.Post do
     :template
   ]
 
-  @spec new(binary(), map(), binary(), map()) :: t()
-  def new(path, header, html, proj) do
+  @spec new(binary(), {map(), map()}, binary(), map()) :: t()
+  def new(path, {header, extras}, html, proj) do
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
-    raw_date = datetime |> Timex.to_erl()
+    raw_date = to_erl_datetime(datetime)
     preview = generate_preview(html, proj.preview_length)
 
     filename =
@@ -64,14 +64,16 @@ defmodule Serum.Post do
 
     %__MODULE__{
       file: path,
-      title: header.title,
+      title: header[:title],
       tags: tags,
       html: html,
       preview: preview,
       raw_date: raw_date,
       date: date_str,
       url: Path.join(proj.base_url, filename),
-      output: Path.join(proj.dest, filename)
+      output: Path.join(proj.dest, filename),
+      template: header[:template],
+      extras: extras
     }
   end
 
@@ -80,6 +82,15 @@ defmodule Serum.Post do
     post
     |> Map.drop(~w(__struct__ file html output)a)
     |> Map.put(:type, :post)
+  end
+
+  @spec to_erl_datetime(term()) :: :calendar.datetime()
+  defp to_erl_datetime(obj) do
+    case Timex.to_erl(obj) do
+      {{_y, _m, _d}, {_h, _i, _s}} = erl_datetime -> erl_datetime
+      {_y, _m, _d} = erl_date -> {erl_date, {0, 0, 0}}
+      _ -> {{0, 1, 1}, {0, 0, 0}}
+    end
   end
 
   @spec generate_preview(binary(), non_neg_integer()) :: binary()
