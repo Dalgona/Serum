@@ -13,6 +13,13 @@
 - Support for nested includes has been added. Now users can use the `include/1`
   macro inside their includes. Self-including or circular includes are
   intentionally not supported and these will result in errors.
+- Serum provides more options for the length of preview text for each blog post.
+    - `preview_length: {:chars, 200}` tells Serum to take the first 200
+      characters from a blog post to generate a preview text. The next two
+      options should be self-explanatory now.
+    - `preview_length: {:words, 20}`
+    - `preview_length: {:paragraphs, 1}` (Serches for `<p>` tags.)
+    - Of course, you can still use the old value: `preview_length: 200`.
 
 ## v1.2.0 &mdash; 2019-08-04
 
