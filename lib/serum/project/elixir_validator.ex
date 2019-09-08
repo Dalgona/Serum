@@ -123,7 +123,7 @@ defmodule Serum.Project.ElixirValidator do
         list_title_tag: [is_binary: []],
         pagination: [is_boolean: []],
         posts_per_page: [is_integer: [], >=: [1]],
-        preview_length: [is_integer: [], >=: [0]],
+        preview_length: [valid_preview_length?: []],
         plugins: [is_list: []],
         theme: [is_atom: []]
       ]
@@ -158,4 +158,12 @@ defmodule Serum.Project.ElixirValidator do
       end
     end
   end)
+
+  @spec valid_preview_length?(term()) :: boolean()
+  defp valid_preview_length?(value)
+  defp valid_preview_length?(n) when is_integer(n) and n >= 0, do: true
+  defp valid_preview_length?({:chars, n}) when is_integer(n) and n >= 0, do: true
+  defp valid_preview_length?({:words, n}) when is_integer(n) and n >= 0, do: true
+  defp valid_preview_length?({:paragraphs, n}) when is_integer(n) and n >= 0, do: true
+  defp valid_preview_length?(_), do: false
 end
