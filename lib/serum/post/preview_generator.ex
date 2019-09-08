@@ -1,0 +1,52 @@
+defmodule Serum.Post.PreviewGenerator do
+  @moduledoc false
+
+  _moduledocp = "Generates a preview text from a blog post."
+
+  @spec generate_preview(binary(), term()) :: binary()
+  def generate_preview(html, length)
+  def generate_preview(_html, l) when is_integer(l) and l <= 0, do: ""
+  def generate_preview(_html, {_, l}) when is_integer(l) and l <= 0, do: ""
+
+  def generate_preview(html, l) when is_integer(l) do
+    do_generate_preview(html, {:chars, l})
+  end
+
+  def generate_preview(html, {_, l} = lspec) when is_integer(l) do
+    do_generate_preview(html, lspec)
+  end
+
+  def generate_preview(_html, _), do: ""
+
+  @spec do_generate_preview(binary(), {term(), non_neg_integer()}) :: binary()
+  defp do_generate_preview(html, lspec)
+
+  defp do_generate_preview(html, {:chars, l}) do
+    html
+    |> Floki.text(sep: " ")
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+    |> String.slice(0, l)
+    |> Kernel.<>("\u2026")
+  end
+
+  defp do_generate_preview(html, {:words, l}) do
+    html
+    |> Floki.text(sep: " ")
+    |> String.split(~r/\s/, trim: true)
+    |> Enum.take(l)
+    |> Enum.join(" ")
+    |> Kernel.<>("\u2026")
+  end
+
+  defp do_generate_preview(html, {:paragraphs, l}) do
+    html
+    |> Floki.find("p")
+    |> Enum.take(l)
+    |> Enum.map(&(&1 |> Floki.text() |> String.trim()))
+    |> Enum.join(" ")
+    |> Kernel.<>("\u2026")
+  end
+
+  defp do_generate_preview(_html, _), do: ""
+end
