@@ -55,7 +55,6 @@ defmodule Serum.Post do
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
     raw_date = to_erl_datetime(datetime)
-    preview = generate_preview(html, proj.preview_length)
 
     filename =
       path
@@ -67,7 +66,7 @@ defmodule Serum.Post do
       title: header[:title],
       tags: tags,
       html: html,
-      preview: preview,
+      preview: preview(html, proj.preview_length),
       raw_date: raw_date,
       date: date_str,
       url: Path.join(proj.base_url, filename),
@@ -93,23 +92,45 @@ defmodule Serum.Post do
     end
   end
 
-  @spec generate_preview(binary(), non_neg_integer()) :: binary()
-  defp generate_preview(html, length)
-  defp generate_preview(_html, length) when length <= 0, do: ""
+  @spec preview(binary(), term()) :: binary()
+  defp preview(html, length)
+  defp preview(_html, l) when is_integer(l) and l <= 0, do: ""
+  defp preview(_html, {_, l}) when is_integer(l) and l <= 0, do: ""
+  defp preview(html, l) when is_integer(l), do: do_preview(html, {:chars, l})
+  defp preview(html, {_, l} = lspec) when is_integer(l), do: do_preview(html, lspec)
+  defp preview(_html, _), do: ""
 
-  defp generate_preview(html, length) do
-    text =
-      html
-      |> Floki.text(sep: " ")
-      |> String.trim()
-      |> String.replace(~r/\s+/, " ")
+  @spec do_preview(binary(), {term(), non_neg_integer()}) :: binary()
+  defp do_preview(html, lspec)
 
-    if String.length(text) <= length do
-      text
-    else
-      String.slice(text, 0, length) <> "\u2026"
-    end
+  defp do_preview(html, {:chars, l}) do
+    html
+    |> Floki.text(sep: " ")
+    |> String.trim()
+    |> String.replace(~r/\s+/, " ")
+    |> String.slice(0, l)
+    |> Kernel.<>("\u2026")
   end
+
+  defp do_preview(html, {:words, l}) do
+    html
+    |> Floki.text(sep: " ")
+    |> String.split(~r/\s/, trim: true)
+    |> Enum.take(l)
+    |> Enum.join(" ")
+    |> Kernel.<>("\u2026")
+  end
+
+  defp do_preview(html, {:paragraphs, l}) do
+    html
+    |> Floki.find("p")
+    |> Enum.take(l)
+    |> Enum.each(&(&1 |> Floki.text(sep: " ") |> String.trim()))
+    |> Enum.join(" ")
+    |> Kernel.<>("\u2026")
+  end
+
+  defp do_preview(_html, _), do: ""
 
   @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
   def to_fragment(post, templates) do
