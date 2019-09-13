@@ -3,30 +3,36 @@ defmodule Serum.Template.CompilerTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Template.Compiler, as: TC
+  alias Serum.Template.Storage, as: TS
+
+  setup do
+    on_exit(fn -> TS.reset() end)
+  end
 
   describe "compile_files/2" do
-    test "compile includable templates" do
+    test "compiles includes" do
       file = %Serum.File{src: fixture("templates/good.html.eex")}
       {:ok, file} = Serum.File.read(file)
       {:ok, includes} = TC.compile_files([file], type: :include)
       {output, _} = Code.eval_quoted(includes["good"].ast)
 
       assert includes["good"].type === :include
-      assert String.contains?(output, "Hello, world!")
+      assert output =~ "Hello, world!"
 
-      tc_options = [type: :template, includes: includes]
+      TS.load(includes, :include)
+
       key = "good-using-includes"
       file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
       {:ok, file} = Serum.File.read(file)
-      {:ok, %{^key => template}} = TC.compile_files([file], tc_options)
+      {:ok, %{^key => template}} = TC.compile_files([file], type: :template)
       {output, _} = Code.eval_quoted(template.ast)
 
       assert template.type === :template
-      assert String.contains?(output, "Include Test")
-      assert String.contains?(output, "Hello, world!")
+      assert output =~ "Include Test"
+      assert output =~ "Hello, world!"
     end
 
-    test "compile templates" do
+    test "compiles templates" do
       key = "good-using-helpers"
       file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
       {:ok, file} = Serum.File.read(file)
@@ -38,7 +44,7 @@ defmodule Serum.Template.CompilerTest do
       assert String.contains?(output, "/test_site/index.html")
     end
 
-    test "handle ill-formed templates" do
+    test "handles ill-formed templates" do
       files =
         fixture("templates")
         |> Path.join("bad-*.html.eex")

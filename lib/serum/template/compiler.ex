@@ -11,11 +11,10 @@ defmodule Serum.Template.Compiler do
   @type templates() :: %{optional(binary()) => Template.t()}
 
   @type options :: [
-          type: Template.template_type(),
-          includes: templates()
+          type: Template.template_type()
         ]
 
-  @default_options [type: :template, includes: %{}]
+  @default_options [type: :template]
 
   @inject """
   <%
@@ -38,9 +37,6 @@ defmodule Serum.Template.Compiler do
   the behavior of this function. The available options are:
 
   - `type`: Either `:template` or `:include`, defaults to `:template`.
-  - `includes`: A map where the key of each item is the name of the includable
-    template, and the value associated with the key is a `Serum.Template`
-    struct, which is an already compiled Serum template.
   """
   @spec compile_files([Serum.File.t()], options()) :: Result.t(map())
   def compile_files(files, options) do
@@ -82,11 +78,10 @@ defmodule Serum.Template.Compiler do
           | {:ct_error, binary(), integer()}
   def compile_string(string, options) do
     compiled = EEx.compile_string(string)
-    includes = options[:includes] || []
 
     case options[:type] do
       :include -> {:ok, compiled}
-      _ -> Include.expand(compiled, includes)
+      _ -> Include.expand(compiled)
     end
   rescue
     e in EEx.SyntaxError ->
