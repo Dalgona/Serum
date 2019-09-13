@@ -47,7 +47,7 @@ defmodule Serum.Build.FileProcessor do
          {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
          {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj),
          update_global_bindings(compact_pages, compact_posts, tag_counts),
-         {:ok, pages} <- process_pages(pages, includes, proj) do
+         {:ok, pages} <- process_pages(pages, proj) do
       result = %{
         pages: pages,
         posts: posts,

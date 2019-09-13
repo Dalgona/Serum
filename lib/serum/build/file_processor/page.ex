@@ -11,7 +11,6 @@ defmodule Serum.Build.FileProcessor.Page do
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
-  @doc false
   @spec preprocess_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
   def preprocess_pages(files, proj) do
     put_msg(:info, "Processing page files...")
@@ -59,11 +58,10 @@ defmodule Serum.Build.FileProcessor.Page do
     end
   end
 
-  @doc false
-  @spec process_pages([Page.t()], map(), Project.t()) :: Result.t([Page.t()])
-  def process_pages(pages, includes, proj) do
+  @spec process_pages([Page.t()], Project.t()) :: Result.t([Page.t()])
+  def process_pages(pages, proj) do
     pages
-    |> Task.async_stream(&process_page(&1, includes, proj))
+    |> Task.async_stream(&process_page(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
@@ -72,29 +70,27 @@ defmodule Serum.Build.FileProcessor.Page do
     end
   end
 
-  @spec process_page(Page.t(), map(), Project.t()) :: Result.t(Page.t())
-  defp process_page(page, includes, proj) do
-    case do_process_page(page, includes, proj) do
+  @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
+  defp process_page(page, proj) do
+    case do_process_page(page, proj) do
       {:ok, page} -> Plugin.processed_page(page)
       {:error, _} = error -> error
     end
   end
 
-  @spec do_process_page(Page.t(), map(), Project.t()) :: Result.t(Page.t())
-  defp do_process_page(page, includes, proj)
+  @spec do_process_page(Page.t(), Project.t()) :: Result.t(Page.t())
+  defp do_process_page(page, proj)
 
-  defp do_process_page(%Page{type: ".md"} = page, _includes, proj) do
+  defp do_process_page(%Page{type: ".md"} = page, proj) do
     {:ok, %Page{page | data: Markdown.to_html(page.data, proj)}}
   end
 
-  defp do_process_page(%Page{type: ".html"} = page, _includes, _proj) do
+  defp do_process_page(%Page{type: ".html"} = page, _proj) do
     {:ok, page}
   end
 
-  defp do_process_page(%Page{type: ".html.eex"} = page, includes, _proj) do
-    tc_options = [type: :template, includes: includes]
-
-    with {:ok, ast} <- TC.compile_string(page.data, tc_options),
+  defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
+    with {:ok, ast} <- TC.compile_string(page.data, type: :template),
          template = Template.new(ast, :template, page.file),
          {:ok, html} <- Renderer.render_fragment(template, []) do
       {:ok, %Page{page | data: html}}
