@@ -15,9 +15,7 @@ defmodule Serum.Build.FileProcessor do
   @type result() :: %{
           pages: [Page.t()],
           posts: [Post.t()],
-          lists: [PostList.t()],
-          templates: map(),
-          includes: map()
+          lists: [PostList.t()]
         }
 
   @doc """
@@ -42,7 +40,7 @@ defmodule Serum.Build.FileProcessor do
 
     %{pages: page_files, posts: post_files} = files
 
-    with {:ok, {templates, includes}} <- compile_templates(files),
+    with :ok <- compile_templates(files),
          {:ok, {pages, compact_pages}} <- preprocess_pages(page_files, proj),
          {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
          {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj),
@@ -51,9 +49,7 @@ defmodule Serum.Build.FileProcessor do
       result = %{
         pages: pages,
         posts: posts,
-        lists: lists,
-        templates: templates,
-        includes: includes
+        lists: lists
       }
 
       {:ok, result}

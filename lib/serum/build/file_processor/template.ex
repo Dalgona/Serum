@@ -7,34 +7,23 @@ defmodule Serum.Build.FileProcessor.Template do
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
 
-  @type compile_result :: %{optional(binary()) => Template.t()}
   @typep type :: Template.template_type()
 
-  # TODO: The return type will be `Result.t()`.
-  @spec compile_templates(map()) :: Result.t({map(), map()})
-  def compile_templates(%{templates: template_files, includes: include_files}) do
+  @spec compile_templates(map()) :: Result.t()
+  def compile_templates(%{templates: templates, includes: includes}) do
     put_msg(:info, "Compiling and loading templates...")
 
-    with {:ok, includes} <- compile_and_load(include_files, :include),
-         {:ok, templates} <- compile_and_load(template_files, :template) do
-      {:ok, {templates, includes}}
-    else
+    case compile_and_load(includes, :include) do
+      :ok -> compile_and_load(templates, :template)
       {:error, _} = error -> error
     end
   end
 
-  # TODO: The return type will be `Result.t()`.
-  @spec compile_and_load([Serum.File.t()], type()) :: Result.t(compile_result())
+  @spec compile_and_load([Serum.File.t()], type()) :: Result.t()
   defp compile_and_load(files, type) do
     case TC.compile_files(files, type: type) do
-      {:ok, result} ->
-        TS.load(result, type)
-
-        # TODO: Remove this line after finishing the implementation.
-        {:ok, result}
-
-      {:error, _} = error ->
-        error
+      {:ok, result} -> TS.load(result, type)
+      {:error, _} = error -> error
     end
   end
 end
