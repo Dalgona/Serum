@@ -9,10 +9,13 @@ defmodule Serum.Build.PageGenerator do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
+  alias Serum.Template.Storage, as: TS
 
-  @spec run([Fragment.t()], Template.t()) :: Result.t([Serum.File.t()])
-  def run(fragments, template) do
+  @spec run([Fragment.t()]) :: Result.t([Serum.File.t()])
+  def run(fragments) do
     put_msg(:info, "Generating complete HTML pages...")
+
+    template = TS.get("base", :template)
 
     fragments
     |> Task.async_stream(&render(&1, template))
