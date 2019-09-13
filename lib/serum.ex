@@ -19,6 +19,7 @@ defmodule Serum do
   alias Serum.GlobalBindings
   alias Serum.IOProxy
   alias Serum.Plugin
+  alias Serum.Template.Storage, as: TemplateStorage
   alias Serum.Theme
 
   @doc """
@@ -32,7 +33,8 @@ defmodule Serum do
       GlobalBindings,
       IOProxy,
       Plugin,
-      Theme
+      Theme,
+      TemplateStorage
     ]
 
     opts = [strategy: :one_for_one, name: Serum.Supervisor]
