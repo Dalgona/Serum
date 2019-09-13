@@ -22,6 +22,7 @@ defmodule Serum.PostList do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
+  alias Serum.Template.Storage, as: TS
 
   @type t :: %__MODULE__{
           tag: maybe_tag(),
@@ -133,10 +134,10 @@ defmodule Serum.PostList do
     |> IO.iodata_to_binary()
   end
 
-  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
-  def to_fragment(post_list, templates) do
+  @spec to_fragment(t()) :: Result.t(Fragment.t())
+  def to_fragment(post_list) do
     metadata = compact(post_list)
-    template = templates["list"]
+    template = TS.get("list", :template)
     bindings = [page: metadata]
 
     case Renderer.render_fragment(template, bindings) do
@@ -149,9 +150,9 @@ defmodule Serum.PostList do
     alias Serum.PostList
     alias Serum.Result
 
-    @spec to_fragment(PostList.t(), map()) :: Result.t(Fragment.t())
-    def to_fragment(fragment, templates) do
-      PostList.to_fragment(fragment, templates)
+    @spec to_fragment(PostList.t()) :: Result.t(Fragment.t())
+    def to_fragment(fragment) do
+      PostList.to_fragment(fragment)
     end
   end
 end

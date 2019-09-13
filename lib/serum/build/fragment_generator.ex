@@ -12,20 +12,18 @@ defmodule Serum.Build.FragmentGenerator do
   def to_fragment(map) do
     put_msg(:info, "Generating fragments...")
 
-    templates = map.templates
-
     map
     |> Map.take([:pages, :posts, :lists])
     |> Enum.map(&elem(&1, 1))
     |> List.flatten()
-    |> Task.async_stream(&task_fun(&1, templates))
+    |> Task.async_stream(&task_fun(&1))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:fragment_generator)
   end
 
-  @spec task_fun(struct(), map()) :: Result.t(Fragment.t())
-  defp task_fun(fragment_source, templates) do
-    case Fragment.Source.to_fragment(fragment_source, templates) do
+  @spec task_fun(struct()) :: Result.t(Fragment.t())
+  defp task_fun(fragment_source) do
+    case Fragment.Source.to_fragment(fragment_source) do
       {:ok, fragment} -> Plugin.rendered_fragment(fragment)
       {:error, _} = error -> error
     end

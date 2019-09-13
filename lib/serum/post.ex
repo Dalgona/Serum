@@ -21,6 +21,7 @@ defmodule Serum.Post do
   alias Serum.Result
   alias Serum.Tag
   alias Serum.Template
+  alias Serum.Template.Storage, as: TS
 
   @type t :: %__MODULE__{
           file: binary(),
@@ -94,13 +95,13 @@ defmodule Serum.Post do
     end
   end
 
-  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
-  def to_fragment(post, templates) do
+  @spec to_fragment(t()) :: Result.t(Fragment.t())
+  def to_fragment(post) do
     metadata = compact(post)
     template_name = post.template || "post"
     bindings = [page: metadata, contents: post.html]
 
-    with %Template{} = template <- templates[template_name],
+    with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
       Fragment.new(post.file, post.output, metadata, html)
     else
@@ -113,9 +114,9 @@ defmodule Serum.Post do
     alias Serum.Post
     alias Serum.Result
 
-    @spec to_fragment(Post.t(), map()) :: Result.t(Fragment.t())
-    def to_fragment(post, templates) do
-      Post.to_fragment(post, templates)
+    @spec to_fragment(Post.t()) :: Result.t(Fragment.t())
+    def to_fragment(post) do
+      Post.to_fragment(post)
     end
   end
 end

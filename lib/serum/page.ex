@@ -32,6 +32,7 @@ defmodule Serum.Page do
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
+  alias Serum.Template.Storage, as: TS
 
   defstruct [
     :file,
@@ -91,13 +92,13 @@ defmodule Serum.Page do
     end
   end
 
-  @spec to_fragment(t(), map()) :: Result.t(Fragment.t())
-  def to_fragment(page, templates) do
+  @spec to_fragment(t()) :: Result.t(Fragment.t())
+  def to_fragment(page) do
     metadata = compact(page)
     template_name = page.template || "page"
     bindings = [page: metadata, contents: page.data]
 
-    with %Template{} = template <- templates[template_name],
+    with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
       Fragment.new(page.file, page.output, metadata, html)
     else
@@ -110,9 +111,9 @@ defmodule Serum.Page do
     alias Serum.Page
     alias Serum.Result
 
-    @spec to_fragment(Page.t(), map()) :: Result.t(Fragment.t())
-    def to_fragment(page, templates) do
-      Page.to_fragment(page, templates)
+    @spec to_fragment(Page.t()) :: Result.t(Fragment.t())
+    def to_fragment(page) do
+      Page.to_fragment(page)
     end
   end
 end

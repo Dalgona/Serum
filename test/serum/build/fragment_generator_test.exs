@@ -4,6 +4,7 @@ defmodule Serum.Build.FragmentGeneratorTest do
   import Serum.TestHelper, only: :macros
   alias Serum.Build.FragmentGenerator
   alias Serum.GlobalBindings
+  alias Serum.Template.Storage, as: TS
 
   setup_all do
     {pages, _} = Code.eval_file(fixture("precompiled/good-pages.exs"))
@@ -17,21 +18,21 @@ defmodule Serum.Build.FragmentGeneratorTest do
   setup do
     on_exit(fn ->
       Agent.update(GlobalBindings, fn _ -> {%{}, []} end)
+      TS.reset()
     end)
   end
 
   describe "to_fragment/2" do
-    test "all went well", ctx do
+    test "generates fragments from fragment sources", ctx do
       {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
 
+      TS.load(templates, :template)
       GlobalBindings.load(ctx.state)
 
       processed = %{
         pages: ctx.pages,
         posts: ctx.posts,
-        lists: ctx.lists,
-        templates: templates,
-        includes: []
+        lists: ctx.lists
       }
 
       {:ok, fragments} = FragmentGenerator.to_fragment(processed)
@@ -40,53 +41,50 @@ defmodule Serum.Build.FragmentGeneratorTest do
       assert length(fragments) === actual_count
     end
 
-    test "failed due to bad templates", ctx do
+    test "fails with bad templates", ctx do
       {templates, _} = Code.eval_file(fixture("precompiled/bad-templates.exs"))
 
+      TS.load(templates, :template)
       GlobalBindings.load(ctx.state)
 
       processed = %{
         pages: ctx.pages,
         posts: ctx.posts,
-        lists: ctx.lists,
-        templates: templates,
-        includes: []
+        lists: ctx.lists
       }
 
       assert {:error, _} = FragmentGenerator.to_fragment(processed)
     end
 
     test "fails when pages use custom templates which are unavailable", ctx do
-      GlobalBindings.load(ctx.state)
-
       {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
       [page | pages] = ctx.pages
       bad_page = %{page | template: "foobarbaz"}
 
+      TS.load(templates, :template)
+      GlobalBindings.load(ctx.state)
+
       processed = %{
         pages: [bad_page | pages],
         posts: [],
-        lists: [],
-        templates: templates,
-        includes: []
+        lists: []
       }
 
       assert {:error, _} = FragmentGenerator.to_fragment(processed)
     end
 
     test "fails when posts use custom templates which are unavailable", ctx do
-      GlobalBindings.load(ctx.state)
-
       {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
       [post | posts] = ctx.posts
       bad_post = %{post | template: "foobarbaz"}
 
+      TS.load(templates, :template)
+      GlobalBindings.load(ctx.state)
+
       processed = %{
         pages: [],
         posts: [bad_post | posts],
-        lists: [],
-        templates: templates,
-        includes: []
+        lists: []
       }
 
       assert {:error, _} = FragmentGenerator.to_fragment(processed)
