@@ -1,18 +1,23 @@
 defmodule Serum.Template.Compiler.IncludeTest do
   use ExUnit.Case, async: true
   alias Serum.Template.Compiler.Include
+  alias Serum.Template.Storage, as: TS
 
-  describe "expand/2" do
+  setup_all do
+    TS.load(includes(), :include)
+  end
+
+  describe "expand/1" do
     test "does not do anything with templates without include/2 call" do
       ast = EEx.compile_string("Hello, <%= :world %>!")
-      {:ok, new_ast} = Include.expand(ast, includes())
+      {:ok, new_ast} = Include.expand(ast)
 
       assert ast === new_ast
     end
 
     test "expands simple include/2 macros" do
       ast = EEx.compile_string("[<%= include(\"simple\") %>]")
-      {:ok, new_ast} = Include.expand(ast, includes())
+      {:ok, new_ast} = Include.expand(ast)
       {rendered, _} = Code.eval_quoted(new_ast)
 
       assert rendered === "[Hello, world!]"
@@ -20,7 +25,7 @@ defmodule Serum.Template.Compiler.IncludeTest do
 
     test "expands nested include/2 macros" do
       ast = quote(do: include("nested_1"))
-      {:ok, new_ast} = Include.expand(ast, includes())
+      {:ok, new_ast} = Include.expand(ast)
       {rendered, _} = Code.eval_quoted(new_ast)
 
       assert rendered === "Nested1 Nested2"
@@ -28,21 +33,21 @@ defmodule Serum.Template.Compiler.IncludeTest do
 
     test "fails with non-existent includes" do
       ast = quote(do: include("foobarbaz"))
-      {:ct_error, msg, _} = Include.expand(ast, %{})
+      {:ct_error, msg, _} = Include.expand(ast)
 
       assert String.contains?(msg, "foobarbaz")
     end
 
     test "fails when nested includes have cycles - simple" do
       ast = quote(do: include("simple_cycle"))
-      {:ct_error, msg, _} = Include.expand(ast, includes())
+      {:ct_error, msg, _} = Include.expand(ast)
 
       assert msg =~ "simple_cycle"
     end
 
     test "fails when nested includes have cycles - deep" do
       ast = quote(do: include("deep_cycle_1"))
-      {:ct_error, msg, _} = Include.expand(ast, includes())
+      {:ct_error, msg, _} = Include.expand(ast)
 
       1..3
       |> Enum.map(&"deep_cycle_#{&1}")

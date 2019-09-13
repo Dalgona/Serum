@@ -3,9 +3,11 @@ defmodule Serum.Template.Compiler.Include do
 
   _moduledocp = "Provides functions for expanding includes in templates."
 
-  @spec expand(Macro.t(), map()) :: {:ok, Macro.t()} | {:ct_error, binary(), binary()}
-  def expand(ast, includes) do
-    {new_ast, _} = Macro.prewalk(ast, [], &do_expand_includes(&1, &2, includes))
+  alias Serum.Template.Storage, as: TS
+
+  @spec expand(Macro.t()) :: {:ok, Macro.t()} | {:ct_error, binary(), binary()}
+  def expand(ast) do
+    {new_ast, _} = Macro.prewalk(ast, [], &do_expand_includes(&1, &2))
 
     {:ok, new_ast}
   rescue
@@ -16,11 +18,11 @@ defmodule Serum.Template.Compiler.Include do
       {:ct_error, e.message, 0}
   end
 
-  @spec do_expand_includes(Macro.t(), [binary()], map()) :: {Macro.t(), [binary()]}
-  defp do_expand_includes(ast, stack, includes)
+  @spec do_expand_includes(Macro.t(), [binary()]) :: {Macro.t(), [binary()]}
+  defp do_expand_includes(ast, stack)
 
-  defp do_expand_includes({:include, _, [arg]}, stack, includes) do
-    case includes[arg] do
+  defp do_expand_includes({:include, _, [arg]}, stack) do
+    case TS.get(arg, :include) do
       nil ->
         raise ArgumentError, arg
 
@@ -31,7 +33,7 @@ defmodule Serum.Template.Compiler.Include do
     end
   end
 
-  defp do_expand_includes(anything_else, stack, _), do: {anything_else, stack}
+  defp do_expand_includes(anything_else, stack), do: {anything_else, stack}
 
   top = "    \x1b[31m\u256d\u2500\u2500\u2500\u2500\u2500\u256e\x1b[m\n"
   arrow = "    \x1b[31m\u2502     \u2193\x1b[m\n"
