@@ -13,6 +13,10 @@ defmodule Serum.Template.Helpers do
   exporting functions/macros with the same names.
   """
 
+  alias Serum.Renderer
+  alias Serum.Template
+  alias Serum.Template.Storage, as: TS
+
   @doc "Returns the value of `@site.base_url`."
 
   defmacro base do
@@ -78,6 +82,24 @@ defmodule Serum.Template.Helpers do
 
   defmacro asset(arg) do
     quote do: Path.join([unquote(base!()), "assets", unquote(arg)])
+  end
+
+  @doc """
+  Dynamically renders includes with given arguments.
+
+  The `args` parameter must be a keyword list.
+  """
+
+  def render(name, args \\ []) do
+    with %Template{} = template <- TS.get(name, :include),
+         true <- Keyword.keyword?(args),
+         {:ok, html} <- Renderer.render_fragment(template, args: args) do
+      html
+    else
+      nil -> raise "include not found: \"#{name}\""
+      false -> raise "'args' must be a keyword list, got: #{inspect(args)}"
+      {:error, _} = error -> raise Serum.Result.get_message(error, 0)
+    end
   end
 
   defp base!, do: quote(do: get_in(var!(assigns), [:site, :base_url]))
