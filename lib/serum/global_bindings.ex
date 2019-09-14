@@ -9,7 +9,7 @@ defmodule Serum.GlobalBindings do
   use Agent
 
   def start_link(_args) do
-    Agent.start_link(fn -> {%{}, []} end, name: __MODULE__)
+    Agent.start_link(fn -> {%{args: []}, [args: []]} end, name: __MODULE__)
   end
 
   @spec load(map()) :: :ok
