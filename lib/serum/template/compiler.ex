@@ -9,10 +9,7 @@ defmodule Serum.Template.Compiler do
   alias Serum.Template.Compiler.Include
 
   @type templates() :: %{optional(binary()) => Template.t()}
-
-  @type options :: [
-          type: Template.template_type()
-        ]
+  @type options :: [type: Template.type()]
 
   @default_options [type: :template]
 
