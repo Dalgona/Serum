@@ -7,8 +7,6 @@ defmodule Serum.Template.Storage do
   alias Serum.Result
   alias Serum.Template
 
-  @type templates_map :: %{optional(binary()) => Template.t()}
-
   @initial_value %{template: %{}, include: %{}}
 
   @spec start_link(term()) :: Agent.on_start()
@@ -16,7 +14,7 @@ defmodule Serum.Template.Storage do
     Agent.start_link(fn -> @initial_value end, name: __MODULE__)
   end
 
-  @spec load(templates_map(), Template.type()) :: Result.t()
+  @spec load(Template.collection(), Template.type()) :: Result.t()
   def load(templates, type) when type in ~w(template include)a do
     Agent.update(__MODULE__, &Map.put(&1, type, templates))
   end

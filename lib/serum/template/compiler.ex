@@ -8,7 +8,6 @@ defmodule Serum.Template.Compiler do
   alias Serum.Template
   alias Serum.Template.Compiler.Include
 
-  @type templates() :: %{optional(binary()) => Template.t()}
   @type options :: [type: Template.type()]
 
   @default_options [type: :template]
@@ -35,7 +34,7 @@ defmodule Serum.Template.Compiler do
 
   - `type`: Either `:template` or `:include`, defaults to `:template`.
   """
-  @spec compile_files([Serum.File.t()], options()) :: Result.t(map())
+  @spec compile_files([Serum.File.t()], options()) :: Result.t(Template.collection())
   def compile_files(files, options) do
     options = Keyword.merge(@default_options, options)
 

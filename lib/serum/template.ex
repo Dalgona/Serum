@@ -7,6 +7,7 @@ defmodule Serum.Template do
           ast: Macro.t()
         }
 
+  @type collection() :: %{optional(binary()) => t()}
   @type type() :: :template | :include
 
   defstruct type: :template, file: nil, ast: nil
