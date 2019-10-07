@@ -75,7 +75,9 @@ defmodule Serum.Plugin do
   """
 
   use Agent
+  require Serum.Plugin.Macros
   import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
+  import Serum.Plugin.Macros
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
@@ -97,27 +99,31 @@ defmodule Serum.Plugin do
   @type plugin_spec :: atom() | {atom(), [{:only, atom() | [atom()]}]}
 
   @optional_callbacks [
-    build_started: 2,
-    reading_pages: 1,
-    reading_posts: 1,
-    reading_templates: 1,
-    processing_page: 1,
-    processing_post: 1,
-    processing_template: 1,
-    processed_page: 1,
-    processed_post: 1,
-    processed_template: 1,
-    processed_list: 1,
-    processed_pages: 1,
-    processed_posts: 1,
-    rendering_fragment: 2,
-    rendered_fragment: 1,
-    rendered_page: 1,
-    wrote_file: 1,
-    build_succeeded: 2,
-    build_failed: 3,
-    finalizing: 2
-  ]
+                        build_started: 2,
+                        reading_pages: 1,
+                        reading_posts: 1,
+                        reading_templates: 1,
+                        processing_page: 1,
+                        processing_post: 1,
+                        processing_template: 1,
+                        processed_page: 1,
+                        processed_post: 1,
+                        processed_template: 1,
+                        processed_list: 1,
+                        processed_pages: 1,
+                        processed_posts: 1,
+                        rendering_fragment: 2,
+                        rendered_fragment: 1,
+                        rendered_page: 1,
+                        wrote_file: 1,
+                        build_succeeded: 2,
+                        build_failed: 3,
+                        finalizing: 2
+                      ]
+                      |> Enum.map(fn {name, arity} ->
+                        [{name, arity}, {name, arity + 1}]
+                      end)
+                      |> List.flatten()
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
   @elixir_version Version.parse!(System.version())
@@ -189,7 +195,7 @@ defmodule Serum.Plugin do
   Called right after the build process has started. Some necessary OTP
   applications or processes should be started here.
   """
-  @callback build_started(src :: binary(), dest :: binary()) :: Result.t()
+  defcallback build_started(src :: binary(), dest :: binary()) :: Result.t()
 
   @doc """
   Called before reading input files.
@@ -197,7 +203,7 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  @callback reading_pages(files :: [binary()]) :: Result.t([binary()])
+  defcallback reading_pages(files :: [binary()]) :: Result.t([binary()])
 
   @doc """
   Called before reading input files.
@@ -205,7 +211,7 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  @callback reading_posts(files :: [binary()]) :: Result.t([binary()])
+  defcallback reading_posts(files :: [binary()]) :: Result.t([binary()])
 
   @doc """
   Called before reading input files.
@@ -213,28 +219,28 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  @callback reading_templates(files :: [binary()]) :: Result.t([binary()])
+  defcallback reading_templates(files :: [binary()]) :: Result.t([binary()])
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_page(file :: File.t()) :: Result.t(File.t())
+  defcallback processing_page(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_post(file :: File.t()) :: Result.t(File.t())
+  defcallback processing_post(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_template(file :: File.t()) :: Result.t(File.t())
+  defcallback processing_template(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -242,7 +248,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  @callback processed_page(page :: Page.t()) :: Result.t(Page.t())
+  defcallback processed_page(page :: Page.t()) :: Result.t(Page.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -250,7 +256,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  @callback processed_post(post :: Post.t()) :: Result.t(Post.t())
+  defcallback processed_post(post :: Post.t()) :: Result.t(Post.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -258,7 +264,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the AST and its metadata here.
   """
-  @callback processed_template(template :: Template.t()) :: Result.t(Template.t())
+  defcallback processed_template(template :: Template.t()) :: Result.t(Template.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -266,13 +272,13 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  @callback processed_list(list :: PostList.t()) :: Result.t(PostList.t())
+  defcallback processed_list(list :: PostList.t()) :: Result.t(PostList.t())
 
   @doc "Called after Serum has successfully processed all pages."
-  @callback processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
+  defcallback processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
 
   @doc "Called after Serum has successfully processed all blog posts."
-  @callback processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
+  defcallback processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
 
   @doc """
   Called while each fragment is being constructed.
@@ -281,15 +287,15 @@ defmodule Serum.Plugin do
   Floki). It is recommended to implement this callback if you want to modify
   the HTML document without worrying about breaking it.
   """
-  @callback rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
-              Result.t(Floki.html_tree())
+  defcallback rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
+                Result.t(Floki.html_tree())
 
   @doc """
   Called after producing a HTML fragment for each page.
 
   Plugins can modify the contents and metadata of each fragment here.
   """
-  @callback rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
+  defcallback rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
 
   @doc """
   Called when Serum has rendered a full page and it's about to write to an
@@ -297,23 +303,27 @@ defmodule Serum.Plugin do
 
   Plugins can alter the raw contents of the page to be written.
   """
-  @callback rendered_page(file :: File.t()) :: Result.t(File.t())
+  defcallback rendered_page(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called after writing each output to a file.
   """
-  @callback wrote_file(file :: File.t()) :: Result.t()
+  defcallback wrote_file(file :: File.t()) :: Result.t()
 
   @doc """
   Called if the whole build process has finished successfully.
   """
-  @callback build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
+  defcallback build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
 
   @doc """
   Called if the build process has failed for some reason.
   """
-  @callback build_failed(src :: binary(), dest :: binary(), result :: Result.t() | Result.t(term)) ::
-              Result.t()
+  defcallback build_failed(
+                src :: binary(),
+                dest :: binary(),
+                result :: Result.t() | Result.t(term)
+              ) ::
+                Result.t()
 
   @doc """
   Called right before Serum exits, whether the build has succeeded or not.
@@ -321,7 +331,7 @@ defmodule Serum.Plugin do
   This is the place where you should clean up any temporary resources created
   in `build_started/2` callback.
   """
-  @callback finalizing(src :: binary(), dest :: binary()) :: Result.t()
+  defcallback finalizing(src :: binary(), dest :: binary()) :: Result.t()
 
   #
   # Plugin Consumer Functions
