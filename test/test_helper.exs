@@ -1,5 +1,4 @@
 ExUnit.start()
-ExUnit.configure(trace: true)
 
 Serum.IOProxy.config(mute_err: true, mute_msg: true)
 
