@@ -87,14 +87,15 @@ defmodule Serum.Plugin do
   alias Serum.Result
   alias Serum.Template
 
-  defstruct [:module, :name, :version, :description, :implements]
+  defstruct [:module, :name, :version, :description, :implements, :args]
 
   @type t :: %__MODULE__{
           module: atom(),
           name: binary(),
           version: binary(),
           description: binary(),
-          implements: [atom()]
+          implements: [atom()],
+          args: term()
         }
 
   @type spec :: atom() | {atom(), plugin_options()}
