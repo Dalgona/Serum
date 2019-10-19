@@ -30,8 +30,8 @@ defmodule Serum.Plugins.LiveReloader do
   serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
 
   def name, do: "Inject Live Reloader Script"
-  def version, do: "1.0.0"
-  def elixir, do: ">= 1.6.0"
+  def version, do: "1.1.0"
+  def elixir, do: "~> 1.8"
   def serum, do: unquote(serum_req)
 
   def description do
@@ -39,10 +39,7 @@ defmodule Serum.Plugins.LiveReloader do
       "all HTML files for use in the Serum development server."
   end
 
-  def implements,
-    do: [
-      :rendered_page
-    ]
+  def implements, do: [rendered_page: 2]
 
   script_snippet =
     :serum
@@ -51,7 +48,7 @@ defmodule Serum.Plugins.LiveReloader do
     |> Path.join("build_resources/live_reloader.html")
     |> File.read!()
 
-  def rendered_page(%{out_data: data} = file) do
+  def rendered_page(%{out_data: data} = file, _args) do
     {:ok, %{file | out_data: data <> unquote(script_snippet)}}
   end
 end

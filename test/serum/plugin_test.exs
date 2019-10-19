@@ -28,22 +28,6 @@ defmodule Serum.PluginTest do
     on_exit(fn -> Agent.update(Serum.Plugin, fn _ -> %{} end) end)
   end
 
-  test "load_plugins/1" do
-    {:ok, loaded_plugins} =
-      load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2, Serum.DummyPlugin3])
-
-    assert length(loaded_plugins) == 3
-
-    agent_state = Agent.get(Serum.Plugin, & &1)
-
-    count =
-      Enum.reduce(agent_state, 0, fn {_, plugins}, acc ->
-        acc + length(plugins)
-      end)
-
-    assert count == 27
-  end
-
   test "callback test" do
     {:ok, _} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2, Serum.DummyPlugin3])
 
@@ -71,28 +55,6 @@ defmodule Serum.PluginTest do
     end)
   end
 
-  test "env filter" do
-    plugins = [
-      Serum.DummyPlugin1,
-      {Serum.DummyPlugin2, only: :test},
-      {Serum.DummyPlugin3, only: [:dev, :prod]}
-    ]
-
-    {:ok, loaded} = load_plugins(plugins)
-    loaded_mods = Enum.map(loaded, & &1.module)
-
-    assert [Serum.DummyPlugin1, Serum.DummyPlugin2] == loaded_mods
-  end
-
-  test "incompatible plugin" do
-    output =
-      ExUnit.CaptureIO.capture_io(:stderr, fn ->
-        {:ok, _} = load_plugins([Serum.IncompatiblePlugin])
-      end)
-
-    assert String.contains?(output, "not compatible")
-  end
-
   test "failing plugin 1" do
     {:ok, _} = load_plugins([Serum.DummyPlugin1, Serum.FailingPlugin1])
 
@@ -110,9 +72,22 @@ defmodule Serum.PluginTest do
     end)
   end
 
-  test "failing plugin 2" do
-    assert {:error, {_, [h | _]}} = load_plugins([Serum.FailingPlugin2])
-    assert {:error, "RuntimeError" <> _} = h
+  test "still handles deprecated callbacks" do
+    {:ok, _} = load_plugins([Serum.OldPlugin])
+    {:ok, io_opts} = IOProxy.config()
+
+    IOProxy.config(mute_err: true, mute_msg: true)
+
+    output =
+      capture_io(fn ->
+        assert :ok = build_started("", "")
+        assert :ok = build_succeeded("", "")
+      end)
+
+    assert output =~ "build_started"
+    assert output =~ "build_succeeded"
+
+    IOProxy.config(Keyword.new(io_opts))
   end
 
   describe "show_info/1" do

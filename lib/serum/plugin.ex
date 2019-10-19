@@ -75,28 +75,33 @@ defmodule Serum.Plugin do
   """
 
   use Agent
-  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
+  require Serum.Plugin.Macros
+  import Serum.IOProxy, only: [put_msg: 2]
+  import Serum.Plugin.Macros
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
+  alias Serum.Plugin.Loader
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Result
   alias Serum.Template
 
-  defstruct [:module, :name, :version, :description, :implements]
+  defstruct [:module, :name, :version, :description, :implements, :args]
 
   @type t :: %__MODULE__{
           module: atom(),
           name: binary(),
           version: binary(),
           description: binary(),
-          implements: [atom()]
+          implements: [atom()],
+          args: term()
         }
 
-  @type plugin_spec :: atom() | {atom(), [{:only, atom() | [atom()]}]}
+  @type spec :: atom() | {atom(), plugin_options()}
+  @type plugin_options :: [only: atom() | [atom()], args: term()]
 
-  @optional_callbacks [
+  @old_callback_arities [
     build_started: 2,
     reading_pages: 1,
     reading_posts: 1,
@@ -119,8 +124,12 @@ defmodule Serum.Plugin do
     finalizing: 2
   ]
 
-  @serum_version Version.parse!(Mix.Project.config()[:version])
-  @elixir_version Version.parse!(System.version())
+  @optional_callbacks @old_callback_arities
+                      |> Enum.map(fn {name, arity} ->
+                        [{name, arity}, {name, arity + 1}]
+                      end)
+                      |> List.flatten()
+
   @required_msg "You must implement this callback, or the plugin may fail."
 
   #
@@ -173,13 +182,19 @@ defmodule Serum.Plugin do
   @doc """
   Returns a list of optional callbacks which the plugin implements.
 
+  Each list item can be in one of two forms:
+
+  - `{callback_name, arity}`
+  - `callback_name` - This is deprecated and left for compatibility. New Serum
+    plugins must use the above format.
+
   For example, if your plugin implements `build_started/2` and `finalizing/2`,
-  you must implement this callback so that it returns `[:build_started,
-  :finalizing]`.
+  you must implement this callback so that it returns `[build_started: 2,
+  finalizing: 2]`.
 
   #{@required_msg}
   """
-  @callback implements() :: [atom()]
+  @callback implements() :: [atom() | {atom(), integer()}]
 
   #
   # Optional Callbacks
@@ -189,7 +204,7 @@ defmodule Serum.Plugin do
   Called right after the build process has started. Some necessary OTP
   applications or processes should be started here.
   """
-  @callback build_started(src :: binary(), dest :: binary()) :: Result.t()
+  defcallback build_started(src :: binary(), dest :: binary()) :: Result.t()
 
   @doc """
   Called before reading input files.
@@ -197,7 +212,7 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  @callback reading_pages(files :: [binary()]) :: Result.t([binary()])
+  defcallback reading_pages(files :: [binary()]) :: Result.t([binary()])
 
   @doc """
   Called before reading input files.
@@ -205,7 +220,7 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  @callback reading_posts(files :: [binary()]) :: Result.t([binary()])
+  defcallback reading_posts(files :: [binary()]) :: Result.t([binary()])
 
   @doc """
   Called before reading input files.
@@ -213,28 +228,28 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  @callback reading_templates(files :: [binary()]) :: Result.t([binary()])
+  defcallback reading_templates(files :: [binary()]) :: Result.t([binary()])
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_page(file :: File.t()) :: Result.t(File.t())
+  defcallback processing_page(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_post(file :: File.t()) :: Result.t(File.t())
+  defcallback processing_post(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_template(file :: File.t()) :: Result.t(File.t())
+  defcallback processing_template(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -242,7 +257,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  @callback processed_page(page :: Page.t()) :: Result.t(Page.t())
+  defcallback processed_page(page :: Page.t()) :: Result.t(Page.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -250,7 +265,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  @callback processed_post(post :: Post.t()) :: Result.t(Post.t())
+  defcallback processed_post(post :: Post.t()) :: Result.t(Post.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -258,7 +273,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the AST and its metadata here.
   """
-  @callback processed_template(template :: Template.t()) :: Result.t(Template.t())
+  defcallback processed_template(template :: Template.t()) :: Result.t(Template.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -266,13 +281,13 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  @callback processed_list(list :: PostList.t()) :: Result.t(PostList.t())
+  defcallback processed_list(list :: PostList.t()) :: Result.t(PostList.t())
 
   @doc "Called after Serum has successfully processed all pages."
-  @callback processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
+  defcallback processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
 
   @doc "Called after Serum has successfully processed all blog posts."
-  @callback processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
+  defcallback processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
 
   @doc """
   Called while each fragment is being constructed.
@@ -281,15 +296,15 @@ defmodule Serum.Plugin do
   Floki). It is recommended to implement this callback if you want to modify
   the HTML document without worrying about breaking it.
   """
-  @callback rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
-              Result.t(Floki.html_tree())
+  defcallback rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
+                Result.t(Floki.html_tree())
 
   @doc """
   Called after producing a HTML fragment for each page.
 
   Plugins can modify the contents and metadata of each fragment here.
   """
-  @callback rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
+  defcallback rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
 
   @doc """
   Called when Serum has rendered a full page and it's about to write to an
@@ -297,23 +312,27 @@ defmodule Serum.Plugin do
 
   Plugins can alter the raw contents of the page to be written.
   """
-  @callback rendered_page(file :: File.t()) :: Result.t(File.t())
+  defcallback rendered_page(file :: File.t()) :: Result.t(File.t())
 
   @doc """
   Called after writing each output to a file.
   """
-  @callback wrote_file(file :: File.t()) :: Result.t()
+  defcallback wrote_file(file :: File.t()) :: Result.t()
 
   @doc """
   Called if the whole build process has finished successfully.
   """
-  @callback build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
+  defcallback build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
 
   @doc """
   Called if the build process has failed for some reason.
   """
-  @callback build_failed(src :: binary(), dest :: binary(), result :: Result.t() | Result.t(term)) ::
-              Result.t()
+  defcallback build_failed(
+                src :: binary(),
+                dest :: binary(),
+                result :: Result.t() | Result.t(term)
+              ) ::
+                Result.t()
 
   @doc """
   Called right before Serum exits, whether the build has succeeded or not.
@@ -321,7 +340,7 @@ defmodule Serum.Plugin do
   This is the place where you should clean up any temporary resources created
   in `build_started/2` callback.
   """
-  @callback finalizing(src :: binary(), dest :: binary()) :: Result.t()
+  defcallback finalizing(src :: binary(), dest :: binary()) :: Result.t()
 
   #
   # Plugin Consumer Functions
@@ -334,117 +353,8 @@ defmodule Serum.Plugin do
   end
 
   @doc false
-  @spec load_plugins([plugin_spec()]) :: Result.t([t()])
-  def load_plugins(modules) do
-    modules
-    |> Stream.filter(&env_matches?/1)
-    |> Stream.map(&from_spec/1)
-    |> Stream.uniq()
-    |> Enum.map(&make_plugin/1)
-    |> Result.aggregate_values(:load_plugins)
-    |> case do
-      {:ok, plugins} ->
-        update_agent(plugins)
-
-        {:ok, plugins}
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  @spec env_matches?(plugin_spec()) :: boolean()
-  defp env_matches?(plugin_spec)
-  defp env_matches?(mod) when is_atom(mod), do: true
-
-  defp env_matches?({mod, only: env}) when is_atom(mod) and is_atom(env) do
-    Mix.env() == env
-  end
-
-  defp env_matches?({mod, only: envs}) when is_atom(mod) and is_list(envs) do
-    Mix.env() in envs
-  end
-
-  defp env_matches?(_), do: false
-
-  @spec from_spec(plugin_spec()) :: atom()
-  defp from_spec(plugin_spec)
-  defp from_spec({mod, _}), do: mod
-  defp from_spec(x), do: x
-
-  @spec make_plugin(atom()) :: Result.t(t())
-  defp make_plugin(module) do
-    name = module.name()
-    version = Version.parse!(module.version())
-    elixir = module.elixir()
-    serum = module.serum()
-
-    validate_elixir_version(name, elixir)
-    validate_serum_version(name, serum)
-
-    plugin = %__MODULE__{
-      module: module,
-      name: name,
-      version: version,
-      description: module.description(),
-      implements: module.implements()
-    }
-
-    {:ok, plugin}
-  rescue
-    exception ->
-      ex_name = module_name(exception.__struct__)
-      ex_msg = Exception.message(exception)
-      msg = "#{ex_name} while loading plugin (module: #{module}): #{ex_msg}"
-
-      {:error, msg}
-  end
-
-  @spec validate_elixir_version(binary(), Version.requirement()) :: :ok
-  defp validate_elixir_version(name, requirement) do
-    if Version.match?(@elixir_version, requirement) do
-      :ok
-    else
-      msg =
-        "The plugin \"#{name}\" is not compatible with " <>
-          "the current version of Elixir(#{@elixir_version}). " <>
-          "This plugin may not work as intended."
-
-      put_err(:warn, msg)
-    end
-  end
-
-  @spec validate_serum_version(binary(), Version.requirement()) :: :ok
-  defp validate_serum_version(name, requirement) do
-    if Version.match?(@serum_version, requirement) do
-      :ok
-    else
-      msg =
-        "The plugin \"#{name}\" is not compatible with " <>
-          "the current version of Serum(#{@serum_version}). " <>
-          "This plugin may not work as intended."
-
-      put_err(:warn, msg)
-    end
-  end
-
-  @spec update_agent([t()]) :: :ok
-  defp update_agent(plugins) do
-    Agent.update(__MODULE__, fn _ -> %{} end)
-
-    plugins
-    |> Enum.map(fn plugin -> Enum.map(plugin.implements, &{&1, plugin}) end)
-    |> List.flatten()
-    |> Enum.each(fn {fun, plugin} ->
-      Agent.update(__MODULE__, fn state ->
-        Map.put(state, fun, [plugin | state[fun] || []])
-      end)
-    end)
-
-    Agent.update(__MODULE__, fn state ->
-      for {key, value} <- state, into: %{}, do: {key, Enum.reverse(value)}
-    end)
-  end
+  @spec load_plugins([spec()]) :: Result.t([t()])
+  def load_plugins(plugin_specs), do: Loader.load_plugins(plugin_specs)
 
   @doc false
   @spec show_info([t()]) :: :ok
@@ -591,14 +501,16 @@ defmodule Serum.Plugin do
     |> do_call_action(fun, args)
   end
 
-  @spec do_call_action([t()], atom(), [term()]) :: Result.t()
-  defp do_call_action(plugins, fun, args)
+  @spec do_call_action([{integer(), t()}], atom(), [term()]) :: Result.t()
+  defp do_call_action(arity_and_plugins, fun, args)
   defp do_call_action([], _fun, _args), do: :ok
 
-  defp do_call_action([plugin | plugins], fun, args) do
-    case apply(plugin.module, fun, args) do
+  defp do_call_action([{arity, plugin} | arity_and_plugins], fun, args) do
+    new_args = update_callback_args(args, plugin, fun, arity)
+
+    case apply(plugin.module, fun, new_args) do
       :ok ->
-        do_call_action(plugins, fun, args)
+        do_call_action(arity_and_plugins, fun, args)
 
       {:error, _} = error ->
         error
@@ -621,14 +533,16 @@ defmodule Serum.Plugin do
     |> do_call_function(fun, args, arg)
   end
 
-  @spec do_call_function([t()], atom(), [term()], term()) :: Result.t(term())
-  defp do_call_function(plugins, fun, args, acc)
+  @spec do_call_function([{integer, t()}], atom(), [term()], term()) :: Result.t(term())
+  defp do_call_function(arity_and_plugins, fun, args, acc)
   defp do_call_function([], _fun, _args, acc), do: {:ok, acc}
 
-  defp do_call_function([plugin | plugins], fun, args, acc) do
-    case apply(plugin.module, fun, [acc | args]) do
+  defp do_call_function([{arity, plugin} | arity_and_plugins], fun, args, acc) do
+    new_args = update_callback_args(args, plugin, fun, arity)
+
+    case apply(plugin.module, fun, [acc | new_args]) do
       {:ok, new_acc} ->
-        do_call_function(plugins, fun, args, new_acc)
+        do_call_function(arity_and_plugins, fun, args, new_acc)
 
       {:error, _} = error ->
         error
@@ -642,6 +556,31 @@ defmodule Serum.Plugin do
     end
   rescue
     exception -> handle_exception(exception, plugin.module, fun)
+  end
+
+  @spec update_callback_args(list(), t(), atom(), integer()) :: list()
+  defp update_callback_args(args, plugin, fun, arity) do
+    if arity === @old_callback_arities[fun] do
+      old_fun_name = "#{fun}/#{arity}"
+      new_fun_name = "#{fun}/#{arity + 1}"
+
+      msg = [
+        old_fun_name,
+        " is deprecated. Use ",
+        new_fun_name,
+        " instead.\nfrom plugin: ",
+        plugin.name,
+        " (",
+        module_name(plugin.module),
+        ")"
+      ]
+
+      put_msg(:warn, IO.iodata_to_binary(msg))
+
+      args
+    else
+      args ++ [plugin.args]
+    end
   end
 
   @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t()
