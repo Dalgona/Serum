@@ -38,8 +38,10 @@ defmodule Serum.Plugin.Loader do
   def load_plugins(modules) do
     modules
     |> Stream.filter(&EnvMatcher.env_matches?/1)
-    |> Stream.map(&from_spec/1)
-    |> Stream.uniq()
+    |> Stream.uniq_by(fn
+      module when is_atom(module) -> module
+      {module, _} when is_atom(module) -> module
+    end)
     |> Enum.map(&make_plugin/1)
     |> Result.aggregate_values(:load_plugins)
     |> case do
@@ -53,13 +55,16 @@ defmodule Serum.Plugin.Loader do
     end
   end
 
-  @spec from_spec(Plugin.spec()) :: atom()
-  defp from_spec(plugin_spec)
-  defp from_spec({mod, _}), do: mod
-  defp from_spec(x), do: x
+  @spec make_plugin(Plugin.spec()) :: Result.t(Plugin.t())
+  defp make_plugin(plugin_spec)
+  defp make_plugin(mod) when is_atom(mod), do: do_make_plugin(mod, nil)
 
-  @spec make_plugin(atom()) :: Result.t(Plugin.t())
-  defp make_plugin(module) do
+  defp make_plugin({mod, opts}) when is_atom(mod) and is_list(opts) do
+    do_make_plugin(mod, opts[:args])
+  end
+
+  @spec do_make_plugin(atom(), term()) :: Result.t(Plugin.t())
+  defp do_make_plugin(module, args) do
     name = module.name()
     version = Version.parse!(module.version())
     elixir = module.elixir()
@@ -73,7 +78,8 @@ defmodule Serum.Plugin.Loader do
       name: name,
       version: version,
       description: module.description(),
-      implements: normalized_implements(module)
+      implements: normalized_implements(module),
+      args: args
     }
 
     {:ok, plugin}

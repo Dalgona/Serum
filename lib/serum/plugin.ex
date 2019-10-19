@@ -579,8 +579,7 @@ defmodule Serum.Plugin do
 
       args
     else
-      # TODO
-      args ++ [nil]
+      args ++ [plugin.args]
     end
   end
 
