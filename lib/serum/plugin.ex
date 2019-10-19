@@ -100,28 +100,30 @@ defmodule Serum.Plugin do
   @type spec :: atom() | {atom(), plugin_options()}
   @type plugin_options :: [only: atom() | [atom()], args: term()]
 
-  @optional_callbacks [
-                        build_started: 2,
-                        reading_pages: 1,
-                        reading_posts: 1,
-                        reading_templates: 1,
-                        processing_page: 1,
-                        processing_post: 1,
-                        processing_template: 1,
-                        processed_page: 1,
-                        processed_post: 1,
-                        processed_template: 1,
-                        processed_list: 1,
-                        processed_pages: 1,
-                        processed_posts: 1,
-                        rendering_fragment: 2,
-                        rendered_fragment: 1,
-                        rendered_page: 1,
-                        wrote_file: 1,
-                        build_succeeded: 2,
-                        build_failed: 3,
-                        finalizing: 2
-                      ]
+  @old_callback_arities [
+    build_started: 2,
+    reading_pages: 1,
+    reading_posts: 1,
+    reading_templates: 1,
+    processing_page: 1,
+    processing_post: 1,
+    processing_template: 1,
+    processed_page: 1,
+    processed_post: 1,
+    processed_template: 1,
+    processed_list: 1,
+    processed_pages: 1,
+    processed_posts: 1,
+    rendering_fragment: 2,
+    rendered_fragment: 1,
+    rendered_page: 1,
+    wrote_file: 1,
+    build_succeeded: 2,
+    build_failed: 3,
+    finalizing: 2
+  ]
+
+  @optional_callbacks @old_callback_arities
                       |> Enum.map(fn {name, arity} ->
                         [{name, arity}, {name, arity + 1}]
                       end)
@@ -498,14 +500,16 @@ defmodule Serum.Plugin do
     |> do_call_action(fun, args)
   end
 
-  @spec do_call_action([t()], atom(), [term()]) :: Result.t()
-  defp do_call_action(plugins, fun, args)
+  @spec do_call_action([{integer(), t()}], atom(), [term()]) :: Result.t()
+  defp do_call_action(arity_and_plugins, fun, args)
   defp do_call_action([], _fun, _args), do: :ok
 
-  defp do_call_action([plugin | plugins], fun, args) do
-    case apply(plugin.module, fun, args) do
+  defp do_call_action([{arity, plugin} | arity_and_plugins], fun, args) do
+    new_args = update_callback_args(args, plugin, fun, arity)
+
+    case apply(plugin.module, fun, new_args) do
       :ok ->
-        do_call_action(plugins, fun, args)
+        do_call_action(arity_and_plugins, fun, args)
 
       {:error, _} = error ->
         error
@@ -528,14 +532,16 @@ defmodule Serum.Plugin do
     |> do_call_function(fun, args, arg)
   end
 
-  @spec do_call_function([t()], atom(), [term()], term()) :: Result.t(term())
-  defp do_call_function(plugins, fun, args, acc)
+  @spec do_call_function([{integer, t()}], atom(), [term()], term()) :: Result.t(term())
+  defp do_call_function(arity_and_plugins, fun, args, acc)
   defp do_call_function([], _fun, _args, acc), do: {:ok, acc}
 
-  defp do_call_function([plugin | plugins], fun, args, acc) do
-    case apply(plugin.module, fun, [acc | args]) do
+  defp do_call_function([{arity, plugin} | arity_and_plugins], fun, args, acc) do
+    new_args = update_callback_args(args, plugin, fun, arity)
+
+    case apply(plugin.module, fun, [acc | new_args]) do
       {:ok, new_acc} ->
-        do_call_function(plugins, fun, args, new_acc)
+        do_call_function(arity_and_plugins, fun, args, new_acc)
 
       {:error, _} = error ->
         error
@@ -549,6 +555,32 @@ defmodule Serum.Plugin do
     end
   rescue
     exception -> handle_exception(exception, plugin.module, fun)
+  end
+
+  @spec update_callback_args(list(), t(), atom(), integer()) :: list()
+  defp update_callback_args(args, plugin, fun, arity) do
+    if arity === @old_callback_arities[fun] do
+      old_fun_name = "#{fun}/#{arity}"
+      new_fun_name = "#{fun}/#{arity + 1}"
+
+      msg = [
+        old_fun_name,
+        " is deprecated. Use ",
+        new_fun_name,
+        " instead.\nfrom plugin: ",
+        plugin.name,
+        " (",
+        module_name(plugin.module),
+        ")"
+      ]
+
+      put_msg(:warn, IO.iodata_to_binary(msg))
+
+      args
+    else
+      # TODO
+      args ++ [nil]
+    end
   end
 
   @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t()
