@@ -5,16 +5,16 @@ defmodule Serum.Plugin.Loader do
 
   import Serum.IOProxy
   alias Serum.Plugin
+  alias Serum.Plugin.EnvMatcher
   alias Serum.Result
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
   @elixir_version Version.parse!(System.version())
-  @required_msg "You must implement this callback, or the plugin may fail."
 
   @spec load_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
   def load_plugins(modules) do
     modules
-    |> Stream.filter(&env_matches?/1)
+    |> Stream.filter(&EnvMatcher.env_matches?/1)
     |> Stream.map(&from_spec/1)
     |> Stream.uniq()
     |> Enum.map(&make_plugin/1)
@@ -29,20 +29,6 @@ defmodule Serum.Plugin.Loader do
         error
     end
   end
-
-  @spec env_matches?(Plugin.spec()) :: boolean()
-  defp env_matches?(plugin_spec)
-  defp env_matches?(mod) when is_atom(mod), do: true
-
-  defp env_matches?({mod, only: env}) when is_atom(mod) and is_atom(env) do
-    Mix.env() == env
-  end
-
-  defp env_matches?({mod, only: envs}) when is_atom(mod) and is_list(envs) do
-    Mix.env() in envs
-  end
-
-  defp env_matches?(_), do: false
 
   @spec from_spec(Plugin.spec()) :: atom()
   defp from_spec(plugin_spec)
