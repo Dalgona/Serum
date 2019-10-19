@@ -23,20 +23,17 @@ defmodule Serum.Plugins.SitemapGenerator do
   alias Serum.Result
 
   def name, do: "Create sitemap for search engine"
-  def version, do: "1.0.0"
-  def elixir, do: ">= 1.6.0"
+  def version, do: "1.1.0"
+  def elixir, do: "~> 1.8"
   def serum, do: unquote(serum_req)
 
   def description do
     "Create a sitemap so that the search engine can index posts."
   end
 
-  def implements,
-    do: [
-      :build_succeeded
-    ]
+  def implements, do: [build_succeeded: 3]
 
-  def build_succeeded(_src, dest) do
+  def build_succeeded(_src, dest, _args) do
     with {:ok, _} <- write_sitemap(dest),
          {:ok, _} <- write_robots(dest) do
       :ok

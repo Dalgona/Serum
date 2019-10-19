@@ -74,20 +74,17 @@ defmodule Serum.Plugins.TableOfContents do
   serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
 
   def name, do: "Table of Contents"
-  def version, do: "1.0.0"
-  def elixir, do: ">= 1.6.0"
+  def version, do: "1.1.0"
+  def elixir, do: "~> 1.8"
   def serum, do: unquote(serum_req)
   def description, do: "Inserts a table of contents into pages or posts."
 
-  def implements,
-    do: [
-      :rendering_fragment
-    ]
+  def implements, do: [rendering_fragment: 3]
 
-  def rendering_fragment(html, metadata)
-  def rendering_fragment(html, %{type: :page}), do: {:ok, insert_toc(html)}
-  def rendering_fragment(html, %{type: :post}), do: {:ok, insert_toc(html)}
-  def rendering_fragment(html, _), do: {:ok, html}
+  def rendering_fragment(html, metadata, _args)
+  def rendering_fragment(html, %{type: :page}, _), do: {:ok, insert_toc(html)}
+  def rendering_fragment(html, %{type: :post}, _), do: {:ok, insert_toc(html)}
+  def rendering_fragment(html, _, _), do: {:ok, html}
 
   @spec insert_toc(Html.tree()) :: Html.tree()
   defp insert_toc(html) do
