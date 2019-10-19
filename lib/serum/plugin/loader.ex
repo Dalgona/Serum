@@ -124,20 +124,16 @@ defmodule Serum.Plugin.Loader do
 
   @spec update_agent([Plugin.t()]) :: :ok
   defp update_agent(plugins) do
-    Agent.update(Plugin, fn _ -> %{} end)
-
-    plugins
-    |> Enum.map(fn plugin -> Enum.map(plugin.implements, &{&1, plugin}) end)
-    |> List.flatten()
-    |> Enum.each(fn {fun, plugin} ->
-      Agent.update(Plugin, fn state ->
-        Map.put(state, fun, [plugin | state[fun] || []])
+    map =
+      plugins
+      |> Enum.map(fn plugin ->
+        Enum.map(plugin.implements, &Tuple.insert_at(&1, 2, plugin))
       end)
-    end)
+      |> List.flatten()
+      |> Enum.group_by(&elem(&1, 0), &Tuple.delete_at(&1, 0))
+      |> Map.new()
 
-    Agent.update(Plugin, fn state ->
-      for {key, value} <- state, into: %{}, do: {key, Enum.reverse(value)}
-    end)
+    Agent.update(Plugin, fn _ -> map end)
   end
 
   @spec module_name(atom()) :: binary()
