@@ -34,11 +34,22 @@ defmodule Serum.Plugin.Loader do
     finalizing: 2
   }
 
-  @spec load_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
+  @spec load_plugins([term()]) :: Result.t([Plugin.t()])
   def load_plugins(modules) do
     modules
-    |> Stream.filter(&EnvMatcher.env_matches?/1)
-    |> Stream.uniq_by(fn
+    |> Enum.map(&validate_spec/1)
+    |> Result.aggregate_values(:load_plugins)
+    |> case do
+      {:ok, specs} -> do_load_plugins(specs)
+      {:error, _} = error -> error
+    end
+  end
+
+  @spec do_load_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
+  defp do_load_plugins(specs) do
+    specs
+    |> Enum.filter(&EnvMatcher.env_matches?/1)
+    |> Enum.uniq_by(fn
       module when is_atom(module) -> module
       {module, _} when is_atom(module) -> module
     end)
@@ -53,6 +64,24 @@ defmodule Serum.Plugin.Loader do
       {:error, _} = error ->
         error
     end
+  end
+
+  @spec validate_spec(term()) :: Result.t(Plugin.spec())
+  defp validate_spec(maybe_spec)
+  defp validate_spec(module) when is_atom(module), do: {:ok, module}
+
+  defp validate_spec({module, opts}) when is_atom(module) and is_list(opts) do
+    if Keyword.keyword?(opts) do
+      {:ok, {module, opts}}
+    else
+      {:error,
+       "expected the second tuple element to be a keyword list, " <>
+         "got: #{inspect(opts)}"}
+    end
+  end
+
+  defp validate_spec(x) do
+    {:error, "#{inspect(x)} is not a valid Serum plugin specification"}
   end
 
   @spec make_plugin(Plugin.spec()) :: Result.t(Plugin.t())

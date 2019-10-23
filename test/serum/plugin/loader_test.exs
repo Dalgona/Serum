@@ -70,6 +70,18 @@ defmodule Serum.Plugin.LoaderTest do
       end
     end
 
+    test "returns an error when an invalid plugin spec was given" do
+      plugin_specs = [
+        Serum.DummyPlugin1,
+        123,
+        {Serum.DummyPlugin2},
+        {Serum.DummyPlugin3, only: :dev}
+      ]
+
+      assert {:error, {_, errors}} = load_plugins(plugin_specs)
+      assert length(errors) === 2
+    end
+
     test "returns an error when the plugin fails to load" do
       {:error, {_, [error | _]}} = load_plugins([Serum.FailingPlugin2])
       {:error, message} = error
