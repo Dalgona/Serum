@@ -42,7 +42,7 @@ defmodule Serum.Mixfile do
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
       {:floki, "~> 0.20"},
       {:ex_doc, "~> 0.20", only: :dev, runtime: false},
-      {:mix_test_watch, "~> 0.9", only: :dev, runtime: false}
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
     ]
   end
 
