@@ -19,9 +19,14 @@ defmodule Serum.Template.Storage do
     Agent.update(__MODULE__, &Map.put(&1, type, templates))
   end
 
-  @spec get(binary(), Template.type()) :: Result.t(Template.t())
+  @spec get(binary(), Template.type()) :: Template.t() | nil
   def get(name, type) do
     Agent.get(__MODULE__, &get_in(&1, [type, name]))
+  end
+
+  @spec put(binary(), Template.type(), Template.t()) :: Result.t()
+  def put(name, type, template) do
+    Agent.update(__MODULE__, &put_in(&1, [type, name], template))
   end
 
   @spec reset() :: :ok
