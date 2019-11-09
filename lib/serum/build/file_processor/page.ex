@@ -91,7 +91,7 @@ defmodule Serum.Build.FileProcessor.Page do
 
   defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
     with {:ok, ast} <- TC.compile_string(page.data),
-         template = Template.new(ast, :template, page.file),
+         template = Template.new(ast, page.file, :template, page.file),
          {:ok, html} <- Renderer.render_fragment(template, []) do
       {:ok, %Page{page | data: html}}
     else

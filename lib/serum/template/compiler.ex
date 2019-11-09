@@ -56,8 +56,8 @@ defmodule Serum.Template.Compiler do
 
     with {:ok, file2} <- Plugin.processing_template(injected_file),
          {:ok, ast} <- compile_string(file2.in_data),
-         template = Template.new(ast, options[:type], file2.src),
          name = Path.basename(file2.src, ".html.eex"),
+         template = Template.new(ast, name, options[:type], file2.src),
          {:ok, template2} <- Plugin.processed_template(template) do
       {:ok, {name, template2}}
     else
