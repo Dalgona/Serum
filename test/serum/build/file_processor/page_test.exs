@@ -9,7 +9,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
-    template = Template.new("Hello, world!", :template, "test.html.eex")
+    template = Template.new("Hello, world!", "test", :template, "test.html.eex")
 
     TS.load(%{"test" => template}, :include)
     on_exit(fn -> TS.reset() end)
