@@ -3,50 +3,76 @@ defmodule Serum.Template.Compiler.Include do
 
   _moduledocp = "Provides functions for expanding includes in templates."
 
+  alias Serum.Result
+  alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
-  @spec expand(Macro.t()) :: {:ok, Macro.t()} | {:ct_error, binary(), binary()}
-  def expand(ast) do
-    {new_ast, _} = Macro.prewalk(ast, [], &do_expand_includes(&1, &2))
+  @typep context :: %{
+    template: Template.t(),
+    stack: [binary()],
+    error: Result.t() | nil
+  }
 
-    {:ok, new_ast}
-  rescue
-    e in ArgumentError ->
-      {:ct_error, "include not found: \"#{e.message}\"", 0}
+  @spec expand(Template.t()) :: Result.t(Template.t())
+  def expand(template) do
+    initial_context = %{
+      template: template,
+      stack: [],
+      error: nil
+    }
 
-    e in RuntimeError ->
-      {:ct_error, e.message, 0}
-  end
-
-  @spec do_expand_includes(Macro.t(), [binary()]) :: {Macro.t(), [binary()]}
-  defp do_expand_includes(ast, stack)
-
-  defp do_expand_includes({:include, _, [arg]}, stack) do
-    case TS.get(arg, :include) do
-      nil ->
-        raise ArgumentError, arg
-
-      include ->
-        check_cycle!(arg, stack)
-
-        {quote(do: (fn -> unquote(include.ast) end).()), [arg | stack]}
+    case do_expand(template, initial_context) do
+      {new_template, %{error: nil}} -> {:ok, new_template}
+      {_, %{error: {:error, _} = error}} -> error
     end
   end
 
-  defp do_expand_includes(anything_else, stack), do: {anything_else, stack}
+  @spec do_expand(Template.t(), context()) :: {Template.t(), context()}
+  defp do_expand(template, context)
+  defp do_expand(%Template{include_resolved?: true} = t, ctx), do: {t, ctx}
 
-  top = "    \x1b[31m\u256d\u2500\u2500\u2500\u2500\u2500\u256e\x1b[m\n"
-  arrow = "    \x1b[31m\u2502     \u2193\x1b[m\n"
-  first_text = "    \x1b[31m\u2502    \x1b[33m"
-  rest_text = "    \x1b[31m\u2502    "
-  bottom1 = "    \x1b[31m\u2502     \u2502\x1b[m\n"
-  bottom2 = "    \x1b[31m\u2570\u2500\u2500\u2500\u2500\u2500\u256f\x1b[m\n"
+  defp do_expand(%Template{name: name, type: type, ast: ast} = t, context) do
+    next_context = %{context | stack: [name | context.stack]}
 
-  @spec check_cycle!(binary(), [binary()]) :: nil | no_return()
-  defp check_cycle!(name, stack) do
-    if name in stack do
+    with :ok <- check_cycle(name, context),
+         walk_result = Macro.prewalk(ast, next_context, &prewalk_fun/2),
+         {new_ast, %{error: nil} = new_context} <- walk_result do
+      new_template = %Template{t | ast: new_ast, include_resolved?: true}
+
+      TS.put(name, type, new_template)
+
+      {new_template, new_context}
+    else
+      {:error, _} = error -> {t, %{context | error: error}}
+      {_, %{error: {:error, _} = error}} -> {t, %{context | error: error}}
+    end
+  end
+
+  @spec prewalk_fun(Macro.t(), context()) :: {Macro.t(), context()}
+  defp prewalk_fun(ast, context)
+  defp prewalk_fun(ast, %{error: e} = ctx) when not is_nil(e), do: {ast, ctx}
+
+  defp prewalk_fun({:include, _, [arg]} = ast, context) do
+    case TS.get(arg, :include) do
+      %Template{} = include ->
+        {new_include, new_context} = do_expand(include, context)
+
+        {quote(do: (fn -> unquote(new_include.ast) end).()), new_context}
+
+      nil ->
+        message = "include not found: \"#{arg}\""
+
+        {ast, %{context | error: {:error, {message, context.template.file, 0}}}}
+    end
+  end
+
+  defp prewalk_fun(ast, context), do: {ast, context}
+
+  @spec check_cycle(binary(), context()) :: Result.t()
+  defp check_cycle(name, context) do
+    if name in context.stack do
       graph =
-        stack
+        context.stack
         |> Enum.reverse()
         |> Enum.drop_while(&(&1 != name))
         |> make_graph()
@@ -54,13 +80,23 @@ defmodule Serum.Template.Compiler.Include do
       message = [
         "cycle detected while expanding includes:\n",
         graph,
-        "  Recursively including templates is not supported by Serum.\n",
-        "  Please refactor your templates to break the cycle."
+        "  Cycles are not allowed when recursively including templates.\n",
+        "  Please refactor your templates to break the cycle.\n",
+        "  Alternatively, you can use the render/1,2 template helper.\n",
       ]
 
-      raise IO.iodata_to_binary(message)
+      {:error, {IO.iodata_to_binary(message), context.template.file, 0}}
+    else
+      :ok
     end
   end
+
+  top = "    \x1b[31m\u256d\u2500\u2500\u2500\u2500\u2500\u256e\x1b[m\n"
+  arrow = "    \x1b[31m\u2502     \u2193\x1b[m\n"
+  first_text = "    \x1b[31m\u2502    \x1b[33m"
+  rest_text = "    \x1b[31m\u2502    "
+  bottom1 = "    \x1b[31m\u2502     \u2502\x1b[m\n"
+  bottom2 = "    \x1b[31m\u2570\u2500\u2500\u2500\u2500\u2500\u256f\x1b[m\n"
 
   @spec make_graph([binary()]) :: iodata()
   defp make_graph([first | rest]) do
