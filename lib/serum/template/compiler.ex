@@ -55,7 +55,7 @@ defmodule Serum.Template.Compiler do
     injected_file = %Serum.File{file | in_data: @inject <> file.in_data}
 
     with {:ok, file2} <- Plugin.processing_template(injected_file),
-         {:ok, ast} <- compile_string(file2.in_data, options),
+         {:ok, ast} <- compile_string(file2.in_data),
          template = Template.new(ast, options[:type], file2.src),
          name = Path.basename(file2.src, ".html.eex"),
          {:ok, template2} <- Plugin.processed_template(template) do
@@ -66,19 +66,10 @@ defmodule Serum.Template.Compiler do
     end
   end
 
-  @doc """
-  Compiles the given EEx string.
-  """
-  @spec compile_string(binary(), options()) ::
-          {:ok, Macro.t()}
-          | {:ct_error, binary(), integer()}
-  def compile_string(string, options) do
-    compiled = EEx.compile_string(string)
-
-    case options[:type] do
-      :include -> {:ok, compiled}
-      _ -> Include.expand(compiled)
-    end
+  @doc "Compiles the given EEx string."
+  @spec compile_string(binary()) :: {:ok, Macro.t()} | {:ct_error, binary(), integer()}
+  def compile_string(string) do
+    {:ok, EEx.compile_string(string)}
   rescue
     e in EEx.SyntaxError ->
       {:ct_error, e.message, e.line}
