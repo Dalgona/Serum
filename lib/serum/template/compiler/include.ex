@@ -13,7 +13,7 @@ defmodule Serum.Template.Compiler.Include do
     error: Result.t() | nil
   }
 
-  @spec expand(Template.t()) :: Result.t(Template.t())
+  @spec expand(Template.t()) :: Result.t()
   def expand(template) do
     initial_context = %{
       template: template,
@@ -22,7 +22,7 @@ defmodule Serum.Template.Compiler.Include do
     }
 
     case do_expand(template, initial_context) do
-      {new_template, %{error: nil}} -> {:ok, new_template}
+      {_, %{error: nil}} -> :ok
       {_, %{error: {:error, _} = error}} -> error
     end
   end
@@ -32,7 +32,7 @@ defmodule Serum.Template.Compiler.Include do
   defp do_expand(%Template{include_resolved?: true} = t, ctx), do: {t, ctx}
 
   defp do_expand(%Template{name: name, type: type, ast: ast} = t, context) do
-    next_context = %{context | stack: [name | context.stack]}
+    next_context = %{context | template: t, stack: [name | context.stack]}
 
     with :ok <- check_cycle(name, context),
          walk_result = Macro.prewalk(ast, next_context, &prewalk_fun/2),
