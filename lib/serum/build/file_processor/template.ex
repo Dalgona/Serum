@@ -20,8 +20,19 @@ defmodule Serum.Build.FileProcessor.Template do
   @spec compile_and_load([Serum.File.t()], Template.type()) :: Result.t()
   defp compile_and_load(files, type) do
     case TC.compile_files(files, type: type) do
-      {:ok, result} -> TS.load(result, type)
-      {:error, _} = error -> error
+      {:ok, result} ->
+        TS.load(result, type)
+        result |> Enum.map(&elem(&1, 1)) |> expand_includes()
+
+      {:error, _} = error ->
+        error
     end
+  end
+
+  @spec expand_includes([Template.t()]) :: Result.t()
+  defp expand_includes(templates) do
+    templates
+    |> Enum.map(&TC.Include.expand/1)
+    |> Result.aggregate(:expand_includes)
   end
 end
