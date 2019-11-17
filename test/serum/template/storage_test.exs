@@ -37,6 +37,20 @@ defmodule Serum.Template.StorageTest do
     end
   end
 
+  describe "put/3" do
+    test "puts/updates single template" do
+      assert is_nil(TS.get("lorem", :template))
+      TS.put("lorem", :template, @data["lorem"])
+      assert not is_nil(TS.get("lorem", :template))
+    end
+
+    test "rejects unknown template types" do
+      assert_raise FunctionClauseError, fn ->
+        TS.put("lorem", :foobarbaz, @data["lorem"])
+      end
+    end
+  end
+
   describe "reset/0" do
     test "resets the template storage to the initial state" do
       TS.load(@data, :template)
