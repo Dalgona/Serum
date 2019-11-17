@@ -10,28 +10,6 @@ defmodule Serum.Template.CompilerTest do
   end
 
   describe "compile_files/2" do
-    test "compiles includes" do
-      file = %Serum.File{src: fixture("templates/good.html.eex")}
-      {:ok, file} = Serum.File.read(file)
-      {:ok, includes} = TC.compile_files([file], type: :include)
-      {output, _} = Code.eval_quoted(includes["good"].ast)
-
-      assert includes["good"].type === :include
-      assert output =~ "Hello, world!"
-
-      TS.load(includes, :include)
-
-      key = "good-using-includes"
-      file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
-      {:ok, file} = Serum.File.read(file)
-      {:ok, %{^key => template}} = TC.compile_files([file], type: :template)
-      {output, _} = Code.eval_quoted(template.ast)
-
-      assert template.type === :template
-      assert output =~ "Include Test"
-      assert output =~ "Hello, world!"
-    end
-
     test "compiles templates" do
       key = "good-using-helpers"
       file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
