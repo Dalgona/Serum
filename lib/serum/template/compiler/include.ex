@@ -8,10 +8,10 @@ defmodule Serum.Template.Compiler.Include do
   alias Serum.Template.Storage, as: TS
 
   @typep context :: %{
-    template: Template.t(),
-    stack: [binary()],
-    error: Result.t() | nil
-  }
+           template: Template.t(),
+           stack: [binary()],
+           error: Result.t() | nil
+         }
 
   @spec expand(Template.t()) :: Result.t()
   def expand(template) do
@@ -82,7 +82,7 @@ defmodule Serum.Template.Compiler.Include do
         graph,
         "  Cycles are not allowed when recursively including templates.\n",
         "  Please refactor your templates to break the cycle.\n",
-        "  Alternatively, you can use the render/1,2 template helper.\n",
+        "  Alternatively, you can use the render/1,2 template helper.\n"
       ]
 
       {:error, {IO.iodata_to_binary(message), context.template.file, 0}}
