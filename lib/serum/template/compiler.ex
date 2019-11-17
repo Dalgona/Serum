@@ -6,7 +6,6 @@ defmodule Serum.Template.Compiler do
   alias Serum.Plugin
   alias Serum.Result
   alias Serum.Template
-  alias Serum.Template.Compiler.Include
 
   @type options :: [type: Template.type()]
 
