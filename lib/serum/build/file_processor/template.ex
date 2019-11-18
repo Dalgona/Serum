@@ -11,13 +11,15 @@ defmodule Serum.Build.FileProcessor.Template do
   def compile_templates(%{templates: templates, includes: includes}) do
     put_msg(:info, "Compiling and loading templates...")
 
-    case compile_and_load(includes, :include) do
-      :ok -> compile_and_load(templates, :template)
+    with {:ok, _} <- compile_and_load(includes, :include),
+         {:ok, _} <- compile_and_load(templates, :template) do
+      :ok
+    else
       {:error, _} = error -> error
     end
   end
 
-  @spec compile_and_load([Serum.File.t()], Template.type()) :: Result.t()
+  @spec compile_and_load([Serum.File.t()], Template.type()) :: Result.t([Template.t()])
   defp compile_and_load(files, type) do
     case TC.compile_files(files, type: type) do
       {:ok, result} ->
@@ -29,10 +31,10 @@ defmodule Serum.Build.FileProcessor.Template do
     end
   end
 
-  @spec expand_includes([Template.t()]) :: Result.t()
+  @spec expand_includes([Template.t()]) :: Result.t([Template.t()])
   defp expand_includes(templates) do
     templates
     |> Enum.map(&TC.Include.expand/1)
-    |> Result.aggregate(:expand_includes)
+    |> Result.aggregate_values(:expand_includes)
   end
 end

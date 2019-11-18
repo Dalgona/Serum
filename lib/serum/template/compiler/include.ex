@@ -13,7 +13,7 @@ defmodule Serum.Template.Compiler.Include do
            error: Result.t() | nil
          }
 
-  @spec expand(Template.t()) :: Result.t()
+  @spec expand(Template.t()) :: Result.t(Template.t())
   def expand(template) do
     initial_context = %{
       template: template,
@@ -22,7 +22,7 @@ defmodule Serum.Template.Compiler.Include do
     }
 
     case do_expand(template, initial_context) do
-      {_, %{error: nil}} -> :ok
+      {new_template, %{error: nil}} -> {:ok, new_template}
       {_, %{error: {:error, _} = error}} -> error
     end
   end
