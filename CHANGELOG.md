@@ -10,16 +10,65 @@
 
 - Serum now displays relative paths from the current working directory, instead
   of absolute paths, whenever possible.
+
 - Support for nested includes has been added. Now users can use the `include/1`
   macro inside their includes. Self-including or circular includes are
   intentionally not supported and these will result in errors.
+
 - Serum provides more options for the length of preview text for each blog post.
+
     - `preview_length: {:chars, 200}` tells Serum to take the first 200
       characters from a blog post to generate a preview text. The next two
       options should be self-explanatory now.
+
     - `preview_length: {:words, 20}`
+
     - `preview_length: {:paragraphs, 1}` (Serches for `<p>` tags.)
+
     - Of course, you can still use the old value: `preview_length: 200`.
+
+### Added
+
+- Users can now pass an arbitrary argument to a Serum plugin.
+
+  The accepted value of plugin argument is defined by the plugin author, and
+  this can be used to configure how the plugin should work.
+
+- This update introduces a new `render/2` template helper.
+
+  The `render/2` helper works like the existing `include/1` helper. However,
+  unlike `include/1`, this helper dynamically renders the given include when
+  the calling template/include is being rendered.
+
+### Changed
+
+- **BREAKING CHANGES for plugin authors**: The following plugin callbacks now
+  accept one more argument: `args`.
+
+    - `build_started/3`
+    - `reading_pages/2`
+    - `reading_posts/2`
+    - `reading_templates/2`
+    - `processing_page/2`
+    - `processing_post/2`
+    - `processing_template/2`
+    - `processed_page/2`
+    - `processed_post/2`
+    - `processed_template/2`
+    - `processed_list/2`
+    - `processed_pages/2`
+    - `processed_posts/2`
+    - `rendering_fragment/3`
+    - `rendered_fragment/2`
+    - `rendered_page/2`
+    - `wrote_file/2`
+    - `build_succeeded/3`
+    - `build_failed/4`
+    - `finalizing/3`
+
+    Please update your plugins by implementing the new callbacks above.
+    Existing callbacks will still be supported, but they will be removed in
+    later releases.
 
 ## v1.2.0 &mdash; 2019-08-04
 
