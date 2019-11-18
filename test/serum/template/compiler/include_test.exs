@@ -13,33 +13,27 @@ defmodule Serum.Template.Compiler.IncludeTest do
     test "does not do anything with templates without include/2 call" do
       ast = EEx.compile_string("Hello, <%= :world %>!")
       template = make_template(ast)
-      :ok = Include.expand(template)
 
-      assert ast === "test" |> TS.get(:template) |> Map.get(:ast)
+      assert {:ok, new_template} = Include.expand(template)
+      assert ast === new_template.ast
     end
 
     test "expands simple include/2 macros" do
       template = make_template(EEx.compile_string("[<%= include(\"simple\") %>]"))
-      :ok = Include.expand(template)
 
-      {rendered, _} =
-        "test"
-        |> TS.get(:template)
-        |> Map.get(:ast)
-        |> Code.eval_quoted()
+      assert {:ok, new_template} = Include.expand(template)
+
+      {rendered, _} = Code.eval_quoted(new_template.ast)
 
       assert rendered === "[Hello, world!]"
     end
 
     test "expands nested include/2 macros" do
       template = make_template(quote(do: include("nested_1")))
-      :ok = Include.expand(template)
 
-      {rendered, _} =
-        "test"
-        |> TS.get(:template)
-        |> Map.get(:ast)
-        |> Code.eval_quoted()
+      assert {:ok, new_template} = Include.expand(template)
+
+      {rendered, _} = Code.eval_quoted(new_template.ast)
 
       assert rendered === "Nested1 Nested2"
     end
