@@ -101,23 +101,17 @@ defmodule Serum.IOProxy do
   @spec format_message(atom(), binary()) :: IO.chardata()
   defp format_message(category, msg)
 
-  Enum.each(message_categories, fn {category, {head_fmt, body_fmt}} ->
+  Enum.each(message_categories, fn {category, {head_style, body_style}} ->
     cat_str = category |> to_string() |> String.upcase()
-
-    header =
-      [head_fmt, String.pad_leading(cat_str, max_length + 1), ?\s]
-      |> IO.ANSI.format(true)
-      |> IO.iodata_to_binary()
-
-    body_fmt =
-      [body_fmt, "~ts"]
-      |> IO.ANSI.format(true)
-      |> IO.iodata_to_binary()
+    header = [head_style, String.pad_leading(cat_str, max_length + 1), ?\s]
+    body_fmt = [body_style, "~ts"]
 
     defp format_message(unquote(category), msg) do
-      formatted = :io_lib.format(unquote(body_fmt), [format_newlines(msg)])
+      header = unquote(header) |> IO.ANSI.format() |> IO.iodata_to_binary()
+      body_fmt = unquote(body_fmt) |> IO.ANSI.format() |> IO.iodata_to_binary()
+      formatted = :io_lib.format(body_fmt, [format_newlines(msg)])
 
-      [?\r, unquote(header), ?\s, formatted]
+      [?\r, header, ?\s, formatted]
     end
   end)
 
