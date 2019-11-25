@@ -98,7 +98,7 @@ defmodule Serum.IOProxy do
     |> Enum.map(&String.length/1)
     |> Enum.max()
 
-  @spec format_message(atom(), binary()) :: IO.chardata()
+  @spec format_message(atom(), IO.ANSI.ansidata()) :: IO.chardata()
   defp format_message(category, msg)
 
   Enum.each(message_categories, fn {category, {head_style, body_style}} ->
@@ -109,9 +109,14 @@ defmodule Serum.IOProxy do
     defp format_message(unquote(category), msg) do
       header = unquote(header) |> IO.ANSI.format() |> IO.iodata_to_binary()
       body_fmt = unquote(body_fmt) |> IO.ANSI.format() |> IO.iodata_to_binary()
-      formatted = :io_lib.format(body_fmt, [format_newlines(msg)])
 
-      [?\r, header, ?\s, formatted]
+      formatted_msg =
+        msg
+        |> IO.ANSI.format()
+        |> IO.iodata_to_binary()
+        |> format_newlines()
+
+      [?\r, header, ?\s, :io_lib.format(body_fmt, [formatted_msg])]
     end
   end)
 
