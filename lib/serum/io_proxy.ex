@@ -49,7 +49,7 @@ defmodule Serum.IOProxy do
   Available categories are:
   `#{message_categories |> Keyword.keys() |> inspect()}`
   """
-  @spec put_msg(atom(), binary()) :: :ok
+  @spec put_msg(atom(), IO.ANSI.ansidata()) :: :ok
   def put_msg(category, msg) do
     GenServer.call(__MODULE__, {:put_msg, category, msg})
   end
@@ -60,7 +60,7 @@ defmodule Serum.IOProxy do
   Available categories are:
   `#{message_categories |> Keyword.keys() |> inspect()}`
   """
-  @spec put_err(atom(), binary()) :: :ok
+  @spec put_err(atom(), IO.ANSI.ansidata()) :: :ok
   def put_err(category, msg) do
     GenServer.call(__MODULE__, {:put_err, category, msg})
   end
