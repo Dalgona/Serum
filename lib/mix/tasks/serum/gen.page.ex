@@ -23,6 +23,7 @@ defmodule Mix.Tasks.Serum.Gen.Page do
 
   use Mix.Task
   alias Mix.Generator, as: MixGen
+  alias Mix.Tasks.Serum.CLIHelper
   alias OptionParser.ParseError
 
   @options [
@@ -47,12 +48,7 @@ defmodule Mix.Tasks.Serum.Gen.Page do
 
   @impl true
   def run(args) do
-    {options, argv} = OptionParser.parse!(args, @options)
-
-    if argv != [] do
-      raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
-    end
-
+    options = CLIHelper.parse_options(args, @options)
     :ok = check_required!(options)
     type = check_type!(options[:output])
     output = Path.join("pages/", options[:output])

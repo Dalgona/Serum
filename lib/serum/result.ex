@@ -116,13 +116,13 @@ defmodule Serum.Result do
   end
 
   defp do_get_message({:error, {msg, errors}}, depth) when is_list(errors) do
-    head = indented(["\x1b[1;31m", to_string(msg), ":\x1b[0m"], depth)
+    head = indented([:bright, :red, to_string(msg), ?:, :reset], depth)
     children = Enum.map(errors, &do_get_message(&1, depth + 1))
 
-    Enum.intersperse([head | children], ?\n)
+    [head | children] |> Enum.intersperse(?\n) |> IO.ANSI.format()
   end
 
-  @spec indented(IO.chardata(), non_neg_integer()) :: IO.chardata()
+  @spec indented(IO.ANSI.ansidata(), non_neg_integer()) :: IO.ANSI.ansidata()
   defp indented(str, 0), do: str
-  defp indented(str, depth), do: [List.duplicate("  ", depth - 1), "\x1b[31m-\x1b[0m ", str]
+  defp indented(str, depth), do: [List.duplicate("  ", depth - 1), :red, "- ", :reset, str]
 end

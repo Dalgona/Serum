@@ -27,6 +27,13 @@
 
     - Of course, you can still use the old value: `preview_length: 200`.
 
+- Serum no longer emits ANSI escape sequences by default when the output is not
+  a terminal. (i.e. when the output is written to a file, or when the output is
+  piped to another program.)
+
+  Run any Serum Mix tasks with `--color` or `--no-color` option to override
+  this behavior.
+
 ### Added
 
 - Users can now pass an arbitrary argument to a Serum plugin.

@@ -49,7 +49,7 @@ defmodule Serum.IOProxy do
   Available categories are:
   `#{message_categories |> Keyword.keys() |> inspect()}`
   """
-  @spec put_msg(atom(), binary()) :: :ok
+  @spec put_msg(atom(), IO.ANSI.ansidata()) :: :ok
   def put_msg(category, msg) do
     GenServer.call(__MODULE__, {:put_msg, category, msg})
   end
@@ -60,14 +60,16 @@ defmodule Serum.IOProxy do
   Available categories are:
   `#{message_categories |> Keyword.keys() |> inspect()}`
   """
-  @spec put_err(atom(), binary()) :: :ok
+  @spec put_err(atom(), IO.ANSI.ansidata()) :: :ok
   def put_err(category, msg) do
     GenServer.call(__MODULE__, {:put_err, category, msg})
   end
 
   @impl GenServer
   def init(_args) do
-    {:ok, %{mute_msg: false, mute_err: false}}
+    prefix = if IO.ANSI.enabled?(), do: "\r", else: ""
+
+    {:ok, %{mute_msg: false, mute_err: false, prefix: prefix}}
   end
 
   @impl GenServer
@@ -81,13 +83,17 @@ defmodule Serum.IOProxy do
   end
 
   def handle_call({:put_msg, category, msg}, _, state) do
-    unless(state.mute_msg, do: IO.puts(format_message(category, msg)))
+    unless state.mute_msg do
+      IO.puts([state.prefix, format_message(category, msg)])
+    end
 
     {:reply, :ok, state}
   end
 
   def handle_call({:put_err, category, msg}, _, state) do
-    unless(state.mute_err, do: IO.puts(:stderr, format_message(category, msg)))
+    unless state.mute_err do
+      IO.puts(:stderr, [state.prefix, format_message(category, msg)])
+    end
 
     {:reply, :ok, state}
   end
@@ -98,26 +104,25 @@ defmodule Serum.IOProxy do
     |> Enum.map(&String.length/1)
     |> Enum.max()
 
-  @spec format_message(atom(), binary()) :: IO.chardata()
+  @spec format_message(atom(), IO.ANSI.ansidata()) :: IO.chardata()
   defp format_message(category, msg)
 
-  Enum.each(message_categories, fn {category, {head_fmt, body_fmt}} ->
+  Enum.each(message_categories, fn {category, {head_style, body_style}} ->
     cat_str = category |> to_string() |> String.upcase()
-
-    header =
-      [head_fmt, String.pad_leading(cat_str, max_length + 1), ?\s]
-      |> IO.ANSI.format(true)
-      |> IO.iodata_to_binary()
-
-    body_fmt =
-      [body_fmt, "~ts"]
-      |> IO.ANSI.format(true)
-      |> IO.iodata_to_binary()
+    header = [head_style, String.pad_leading(cat_str, max_length + 1), ?\s]
+    body_fmt = [body_style, "~ts"]
 
     defp format_message(unquote(category), msg) do
-      formatted = :io_lib.format(unquote(body_fmt), [format_newlines(msg)])
+      header = unquote(header) |> IO.ANSI.format() |> IO.iodata_to_binary()
+      body_fmt = unquote(body_fmt) |> IO.ANSI.format() |> IO.iodata_to_binary()
 
-      [?\r, unquote(header), ?\s, formatted]
+      formatted_msg =
+        msg
+        |> IO.ANSI.format()
+        |> IO.iodata_to_binary()
+        |> format_newlines()
+
+      [header, ?\s, :io_lib.format(body_fmt, [formatted_msg])]
     end
   end)
 

@@ -12,24 +12,43 @@ defmodule Mix.Tasks.Serum do
   use Mix.Task
   alias Mix.Tasks.Serum.CLIHelper
 
-  @b IO.ANSI.bright()
-  @c IO.ANSI.cyan()
-  @r IO.ANSI.reset()
+  tasks = %{
+    "serum" => "Prints this help message",
+    "serum.build" => "Builds the Serum project",
+    "serum.gen.page" => "Adds a new page to the current project",
+    "serum.gen.post" => "Adds a new blog post to the current project",
+    "serum.server" => "Starts the Serum development server"
+  }
+
+  max_length = tasks |> Map.keys() |> Enum.map(&String.length/1) |> Enum.max()
+
+  tasks_msg =
+    Enum.map(tasks, fn {name, description} ->
+      [
+        :cyan,
+        String.pad_trailing(name, max_length),
+        :reset,
+        " # ",
+        description,
+        ?\n
+      ]
+    end)
 
   @impl true
-  def run(_) do
-    """
-    #{CLIHelper.version_string()}Available tasks are:
-    #{@c}mix serum          #{@r}# Prints this help message
-    #{@c}mix serum.build    #{@r}# Builds the Serum project
-    #{@c}mix serum.gen.page #{@r}# Adds a new page to the current project
-    #{@c}mix serum.gen.post #{@r}# Adds a new blog post to the current project
-    #{@c}mix serum.server   #{@r}# Starts the Serum development server
+  def run(args) do
+    CLIHelper.parse_options(args, strict: [])
 
-    Please visit #{@b}http://dalgona.github.io/Serum#{@r}
-    for full documentations.
-    """
-    |> String.trim_trailing()
+    [
+      CLIHelper.version_string(),
+      "\nAvailable tasks are:\n",
+      unquote(tasks_msg),
+      "\nPlease visit ",
+      :bright,
+      "https://dalgona.dev/Serum",
+      :reset,
+      " for full documentations."
+    ]
+    |> IO.ANSI.format()
     |> Mix.shell().info()
   end
 end
