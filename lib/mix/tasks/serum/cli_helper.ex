@@ -5,10 +5,14 @@ defmodule Mix.Tasks.Serum.CLIHelper do
 
   @spec version_string() :: binary()
   def version_string do
-    """
-    \x1b[1mSerum -- Yet another simple static website generator
-    Version #{@version}. Copyright (C) 2019 Dalgona. <dalgona@hontou.moe>
-    \x1b[0m
-    """
+    [
+      :bright,
+      "Serum -- Yet another simple static website generator\n",
+      "Version #{@version}. Copyright (C) 2019 Dalgona. ",
+      "<project-serum@dalgona.dev>\n",
+      :reset
+    ]
+    |> IO.ANSI.format()
+    |> IO.iodata_to_binary()
   end
 end

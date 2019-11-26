@@ -38,10 +38,7 @@ defmodule Mix.Tasks.Serum.Build do
   @impl true
   def run(args) do
     Mix.Project.compile([])
-
-    CLIHelper.version_string()
-    |> String.trim_trailing()
-    |> Mix.shell().info()
+    Mix.shell().info(CLIHelper.version_string())
 
     {options, argv} = OptionParser.parse!(args, @options)
     dest = options[:output] || "site"
