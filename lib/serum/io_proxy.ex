@@ -67,7 +67,9 @@ defmodule Serum.IOProxy do
 
   @impl GenServer
   def init(_args) do
-    {:ok, %{mute_msg: false, mute_err: false}}
+    prefix = if IO.ANSI.enabled?(), do: "\r", else: ""
+
+    {:ok, %{mute_msg: false, mute_err: false, prefix: prefix}}
   end
 
   @impl GenServer
@@ -81,13 +83,17 @@ defmodule Serum.IOProxy do
   end
 
   def handle_call({:put_msg, category, msg}, _, state) do
-    unless(state.mute_msg, do: IO.puts(format_message(category, msg)))
+    unless state.mute_msg do
+      IO.puts([state.prefix, format_message(category, msg)])
+    end
 
     {:reply, :ok, state}
   end
 
   def handle_call({:put_err, category, msg}, _, state) do
-    unless(state.mute_err, do: IO.puts(:stderr, format_message(category, msg)))
+    unless state.mute_err do
+      IO.puts(:stderr, [state.prefix, format_message(category, msg)])
+    end
 
     {:reply, :ok, state}
   end
@@ -116,7 +122,7 @@ defmodule Serum.IOProxy do
         |> IO.iodata_to_binary()
         |> format_newlines()
 
-      [?\r, header, ?\s, :io_lib.format(body_fmt, [formatted_msg])]
+      [header, ?\s, :io_lib.format(body_fmt, [formatted_msg])]
     end
   end)
 
