@@ -99,10 +99,14 @@ defmodule Serum.Project.ElixirValidator do
       errors ->
         messages =
           Enum.map(errors, fn {k, {:fail, s}} ->
-            prop = "\x1b[1;33m#{k}\x1b[0m"
-            constraint = "\x1b[1;33m#{s}\x1b[0m"
-
-            "the property #{prop} violates the constraint #{constraint}"
+            [
+              "the property ",
+              [:bright, :yellow, to_string(k), :reset],
+              " violates the constraint ",
+              [:bright, :yellow, s, :reset]
+            ]
+            |> IO.ANSI.format()
+            |> IO.iodata_to_binary()
           end)
 
         {:error, messages}
