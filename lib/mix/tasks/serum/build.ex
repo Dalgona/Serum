@@ -24,7 +24,6 @@ defmodule Mix.Tasks.Serum.Build do
   use Mix.Task
   alias IO.ANSI, as: A
   alias Mix.Tasks.Serum.CLIHelper
-  alias OptionParser.ParseError
   alias Serum.Build
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
@@ -38,16 +37,12 @@ defmodule Mix.Tasks.Serum.Build do
   @impl true
   def run(args) do
     Mix.Project.compile([])
-    Mix.shell().info(CLIHelper.version_string())
 
-    {options, argv} = OptionParser.parse!(args, @options)
+    options = CLIHelper.parse_options(args, @options)
     dest = options[:output] || "site"
-
-    if argv != [] do
-      raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
-    end
-
     {:ok, _} = Application.ensure_all_started(:serum)
+
+    Mix.shell().info(CLIHelper.version_string())
 
     with {:ok, %Project{} = proj} <- ProjectLoader.load("", dest),
          {:ok, ^dest} <- Build.build(proj) do

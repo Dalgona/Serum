@@ -23,6 +23,7 @@ defmodule Mix.Tasks.Serum.Gen.Post do
 
   use Mix.Task
   alias Mix.Generator, as: MixGen
+  alias Mix.Tasks.Serum.CLIHelper
   alias OptionParser.ParseError
 
   @options [
@@ -42,14 +43,8 @@ defmodule Mix.Tasks.Serum.Gen.Post do
 
   @impl true
   def run(args) do
-    {options, argv} = OptionParser.parse!(args, @options)
-
-    if argv != [] do
-      raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
-    end
-
+    options = CLIHelper.parse_options(args, @options)
     {:ok, _} = Application.ensure_all_started(:timex)
-
     :ok = check_required!(options)
     now = get_now!()
     path = get_path(options[:output], now)

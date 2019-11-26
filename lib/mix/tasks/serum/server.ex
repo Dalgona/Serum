@@ -17,7 +17,6 @@ defmodule Mix.Tasks.Serum.Server do
 
   use Mix.Task
   alias Mix.Tasks.Serum.CLIHelper
-  alias OptionParser.ParseError
   alias Serum.DevServer
   alias Serum.Result
 
@@ -29,15 +28,11 @@ defmodule Mix.Tasks.Serum.Server do
   @impl true
   def run(args) do
     Mix.Project.compile([])
-    Mix.shell().info(CLIHelper.version_string())
 
-    {options, argv} = OptionParser.parse!(args, @options)
-
-    if argv != [] do
-      raise ParseError, "\nExtra arguments: #{Enum.join(argv, ", ")}"
-    end
-
+    options = CLIHelper.parse_options(args, @options)
     {:ok, _} = Application.ensure_all_started(:serum)
+
+    Mix.shell().info(CLIHelper.version_string())
 
     case DevServer.run("", options[:port] || 8080) do
       {:ok, _pid} ->

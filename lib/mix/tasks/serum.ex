@@ -35,7 +35,9 @@ defmodule Mix.Tasks.Serum do
     end)
 
   @impl true
-  def run(_) do
+  def run(args) do
+    CLIHelper.parse_options(args, strict: [])
+
     [
       CLIHelper.version_string(),
       "\nAvailable tasks are:\n",
