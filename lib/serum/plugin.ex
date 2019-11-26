@@ -363,12 +363,18 @@ defmodule Serum.Plugin do
 
   def show_info(plugins) do
     Enum.each(plugins, fn p ->
-      msg = """
-      \x1b[1m#{p.name} v#{p.version}\x1b[0m (#{module_name(p.module)})
-      \x1b[90m#{p.description}
-      """
+      msg = [
+        :bright,
+        p.name,
+        " v",
+        to_string(p.version),
+        :reset,
+        " (#{module_name(p.module)})\n",
+        :light_black,
+        p.description
+      ]
 
-      put_msg(:plugin, String.trim(msg))
+      put_msg(:plugin, msg)
     end)
   end
 
