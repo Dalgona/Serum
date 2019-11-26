@@ -91,12 +91,13 @@ defmodule Serum.Template.Compiler.Include do
     end
   end
 
-  top = "    \x1b[31m\u256d\u2500\u2500\u2500\u2500\u2500\u256e\x1b[m\n"
-  arrow = "    \x1b[31m\u2502     \u2193\x1b[m\n"
-  first_text = "    \x1b[31m\u2502    \x1b[33m"
-  rest_text = "    \x1b[31m\u2502    "
-  bottom1 = "    \x1b[31m\u2502     \u2502\x1b[m\n"
-  bottom2 = "    \x1b[31m\u2570\u2500\u2500\u2500\u2500\u2500\u256f\x1b[m\n"
+  endl = [:reset, ?\n]
+  top = ["    ", :red, "\u256d\u2500\u2500\u2500\u2500\u2500\u256e", endl]
+  arrow = ["    ", :red, "\u2502     \u2193", endl]
+  first_text = ["    ", :red, "\u2502    ", :yellow]
+  rest_text = ["    ", :red, "\u2502    "]
+  bottom1 = ["    ", :red, "\u2502     \u2502", endl]
+  bottom2 = ["    ", :red, "\u2570\u2500\u2500\u2500\u2500\u2500\u256f", endl]
 
   @spec make_graph([binary()]) :: iodata()
   defp make_graph([first | rest]) do
@@ -106,7 +107,7 @@ defmodule Serum.Template.Compiler.Include do
           unquote(arrow),
           unquote(rest_text),
           name,
-          "\x1b[m\n"
+          unquote(endl)
         ]
       end)
 
@@ -115,10 +116,11 @@ defmodule Serum.Template.Compiler.Include do
       unquote(arrow),
       unquote(first_text),
       first,
-      "\x1b[m\n",
+      unquote(endl),
       rest_graph,
       unquote(bottom1),
       unquote(bottom2)
     ]
+    |> IO.ANSI.format()
   end
 end
