@@ -174,19 +174,15 @@ defmodule Serum.Plugin do
   @doc """
   Returns a list of optional callbacks which the plugin implements.
 
-  Each list item can be in one of two forms:
+  Each list item must be in the form of `{callback_name, arity}`.
 
-  - `{callback_name, arity}`
-  - `callback_name` - This is deprecated and left for compatibility. New Serum
-    plugins must use the above format.
-
-  For example, if your plugin implements `build_started/2` and `finalizing/2`,
-  you must implement this callback so that it returns `[build_started: 2,
-  finalizing: 2]`.
+  For example, if your plugin implements `build_started/3` and `finalizing/3`,
+  you must implement this callback so that it returns `[build_started: 3,
+  finalizing: 3]`.
 
   #{@required_msg}
   """
-  @callback implements() :: [atom() | {atom(), integer()}]
+  @callback implements() :: [{atom(), integer()}]
 
   #
   # Optional Callbacks
