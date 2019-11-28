@@ -14,12 +14,12 @@ defmodule Serum.Build.FileEmitter do
 
   Necessary subdirectories will be created if they don't exist.
   """
-  @spec run([Serum.File.t()]) :: Result.t({})
+  @spec run([Serum.File.t()]) :: Result.t([{}])
   def run(files) do
     put_msg(:info, "Writing output files...")
 
     case create_dirs(files) do
-      :ok ->
+      {:ok, _} ->
         files
         |> Enum.map(&write_file/1)
         |> Result.aggregate_values(:file_emitter)
@@ -29,7 +29,7 @@ defmodule Serum.Build.FileEmitter do
     end
   end
 
-  @spec create_dirs([Serum.File.t()]) :: Result.t({})
+  @spec create_dirs([Serum.File.t()]) :: Result.t([{}])
   defp create_dirs(outputs) do
     outputs
     |> Stream.map(& &1.dest)

@@ -91,7 +91,7 @@ defmodule Serum.Build do
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map),
          {:ok, files} <- PageGenerator.run(fragments),
-         :ok <- FileEmitter.run(files) do
+         {:ok, _} <- FileEmitter.run(files) do
       FileCopier.copy_files(src, dest)
     else
       {:error, _} = error -> error
