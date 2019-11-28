@@ -11,29 +11,6 @@ defmodule Serum.Plugin.Loader do
   @serum_version Version.parse!(Mix.Project.config()[:version])
   @elixir_version Version.parse!(System.version())
 
-  @old_callback_arities %{
-    build_started: 2,
-    reading_pages: 1,
-    reading_posts: 1,
-    reading_templates: 1,
-    processing_page: 1,
-    processing_post: 1,
-    processing_template: 1,
-    processed_page: 1,
-    processed_post: 1,
-    processed_template: 1,
-    processed_list: 1,
-    processed_pages: 1,
-    processed_posts: 1,
-    rendering_fragment: 2,
-    rendered_fragment: 1,
-    rendered_page: 1,
-    wrote_file: 1,
-    build_succeeded: 2,
-    build_failed: 3,
-    finalizing: 2
-  }
-
   @spec load_plugins([term()]) :: Result.t([Plugin.t()])
   def load_plugins(modules) do
     modules
@@ -107,7 +84,7 @@ defmodule Serum.Plugin.Loader do
       name: name,
       version: version,
       description: module.description(),
-      implements: normalized_implements(module),
+      implements: module.implements(),
       args: args
     }
 
@@ -147,14 +124,6 @@ defmodule Serum.Plugin.Loader do
 
       put_err(:warn, msg)
     end
-  end
-
-  @spec normalized_implements(module()) :: [{atom(), integer()}]
-  defp normalized_implements(module) do
-    Enum.map(module.implements(), fn
-      fun when is_atom(fun) -> {fun, @old_callback_arities[fun] || 0}
-      {fun, arity} when is_atom(fun) and is_integer(arity) -> {fun, arity}
-    end)
   end
 
   @spec update_agent([Plugin.t()]) :: :ok
