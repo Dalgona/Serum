@@ -27,8 +27,8 @@ defmodule Serum.Build.FileEmitterTest do
   end
 
   describe "run/1" do
-    test "successful", ctx do
-      :ok = FileEmitter.run(ctx.files)
+    test "successfully writes given files to disk", ctx do
+      {:ok, _} = FileEmitter.run(ctx.files)
 
       entry_count =
         ctx.tmp_dir

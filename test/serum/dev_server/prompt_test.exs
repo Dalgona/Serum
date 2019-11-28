@@ -136,7 +136,7 @@ defmodule Serum.DevServer.PromptTest do
         end)
 
       refute String.trim(stderr) === ""
-      assert_received :ok
+      assert_received {:ok, _}
     end
   end
 end
