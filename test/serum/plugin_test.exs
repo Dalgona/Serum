@@ -72,24 +72,6 @@ defmodule Serum.PluginTest do
     end)
   end
 
-  test "still handles deprecated callbacks" do
-    {:ok, _} = load_plugins([Serum.OldPlugin])
-    {:ok, io_opts} = IOProxy.config()
-
-    IOProxy.config(mute_err: true, mute_msg: true)
-
-    output =
-      capture_io(fn ->
-        assert :ok = build_started("", "")
-        assert :ok = build_succeeded("", "")
-      end)
-
-    assert output =~ "build_started"
-    assert output =~ "build_succeeded"
-
-    IOProxy.config(Keyword.new(io_opts))
-  end
-
   describe "show_info/1" do
     test "prints enough information about loaded plugins" do
       {:ok, plugins} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2])
