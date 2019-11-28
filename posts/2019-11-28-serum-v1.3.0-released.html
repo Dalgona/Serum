@@ -1,0 +1,80 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Serum v1.3.0 Released - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+    
+<!--==========================================-->
+<!-- Override "includes/head-extras.html.eex" -->
+<!-- to add more tags inside this <head> tag. -->
+<!--==========================================-->
+
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+        <h1><a href="/Serum/">Serum</a></h1>
+        <p>A simple static website generator</p>
+      </header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+  <li><a href="/Serum/posts">News</a></li>
+</ul>
+</nav>
+      <hr>
+      <main><article class="post"><header><h1 id="serum-v1.3.0-released">Serum v1.3.0 Released</h1><p>
+      Thursday, 28 Nov 2019
+      
+        <span class="tags">
+          Tags:
+          
+            <a class="tag" href="/Serum/tags/news">news</a><a class="tag" href="/Serum/tags/release">release</a></span></p></header><div><p>Today I’m releasing Serum v1.3.0, which hopefully will be the last minor update
+before Serum v2. This version includes minor bug fixes, new features, and
+enhancements to command line user experience.</p><hr class="thin"/><h2 id="fixed">Fixed</h2><ul><li>Fixes an issue which ignored custom template settings for blog posts.
+</li></ul><h2 id="improved">Improved</h2><ul><li><p>Serum now displays relative paths from the current working directory, instead
+of absolute paths, whenever possible.</p></li><li><p>Support for nested includes has been added. Now users can use the <code class="inline">include/1</code>
+macro inside their includes. Self-including or circular includes are
+intentionally not supported and these will result in errors.</p></li><li><p>Serum provides more options for the length of preview text for each blog post.</p><ul><li><p><code class="inline">preview_length: {:chars, 200}</code> tells Serum to take the first 200
+characters from a blog post to generate a preview text. The next two
+options should be self-explanatory now.</p></li><li><p><code class="inline">preview_length: {:words, 20}</code></p></li><li><p><code class="inline">preview_length: {:paragraphs, 1}</code> (Serches for <code class="inline">&lt;p&gt;</code> tags.)</p></li><li><p>Of course, you can still use the old value: <code class="inline">preview_length: 200</code>.</p></li></ul></li><li><p>Serum no longer emits ANSI escape sequences by default when the output is not
+a terminal. (i.e. when the output is written to a file, or when the output is
+piped to another program.)</p><p>Run any Serum Mix tasks with <code class="inline">--color</code> or <code class="inline">--no-color</code> option to override
+this behavior.</p></li></ul><h2 id="added">Added</h2><ul><li><p>Users can now pass an arbitrary argument to a Serum plugin.</p><p>The accepted value of plugin argument is defined by the plugin author, and
+this can be used to configure how the plugin should work.</p></li><li><p>This update introduces a new <code class="inline">render/2</code> template helper.</p><p>The <code class="inline">render/2</code> helper works like the existing <code class="inline">include/1</code> helper. However,
+unlike <code class="inline">include/1</code>, this helper dynamically renders the given include when
+the calling template/include is being rendered.</p></li></ul><h2 id="changed">Changed</h2><ul><li><p><strong>BREAKING CHANGES for plugin authors</strong>: The following plugin callbacks now
+accept one more argument: <code class="inline">args</code>.</p><ul><li><code class="inline">build_started/3</code></li><li><code class="inline">reading_pages/2</code></li><li><code class="inline">reading_posts/2</code></li><li><code class="inline">reading_templates/2</code></li><li><code class="inline">processing_page/2</code></li><li><code class="inline">processing_post/2</code></li><li><code class="inline">processing_template/2</code></li><li><code class="inline">processed_page/2</code></li><li><code class="inline">processed_post/2</code></li><li><code class="inline">processed_template/2</code></li><li><code class="inline">processed_list/2</code></li><li><code class="inline">processed_pages/2</code></li><li><code class="inline">processed_posts/2</code></li><li><code class="inline">rendering_fragment/3</code></li><li><code class="inline">rendered_fragment/2</code></li><li><code class="inline">rendered_page/2</code></li><li><code class="inline">wrote_file/2</code></li><li><code class="inline">build_succeeded/3</code></li><li><code class="inline">build_failed/4</code></li><li><code class="inline">finalizing/3</code></li></ul><p>Please update your plugins by implementing the new callbacks above.
+Existing callbacks will still be supported, but they will be removed in
+later releases.</p></li></ul></div></article></main>
+      <hr>
+      <footer>
+        
+
+<p>
+  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.3.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>
