@@ -10,7 +10,7 @@ defmodule Serum.Template.Compiler.Include do
   @typep context :: %{
            template: Template.t(),
            stack: [binary()],
-           error: Result.t() | nil
+           error: Result.t({}) | nil
          }
 
   @spec expand(Template.t()) :: Result.t(Template.t())
@@ -68,7 +68,7 @@ defmodule Serum.Template.Compiler.Include do
 
   defp prewalk_fun(ast, context), do: {ast, context}
 
-  @spec check_cycle(binary(), context()) :: Result.t()
+  @spec check_cycle(binary(), context()) :: Result.t({})
   defp check_cycle(name, context) do
     if name in context.stack do
       graph =

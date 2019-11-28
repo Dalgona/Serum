@@ -6,7 +6,6 @@ defmodule Serum.Result do
 
   import Serum.IOProxy, only: [put_err: 2]
 
-  @type t :: :ok | error()
   @type t(type) :: {:ok, type} | error()
 
   @type error :: {:error, err_details()}
@@ -14,32 +13,6 @@ defmodule Serum.Result do
   @type msg_detail :: binary()
   @type full_detail :: {binary(), binary(), non_neg_integer()}
   @type nest_detail :: {term(), [error()]}
-
-  @doc """
-  Takes a list of results without value and checks if there is no error.
-
-  Returns `:ok` if there is no error.
-
-  Returns an aggregated error object if there is one or more errors.
-  """
-  @spec aggregate([t()], term()) :: t()
-  def aggregate(results, msg) do
-    results
-    |> do_aggregate([])
-    |> case do
-      [] -> :ok
-      errors when is_list(errors) -> {:error, {msg, errors}}
-    end
-  end
-
-  @spec do_aggregate([t()], [t()]) :: [t()]
-  defp do_aggregate(results, errors)
-  defp do_aggregate([], errors), do: errors |> Enum.reverse() |> Enum.uniq()
-  defp do_aggregate([:ok | results], errors), do: do_aggregate(results, errors)
-
-  defp do_aggregate([{:error, _} = error | results], errors) do
-    do_aggregate(results, [error | errors])
-  end
 
   @doc """
   Takes a list of results with values and checks if there is no error.
@@ -59,7 +32,7 @@ defmodule Serum.Result do
     end
   end
 
-  @spec do_aggregate_values([t(term())], [term()], [t()]) :: {[term()], [t()]}
+  @spec do_aggregate_values([t(term())], [term()], [t(term())]) :: {[term()], [t(term())]}
   defp do_aggregate_values(results, values, errors)
 
   defp do_aggregate_values([], values, errors) do
@@ -75,9 +48,8 @@ defmodule Serum.Result do
   end
 
   @doc "Prints an error object in a beautiful format."
-  @spec show(t() | t(term()), non_neg_integer()) :: :ok
+  @spec show(t(term()), non_neg_integer()) :: :ok
   def show(result, indent \\ 0)
-  def show(:ok, depth), do: put_err(:info, get_message(:ok, depth))
   def show({:ok, _} = result, depth), do: put_err(:info, get_message(result, depth))
   def show(error, depth), do: put_err(:error, get_message(error, depth))
 
@@ -87,15 +59,14 @@ defmodule Serum.Result do
   You can control the indentation level by passing a non-negative integer to
   the `depth` parameter.
   """
-  @spec get_message(t() | t(term), non_neg_integer()) :: binary()
+  @spec get_message(t(term), non_neg_integer()) :: binary()
   def get_message(result, depth) do
     result |> do_get_message(depth) |> IO.iodata_to_binary()
   end
 
-  @spec do_get_message(t() | t(term), non_neg_integer()) :: IO.chardata()
+  @spec do_get_message(t(term), non_neg_integer()) :: IO.chardata()
   defp do_get_message(result, depth)
-  defp do_get_message(:ok, depth), do: indented("No error detected", depth)
-  defp do_get_message({:ok, _}, depth), do: do_get_message(:ok, depth)
+  defp do_get_message({:ok, _}, depth), do: indented("No error detected", depth)
 
   defp do_get_message({:error, msg}, depth) when is_binary(msg) do
     indented(msg, depth)

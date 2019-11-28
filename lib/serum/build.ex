@@ -75,7 +75,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec pre_check(binary()) :: Result.t()
+  @spec pre_check(binary()) :: Result.t({})
   defp pre_check(dest) do
     with :ok <- check_tz(),
          :ok <- check_dest_perm(dest) do
@@ -85,7 +85,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build(Project.t()) :: Result.t()
+  @spec do_build(Project.t()) :: Result.t({})
   defp do_build(%{src: src, dest: dest} = proj) do
     with {:ok, files} <- FileLoader.load_files(src),
          {:ok, map} <- FileProcessor.process_files(files, proj),
@@ -99,7 +99,7 @@ defmodule Serum.Build do
   end
 
   # Checks if the system timezone is set and valid.
-  @spec check_tz() :: Result.t()
+  @spec check_tz() :: Result.t({})
   defp check_tz do
     Timex.local()
     :ok
@@ -109,7 +109,7 @@ defmodule Serum.Build do
 
   # Checks if the effective user have a write
   # permission on the destination directory.
-  @spec check_dest_perm(binary) :: Result.t()
+  @spec check_dest_perm(binary) :: Result.t({})
   defp check_dest_perm(dest) do
     parent = dest |> Path.join("") |> Path.dirname()
 
@@ -129,7 +129,7 @@ defmodule Serum.Build do
 
   # Removes all files and directories in the destination directory,
   # excluding dotfiles so that git repository is not blown away.
-  @spec clean_dest(binary) :: Result.t()
+  @spec clean_dest(binary) :: Result.t({})
   defp clean_dest(dest) do
     File.mkdir_p!(dest)
     put_msg(:mkdir, dest)
@@ -144,6 +144,6 @@ defmodule Serum.Build do
         {:error, reason, ^path} -> {:error, {reason, path, 0}}
       end
     end)
-    |> Result.aggregate(:clean_dest)
+    |> Result.aggregate_values(:clean_dest)
   end
 end

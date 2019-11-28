@@ -52,7 +52,7 @@ defmodule Serum.Build.FileLoader.Templates do
     (File.exists?(from_proj) && from_proj) || from_theme
   end
 
-  @spec validate_required(map(), binary()) :: Result.t()
+  @spec validate_required(map(), binary()) :: Result.t({})
   defp validate_required(map, src) do
     existing_templates = map |> Map.keys() |> MapSet.new()
 

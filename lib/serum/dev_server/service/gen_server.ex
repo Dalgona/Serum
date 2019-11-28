@@ -169,7 +169,7 @@ defmodule Serum.DevServer.Service.GenServer do
     end
   end
 
-  @spec build_failed(Result.t()) :: :ok
+  @spec build_failed(Result.t({})) :: :ok
   defp build_failed(error) do
     Result.show(error)
     put_err(:warn, "Error occurred while building the website.")

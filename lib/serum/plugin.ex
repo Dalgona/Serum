@@ -192,7 +192,7 @@ defmodule Serum.Plugin do
   Called right after the build process has started. Some necessary OTP
   applications or processes should be started here.
   """
-  @callback build_started(src :: binary(), dest :: binary(), args :: term()) :: Result.t()
+  @callback build_started(src :: binary(), dest :: binary(), args :: term()) :: Result.t({})
 
   @doc """
   Called before reading input files.
@@ -305,12 +305,12 @@ defmodule Serum.Plugin do
   @doc """
   Called after writing each output to a file.
   """
-  @callback wrote_file(file :: File.t(), args :: term()) :: Result.t()
+  @callback wrote_file(file :: File.t(), args :: term()) :: Result.t({})
 
   @doc """
   Called if the whole build process has finished successfully.
   """
-  @callback build_succeeded(src :: binary(), dest :: binary(), args :: term()) :: Result.t()
+  @callback build_succeeded(src :: binary(), dest :: binary(), args :: term()) :: Result.t({})
 
   @doc """
   Called if the build process has failed for some reason.
@@ -318,10 +318,10 @@ defmodule Serum.Plugin do
   @callback build_failed(
               src :: binary(),
               dest :: binary(),
-              result :: Result.t() | Result.t(term),
+              result :: Result.t(term),
               args :: term()
             ) ::
-              Result.t()
+              Result.t({})
 
   @doc """
   Called right before Serum exits, whether the build has succeeded or not.
@@ -329,7 +329,7 @@ defmodule Serum.Plugin do
   This is the place where you should clean up any temporary resources created
   in `build_started/2` callback.
   """
-  @callback finalizing(src :: binary(), dest :: binary(), args :: term()) :: Result.t()
+  @callback finalizing(src :: binary(), dest :: binary(), args :: term()) :: Result.t({})
 
   #
   # Plugin Consumer Functions
@@ -368,7 +368,7 @@ defmodule Serum.Plugin do
   end
 
   @doc false
-  @spec build_started(src :: binary(), dest :: binary()) :: Result.t()
+  @spec build_started(src :: binary(), dest :: binary()) :: Result.t({})
   def build_started(src, dest) do
     call_action(:build_started, [src, dest])
   end
@@ -465,38 +465,38 @@ defmodule Serum.Plugin do
   end
 
   @doc false
-  @spec wrote_file(file :: File.t()) :: Result.t()
+  @spec wrote_file(file :: File.t()) :: Result.t({})
   def wrote_file(file) do
     call_action(:wrote_file, [file])
   end
 
   @doc false
-  @spec build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
+  @spec build_succeeded(src :: binary(), dest :: binary()) :: Result.t({})
   def build_succeeded(src, dest) do
     call_action(:build_succeeded, [src, dest])
   end
 
   @doc false
-  @spec build_failed(src :: binary(), dest :: binary(), result :: Result.t() | Result.t(term)) ::
-          Result.t()
+  @spec build_failed(src :: binary(), dest :: binary(), result :: Result.t(term)) ::
+          Result.t({})
   def build_failed(src, dest, result) do
     call_action(:build_failed, [src, dest, result])
   end
 
   @doc false
-  @spec finalizing(src :: binary(), dest :: binary()) :: Result.t()
+  @spec finalizing(src :: binary(), dest :: binary()) :: Result.t({})
   def finalizing(src, dest) do
     call_action(:finalizing, [src, dest])
   end
 
-  @spec call_action(atom(), [term()]) :: Result.t()
+  @spec call_action(atom(), [term()]) :: Result.t({})
   defp call_action(fun, args) do
     __MODULE__
     |> Agent.get(&(&1[fun] || []))
     |> do_call_action(fun, args)
   end
 
-  @spec do_call_action([{integer(), t()}], atom(), [term()]) :: Result.t()
+  @spec do_call_action([{integer(), t()}], atom(), [term()]) :: Result.t({})
   defp do_call_action(arity_and_plugins, fun, args)
   defp do_call_action([], _fun, _args), do: :ok
 
@@ -553,7 +553,7 @@ defmodule Serum.Plugin do
     exception -> handle_exception(exception, plugin.module, fun)
   end
 
-  @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t()
+  @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t({})
   defp handle_exception(exception, module, fun) do
     ex_name = module_name(exception.__struct__)
     ex_msg = Exception.message(exception)

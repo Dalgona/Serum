@@ -14,7 +14,7 @@ defmodule Serum.Build.FileEmitter do
 
   Necessary subdirectories will be created if they don't exist.
   """
-  @spec run([Serum.File.t()]) :: Result.t()
+  @spec run([Serum.File.t()]) :: Result.t({})
   def run(files) do
     put_msg(:info, "Writing output files...")
 
@@ -22,24 +22,24 @@ defmodule Serum.Build.FileEmitter do
       :ok ->
         files
         |> Enum.map(&write_file/1)
-        |> Result.aggregate(:file_emitter)
+        |> Result.aggregate_values(:file_emitter)
 
       {:error, _} = error ->
         error
     end
   end
 
-  @spec create_dirs([Serum.File.t()]) :: Result.t()
+  @spec create_dirs([Serum.File.t()]) :: Result.t({})
   defp create_dirs(outputs) do
     outputs
     |> Stream.map(& &1.dest)
     |> Stream.map(&Path.dirname/1)
     |> Stream.uniq()
     |> Enum.map(&create_dir/1)
-    |> Result.aggregate(:file_emitter)
+    |> Result.aggregate_values(:file_emitter)
   end
 
-  @spec create_dir(binary()) :: Result.t()
+  @spec create_dir(binary()) :: Result.t({})
   defp create_dir(dir) do
     case File.mkdir_p(dir) do
       :ok -> put_msg(:mkdir, dir)
@@ -47,7 +47,7 @@ defmodule Serum.Build.FileEmitter do
     end
   end
 
-  @spec write_file(Serum.File.t()) :: Result.t()
+  @spec write_file(Serum.File.t()) :: Result.t({})
   defp write_file(file) do
     case Serum.File.write(file) do
       {:ok, ^file} -> Plugin.wrote_file(file)

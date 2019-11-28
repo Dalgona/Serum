@@ -2,38 +2,6 @@ defmodule Serum.ResultTest do
   use ExUnit.Case, async: true
   alias Serum.Result
 
-  describe "aggregate/2" do
-    test "processes a list of successful results without value" do
-      results = List.duplicate(:ok, 5)
-      result = Result.aggregate(results, "foo")
-      expected = :ok
-
-      assert result === expected
-    end
-
-    test "processes a list of successful/failed results" do
-      results = [:ok, {:error, "error 1"}, :ok, {:error, "error 2"}, :ok]
-      result = Result.aggregate(results, "foo")
-      expected = {:error, {"foo", [{:error, "error 1"}, {:error, "error 2"}]}}
-
-      assert result === expected
-    end
-
-    test "removes duplicate failed results #1" do
-      results = [
-        error: "error 1",
-        error: "error 2",
-        error: "error 1",
-        error: "error 2"
-      ]
-
-      result = Result.aggregate(results, "foo")
-
-      assert {:error, {"foo", errors}} = result
-      assert length(errors) === 2
-    end
-  end
-
   describe "aggregate_values/2" do
     test "processes a list of successful results with value" do
       results = Enum.map(1..5, &{:ok, &1})
@@ -67,10 +35,6 @@ defmodule Serum.ResultTest do
   end
 
   describe "get_message/2" do
-    test "gets a message for :ok" do
-      assert Result.get_message(:ok, 0) =~ "No error detected"
-    end
-
     test "gets a message for {:ok, result}" do
       assert Result.get_message({:ok, 42}, 0) =~ "No error detected"
     end

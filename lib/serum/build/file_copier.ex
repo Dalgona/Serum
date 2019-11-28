@@ -6,7 +6,7 @@ defmodule Serum.Build.FileCopier do
   alias Serum.Theme
 
   @doc false
-  @spec copy_files(binary(), binary()) :: Result.t()
+  @spec copy_files(binary(), binary()) :: Result.t({})
   def copy_files(src, dest) do
     case copy_theme_assets(dest) do
       :ok ->
@@ -18,7 +18,7 @@ defmodule Serum.Build.FileCopier do
     end
   end
 
-  @spec copy_theme_assets(binary()) :: Result.t()
+  @spec copy_theme_assets(binary()) :: Result.t({})
   defp copy_theme_assets(dest) do
     case Theme.get_assets() do
       {:ok, false} -> :ok
