@@ -1,12 +1,11 @@
 language: elixir
-elixir: '1.8.0'
+elixir: '1.9.4'
 otp_release: '20.3'
 env:
   - MIX_ENV=test
 script:
   - mix format --check-formatted
   - mix credo --all
-  - mix test
   - mix coveralls.travis
 cache:
   directories:
