@@ -4,7 +4,6 @@ defmodule Serum.Template.Storage do
   _moduledocp = "An agent which stores compiled templates and includes."
 
   use Agent
-  alias Serum.Result
   alias Serum.Template
 
   @initial_value %{template: %{}, include: %{}}
@@ -16,7 +15,7 @@ defmodule Serum.Template.Storage do
     Agent.start_link(fn -> @initial_value end, name: __MODULE__)
   end
 
-  @spec load(Template.collection(), Template.type()) :: Result.t({})
+  @spec load(Template.collection(), Template.type()) :: :ok
   def load(templates, type) when is_valid_type(type) do
     Agent.update(__MODULE__, &Map.put(&1, type, templates))
   end
@@ -26,7 +25,7 @@ defmodule Serum.Template.Storage do
     Agent.get(__MODULE__, &get_in(&1, [type, name]))
   end
 
-  @spec put(binary(), Template.type(), Template.t()) :: Result.t({})
+  @spec put(binary(), Template.type(), Template.t()) :: :ok
   def put(name, type, template) when is_valid_type(type) do
     Agent.update(__MODULE__, &put_in(&1, [type, name], template))
   end
