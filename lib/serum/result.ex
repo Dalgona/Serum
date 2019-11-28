@@ -48,7 +48,7 @@ defmodule Serum.Result do
   end
 
   @doc "Prints an error object in a beautiful format."
-  @spec show(t(term()), non_neg_integer()) :: :ok
+  @spec show(t(term()), non_neg_integer()) :: {:ok, {}}
   def show(result, indent \\ 0)
   def show({:ok, _} = result, depth), do: put_err(:info, get_message(result, depth))
   def show(error, depth), do: put_err(:error, get_message(error, depth))

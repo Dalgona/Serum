@@ -159,7 +159,7 @@ defmodule Serum.DevServer.Service.GenServer do
     unless(is_nil(watcher), do: Process.exit(watcher, :shutdown))
   end
 
-  @spec do_rebuild(binary(), binary()) :: :ok
+  @spec do_rebuild(binary(), binary()) :: Result.t({})
   defp do_rebuild(src, dest) do
     with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
          {:ok, ^dest} <- Build.build(proj) do
@@ -169,7 +169,7 @@ defmodule Serum.DevServer.Service.GenServer do
     end
   end
 
-  @spec build_failed(Result.t({})) :: :ok
+  @spec build_failed(Result.t({})) :: Result.t({})
   defp build_failed(error) do
     Result.show(error)
     put_err(:warn, "Error occurred while building the website.")
