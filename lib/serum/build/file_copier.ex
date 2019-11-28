@@ -9,7 +9,7 @@ defmodule Serum.Build.FileCopier do
   @spec copy_files(binary(), binary()) :: Result.t({})
   def copy_files(src, dest) do
     case copy_theme_assets(dest) do
-      :ok ->
+      {:ok, _} ->
         copy_assets(src, dest)
         do_copy_files(src, dest)
 
@@ -21,34 +21,34 @@ defmodule Serum.Build.FileCopier do
   @spec copy_theme_assets(binary()) :: Result.t({})
   defp copy_theme_assets(dest) do
     case Theme.get_assets() do
-      {:ok, false} -> :ok
+      {:ok, false} -> {:ok, {}}
       {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
       {:error, _} = error -> error
     end
   end
 
-  @spec copy_assets(binary(), binary()) :: :ok
+  @spec copy_assets(binary(), binary()) :: Result.t({})
   defp copy_assets(src, dest) do
     put_msg(:info, "Copying assets and media...")
     try_copy(Path.join(src, "assets"), Path.join(dest, "assets"))
     try_copy(Path.join(src, "media"), Path.join(dest, "media"))
   end
 
-  @spec do_copy_files(binary(), binary()) :: :ok
+  @spec do_copy_files(binary(), binary()) :: Result.t({})
   defp do_copy_files(src, dest) do
     files_dir = Path.join(src, "files")
 
-    if File.exists?(files_dir), do: try_copy(files_dir, dest), else: :ok
+    if File.exists?(files_dir), do: try_copy(files_dir, dest), else: {:ok, {}}
   end
 
-  @spec try_copy(binary(), binary()) :: :ok
+  @spec try_copy(binary(), binary()) :: Result.t({})
   defp try_copy(src, dest) do
     case File.cp_r(src, dest) do
       {:error, reason, _} ->
         put_err(:warn, "Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
 
       {:ok, _} ->
-        :ok
+        {:ok, {}}
     end
   end
 end

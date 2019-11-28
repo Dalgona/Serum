@@ -48,7 +48,7 @@ defmodule Serum.Build do
     with {:ok, proj} <- load_plugins(proj),
          {:ok, _} <- Plugin.build_started(src, dest),
          {:ok, _} <- pre_check(dest),
-         :ok <- do_build(proj),
+         {:ok, _} <- do_build(proj),
          {:ok, _} <- Plugin.build_succeeded(src, dest),
          {:ok, _} <- Plugin.finalizing(src, dest) do
       {:ok, dest}

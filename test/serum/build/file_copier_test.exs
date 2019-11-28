@@ -31,13 +31,13 @@ defmodule Serum.Build.FileCopierTest do
     test "copies assets, media, and extra files", %{src: src, dest: dest} do
       make_structure!(src)
 
-      :ok = FC.copy_files(src, dest)
+      {:ok, _} = FC.copy_files(src, dest)
 
       assert num_of_items(dest) === 5
     end
 
     test "skips copying if sources don't exist", %{src: src, dest: dest} do
-      :ok = FC.copy_files(src, dest)
+      {:ok, _} = FC.copy_files(src, dest)
 
       assert File.ls!(dest) === []
     end
@@ -53,7 +53,7 @@ defmodule Serum.Build.FileCopierTest do
       Theme.load(Serum.DummyTheme)
       make_structure!(src)
 
-      :ok = FC.copy_files(src, dest)
+      {:ok, _} = FC.copy_files(src, dest)
 
       assert num_of_items(dest) === 6
 
@@ -64,7 +64,7 @@ defmodule Serum.Build.FileCopierTest do
       Theme.load(Serum.EmptyTheme)
       make_structure!(src)
 
-      :ok = FC.copy_files(src, dest)
+      {:ok, _} = FC.copy_files(src, dest)
 
       assert num_of_items(dest) === 5
     end
