@@ -75,9 +75,7 @@ defmodule Serum.Plugin do
   """
 
   use Agent
-  require Serum.Plugin.Macros
   import Serum.IOProxy, only: [put_msg: 2]
-  import Serum.Plugin.Macros
   alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
@@ -101,34 +99,28 @@ defmodule Serum.Plugin do
   @type spec :: atom() | {atom(), plugin_options()}
   @type plugin_options :: [only: atom() | [atom()], args: term()]
 
-  @old_callback_arities [
-    build_started: 2,
-    reading_pages: 1,
-    reading_posts: 1,
-    reading_templates: 1,
-    processing_page: 1,
-    processing_post: 1,
-    processing_template: 1,
-    processed_page: 1,
-    processed_post: 1,
-    processed_template: 1,
-    processed_list: 1,
-    processed_pages: 1,
-    processed_posts: 1,
-    rendering_fragment: 2,
-    rendered_fragment: 1,
-    rendered_page: 1,
-    wrote_file: 1,
-    build_succeeded: 2,
-    build_failed: 3,
-    finalizing: 2
+  @optional_callbacks [
+    build_started: 3,
+    reading_pages: 2,
+    reading_posts: 2,
+    reading_templates: 2,
+    processing_page: 2,
+    processing_post: 2,
+    processing_template: 2,
+    processed_page: 2,
+    processed_post: 2,
+    processed_template: 2,
+    processed_list: 2,
+    processed_pages: 2,
+    processed_posts: 2,
+    rendering_fragment: 3,
+    rendered_fragment: 2,
+    rendered_page: 2,
+    wrote_file: 2,
+    build_succeeded: 3,
+    build_failed: 4,
+    finalizing: 3
   ]
-
-  @optional_callbacks @old_callback_arities
-                      |> Enum.map(fn {name, arity} ->
-                        [{name, arity}, {name, arity + 1}]
-                      end)
-                      |> List.flatten()
 
   @required_msg "You must implement this callback, or the plugin may fail."
 
@@ -204,7 +196,7 @@ defmodule Serum.Plugin do
   Called right after the build process has started. Some necessary OTP
   applications or processes should be started here.
   """
-  defcallback build_started(src :: binary(), dest :: binary()) :: Result.t()
+  @callback build_started(src :: binary(), dest :: binary(), args :: term()) :: Result.t()
 
   @doc """
   Called before reading input files.
@@ -212,7 +204,7 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  defcallback reading_pages(files :: [binary()]) :: Result.t([binary()])
+  @callback reading_pages(files :: [binary()], args :: term()) :: Result.t([binary()])
 
   @doc """
   Called before reading input files.
@@ -220,7 +212,7 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  defcallback reading_posts(files :: [binary()]) :: Result.t([binary()])
+  @callback reading_posts(files :: [binary()], args :: term()) :: Result.t([binary()])
 
   @doc """
   Called before reading input files.
@@ -228,28 +220,28 @@ defmodule Serum.Plugin do
   Plugins can manipulate the list of files to be read and pass it to
   the next plugin.
   """
-  defcallback reading_templates(files :: [binary()]) :: Result.t([binary()])
+  @callback reading_templates(files :: [binary()], args :: term()) :: Result.t([binary()])
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  defcallback processing_page(file :: File.t()) :: Result.t(File.t())
+  @callback processing_page(file :: File.t(), args :: term()) :: Result.t(File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  defcallback processing_post(file :: File.t()) :: Result.t(File.t())
+  @callback processing_post(file :: File.t(), args :: term()) :: Result.t(File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  defcallback processing_template(file :: File.t()) :: Result.t(File.t())
+  @callback processing_template(file :: File.t(), args :: term()) :: Result.t(File.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -257,7 +249,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  defcallback processed_page(page :: Page.t()) :: Result.t(Page.t())
+  @callback processed_page(page :: Page.t(), args :: term()) :: Result.t(Page.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -265,7 +257,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  defcallback processed_post(post :: Post.t()) :: Result.t(Post.t())
+  @callback processed_post(post :: Post.t(), args :: term()) :: Result.t(Post.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -273,7 +265,7 @@ defmodule Serum.Plugin do
 
   Plugins can alter the AST and its metadata here.
   """
-  defcallback processed_template(template :: Template.t()) :: Result.t(Template.t())
+  @callback processed_template(template :: Template.t(), args :: term()) :: Result.t(Template.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -281,13 +273,13 @@ defmodule Serum.Plugin do
 
   Plugins can alter the processed contents and metadata here.
   """
-  defcallback processed_list(list :: PostList.t()) :: Result.t(PostList.t())
+  @callback processed_list(list :: PostList.t(), args :: term()) :: Result.t(PostList.t())
 
   @doc "Called after Serum has successfully processed all pages."
-  defcallback processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
+  @callback processed_pages(pages :: [Page.t()], args :: term()) :: Result.t([Page.t()])
 
   @doc "Called after Serum has successfully processed all blog posts."
-  defcallback processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
+  @callback processed_posts(posts :: [Post.t()], args :: term()) :: Result.t([Post.t()])
 
   @doc """
   Called while each fragment is being constructed.
@@ -296,15 +288,15 @@ defmodule Serum.Plugin do
   Floki). It is recommended to implement this callback if you want to modify
   the HTML document without worrying about breaking it.
   """
-  defcallback rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
-                Result.t(Floki.html_tree())
+  @callback rendering_fragment(html :: Floki.html_tree(), metadata :: map(), args :: term()) ::
+              Result.t(Floki.html_tree())
 
   @doc """
   Called after producing a HTML fragment for each page.
 
   Plugins can modify the contents and metadata of each fragment here.
   """
-  defcallback rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
+  @callback rendered_fragment(frag :: Fragment.t(), args :: term()) :: Result.t(Fragment.t())
 
   @doc """
   Called when Serum has rendered a full page and it's about to write to an
@@ -312,27 +304,28 @@ defmodule Serum.Plugin do
 
   Plugins can alter the raw contents of the page to be written.
   """
-  defcallback rendered_page(file :: File.t()) :: Result.t(File.t())
+  @callback rendered_page(file :: File.t(), args :: term()) :: Result.t(File.t())
 
   @doc """
   Called after writing each output to a file.
   """
-  defcallback wrote_file(file :: File.t()) :: Result.t()
+  @callback wrote_file(file :: File.t(), args :: term()) :: Result.t()
 
   @doc """
   Called if the whole build process has finished successfully.
   """
-  defcallback build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
+  @callback build_succeeded(src :: binary(), dest :: binary(), args :: term()) :: Result.t()
 
   @doc """
   Called if the build process has failed for some reason.
   """
-  defcallback build_failed(
-                src :: binary(),
-                dest :: binary(),
-                result :: Result.t() | Result.t(term)
-              ) ::
-                Result.t()
+  @callback build_failed(
+              src :: binary(),
+              dest :: binary(),
+              result :: Result.t() | Result.t(term),
+              args :: term()
+            ) ::
+              Result.t()
 
   @doc """
   Called right before Serum exits, whether the build has succeeded or not.
@@ -340,7 +333,7 @@ defmodule Serum.Plugin do
   This is the place where you should clean up any temporary resources created
   in `build_started/2` callback.
   """
-  defcallback finalizing(src :: binary(), dest :: binary()) :: Result.t()
+  @callback finalizing(src :: binary(), dest :: binary(), args :: term()) :: Result.t()
 
   #
   # Plugin Consumer Functions
@@ -511,8 +504,8 @@ defmodule Serum.Plugin do
   defp do_call_action(arity_and_plugins, fun, args)
   defp do_call_action([], _fun, _args), do: :ok
 
-  defp do_call_action([{arity, plugin} | arity_and_plugins], fun, args) do
-    new_args = update_callback_args(args, plugin, fun, arity)
+  defp do_call_action([{_arity, plugin} | arity_and_plugins], fun, args) do
+    new_args = args ++ [plugin.args]
 
     case apply(plugin.module, fun, new_args) do
       :ok ->
@@ -543,10 +536,10 @@ defmodule Serum.Plugin do
   defp do_call_function(arity_and_plugins, fun, args, acc)
   defp do_call_function([], _fun, _args, acc), do: {:ok, acc}
 
-  defp do_call_function([{arity, plugin} | arity_and_plugins], fun, args, acc) do
-    new_args = update_callback_args(args, plugin, fun, arity)
+  defp do_call_function([{_arity, plugin} | arity_and_plugins], fun, args, acc) do
+    new_args = [acc | args] ++ [plugin.args]
 
-    case apply(plugin.module, fun, [acc | new_args]) do
+    case apply(plugin.module, fun, new_args) do
       {:ok, new_acc} ->
         do_call_function(arity_and_plugins, fun, args, new_acc)
 
@@ -562,31 +555,6 @@ defmodule Serum.Plugin do
     end
   rescue
     exception -> handle_exception(exception, plugin.module, fun)
-  end
-
-  @spec update_callback_args(list(), t(), atom(), integer()) :: list()
-  defp update_callback_args(args, plugin, fun, arity) do
-    if arity === @old_callback_arities[fun] do
-      old_fun_name = "#{fun}/#{arity}"
-      new_fun_name = "#{fun}/#{arity + 1}"
-
-      msg = [
-        old_fun_name,
-        " is deprecated. Use ",
-        new_fun_name,
-        " instead.\nfrom plugin: ",
-        plugin.name,
-        " (",
-        module_name(plugin.module),
-        ")"
-      ]
-
-      put_msg(:warn, IO.iodata_to_binary(msg))
-
-      args
-    else
-      args ++ [plugin.args]
-    end
   end
 
   @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t()
