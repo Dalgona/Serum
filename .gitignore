@@ -22,5 +22,3 @@ erl_crash.dump
 *.swo
 *~
 [#]*[#]
-
-/serum
