@@ -47,7 +47,7 @@ defmodule Serum.Build do
   def build(%Project{src: src, dest: dest} = proj) do
     with {:ok, proj} <- load_plugins(proj),
          :ok <- Plugin.build_started(src, dest),
-         :ok <- pre_check(dest),
+         {:ok, _} <- pre_check(dest),
          :ok <- do_build(proj),
          :ok <- Plugin.build_succeeded(src, dest),
          :ok <- Plugin.finalizing(src, dest) do
@@ -77,9 +77,10 @@ defmodule Serum.Build do
 
   @spec pre_check(binary()) :: Result.t({})
   defp pre_check(dest) do
-    with :ok <- check_tz(),
-         :ok <- check_dest_perm(dest) do
-      clean_dest(dest)
+    with {:ok, _} <- check_tz(),
+         {:ok, _} <- check_dest_perm(dest),
+         {:ok, _} <- clean_dest(dest) do
+      {:ok, {}}
     else
       {:error, _} = error -> error
     end
@@ -102,34 +103,34 @@ defmodule Serum.Build do
   @spec check_tz() :: Result.t({})
   defp check_tz do
     Timex.local()
-    :ok
+    {:ok, {}}
   rescue
     _ -> {:error, "system timezone is not set"}
   end
 
   # Checks if the effective user have a write
   # permission on the destination directory.
-  @spec check_dest_perm(binary) :: Result.t({})
+  @spec check_dest_perm(binary()) :: Result.t({})
   defp check_dest_perm(dest) do
-    parent = dest |> Path.join("") |> Path.dirname()
-
-    result =
-      case File.stat(parent) do
-        {:error, reason} -> reason
-        {:ok, %File.Stat{access: :none}} -> :eacces
-        {:ok, %File.Stat{access: :read}} -> :eacces
-        {:ok, _} -> :ok
-      end
-
-    case result do
-      :ok -> :ok
+    dest
+    |> Path.join("")
+    |> Path.dirname()
+    |> File.stat()
+    |> case do
+      {:error, reason} -> reason
+      {:ok, %File.Stat{access: :none}} -> :eacces
+      {:ok, %File.Stat{access: :read}} -> :eacces
+      {:ok, _} -> :ok
+    end
+    |> case do
+      :ok -> {:ok, {}}
       err -> {:error, {err, dest, 0}}
     end
   end
 
   # Removes all files and directories in the destination directory,
   # excluding dotfiles so that git repository is not blown away.
-  @spec clean_dest(binary) :: Result.t({})
+  @spec clean_dest(binary()) :: Result.t([{}])
   defp clean_dest(dest) do
     File.mkdir_p!(dest)
     put_msg(:mkdir, dest)
@@ -140,7 +141,7 @@ defmodule Serum.Build do
     |> Enum.map(&Path.join(dest, &1))
     |> Enum.map(fn path ->
       case File.rm_rf(path) do
-        {:ok, _} -> :ok
+        {:ok, _} -> {:ok, {}}
         {:error, reason, ^path} -> {:error, {reason, path, 0}}
       end
     end)
