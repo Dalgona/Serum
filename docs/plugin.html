@@ -47,7 +47,7 @@ module</a> to see which
 callbacks you can implement and what each callback should do.</p><h2 id="for-plugin-users">For Plugin Users</h2><p>To enable Serum plugins, add a <code class="inline">plugins</code> key to your <code class="inline">serum.exs</code>(if it does
 not exist), and put names of Serum plugin modules there.</p><pre><code class="lang-elixir">%{
   plugins: [
-    Awesome.Serum.Plugin,
+    {Awesome.Serum.Plugin, args: [awesome: true]},
     Great.Serum.Plugin
   ]
 }</code></pre><p>You can also restrict some plugins to run only in specific Mix environments.

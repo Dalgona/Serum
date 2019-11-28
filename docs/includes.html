@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Includable Templates - Serum</title>
+    <title>Includes - Serum</title>
     <link rel="stylesheet" href="/Serum/assets/css/style.css">
     <link rel="stylesheet" href="/Serum/assets/css/prism.css">
     
@@ -35,26 +35,85 @@
 </ul>
 </nav>
       <hr>
-      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="includable-templates">Includable Templates</h1><p>About 1 minute to read</p><hr/></header><p>Includable templates are special kind of EEx templates which are compiled and
-rendered as HTML stubs before any other mandatory templates are processed. This
-document explains how to create and use includes in your Serum project.</p><h2 id="creating-a-new-includable-template">Creating a new includable template</h2><p>All includable template should be saved under <code class="inline">includes/</code> directory, and its
-format is almost the same as regular template’s. For example, if you want to
-create an includable template for the navigation area of your website, you can
-name the template <code class="inline">includes/nav.html.eex</code>, and its content would look like this:</p><pre><code class="">&lt;nav&gt;
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="includes">Includes</h1><p>About 3 minutes to read</p><hr/></header><p>Includes are special kind of EEx templates which can be included into other
+templates or includes. This document explains how to create and use includes in
+your Serum projects.</p><p><ul id="toc" class="serum-toc"><li class="indent-0"><a href="#creating-a-new-include-file"><span class="number">1</span>Creating a new include file</a></li><li class="indent-0"><a href="#including-contents"><span class="number">2</span>Including contents</a></li><li class="indent-1"><a href="#limitations-of-include/1"><span class="number">2.1</span>Limitations of <code class="inline">include/1</code></a></li><li class="indent-0"><a href="#dynamically-rendering-contents"><span class="number">3</span>Dynamically rendering contents</a></li></ul></p><h2 id="creating-a-new-include-file">Creating a new include file</h2><p>All includes should be saved under <code class="inline">includes/</code> directory, and its format is
+almost the same as regular template’s. For example, if you want to create an
+include file for the navigation area of your website, you can name the template
+<code class="inline">includes/nav.html.eex</code>, and its content would look like this:</p><pre><code class="lang-html">&lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;&lt;a href=&quot;&lt;%= base() %&gt;&quot;&gt;Home&lt;/a&gt;
     &lt;li&gt;&lt;a href=&quot;&lt;%= page &quot;about&quot; %&gt;&quot;&gt;About Me&lt;/a&gt;
     ...
   &lt;/ul&gt;
-&lt;/nav&gt;</code></pre><p>You can now include this template in other templates, such as
-<code class="inline">templates/base.html.eex</code>, by using <code class="inline">include/1</code> template helper macro.</p><pre><code class="">&lt;html&gt;
+&lt;/nav&gt;</code></pre><h2 id="including-contents">Including contents</h2><p>You can now include this template in other templates, such as
+<code class="inline">templates/base.html.eex</code>, by using <code class="inline">include/1</code> template helper macro. Calls to
+the <code class="inline">include/1</code> macro will be expanded into actual contents when the calling
+template or include is being compiled.</p><pre><code class="lang-html">&lt;html&gt;
   ...
   &lt;body&gt;
     ... &lt;%= include &quot;nav&quot; %&gt; ...
   &lt;/body&gt;
-&lt;/html&gt;</code></pre><p>Note that the argument passed to <code class="inline">include/1</code> macro is the name of the includable
-template file without <code class="inline">.html.eex</code> suffix.</p><blockquote class="note"><p class="title">Note</p><p>Includable templates cannot include other templates. They can only be
-included by templates located under the <code class="inline">templates/</code> directory.</p></blockquote></div></article></main>
+&lt;/html&gt;</code></pre><p>Note that the argument passed to <code class="inline">include/1</code> macro is the name of the include
+file without <code class="inline">.html.eex</code> extension.</p><h3 id="limitations-of-include/1">Limitations of <code class="inline">include/1</code></h3><p>Due to the nature of the compile-time include expansion, self or cyclic
+inclusion is intentionally not allowed. That is, these following files will
+fail to compile:</p><pre><code class="lang-html">includes/self-include.html.eex:
+
+&lt;div&gt;
+  &lt;!-- Self inclusion --&gt;
+  &lt;%= include &quot;self-include&quot; %&gt;
+&lt;/div&gt;</code></pre><pre><code class="lang-html">includes/cycle-1.html.eex:
+
+&lt;div class=&quot;depth-1&quot;&gt;
+  &lt;%= include &quot;cycle-2&quot; %&gt;
+&lt;/div&gt;</code></pre><pre><code class="lang-html">includes/cycle-2.html.eex:
+
+&lt;div class=&quot;depth-2&quot;&gt;
+  &lt;!-- Cyclic inclusion --&gt;
+  &lt;%= include &quot;cycle-1&quot; %&gt;
+&lt;/div&gt;</code></pre><p>These includes won’t cause infinite loops though, because Serum will abort the
+build when such cycles are detected. If you want to get recursive content
+structures using includes, try using the <code class="inline">render/2</code> template helper which is
+described below.</p><h2 id="dynamically-rendering-contents">Dynamically rendering contents</h2><p>There is one more way to make use of your includes: The <code class="inline">render/2</code> template
+helper. Unlike <code class="inline">include/1</code>, which expands the included contents during the
+template compilation time, this helper dynamically renders contents of your
+includes while your templates are being rendered into HTML documents.</p><p>The <code class="inline">render/2</code> helper expects the same argument which <code class="inline">include/1</code> does, but you
+can optionally pass one more argument, <code class="inline">args</code>. <code class="inline">args</code> should be a keyword list
+and it acts like “arguments” to the rendered template.</p><p>For example, there is a template fragment <code class="inline">includes/add.html.eex</code>:</p><pre><code class="lang-html">&lt;%
+num1 = @args[:num1]
+num2 = @args[:num2]
+%&gt;
+&lt;p&gt;
+  &lt;%= num1 %&gt; + &lt;%= num2 %&gt; = &lt;%= num1 + num2 %&gt;
+&lt;/p&gt;</code></pre><p>Then you can render this template in another templates or includes:</p><pre><code class="lang-html">&lt;%= render &quot;add&quot;, num1: 10, num2: 20 %&gt;</code></pre><p>Finally the resulting HTML document will look like this:</p><pre><code class="lang-html">&lt;p&gt;
+  10 + 20 = 30
+&lt;p&gt;</code></pre><p>The benefits of this template helper compared to <code class="inline">render/1</code> is that you can
+introduce some variations to the rendered template fragment based on the
+contents of a page or a blog post which is being rendered. Also, it is possible
+to build recursive content structures by creating an include file which renders
+itself within the template.</p><pre><code class="lang-html">includes/recursive.html.eex:
+
+&lt;%
+number = @args[:number]
+max = @args[:max_number]
+%&gt;
+&lt;div&gt;
+  &lt;p&gt;&lt;%= number %&gt;&lt;p&gt;
+  &lt;%= if number &lt; max do %&gt;
+    &lt;%= render &quot;recursive&quot;, number: number + 1, max_number: max %&gt;
+  &lt;% end %&gt;
+&lt;/div&gt;</code></pre><p>The resulting HTML content will look like this:</p><pre><code class="lang-html">&lt;div&gt;
+  &lt;p&gt;1&lt;/p&gt;
+  &lt;div&gt;
+    &lt;p&gt;2&lt;/p&gt;
+    &lt;div&gt;
+      &lt;p&gt;3&lt;/p&gt;
+      ...
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</code></pre><p>You need to write this kind of includes with caution, since Serum will enter an
+infinite loop while rendering your templates if your includes are not carefully
+written.</p></div></article></main>
       <hr>
       <footer>
         

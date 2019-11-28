@@ -1,4 +1,4 @@
-@import 'https://fonts.googleapis.com/css?family=Lato:100,900|Open+Sans:400,700';
+@import 'https://fonts.googleapis.com/css?family=Lato:100,900|Open+Sans:400,700|Roboto+Mono:400,700';
 
 body {
   margin: 0;
@@ -71,7 +71,7 @@ footer {
 footer p { margin: 0.5rem 0; }
 
 code {
-  font-family: monospace;
+  font-family: 'Roboto Mono', 'Menlo', 'Consolas', monospace;
   color: #c04078;
 }
 

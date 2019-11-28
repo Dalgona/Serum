@@ -88,7 +88,7 @@ customize its values by editing the
 ]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
 &lt;ul&gt;
   &lt;%= for page &lt;- @all_pages, page.group === &quot;main-menu&quot; do %&gt;
-    &lt;li&gt;&lt;a href=&quot;page.url&quot; title=&quot;&lt;%= page.title %&gt;&quot;&gt;&lt;%= page.label %&gt;&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href=&quot;&lt;%= page.url %&gt;&quot; title=&quot;&lt;%= page.title %&gt;&quot;&gt;&lt;%= page.label %&gt;&lt;/a&gt;&lt;/li&gt;
   &lt;% end %&gt;
 &lt;/ul&gt;</code></pre><p>The <code class="inline">@all_pages</code> variable contains a list of all pages, sorted by <code class="inline">order</code> in
 ascending order. You can filter this list by <code class="inline">group</code> to make a customized
@@ -177,11 +177,11 @@ usually don’t need to write any code in order to use these macros.</p><h3 id="
 &lt;a href=&quot;/base/url/posts/2019-04-18-hello-world.html&quot;&gt;Hello, world!&lt;/a&gt;</code></pre><h3 id="asset/1"><code class="inline">asset/1</code></h3><p>Returns the URL of the given asset.</p><pre><code class="lang-html">&lt;img src=&quot;&lt;%= asset(&quot;images/icon-warning.png&quot;) %&gt;&quot;&gt;
 
 &lt;!-- The above code expands to: --&gt;
-&lt;img src=&quot;/base/url/assets/images/icon-warning.png&quot;&gt;</code></pre><h3 id="include/1"><code class="inline">include/1</code></h3><p>Includes the given template saved in <code class="inline">includes/</code> directory. See <a href="/Serum/docs/includes.html">Includable
-Templates</a> for more information about including templates.</p><p>Actually this macro is not defined in the <code class="inline">Serum.Template.Helpers</code> module.
+&lt;img src=&quot;/base/url/assets/images/icon-warning.png&quot;&gt;</code></pre><h3 id="include/1"><code class="inline">include/1</code></h3><p>Includes the given template saved in <code class="inline">includes/</code> directory. See
+<a href="/Serum/docs/includes.html">Includes</a> for more information about including templates.</p><p>Actually this macro is not defined in the <code class="inline">Serum.Template.Helpers</code> module.
 The Serum template processor traverses the compiled template code (which is an
-Elixir AST), and directly expands the call to this macro into the corresponding
-includable template.</p><pre><code class="lang-html">&lt;!-- includes/nav.html.eex --&gt;
+Elixir AST), and directly expands the call to this macro into the actual
+contents of the included template.</p><pre><code class="lang-html">&lt;!-- includes/nav.html.eex --&gt;
 &lt;nav&gt;
   &lt;ul&gt;
     &lt;li&gt;Home&lt;/li&gt;

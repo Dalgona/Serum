@@ -56,7 +56,7 @@ directories and files are created.</p><pre><code><span style="color:#4078c0">/pa
 ├── <span style="color:#4078c0">files/</span>
 └── <b>mix.exs</b></code></pre><h2 id="serum.exs-(or-serum.json)"><code class="inline">serum.exs</code> (or <code class="inline">serum.json</code>)</h2><p>This file indicates that the containing directory is a Serum project. And it
 contains various metadata and options which are used while Serum builds the
-project. See <a href="/Serum/docs/project_definition.html">Project Definition</a> document for
+project. See <a href="/Serum/docs/project-definition.html">Project Definition</a> document for
 more information.</p><h2 id="pages-directory"><code class="inline">pages</code> Directory</h2><p>This is where source files for your pages should be saved. You may create
 subdirectories to organize your pages hierarchically.
 <a href="/Serum/docs/pages.html">Adding Pages to Your Website</a> document discusses how to add
@@ -65,16 +65,16 @@ should be saved into a separate directory. Read
 <a href="/Serum/docs/posts.html">Writing Blog Posts</a> document to learn more about blogging
 with Serum. It is safe to remove this directory if you are not going to write
 any blog post.</p><h2 id="templates-directory"><code class="inline">templates</code> Directory</h2><p>Templates define overall layout of your website. There are four templates you
-must define. <a href="/Serum/docs/templates.html">Templates</a> document describes each of them.</p><h2 id="includes-directory"><code class="inline">includes</code> Directory</h2><p>Includable templates (“includes”) are a special kind of templates which can be
-included in regular templates or pages in <code class="inline">.html.eex</code> format.
-Read <a href="/Serum/docs/includes.html">Includable Templates</a> document to learn more. You
-can remove this directory if you don’t need to use any includable templates.</p><h2 id="assets-directory"><code class="inline">assets</code> Directory</h2><p>Assets are static files which are used throughout the website, such as
+must define. <a href="/Serum/docs/templates.html">Templates</a> document describes each of them.</p><h2 id="includes-directory"><code class="inline">includes</code> Directory</h2><p>Includes are a special kind of templates which can be included in other
+templates, includes, or pages in <code class="inline">.html.eex</code> format. Read
+<a href="/Serum/docs/includes.html">Includes</a> document to learn more. You can remove this
+directory if your project does not have any include files.</p><h2 id="assets-directory"><code class="inline">assets</code> Directory</h2><p>Assets are static files which are used throughout the website, such as
 stylesheets, JavaScript files, background images, and so on. You may remove
 this directory if your website is supposed to have no assets at all. Read
-<a href="/Serum/docs/asset_media.html">Assets and Media</a> document for more information.</p><h2 id="media-directory"><code class="inline">media</code> Directory</h2><p>Media files are static files which are referenced by a few pages or blog posts,
+<a href="/Serum/docs/assets-media.html">Assets and Media</a> document for more information.</p><h2 id="media-directory"><code class="inline">media</code> Directory</h2><p>Media files are static files which are referenced by a few pages or blog posts,
 such as pictures, video clips, audio files, etc. You may remove this directory
 if none of your pages or blog posts uses media files. Read
-<a href="/Serum/docs/asset_media.html">Assets and Media</a> document for more information.</p><h2 id="files-directory"><code class="inline">files</code> Directory</h2><p>Files or directories in this directory will be copied to the root directory of
+<a href="/Serum/docs/assets-media.html">Assets and Media</a> document for more information.</p><h2 id="files-directory"><code class="inline">files</code> Directory</h2><p>Files or directories in this directory will be copied to the root directory of
 your website after Serum has successfully built your project. This is useful,
 for example, when you need to set favicons for your website.</p><h2 id="mix.exs"><code class="inline">mix.exs</code></h2><p>A Serum project is also a Mix project. You need to keep this file in order to
 install and use Serum. You will also need this file to manage dependencies for

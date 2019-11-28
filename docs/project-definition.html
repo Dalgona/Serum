@@ -35,7 +35,7 @@
 </ul>
 </nav>
       <hr>
-      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="project-definition">Project Definition</h1><p>About 3 minutes to read</p><hr/></header><p>Every Serum project has a file named <code class="inline">serum.exs</code> right under the project’s
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="project-definition">Project Definition</h1><p>About 4 minutes to read</p><hr/></header><p>Every Serum project has a file named <code class="inline">serum.exs</code> right under the project’s
 root directory. This file indicates that the containing directory is a Serum
 project directory, and it contains various metadata and options which are used
 while Serum builds the project. This document describes how to configure your
@@ -53,7 +53,7 @@ evaluated to a map.</p><pre><code class="lang-elixir">%{
   list_title_tag: &quot;Posts Tagged \&quot;~s\&quot;&quot;,
   pagination: true,
   posts_per_page: 10,
-  preview_length: 200,
+  preview_length: {:chars, 200},
 
   plugins: [
     Serum.Plugins.TableOfContents,
@@ -78,10 +78,14 @@ evaluated to a map.</p><pre><code class="lang-elixir">%{
   <code class="inline">~</code> character in pages, insert <code class="inline">~~</code> (two consecutive tildes).</p></li><li><p><code class="inline">pagination</code> (boolean, optional)<br/><code class="inline">posts_per_page</code> (integer, optional)</p><p><code class="inline">pagination</code> Determines if pagination will be used while building post
   lists. If set to <code class="inline">true</code>, each post list will be split into pages, and each
   page will have at most <code class="inline">posts_per_page</code> post entries.</p><p>  Default values of <code class="inline">pagination</code> and <code class="inline">posts_per_page</code> are <code class="inline">false</code> and <code class="inline">5</code>,
-  respectively.</p></li><li><p><code class="inline">preview_length</code> (integer, optional)</p><p>  A non-negative integer which sets the maximum number of characters in the
-  preview text of each blog post. Defaults to <code class="inline">200</code>.</p><p>  It is recommended to explicitly set this property to zero if you are not
-  going to use preview texts, as by doing so some unnecessary HTML processing
-  can be skipped.</p></li></ul><h3 id="miscellaneous">Miscellaneous</h3><ul><li><p><code class="inline">plugins</code> (list, optional)</p><p>  Plugins extend the functionality of Serum by altering source data,
+  respectively.</p></li><li><p><code class="inline">preview_length</code> (2-tuple or integer, optional)</p><p>  A value which sets the maximum number of characters in the preview text of
+  each blog post. Defaults to <code class="inline">200</code>.</p><p>  You may set the value in the following formats. Any invalid values will
+  result in empty preview texts.</p><p><pre class="lang-elixir"><code>number
+# Or
+{:chars, number}</code></pre></p><p>  Maximum number of characters in a preview text.</p><p><pre class="lang-elixir"><code>{:words, number}</code></pre></p><p>  Maximum number of words in a preview text.</p><p><pre class="lang-elixir"><code>{:paragraphs, number}</code></pre></p><p>  Maximum number of paragraphs in a preview text. Serum counts the number of
+  <code class="inline">&lt;p&gt;</code> tags in a generated HTML content.</p><blockquote class="note"><p class="title">Note</p><p>It is recommended to explicitly set this property to zero if you are not
+going to use preview texts, as by doing so some unnecessary HTML
+processing can be skipped.</p></blockquote></li></ul><h3 id="miscellaneous">Miscellaneous</h3><ul><li><p><code class="inline">plugins</code> (list, optional)</p><p>  Plugins extend the functionality of Serum by altering source data,
   intermediate data, or final outputs during the build process.</p><p>  The documentation for <a href="https://hexdocs.pm/serum/Serum.Plugin.html"><code class="inline">Serum.Plugin</code>
   module</a> describes what Serum
   plugins are, how to use them, and how to create your own Serum plugin.</p></li><li><p><code class="inline">theme</code> (atom, optional)</p><p>  A theme is a set of predefined templates and assets that helps you quickly
