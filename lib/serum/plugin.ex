@@ -346,9 +346,9 @@ defmodule Serum.Plugin do
   def load_plugins(plugin_specs), do: Loader.load_plugins(plugin_specs)
 
   @doc false
-  @spec show_info([t()]) :: :ok
+  @spec show_info([t()]) :: Result.t({})
   def show_info(plugins)
-  def show_info([]), do: :ok
+  def show_info([]), do: {:ok, {}}
 
   def show_info(plugins) do
     Enum.each(plugins, fn p ->
@@ -498,13 +498,17 @@ defmodule Serum.Plugin do
 
   @spec do_call_action([{integer(), t()}], atom(), [term()]) :: Result.t({})
   defp do_call_action(arity_and_plugins, fun, args)
-  defp do_call_action([], _fun, _args), do: :ok
+  defp do_call_action([], _fun, _args), do: {:ok, {}}
 
   defp do_call_action([{_arity, plugin} | arity_and_plugins], fun, args) do
     new_args = args ++ [plugin.args]
 
     case apply(plugin.module, fun, new_args) do
+      # This case clause is left for compatibility.
       :ok ->
+        do_call_action(arity_and_plugins, fun, args)
+
+      {:ok, _} ->
         do_call_action(arity_and_plugins, fun, args)
 
       {:error, _} = error ->
