@@ -46,7 +46,6 @@ more guides and documentations.
 
 ## LICENSE
 
-Copyright (c) 2019 Eunbin Jeong (Dalgona.) <dalgona@hontou.moe>
+Copyright (c) 2019 Eunbin Jeong (Dalgona.) <project-serum@dalgona.dev>
 
 MIT License. Read `LICENSE` for the full text.
-
