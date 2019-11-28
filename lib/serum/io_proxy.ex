@@ -2,6 +2,7 @@ defmodule Serum.IOProxy do
   @moduledoc false
 
   use GenServer
+  alias Serum.Result
 
   message_categories = [
     debug: {[:light_black_background, :black], [:light_black]},
@@ -23,7 +24,7 @@ defmodule Serum.IOProxy do
   end
 
   @doc "Gets the current configuration of `Serum.IOProxy`."
-  @spec config() :: {:ok, config()}
+  @spec config() :: Result.t(config())
   def config do
     GenServer.call(__MODULE__, :get_config)
   end
@@ -38,7 +39,7 @@ defmodule Serum.IOProxy do
   - `mute_msg` (boolean): Controls whether outputs to `:stdio` must be
     suppressed. Defaults to `false`.
   """
-  @spec config(keyword()) :: :ok
+  @spec config(keyword()) :: Result.t({})
   def config(options) when is_list(options) do
     GenServer.call(__MODULE__, {:set_config, options})
   end
@@ -49,7 +50,7 @@ defmodule Serum.IOProxy do
   Available categories are:
   `#{message_categories |> Keyword.keys() |> inspect()}`
   """
-  @spec put_msg(atom(), IO.ANSI.ansidata()) :: :ok
+  @spec put_msg(atom(), IO.ANSI.ansidata()) :: Result.t({})
   def put_msg(category, msg) do
     GenServer.call(__MODULE__, {:put_msg, category, msg})
   end
@@ -60,7 +61,7 @@ defmodule Serum.IOProxy do
   Available categories are:
   `#{message_categories |> Keyword.keys() |> inspect()}`
   """
-  @spec put_err(atom(), IO.ANSI.ansidata()) :: :ok
+  @spec put_err(atom(), IO.ANSI.ansidata()) :: Result.t({})
   def put_err(category, msg) do
     GenServer.call(__MODULE__, {:put_err, category, msg})
   end
@@ -79,7 +80,7 @@ defmodule Serum.IOProxy do
   def handle_call({:set_config, conf}, _, state) do
     conf_map = conf |> Map.new() |> Map.take([:mute_msg, :mute_err])
 
-    {:reply, :ok, Map.merge(state, conf_map)}
+    {:reply, {:ok, {}}, Map.merge(state, conf_map)}
   end
 
   def handle_call({:put_msg, category, msg}, _, state) do
@@ -87,7 +88,7 @@ defmodule Serum.IOProxy do
       IO.puts([state.prefix, format_message(category, msg)])
     end
 
-    {:reply, :ok, state}
+    {:reply, {:ok, {}}, state}
   end
 
   def handle_call({:put_err, category, msg}, _, state) do
@@ -95,7 +96,7 @@ defmodule Serum.IOProxy do
       IO.puts(:stderr, [state.prefix, format_message(category, msg)])
     end
 
-    {:reply, :ok, state}
+    {:reply, {:ok, {}}, state}
   end
 
   max_length =
