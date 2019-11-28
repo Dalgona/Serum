@@ -7,7 +7,7 @@ defmodule Serum.Mixfile do
     [
       app: :serum,
       version: @serum_version,
-      elixir: ">= 1.8.0",
+      elixir: "~> 1.9",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       test_coverage: [tool: ExCoveralls],
