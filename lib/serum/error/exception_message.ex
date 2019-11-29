@@ -14,7 +14,14 @@ defmodule Serum.Error.ExceptionMessage do
     alias Serum.Error.ExceptionMessage
 
     def format_text(%ExceptionMessage{} = msg, _indent) do
-      Exception.format(:error, msg.exception, msg.stacktrace)
+      [
+        "an error was raised:\n",
+        :red,
+        Exception.format_banner(:error, msg.exception),
+        [:light_black, ?\n],
+        Exception.format_stacktrace(msg.stacktrace),
+        :reset
+      ]
     end
   end
 end
