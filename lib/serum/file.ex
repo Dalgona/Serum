@@ -69,9 +69,9 @@ defmodule Serum.File do
     end
   end
 
-  @spec print_read(binary()) :: :ok
+  @spec print_read(binary()) :: Result.t({})
   defp print_read(src), do: put_msg(:read, src)
 
-  @spec print_write(binary()) :: :ok
+  @spec print_write(binary()) :: Result.t({})
   defp print_write(dest), do: put_msg(:gen, dest)
 end

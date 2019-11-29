@@ -75,7 +75,7 @@ defmodule Serum.Plugin.Client do
     exception -> handle_exception(exception, plugin.module, fun)
   end
 
-  @spec call_function(atom(), [term()]) :: Result.t({})
+  @spec call_function(atom(), [term()]) :: Result.t(term())
   def call_function(fun, [arg | args]) do
     Plugin
     |> Agent.get(&(&1[fun] || []))
