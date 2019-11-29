@@ -3,7 +3,7 @@ defmodule Serum.Error do
 
   alias Serum.Error.Format
 
-  defstruct [:message, :exception, :stacktrace, :caused_by, :file, :line]
+  defstruct [:message, :caused_by, :file, :line]
 
   @type t :: %__MODULE__{
           message: Format.t(),
@@ -11,6 +11,17 @@ defmodule Serum.Error do
           file: Serum.File.t() | nil,
           line: integer()
         }
+
+  defimpl String.Chars do
+    alias Serum.Error.Format
+
+    def to_string(error) do
+      error
+      |> Format.format_text(0)
+      |> IO.ANSI.format(false)
+      |> IO.iodata_to_binary()
+    end
+  end
 
   defimpl Format do
     def format_text(error, indent) do
