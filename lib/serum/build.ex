@@ -4,6 +4,7 @@ defmodule Serum.Build do
   """
 
   import Serum.IOProxy, only: [put_msg: 2]
+  require Serum.Result, as: Result
   alias Serum.Build.FileCopier
   alias Serum.Build.FileEmitter
   alias Serum.Build.FileLoader
@@ -13,7 +14,6 @@ defmodule Serum.Build do
   alias Serum.Plugin
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
-  alias Serum.Result
   alias Serum.Theme
 
   @doc """
@@ -46,57 +46,57 @@ defmodule Serum.Build do
   """
   @spec build(Project.t()) :: Result.t(binary())
   def build(%Project{src: src, dest: dest} = proj) do
-    with {:ok, proj} <- load_plugins(proj),
-         {:ok, _} <- PluginClient.build_started(src, dest),
-         {:ok, _} <- pre_check(dest),
-         {:ok, _} <- do_build(proj),
-         {:ok, _} <- PluginClient.build_succeeded(src, dest),
-         {:ok, _} <- PluginClient.finalizing(src, dest) do
-      {:ok, dest}
+    Result.run do
+      proj <- load_plugins(proj)
+      PluginClient.build_started(src, dest)
+      pre_check(dest)
+      do_build(proj)
+      PluginClient.build_succeeded(src, dest)
+      PluginClient.finalizing(src, dest)
+
+      Result.return(dest)
     else
-      {:error, _} = error ->
-        with {:ok, _} <- PluginClient.build_failed(src, dest, error),
-             {:ok, _} <- PluginClient.finalizing(src, dest) do
+      {:error, %Serum.Error{}} = error ->
+        Result.run do
+          PluginClient.build_failed(src, dest, error)
+          PluginClient.finalizing(src, dest)
+
           error
-        else
-          {:error, _} = plugin_error -> plugin_error
         end
     end
   end
 
   @spec load_plugins(Project.t()) :: Result.t(Project.t())
   defp load_plugins(proj) do
-    with {:ok, plugins} <- Plugin.load_plugins(proj.plugins),
-         {:ok, theme} <- Theme.load(proj.theme.module) do
+    Result.run do
+      plugins <- Plugin.load_plugins(proj.plugins)
+      theme <- Theme.load(proj.theme.module)
       Plugin.show_info(plugins)
 
-      {:ok, %Project{proj | theme: theme}}
-    else
-      {:error, _} = error -> error
+      Result.return(%Project{proj | theme: theme})
     end
   end
 
   @spec pre_check(binary()) :: Result.t({})
   defp pre_check(dest) do
-    with {:ok, _} <- check_tz(),
-         {:ok, _} <- check_dest_perm(dest),
-         {:ok, _} <- clean_dest(dest) do
-      {:ok, {}}
-    else
-      {:error, _} = error -> error
+    Result.run do
+      check_tz()
+      check_dest_perm(dest)
+      clean_dest(dest)
+
+      Result.return({})
     end
   end
 
   @spec do_build(Project.t()) :: Result.t({})
   defp do_build(%{src: src, dest: dest} = proj) do
-    with {:ok, files} <- FileLoader.load_files(src),
-         {:ok, map} <- FileProcessor.process_files(files, proj),
-         {:ok, fragments} <- FragmentGenerator.to_fragment(map),
-         {:ok, files} <- PageGenerator.run(fragments),
-         {:ok, _} <- FileEmitter.run(files) do
+    Result.run do
+      files <- FileLoader.load_files(src)
+      map <- FileProcessor.process_files(files, proj)
+      fragments <- FragmentGenerator.to_fragment(map)
+      generated_files <- PageGenerator.run(fragments)
+      FileEmitter.run(generated_files)
       FileCopier.copy_files(src, dest)
-    else
-      {:error, _} = error -> error
     end
   end
 
