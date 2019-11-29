@@ -7,12 +7,8 @@ defmodule Serum.Error do
 
   @type t :: %__MODULE__{
           message: Format.t(),
-          exception: Exception.t() | nil,
-          stacktrace: stacktrace(),
           caused_by: [t()],
           file: Serum.File.t() | nil,
           line: integer()
         }
-
-  @typep stacktrace :: [{atom(), atom(), integer(), keyword()}]
 end
