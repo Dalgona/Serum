@@ -102,4 +102,9 @@ defmodule Serum.Result do
   @spec indented(IO.ANSI.ansidata(), non_neg_integer()) :: IO.ANSI.ansidata()
   defp indented(str, 0), do: str
   defp indented(str, depth), do: [List.duplicate("  ", depth - 1), :red, "- ", :reset, str]
+
+  @doc "Wraps `expr` into `{:ok, expr}` tuple."
+  defmacro return(expr)
+  defmacro return(do: do_block), do: quote(do: {:ok, unquote(do_block)})
+  defmacro return(expr), do: quote(do: {:ok, unquote(expr)})
 end
