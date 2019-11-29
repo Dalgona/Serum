@@ -5,7 +5,7 @@ defmodule Serum.Build.FileLoader.Pages do
 
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 
   @doc false
@@ -19,7 +19,7 @@ defmodule Serum.Build.FileLoader.Pages do
       [pages_dir, "**", "*.{md,html,html.eex}"]
       |> Path.join()
       |> Path.wildcard()
-      |> Plugin.reading_pages()
+      |> PluginClient.reading_pages()
       |> case do
         {:ok, files} -> read_files(files)
         {:error, _} = plugin_error -> plugin_error

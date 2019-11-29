@@ -3,7 +3,7 @@ defmodule Serum.Template.Compiler do
 
   _moduledocp = "This module handles template loading and preprocessing."
 
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Template
 
@@ -51,11 +51,11 @@ defmodule Serum.Template.Compiler do
 
   @spec compile_file(Serum.File.t(), options()) :: Result.t({binary(), Template.t()})
   defp compile_file(file, options) do
-    with {:ok, file2} <- Plugin.processing_template(file),
+    with {:ok, file2} <- PluginClient.processing_template(file),
          {:ok, ast} <- compile_string(file2.in_data),
          name = Path.basename(file2.src, ".html.eex"),
          template = Template.new(ast, name, options[:type], file2.src),
-         {:ok, template2} <- Plugin.processed_template(template) do
+         {:ok, template2} <- PluginClient.processed_template(template) do
       {:ok, {name, template2}}
     else
       {:ct_error, msg, line} -> {:error, {msg, file.src, line}}

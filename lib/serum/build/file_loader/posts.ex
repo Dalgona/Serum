@@ -5,7 +5,7 @@ defmodule Serum.Build.FileLoader.Posts do
 
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 
   @doc false
@@ -20,7 +20,7 @@ defmodule Serum.Build.FileLoader.Posts do
       |> Path.join("*.md")
       |> Path.wildcard()
       |> Enum.sort()
-      |> Plugin.reading_posts()
+      |> PluginClient.reading_posts()
       |> case do
         {:ok, files} -> read_files(files)
         {:error, _} = plugin_error -> plugin_error

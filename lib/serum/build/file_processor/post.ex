@@ -3,7 +3,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Markdown
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Post
   alias Serum.Project
   alias Serum.Result
@@ -24,7 +24,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
     with {:ok, posts} <- result,
          sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date)),
-         {:ok, posts2} <- Plugin.processed_posts(sorted_posts) do
+         {:ok, posts2} <- PluginClient.processed_posts(sorted_posts) do
       {:ok, {posts2, Enum.map(posts2, &Post.compact/1)}}
     else
       {:error, _} = error -> error
@@ -44,7 +44,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
     required = [:title, :date]
 
-    with {:ok, %{in_data: data} = file2} <- Plugin.processing_post(file),
+    with {:ok, %{in_data: data} = file2} <- PluginClient.processing_post(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
       header = %{
         header
@@ -54,7 +54,7 @@ defmodule Serum.Build.FileProcessor.Post do
       html = Markdown.to_html(rest, proj)
       post = Post.new(file2.src, {header, extras}, html, proj)
 
-      Plugin.processed_post(post)
+      PluginClient.processed_post(post)
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
       {:error, _} = plugin_error -> plugin_error

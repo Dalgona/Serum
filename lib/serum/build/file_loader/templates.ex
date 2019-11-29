@@ -7,7 +7,7 @@ defmodule Serum.Build.FileLoader.Templates do
 
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Theme
 
@@ -22,7 +22,7 @@ defmodule Serum.Build.FileLoader.Templates do
          :ok <- validate_required(merged, src) do
       merged
       |> Enum.map(&elem(&1, 1))
-      |> Plugin.reading_templates()
+      |> PluginClient.reading_templates()
       |> case do
         {:ok, files} -> read_files(files)
         {:error, _} = plugin_error -> plugin_error

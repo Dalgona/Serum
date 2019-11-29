@@ -6,7 +6,7 @@ defmodule Serum.Build.FileEmitter do
   """
 
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 
   @doc """
@@ -50,7 +50,7 @@ defmodule Serum.Build.FileEmitter do
   @spec write_file(Serum.File.t()) :: Result.t({})
   defp write_file(file) do
     case Serum.File.write(file) do
-      {:ok, ^file} -> Plugin.wrote_file(file)
+      {:ok, ^file} -> PluginClient.wrote_file(file)
       {:error, _} = error -> error
     end
   end

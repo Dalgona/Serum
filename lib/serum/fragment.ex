@@ -11,7 +11,7 @@ defmodule Serum.Fragment do
   """
 
   alias Serum.HtmlTreeHelper, as: Html
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
 
   @type t :: %__MODULE__{
           file: binary() | nil,
@@ -29,7 +29,7 @@ defmodule Serum.Fragment do
     |> Floki.parse()
     |> Html.traverse(%{}, &set_header_ids/2)
     |> elem(0)
-    |> Plugin.rendering_fragment(metadata)
+    |> PluginClient.rendering_fragment(metadata)
     |> case do
       {:ok, html_tree} ->
         fragment = %__MODULE__{

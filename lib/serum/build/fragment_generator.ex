@@ -5,7 +5,7 @@ defmodule Serum.Build.FragmentGenerator do
 
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Fragment
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 
   @spec to_fragment(map()) :: Result.t([Fragment.t()])
@@ -24,7 +24,7 @@ defmodule Serum.Build.FragmentGenerator do
   @spec task_fun(struct()) :: Result.t(Fragment.t())
   defp task_fun(fragment_source) do
     case Fragment.Source.to_fragment(fragment_source) do
-      {:ok, fragment} -> Plugin.rendered_fragment(fragment)
+      {:ok, fragment} -> PluginClient.rendered_fragment(fragment)
       {:error, _} = error -> error
     end
   end

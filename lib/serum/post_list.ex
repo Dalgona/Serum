@@ -18,7 +18,7 @@ defmodule Serum.PostList do
   """
 
   alias Serum.Fragment
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
@@ -88,7 +88,7 @@ defmodule Serum.PostList do
     }
 
     [first_dup, first | rest]
-    |> Enum.map(&Plugin.processed_list/1)
+    |> Enum.map(&PluginClient.processed_list/1)
     |> Result.aggregate_values(:generate_lists)
   end
 

@@ -5,7 +5,7 @@ defmodule Serum.Build.PageGenerator do
 
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Fragment
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
@@ -39,7 +39,7 @@ defmodule Serum.Build.PageGenerator do
           out_data: html
         }
 
-        Plugin.rendered_page(file)
+        PluginClient.rendered_page(file)
 
       {:error, _} = error ->
         error

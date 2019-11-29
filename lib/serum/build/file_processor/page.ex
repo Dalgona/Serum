@@ -4,7 +4,7 @@ defmodule Serum.Build.FileProcessor.Page do
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Markdown
   alias Serum.Page
-  alias Serum.Plugin
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
   alias Serum.Renderer
   alias Serum.Result
@@ -46,7 +46,7 @@ defmodule Serum.Build.FileProcessor.Page do
 
     required = [:title]
 
-    with {:ok, %{in_data: data} = file2} <- Plugin.processing_page(file),
+    with {:ok, %{in_data: data} = file2} <- PluginClient.processing_page(file),
          {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
       header = Map.put(header, :label, header[:label] || header.title)
       page = Page.new(file2.src, {header, extras}, rest, proj)
@@ -65,7 +65,7 @@ defmodule Serum.Build.FileProcessor.Page do
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values(:file_processor)
     |> case do
-      {:ok, pages} -> Plugin.processed_pages(pages)
+      {:ok, pages} -> PluginClient.processed_pages(pages)
       {:error, _} = error -> error
     end
   end
@@ -73,7 +73,7 @@ defmodule Serum.Build.FileProcessor.Page do
   @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(page, proj) do
     case do_process_page(page, proj) do
-      {:ok, page} -> Plugin.processed_page(page)
+      {:ok, page} -> PluginClient.processed_page(page)
       {:error, _} = error -> error
     end
   end
