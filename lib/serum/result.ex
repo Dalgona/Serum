@@ -7,6 +7,7 @@ defmodule Serum.Result do
   import Serum.IOProxy, only: [put_err: 2]
   alias Serum.Error
   alias Serum.Error.Format
+  alias Serum.Error.SimpleMessage
 
   @type t(type) :: {:ok, type} | error()
 
@@ -29,8 +30,11 @@ defmodule Serum.Result do
     results
     |> do_aggregate_values([], [])
     |> case do
-      {values, []} -> {:ok, values}
-      {_, errors} when is_list(errors) -> {:error, {msg, errors}}
+      {values, []} ->
+        {:ok, values}
+
+      {_, errors} when is_list(errors) ->
+        {:error, %Error{message: %SimpleMessage{text: msg}, caused_by: errors}}
     end
   end
 
