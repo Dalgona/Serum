@@ -10,8 +10,11 @@ defmodule Serum.File do
   * `out_data`: Data to be written to a file
   """
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Result
+  alias Serum.Error
+  alias Serum.Error.POSIXMessage
+  alias Serum.Error.SimpleMessage
 
   defstruct [:src, :dest, :in_data, :out_data]
 
@@ -31,17 +34,26 @@ defmodule Serum.File do
   def read(%__MODULE__{src: nil}) do
     msg = "a Serum.File struct with 'src = nil' cannot be used with Serum.File.read/1"
 
-    {:error, msg}
+    {:error,
+     %Error{
+       message: %SimpleMessage{text: msg},
+       caused_by: []
+     }}
   end
 
   def read(%__MODULE__{src: src} = file) do
     case File.read(src) do
       {:ok, data} when is_binary(data) ->
         print_read(src)
-        {:ok, %__MODULE__{file | in_data: data}}
+        Result.return(%__MODULE__{file | in_data: data})
 
       {:error, reason} ->
-        {:error, {reason, src, 0}}
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: reason},
+           caused_by: [],
+           file: file
+         }}
     end
   end
 
@@ -54,18 +66,26 @@ defmodule Serum.File do
   def write(%__MODULE__{dest: nil}) do
     msg = "a Serum.File struct with 'dest = nil' cannot be used with Serum.File.write/1"
 
-    {:error, msg}
+    {:error,
+     %Error{
+       message: %SimpleMessage{text: msg},
+       caused_by: []
+     }}
   end
 
   def write(%__MODULE__{dest: dest, out_data: data} = file) do
     case File.open(dest, [:write, :utf8], &IO.write(&1, data)) do
       {:ok, _} ->
         print_write(dest)
-
-        {:ok, file}
+        Result.return(file)
 
       {:error, reason} ->
-        {:error, {reason, dest, 0}}
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: reason},
+           caused_by: [],
+           file: file
+         }}
     end
   end
 

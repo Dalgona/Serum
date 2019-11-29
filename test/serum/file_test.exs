@@ -22,7 +22,7 @@ defmodule Serum.FileTest do
   end
 
   describe "read/1" do
-    test "successfully read a file", context do
+    test "reads a valid file", context do
       file = %Serum.File{
         src: Path.join(context.tmp_dir, "file1"),
         dest: nil,
@@ -35,7 +35,7 @@ defmodule Serum.FileTest do
       assert read_file.in_data === @content1
     end
 
-    test "try to read a file that does not exist", context do
+    test "fails when the specified file does not exist", context do
       file = %Serum.File{
         src: Path.join(context.tmp_dir, "asdfasdf"),
         dest: nil,
@@ -43,9 +43,10 @@ defmodule Serum.FileTest do
         out_data: nil
       }
 
-      src = file.src
+      {:error, error} = Serum.File.read(file)
+      pattern = :enoent |> :file.format_error() |> IO.iodata_to_binary()
 
-      assert {:error, {:enoent, ^src, 0}} = Serum.File.read(file)
+      assert to_string(error) =~ pattern
     end
 
     test "returns an error when src is nil" do
@@ -54,7 +55,7 @@ defmodule Serum.FileTest do
   end
 
   describe "write/1" do
-    test "successfully write a file", context do
+    test "writes file to a disk", context do
       file = %Serum.File{
         src: nil,
         dest: Path.join(context.tmp_dir, "file2"),
@@ -69,7 +70,7 @@ defmodule Serum.FileTest do
       assert file.out_data === File.read!(Path.join(context.tmp_dir, "file2"))
     end
 
-    test "write a file in a directory without a write permission", context do
+    test "fails when there is a permission error", context do
       tmp_dir2 = Path.join(context.tmp_dir, "test")
 
       File.mkdir_p!(tmp_dir2)
@@ -82,9 +83,10 @@ defmodule Serum.FileTest do
         out_data: "Lorem ipsum dolor sit amet\n"
       }
 
-      dest = file.dest
+      {:error, error} = Serum.File.write(file)
+      pattern = :eacces |> :file.format_error() |> IO.iodata_to_binary()
 
-      assert {:error, {:eacces, ^dest, 0}} = Serum.File.write(file)
+      assert to_string(error) =~ pattern
     end
 
     test "returns an error when dest is nil" do
