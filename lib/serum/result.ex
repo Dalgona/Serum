@@ -107,6 +107,35 @@ defmodule Serum.Result do
   defp indented(str, 0), do: str
   defp indented(str, depth), do: [List.duplicate("  ", depth - 1), :red, "- ", :reset, str]
 
+  @doc "Provides \"do-notation\"-like syntactic sugar for operation chaining."
+  defmacro run(expr), do: build_run(expr)
+
+  defp build_run(do: do_expr) do
+    default_else =
+      quote do
+        {:error, %Serum.Error{}} = error -> error
+      end
+
+    build_run(do: do_expr, else: default_else)
+  end
+
+  defp build_run(do: {:__block__, _, exprs}, else: else_expr) do
+    [last | leadings] = Enum.reverse(exprs)
+
+    leadings =
+      leadings
+      |> Enum.reverse()
+      |> Enum.map(fn
+        {:<-, _, [lhs, rhs]} -> quote(do: {:ok, unquote(lhs)} <- unquote(rhs))
+        {:=, _, _} = assignment -> assignment
+        expr -> quote(do: {:ok, _} <- unquote(expr))
+      end)
+
+    quote do
+      with(unquote_splicing(leadings), do: unquote(last), else: unquote(else_expr))
+    end
+  end
+
   @doc "Wraps `expr` into `{:ok, expr}` tuple."
   defmacro return(expr)
   defmacro return(do: do_block), do: quote(do: {:ok, unquote(do_block)})
