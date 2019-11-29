@@ -5,11 +5,13 @@ defmodule Serum.Result do
   """
 
   import Serum.IOProxy, only: [put_err: 2]
+  alias Serum.Error
+  alias Serum.Error.Format
 
   @type t(type) :: {:ok, type} | error()
 
   @type error :: {:error, err_details()}
-  @type err_details :: msg_detail() | full_detail() | nest_detail()
+  @type err_details :: msg_detail() | full_detail() | nest_detail() | Error.t()
   @type msg_detail :: binary()
   @type full_detail :: {binary(), binary(), non_neg_integer()}
   @type nest_detail :: {term(), [error()]}
@@ -91,6 +93,10 @@ defmodule Serum.Result do
     children = Enum.map(errors, &do_get_message(&1, depth + 1))
 
     [head | children] |> Enum.intersperse(?\n) |> IO.ANSI.format()
+  end
+
+  defp do_get_message({:error, %Error{} = error}, depth) do
+    error |> Format.format_text(depth) |> IO.ANSI.format()
   end
 
   @spec indented(IO.ANSI.ansidata(), non_neg_integer()) :: IO.ANSI.ansidata()
