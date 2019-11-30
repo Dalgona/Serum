@@ -19,7 +19,7 @@ defmodule Serum.Build.FileLoader.Templates do
     with {:ok, theme_paths} <- Theme.get_templates(),
          {:ok, proj_paths} <- get_project_templates(src),
          merged <- Map.merge(theme_paths, proj_paths, &merge_fun/3),
-         :ok <- validate_required(merged, src) do
+         {:ok, _} <- validate_required(merged, src) do
       merged
       |> Enum.map(&elem(&1, 1))
       |> PluginClient.reading_templates()
@@ -62,7 +62,7 @@ defmodule Serum.Build.FileLoader.Templates do
     |> MapSet.to_list()
     |> case do
       [] ->
-        :ok
+        {:ok, {}}
 
       missings when is_list(missings) ->
         errors =

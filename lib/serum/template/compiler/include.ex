@@ -34,7 +34,7 @@ defmodule Serum.Template.Compiler.Include do
   defp do_expand(%Template{name: name, type: type, ast: ast} = t, context) do
     next_context = %{context | template: t, stack: [name | context.stack]}
 
-    with :ok <- check_cycle(name, context),
+    with {:ok, _} <- check_cycle(name, context),
          walk_result = Macro.prewalk(ast, next_context, &prewalk_fun/2),
          {new_ast, %{error: nil} = new_context} <- walk_result do
       new_template = %Template{t | ast: new_ast, include_resolved?: true}
@@ -87,7 +87,7 @@ defmodule Serum.Template.Compiler.Include do
 
       {:error, {IO.iodata_to_binary(message), context.template.file, 0}}
     else
-      :ok
+      {:ok, {}}
     end
   end
 

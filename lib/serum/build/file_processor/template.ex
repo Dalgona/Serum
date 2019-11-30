@@ -13,7 +13,7 @@ defmodule Serum.Build.FileProcessor.Template do
 
     with {:ok, _} <- compile_and_load(includes, :include),
          {:ok, _} <- compile_and_load(templates, :template) do
-      :ok
+      {:ok, {}}
     else
       {:error, _} = error -> error
     end
