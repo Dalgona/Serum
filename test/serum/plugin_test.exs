@@ -3,6 +3,7 @@ defmodule Serum.PluginTest do
   require Serum.TestHelper
   import ExUnit.CaptureIO
   import Serum.Plugin
+  import Serum.Plugin.Client
   import Serum.TestHelper, only: :macros
   alias Serum.File
   alias Serum.Fragment
