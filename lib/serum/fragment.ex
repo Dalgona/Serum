@@ -10,6 +10,8 @@ defmodule Serum.Fragment do
   * `data`: Contents of the page fragment
   """
 
+  require Serum.Result, as: Result
+  alias Serum.Error
   alias Serum.HtmlTreeHelper, as: Html
   alias Serum.Plugin.Client, as: PluginClient
 
@@ -39,9 +41,9 @@ defmodule Serum.Fragment do
           data: Floki.raw_html(html_tree)
         }
 
-        {:ok, fragment}
+        Result.return(fragment)
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
