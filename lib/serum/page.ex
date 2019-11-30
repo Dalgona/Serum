@@ -28,9 +28,11 @@ defmodule Serum.Page do
           template: binary() | nil
         }
 
+  require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.Error.SimpleMessage
   alias Serum.Fragment
   alias Serum.Renderer
-  alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
@@ -78,7 +80,7 @@ defmodule Serum.Page do
     |> Map.put(:type, :page)
   end
 
-  @spec get_type(binary) :: binary
+  @spec get_type(binary) :: binary()
   defp get_type(filename) do
     case Path.extname(filename) do
       ".eex" ->
@@ -102,8 +104,17 @@ defmodule Serum.Page do
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
       Fragment.new(page.file, page.output, metadata, html)
     else
-      nil -> {:error, "the template \"#{template_name}\" is not available"}
-      {:error, _} = error -> error
+      nil ->
+        {:error,
+         %Error{
+           message: %SimpleMessage{
+             text: "the template \"#{template_name}\" is not available"
+           },
+           caused_by: []
+         }}
+
+      {:error, %Error{}} = error ->
+        error
     end
   end
 

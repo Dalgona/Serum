@@ -17,10 +17,11 @@ defmodule Serum.PostList do
   * `output`: Destination path
   """
 
+  require Serum.Result, as: Result
+  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
-  alias Serum.Result
   alias Serum.Tag
   alias Serum.Template.Storage, as: TS
 
@@ -64,6 +65,7 @@ defmodule Serum.PostList do
 
     max_page = length(paginated_posts)
     list_dir = (tag && Path.join("tags", tag.name)) || "posts"
+    list_title = list_title(tag, proj)
 
     lists =
       Enum.map(paginated_posts, fn {posts, page} ->
@@ -71,7 +73,7 @@ defmodule Serum.PostList do
           tag: tag,
           current_page: page,
           max_page: max_page,
-          title: list_title(tag, proj),
+          title: list_title,
           posts: posts,
           url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
           output: Path.join([proj.dest, list_dir, "page-#{page}.html"]),
@@ -89,7 +91,7 @@ defmodule Serum.PostList do
 
     [first_dup, first | rest]
     |> Enum.map(&PluginClient.processed_list/1)
-    |> Result.aggregate_values("failed to generate post lists:")
+    |> Result.aggregate_values("failed to generate post list \"#{list_title}\":")
   end
 
   @spec compact(t()) :: map()
@@ -142,7 +144,7 @@ defmodule Serum.PostList do
 
     case Renderer.render_fragment(template, bindings) do
       {:ok, html} -> Fragment.new(nil, post_list.output, metadata, html)
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
   end
 

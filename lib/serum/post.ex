@@ -15,10 +15,12 @@ defmodule Serum.Post do
   * `output`: Destination path
   """
 
+  require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.Error.SimpleMessage
   alias Serum.Fragment
   alias Serum.Post.PreviewGenerator
   alias Serum.Renderer
-  alias Serum.Result
   alias Serum.Tag
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
@@ -105,8 +107,17 @@ defmodule Serum.Post do
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
       Fragment.new(post.file, post.output, metadata, html)
     else
-      nil -> {:error, "the template \"#{template_name}\" is not available"}
-      {:error, _} = error -> error
+      nil ->
+        {:error,
+         %Error{
+           message: %SimpleMessage{
+             text: "the template \"#{template_name}\" is not available"
+           },
+           caused_by: []
+         }}
+
+      {:error, %Error{}} = error ->
+        error
     end
   end
 
