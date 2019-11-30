@@ -7,6 +7,9 @@ defmodule Serum.Plugin.Client do
   require Serum.Plugin.Client.Macros
   require Serum.Result, as: Result
   import Serum.Plugin.Client.Macros
+  alias Serum.Error
+  alias Serum.Error.ExceptionMessage
+  alias Serum.Error.SimpleMessage
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Plugin
@@ -61,7 +64,7 @@ defmodule Serum.Plugin.Client do
       {:ok, _} ->
         do_call_action(arity_and_plugins, fun, args)
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
 
       term ->
@@ -69,20 +72,26 @@ defmodule Serum.Plugin.Client do
           "#{module_name(plugin.module)}.#{fun} returned " <>
             "an unexpected value: #{inspect(term)}"
 
-        {:error, message}
+        {:error, %Error{message: %SimpleMessage{text: message}, caused_by: []}}
     end
   rescue
-    exception -> handle_exception(exception, plugin.module, fun)
+    exception ->
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
+         caused_by: []
+       }}
   end
 
-  @spec call_function(atom(), [term()]) :: Result.t(term())
+  @spec call_function(atom(), [a | term()]) :: Result.t(a) when a: term()
   def call_function(fun, [arg | args]) do
     Plugin
     |> Agent.get(&(&1[fun] || []))
     |> do_call_function(fun, args, arg)
   end
 
-  @spec do_call_function([{integer, Plugin.t()}], atom(), [term()], term()) :: Result.t(term())
+  @spec do_call_function([{integer, Plugin.t()}], atom(), [term()], a) :: Result.t(a)
+        when a: term()
   defp do_call_function(arity_and_plugins, fun, args, acc)
   defp do_call_function([], _fun, _args, acc), do: {:ok, acc}
 
@@ -93,7 +102,7 @@ defmodule Serum.Plugin.Client do
       {:ok, new_acc} ->
         do_call_function(arity_and_plugins, fun, args, new_acc)
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
 
       term ->
@@ -101,19 +110,15 @@ defmodule Serum.Plugin.Client do
           "#{module_name(plugin.module)}.#{fun} returned " <>
             "an unexpected value: #{inspect(term)}"
 
-        {:error, message}
+        {:error, %Error{message: %SimpleMessage{text: message}, caused_by: []}}
     end
   rescue
-    exception -> handle_exception(exception, plugin.module, fun)
-  end
-
-  @spec handle_exception(Exception.t(), atom(), atom()) :: Result.t({})
-  defp handle_exception(exception, module, fun) do
-    ex_name = module_name(exception.__struct__)
-    ex_msg = Exception.message(exception)
-    msg = "#{ex_name} at #{module_name(module)}.#{fun}: #{ex_msg}"
-
-    {:error, msg}
+    exception ->
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
+         caused_by: []
+       }}
   end
 
   @spec module_name(atom()) :: binary()
