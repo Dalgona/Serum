@@ -3,8 +3,10 @@ defmodule Serum.Template.Compiler do
 
   _moduledocp = "This module handles template loading and preprocessing."
 
+  require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.Error.SimpleMessage
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Result
   alias Serum.Template
 
   @type options :: [type: Template.type()]
@@ -44,22 +46,33 @@ defmodule Serum.Template.Compiler do
       |> Result.aggregate_values("failed to compile EEx templates:")
 
     case result do
-      {:ok, list} -> {:ok, Map.new(list)}
-      {:error, _} = error -> error
+      {:ok, list} -> Result.return(Map.new(list))
+      {:error, %Error{}} = error -> error
     end
   end
 
   @spec compile_file(Serum.File.t(), options()) :: Result.t({binary(), Template.t()})
   defp compile_file(file, options) do
-    with {:ok, file2} <- PluginClient.processing_template(file),
-         {:ok, ast} <- compile_string(file2.in_data),
-         name = Path.basename(file2.src, ".html.eex"),
-         template = Template.new(ast, name, options[:type], file2.src),
-         {:ok, template2} <- PluginClient.processed_template(template) do
-      {:ok, {name, template2}}
+    Result.run do
+      file2 <- PluginClient.processing_template(file)
+      ast <- compile_string(file2.in_data)
+      name = Path.basename(file2.src, ".html.eex")
+      template = Template.new(ast, name, options[:type], file2.src)
+      template2 <- PluginClient.processed_template(template)
+
+      Result.return({name, template2})
     else
-      {:ct_error, msg, line} -> {:error, {msg, file.src, line}}
-      {:error, _} = plugin_error -> plugin_error
+      {:ct_error, msg, line} ->
+        {:error,
+         %Error{
+           message: %SimpleMessage{text: msg},
+           caused_by: [],
+           file: file,
+           line: line
+         }}
+
+      {:error, %Error{}} = plugin_error ->
+        plugin_error
     end
   end
 

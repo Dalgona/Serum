@@ -4,6 +4,9 @@ defmodule Serum.Template.Compiler.Include do
   _moduledocp = "Provides functions for expanding includes in templates."
 
   require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.Error.CycleMessage
+  alias Serum.Error.SimpleMessage
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
@@ -22,8 +25,8 @@ defmodule Serum.Template.Compiler.Include do
     }
 
     case do_expand(template, initial_context) do
-      {new_template, %{error: nil}} -> {:ok, new_template}
-      {_, %{error: {:error, _} = error}} -> error
+      {new_template, %{error: nil}} -> Result.return(new_template)
+      {_, %{error: {:error, %Error{}} = error}} -> error
     end
   end
 
@@ -44,7 +47,7 @@ defmodule Serum.Template.Compiler.Include do
       {new_template, new_context}
     else
       {:error, _} = error -> {t, %{context | error: error}}
-      {_, %{error: {:error, _} = error}} -> {t, %{context | error: error}}
+      {_, %{error: {:error, %Error{}} = error}} -> {t, %{context | error: error}}
     end
   end
 
@@ -60,9 +63,13 @@ defmodule Serum.Template.Compiler.Include do
         {quote(do: (fn -> unquote(new_include.ast) end).()), new_context}
 
       nil ->
-        message = "include not found: \"#{arg}\""
+        error = %Error{
+          message: %SimpleMessage{text: "include not found: \"#{arg}\""},
+          caused_by: [],
+          file: %Serum.File{src: context.template.file}
+        }
 
-        {ast, %{context | error: {:error, {message, context.template.file, 0}}}}
+        {ast, %{context | error: {:error, error}}}
     end
   end
 
@@ -71,56 +78,16 @@ defmodule Serum.Template.Compiler.Include do
   @spec check_cycle(binary(), context()) :: Result.t({})
   defp check_cycle(name, context) do
     if name in context.stack do
-      graph =
-        context.stack
-        |> Enum.reverse()
-        |> Enum.drop_while(&(&1 != name))
-        |> make_graph()
+      cycle = context.stack |> Enum.reverse() |> Enum.drop_while(&(&1 != name))
 
-      message = [
-        "cycle detected while expanding includes:\n",
-        graph,
-        "  Cycles are not allowed when recursively including templates.\n",
-        "  Please refactor your templates to break the cycle.\n",
-        "  Alternatively, you can use the render/1,2 template helper.\n"
-      ]
-
-      {:error, {IO.iodata_to_binary(message), context.template.file, 0}}
+      {:error,
+       %Error{
+         message: %CycleMessage{cycle: cycle},
+         caused_by: [],
+         file: %Serum.File{src: context.template.file}
+       }}
     else
       Result.return()
     end
-  end
-
-  endl = [:reset, ?\n]
-  top = ["    ", :red, "\u256d\u2500\u2500\u2500\u2500\u2500\u256e", endl]
-  arrow = ["    ", :red, "\u2502     \u2193", endl]
-  first_text = ["    ", :red, "\u2502    ", :yellow]
-  rest_text = ["    ", :red, "\u2502    "]
-  bottom1 = ["    ", :red, "\u2502     \u2502", endl]
-  bottom2 = ["    ", :red, "\u2570\u2500\u2500\u2500\u2500\u2500\u256f", endl]
-
-  @spec make_graph([binary()]) :: iodata()
-  defp make_graph([first | rest]) do
-    rest_graph =
-      Enum.map(rest, fn name ->
-        [
-          unquote(arrow),
-          unquote(rest_text),
-          name,
-          unquote(endl)
-        ]
-      end)
-
-    [
-      unquote(top),
-      unquote(arrow),
-      unquote(first_text),
-      first,
-      unquote(endl),
-      rest_graph,
-      unquote(bottom1),
-      unquote(bottom2)
-    ]
-    |> IO.ANSI.format()
   end
 end
