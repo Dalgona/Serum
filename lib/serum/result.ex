@@ -54,7 +54,7 @@ defmodule Serum.Result do
   end
 
   @doc "Prints an error object in a beautiful format."
-  @spec show(t(term()), non_neg_integer()) :: {:ok, {}}
+  @spec show(t(term()), non_neg_integer()) :: t({})
   def show(result, indent \\ 0)
   def show({:ok, _} = result, depth), do: put_err(:info, get_message(result, depth))
   def show(error, depth), do: put_err(:error, get_message(error, depth))
@@ -135,6 +135,9 @@ defmodule Serum.Result do
       with(unquote_splicing(leadings), do: unquote(last), else: unquote(else_expr))
     end
   end
+
+  @doc "Expands into `{:ok, {}}` tuple."
+  defmacro return, do: quote(do: {:ok, {}})
 
   @doc "Wraps `expr` into `{:ok, expr}` tuple."
   defmacro return(expr)
