@@ -1,6 +1,9 @@
 defmodule Serum.FailingPlugin1 do
   @behaviour Serum.Plugin
 
+  alias Serum.Error
+  alias Serum.Error.SimpleMessage
+
   def name, do: "failing_plugin_1"
   def version, do: "0.1.0"
   def elixir, do: ">= 1.6.0"
@@ -28,11 +31,19 @@ defmodule Serum.FailingPlugin1 do
   end
 
   def processing_page(_file, _args) do
-    {:error, "test: processing_page"}
+    {:error,
+     %Error{
+       message: %SimpleMessage{text: "test: processing_page"},
+       caused_by: []
+     }}
   end
 
   def finalizing(_src, _dest, _args) do
-    {:error, "test: finalizing"}
+    {:error,
+     %Error{
+       message: %SimpleMessage{text: "test: finalizing"},
+       caused_by: []
+     }}
   end
 
   def processing_template(_file, _args) do

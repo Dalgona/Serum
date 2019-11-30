@@ -60,16 +60,28 @@ defmodule Serum.PluginTest do
     {:ok, _} = load_plugins([Serum.DummyPlugin1, Serum.FailingPlugin1])
 
     capture_io(fn ->
-      assert {:error, "RuntimeError" <> _} = build_started("", "")
-      assert {:error, "RuntimeError" <> _} = reading_posts([])
-      assert {:error, "test: processing_page"} == processing_page(%File{})
-      assert {:error, "test: finalizing"} == finalizing("", "")
+      patterns = [
+        "RuntimeError",
+        "RuntimeError",
+        "test: processing_page",
+        "test: finalizing",
+        "unexpected",
+        "unexpected"
+      ]
 
-      {:error, msg1} = processing_template(%File{})
-      {:error, msg2} = build_succeeded("", "")
-
-      assert String.contains?(msg1, "unexpected")
-      assert String.contains?(msg2, "unexpected")
+      [
+        build_started("", ""),
+        reading_posts([]),
+        processing_page(%File{}),
+        finalizing("", ""),
+        processing_template(%File{}),
+        build_succeeded("", "")
+      ]
+      |> Enum.map(fn {:error, error} -> to_string(error) end)
+      |> Enum.zip(patterns)
+      |> Enum.each(fn {message, pattern} ->
+        assert message =~ pattern
+      end)
     end)
   end
 
