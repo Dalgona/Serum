@@ -5,6 +5,7 @@ defmodule Serum.Build.FileLoader.Templates do
   A module for loading templates from a project or a theme.
   """
 
+  require Serum.Result, as: Result
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
@@ -62,7 +63,7 @@ defmodule Serum.Build.FileLoader.Templates do
     |> MapSet.to_list()
     |> case do
       [] ->
-        {:ok, {}}
+        Result.return()
 
       missings when is_list(missings) ->
         errors =

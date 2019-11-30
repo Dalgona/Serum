@@ -75,6 +75,7 @@ defmodule Serum.Plugin do
   """
 
   use Agent
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.File
   alias Serum.Fragment
@@ -82,7 +83,6 @@ defmodule Serum.Plugin do
   alias Serum.Plugin.Loader
   alias Serum.Post
   alias Serum.PostList
-  alias Serum.Result
   alias Serum.Template
 
   defstruct [:module, :name, :version, :description, :implements, :args]
@@ -348,7 +348,7 @@ defmodule Serum.Plugin do
   @doc false
   @spec show_info([t()]) :: Result.t({})
   def show_info(plugins)
-  def show_info([]), do: {:ok, {}}
+  def show_info([]), do: Result.return()
 
   def show_info(plugins) do
     Enum.each(plugins, fn p ->

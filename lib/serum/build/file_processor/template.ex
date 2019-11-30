@@ -1,8 +1,8 @@
 defmodule Serum.Build.FileProcessor.Template do
   @moduledoc false
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
@@ -13,7 +13,7 @@ defmodule Serum.Build.FileProcessor.Template do
 
     with {:ok, _} <- compile_and_load(includes, :include),
          {:ok, _} <- compile_and_load(templates, :template) do
-      {:ok, {}}
+      Result.return()
     else
       {:error, _} = error -> error
     end

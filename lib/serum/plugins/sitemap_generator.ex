@@ -19,8 +19,8 @@ defmodule Serum.Plugins.SitemapGenerator do
   serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
 
   require EEx
+  require Serum.Result, as: Result
   alias Serum.GlobalBindings
-  alias Serum.Result
 
   def name, do: "Create sitemap for search engine"
   def version, do: "1.1.0"
@@ -34,11 +34,11 @@ defmodule Serum.Plugins.SitemapGenerator do
   def implements, do: [build_succeeded: 3]
 
   def build_succeeded(_src, dest, _args) do
-    with {:ok, _} <- write_sitemap(dest),
-         {:ok, _} <- write_robots(dest) do
-      {:ok, {}}
-    else
-      {:error, _} = error -> error
+    Result.run do
+      write_sitemap(dest)
+      write_robots(dest)
+
+      Result.return()
     end
   end
 

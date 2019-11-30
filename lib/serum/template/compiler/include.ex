@@ -3,7 +3,7 @@ defmodule Serum.Template.Compiler.Include do
 
   _moduledocp = "Provides functions for expanding includes in templates."
 
-  alias Serum.Result
+  require Serum.Result, as: Result
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
@@ -87,7 +87,7 @@ defmodule Serum.Template.Compiler.Include do
 
       {:error, {IO.iodata_to_binary(message), context.template.file, 0}}
     else
-      {:ok, {}}
+      Result.return()
     end
   end
 

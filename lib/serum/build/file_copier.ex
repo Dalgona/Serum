@@ -1,8 +1,8 @@
 defmodule Serum.Build.FileCopier do
   @moduledoc false
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2, put_err: 2]
-  alias Serum.Result
   alias Serum.Theme
 
   @doc false
@@ -21,7 +21,7 @@ defmodule Serum.Build.FileCopier do
   @spec copy_theme_assets(binary()) :: Result.t({})
   defp copy_theme_assets(dest) do
     case Theme.get_assets() do
-      {:ok, false} -> {:ok, {}}
+      {:ok, false} -> Result.return()
       {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
       {:error, _} = error -> error
     end
@@ -38,7 +38,7 @@ defmodule Serum.Build.FileCopier do
   defp do_copy_files(src, dest) do
     files_dir = Path.join(src, "files")
 
-    if File.exists?(files_dir), do: try_copy(files_dir, dest), else: {:ok, {}}
+    if File.exists?(files_dir), do: try_copy(files_dir, dest), else: Result.return()
   end
 
   @spec try_copy(binary(), binary()) :: Result.t({})
@@ -48,7 +48,7 @@ defmodule Serum.Build.FileCopier do
         put_err(:warn, "Cannot copy #{src}: #{:file.format_error(reason)}. Skipping.")
 
       {:ok, _} ->
-        {:ok, {}}
+        Result.return()
     end
   end
 end

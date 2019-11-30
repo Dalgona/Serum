@@ -5,13 +5,13 @@ defmodule Serum.Plugin.Client do
 
   # For interface/2 macro
   require Serum.Plugin.Client.Macros
+  require Serum.Result, as: Result
   import Serum.Plugin.Client.Macros
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Plugin
   alias Serum.Post
   alias Serum.PostList
-  alias Serum.Result
   alias Serum.Template
 
   interface :action, build_started(src :: binary(), dest :: binary()) :: Result.t({})
@@ -52,7 +52,7 @@ defmodule Serum.Plugin.Client do
 
   @spec do_call_action([{integer(), Plugin.t()}], atom(), [term()]) :: Result.t({})
   defp do_call_action(arity_and_plugins, fun, args)
-  defp do_call_action([], _fun, _args), do: {:ok, {}}
+  defp do_call_action([], _fun, _args), do: Result.return()
 
   defp do_call_action([{_arity, plugin} | arity_and_plugins], fun, args) do
     new_args = args ++ [plugin.args]

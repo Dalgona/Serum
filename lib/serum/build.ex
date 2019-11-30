@@ -84,7 +84,7 @@ defmodule Serum.Build do
       check_dest_perm(dest)
       clean_dest(dest)
 
-      Result.return({})
+      Result.return()
     end
   end
 
@@ -104,7 +104,7 @@ defmodule Serum.Build do
   @spec check_tz() :: Result.t({})
   defp check_tz do
     Timex.local()
-    {:ok, {}}
+    Result.return()
   rescue
     _ -> {:error, "system timezone is not set"}
   end
@@ -124,7 +124,7 @@ defmodule Serum.Build do
       {:ok, _} -> :ok
     end
     |> case do
-      :ok -> {:ok, {}}
+      :ok -> Result.return()
       err -> {:error, {err, dest, 0}}
     end
   end
@@ -142,7 +142,7 @@ defmodule Serum.Build do
     |> Enum.map(&Path.join(dest, &1))
     |> Enum.map(fn path ->
       case File.rm_rf(path) do
-        {:ok, _} -> {:ok, {}}
+        {:ok, _} -> Result.return()
         {:error, reason, ^path} -> {:error, {reason, path, 0}}
       end
     end)
