@@ -69,5 +69,9 @@ defmodule Serum.DummyPlugin2 do
     debug("finalizing: #{src}, #{dest}")
   end
 
-  defp debug(msg), do: IO.puts("\x1b[90m#{name()} #{msg}\x1b[0m")
+  defp debug(msg) do
+    IO.puts("\x1b[90m#{name()} #{msg}\x1b[0m")
+
+    {:ok, {}}
+  end
 end
