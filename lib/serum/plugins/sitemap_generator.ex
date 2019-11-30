@@ -36,7 +36,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   def build_succeeded(_src, dest, _args) do
     with {:ok, _} <- write_sitemap(dest),
          {:ok, _} <- write_robots(dest) do
-      :ok
+      {:ok, {}}
     else
       {:error, _} = error -> error
     end
