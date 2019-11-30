@@ -3,8 +3,10 @@ defmodule Serum.Renderer do
 
   _moduledocp = "This module provides functions for rendering pages into HTML."
 
+  require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.Error.ExceptionMessage
   alias Serum.GlobalBindings
-  alias Serum.Result
   alias Serum.Template
 
   @doc """
@@ -14,12 +16,15 @@ defmodule Serum.Renderer do
   def render_fragment(template, bindings) do
     assigns = bindings ++ GlobalBindings.as_keyword()
     {html, _} = Code.eval_quoted(template.ast, assigns: assigns)
-    {:ok, html}
-  rescue
-    e in CompileError ->
-      {:error, {e.description, template.file, e.line}}
 
-    e ->
-      {:error, {Exception.message(e), template.file, 0}}
+    Result.return(html)
+  rescue
+    exception ->
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
+         caused_by: [],
+         file: %Serum.File{src: template.file}
+       }}
   end
 end
