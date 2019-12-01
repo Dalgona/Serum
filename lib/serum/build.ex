@@ -146,6 +146,6 @@ defmodule Serum.Build do
         {:error, reason, ^path} -> {:error, {reason, path, 0}}
       end
     end)
-    |> Result.aggregate_values(:clean_dest)
+    |> Result.aggregate_values("failed to clean the destination directory:")
   end
 end

@@ -20,7 +20,7 @@ defmodule Serum.Build.PageGenerator do
     fragments
     |> Task.async_stream(&render(&1, template))
     |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:page_generator)
+    |> Result.aggregate_values("failed to render HTML pages:")
   end
 
   @spec render(Fragment.t(), Template.t()) :: Result.t(Serum.File.t())

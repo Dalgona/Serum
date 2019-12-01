@@ -11,11 +11,13 @@ defmodule Serum.Plugin.Loader do
   @serum_version Version.parse!(Mix.Project.config()[:version])
   @elixir_version Version.parse!(System.version())
 
+  @msg_load_failed "failed to load plugins:"
+
   @spec load_plugins([term()]) :: Result.t([Plugin.t()])
   def load_plugins(modules) do
     modules
     |> Enum.map(&validate_spec/1)
-    |> Result.aggregate_values(:load_plugins)
+    |> Result.aggregate_values(@msg_load_failed)
     |> case do
       {:ok, specs} -> do_load_plugins(specs)
       {:error, _} = error -> error
@@ -31,7 +33,7 @@ defmodule Serum.Plugin.Loader do
       {module, _} when is_atom(module) -> module
     end)
     |> Enum.map(&make_plugin/1)
-    |> Result.aggregate_values(:load_plugins)
+    |> Result.aggregate_values(@msg_load_failed)
     |> case do
       {:ok, plugins} ->
         update_agent(plugins)

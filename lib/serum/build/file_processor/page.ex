@@ -19,7 +19,7 @@ defmodule Serum.Build.FileProcessor.Page do
       files
       |> Task.async_stream(&preprocess_page(&1, proj))
       |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate_values(:file_processor)
+      |> Result.aggregate_values("failed to preprocess some pages:")
 
     case result do
       {:ok, pages} ->
@@ -63,7 +63,7 @@ defmodule Serum.Build.FileProcessor.Page do
     pages
     |> Task.async_stream(&process_page(&1, proj))
     |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:file_processor)
+    |> Result.aggregate_values("failed to process pages:")
     |> case do
       {:ok, pages} -> PluginClient.processed_pages(pages)
       {:error, _} = error -> error

@@ -24,7 +24,7 @@ defmodule Serum.Build.FileProcessor.PostList do
       PostList.generate(tag, posts, proj)
     end)
     |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values(:file_processor)
+    |> Result.aggregate_values("failed to generate post lists:")
     |> case do
       {:ok, lists} -> {:ok, {List.flatten(lists), get_tag_counts(tag_groups)}}
       {:error, _} = error -> error

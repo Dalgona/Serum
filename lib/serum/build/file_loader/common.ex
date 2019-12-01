@@ -17,6 +17,6 @@ defmodule Serum.Build.FileLoader.Common do
     paths
     |> Stream.map(&%Serum.File{src: &1})
     |> Enum.map(&Serum.File.read/1)
-    |> Result.aggregate_values(:file_loader)
+    |> Result.aggregate_values("failed to load files:")
   end
 end

@@ -22,7 +22,7 @@ defmodule Serum.Build.FileEmitter do
       {:ok, _} ->
         files
         |> Enum.map(&write_file/1)
-        |> Result.aggregate_values(:file_emitter)
+        |> Result.aggregate_values("failed to write files:")
 
       {:error, _} = error ->
         error
@@ -36,7 +36,7 @@ defmodule Serum.Build.FileEmitter do
     |> Stream.map(&Path.dirname/1)
     |> Stream.uniq()
     |> Enum.map(&create_dir/1)
-    |> Result.aggregate_values(:file_emitter)
+    |> Result.aggregate_values("failed to create directories:")
   end
 
   @spec create_dir(binary()) :: Result.t({})

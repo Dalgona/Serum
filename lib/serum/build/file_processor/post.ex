@@ -20,7 +20,7 @@ defmodule Serum.Build.FileProcessor.Post do
       files
       |> Task.async_stream(&process_post(&1, proj))
       |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate_values(:file_processor)
+      |> Result.aggregate_values("failed to process posts:")
 
     with {:ok, posts} <- result,
          sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date)),
