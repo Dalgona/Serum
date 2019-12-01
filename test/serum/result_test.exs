@@ -1,5 +1,6 @@
 defmodule Serum.ResultTest do
   use ExUnit.Case, async: true
+  alias Serum.Error.Format
   alias Serum.Result
 
   describe "aggregate_values/2" do
@@ -13,10 +14,16 @@ defmodule Serum.ResultTest do
 
     test "processes a list of successful/failed results" do
       results = [ok: 1, error: "error 1", ok: 2, error: "error 2", ok: 3]
-      result = Result.aggregate_values(results, "foo")
-      expected = {:error, {"foo", [error: "error 1", error: "error 2"]}}
+      {:error, error} = Result.aggregate_values(results, "foo")
 
-      assert result === expected
+      message =
+        error.message
+        |> Format.format_text(0)
+        |> IO.ANSI.format()
+        |> IO.iodata_to_binary()
+
+      assert message === "foo"
+      assert length(error.caused_by) === 2
     end
 
     test "removes duplicate failed results #1" do
@@ -27,10 +34,9 @@ defmodule Serum.ResultTest do
         error: "error 2"
       ]
 
-      result = Result.aggregate_values(results, "foo")
+      {:error, error} = Result.aggregate_values(results, "foo")
 
-      assert {:error, {"foo", errors}} = result
-      assert length(errors) === 2
+      assert length(error.caused_by) === 2
     end
   end
 
