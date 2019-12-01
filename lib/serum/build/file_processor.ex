@@ -3,6 +3,7 @@ defmodule Serum.Build.FileProcessor do
 
   _moduledocp = "Processes the input files to produce the intermediate data."
 
+  require Serum.Result, as: Result
   alias Serum.Build.FileLoader
   alias Serum.GlobalBindings
   alias Serum.Page
@@ -40,28 +41,27 @@ defmodule Serum.Build.FileProcessor do
 
     %{pages: page_files, posts: post_files} = files
 
-    with {:ok, _} <- compile_templates(files),
-         {:ok, {pages, compact_pages}} <- preprocess_pages(page_files, proj),
-         {:ok, {posts, compact_posts}} <- process_posts(post_files, proj),
-         {:ok, {lists, tag_counts}} <- generate_lists(compact_posts, proj),
-         update_global_bindings(compact_pages, compact_posts, tag_counts),
-         {:ok, pages} <- process_pages(pages, proj) do
-      result = %{
+    Result.run do
+      compile_templates(files)
+      {pages, compact_pages} <- preprocess_pages(page_files, proj)
+      {posts, compact_posts} <- process_posts(post_files, proj)
+      {lists, tag_counts} <- generate_lists(compact_posts, proj)
+      update_global_bindings(compact_pages, compact_posts, tag_counts)
+      pages <- process_pages(pages, proj)
+
+      Result.return(%{
         pages: pages,
         posts: posts,
         lists: lists
-      }
-
-      {:ok, result}
-    else
-      {:error, _} = error -> error
+      })
     end
   end
 
-  @spec update_global_bindings([map()], [map()], [{Tag.t(), integer()}]) :: :ok
+  @spec update_global_bindings([map()], [map()], [{Tag.t(), integer()}]) :: Result.t({})
   def update_global_bindings(compact_pages, compact_posts, tag_counts) do
     GlobalBindings.put(:all_pages, compact_pages)
     GlobalBindings.put(:all_posts, compact_posts)
     GlobalBindings.put(:all_tags, tag_counts)
+    Result.return()
   end
 end
