@@ -1,12 +1,14 @@
 defmodule Serum.Build.FileProcessor.Post do
   @moduledoc false
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
+  alias Serum.Error.SimpleMessage
   alias Serum.Markdown
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Post
   alias Serum.Project
-  alias Serum.Result
 
   @doc false
   @spec process_posts([Serum.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
@@ -22,12 +24,12 @@ defmodule Serum.Build.FileProcessor.Post do
       |> Enum.map(&elem(&1, 1))
       |> Result.aggregate_values("failed to process posts:")
 
-    with {:ok, posts} <- result,
-         sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date)),
-         {:ok, posts2} <- PluginClient.processed_posts(sorted_posts) do
-      {:ok, {posts2, Enum.map(posts2, &Post.compact/1)}}
-    else
-      {:error, _} = error -> error
+    Result.run do
+      posts <- result
+      sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date))
+      posts2 <- PluginClient.processed_posts(sorted_posts)
+
+      Result.return({posts2, Enum.map(posts2, &Post.compact/1)})
     end
   end
 
@@ -56,8 +58,16 @@ defmodule Serum.Build.FileProcessor.Post do
 
       PluginClient.processed_post(post)
     else
-      {:invalid, message} -> {:error, {message, file.src, 0}}
-      {:error, _} = plugin_error -> plugin_error
+      {:invalid, message} ->
+        {:error,
+         %Error{
+           message: %SimpleMessage{text: message},
+           caused_by: [],
+           file: file
+         }}
+
+      {:error, %Error{}} = plugin_error ->
+        plugin_error
     end
   end
 end

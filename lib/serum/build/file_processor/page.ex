@@ -1,13 +1,15 @@
 defmodule Serum.Build.FileProcessor.Page do
   @moduledoc false
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
+  alias Serum.Error.SimpleMessage
   alias Serum.Markdown
   alias Serum.Page
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
   alias Serum.Renderer
-  alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
@@ -15,19 +17,17 @@ defmodule Serum.Build.FileProcessor.Page do
   def preprocess_pages(files, proj) do
     put_msg(:info, "Processing page files...")
 
-    result =
-      files
-      |> Task.async_stream(&preprocess_page(&1, proj))
-      |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate_values("failed to preprocess some pages:")
-
-    case result do
+    files
+    |> Task.async_stream(&preprocess_page(&1, proj))
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate_values("failed to preprocess pages:")
+    |> case do
       {:ok, pages} ->
         sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
 
         {:ok, {sorted_pages, Enum.map(sorted_pages, &Page.compact/1)}}
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
@@ -54,7 +54,7 @@ defmodule Serum.Build.FileProcessor.Page do
       {:ok, page}
     else
       {:invalid, message} -> {:error, {message, file.src, 0}}
-      {:error, _} = plugin_error -> plugin_error
+      {:error, %Error{}} = plugin_error -> plugin_error
     end
   end
 
@@ -66,7 +66,7 @@ defmodule Serum.Build.FileProcessor.Page do
     |> Result.aggregate_values("failed to process pages:")
     |> case do
       {:ok, pages} -> PluginClient.processed_pages(pages)
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
   end
 
@@ -74,7 +74,7 @@ defmodule Serum.Build.FileProcessor.Page do
   defp process_page(page, proj) do
     case do_process_page(page, proj) do
       {:ok, page} -> PluginClient.processed_page(page)
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
   end
 
@@ -82,22 +82,33 @@ defmodule Serum.Build.FileProcessor.Page do
   defp do_process_page(page, proj)
 
   defp do_process_page(%Page{type: ".md"} = page, proj) do
-    {:ok, %Page{page | data: Markdown.to_html(page.data, proj)}}
+    Result.return(%Page{page | data: Markdown.to_html(page.data, proj)})
   end
 
   defp do_process_page(%Page{type: ".html"} = page, _proj) do
-    {:ok, page}
+    Result.return(page)
   end
 
   defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
-    with {:ok, ast} <- TC.compile_string(page.data),
-         template = Template.new(ast, page.file, :template, page.file),
-         {:ok, new_template} <- TC.Include.expand(template),
-         {:ok, html} <- Renderer.render_fragment(new_template, []) do
-      {:ok, %Page{page | data: html}}
+    Result.run do
+      ast <- TC.compile_string(page.data)
+      template = Template.new(ast, page.file, :template, page.file)
+      new_template <- TC.Include.expand(template)
+      html <- Renderer.render_fragment(new_template, [])
+
+      Result.return(%Page{page | data: html})
     else
-      {:ct_error, msg, line} -> {:error, {msg, page.file, line}}
-      {:error, _} = error -> error
+      {:ct_error, msg, line} ->
+        {:error,
+         %Error{
+           message: %SimpleMessage{text: msg},
+           caused_by: [],
+           file: %Serum.File{src: page.file},
+           line: line
+         }}
+
+      {:error, %Error{}} = error ->
+        error
     end
   end
 end

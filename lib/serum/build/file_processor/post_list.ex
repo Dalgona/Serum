@@ -1,10 +1,11 @@
 defmodule Serum.Build.FileProcessor.PostList do
   @moduledoc false
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
   alias Serum.PostList
   alias Serum.Project
-  alias Serum.Result
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
   @type tag_counts() :: [{Tag.t(), integer()}]
@@ -26,8 +27,8 @@ defmodule Serum.Build.FileProcessor.PostList do
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate_values("failed to generate post lists:")
     |> case do
-      {:ok, lists} -> {:ok, {List.flatten(lists), get_tag_counts(tag_groups)}}
-      {:error, _} = error -> error
+      {:ok, lists} -> Result.return({List.flatten(lists), get_tag_counts(tag_groups)})
+      {:error, %Error{}} = error -> error
     end
   end
 
