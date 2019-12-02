@@ -365,6 +365,8 @@ defmodule Serum.Plugin do
 
       put_msg(:plugin, msg)
     end)
+
+    Result.return()
   end
 
   @spec module_name(atom()) :: binary()
