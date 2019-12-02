@@ -19,12 +19,12 @@ defmodule Serum.Result do
 
   Returns an aggregated error object if there is one or more errors.
   """
-  @spec aggregate_values([t(a)], IO.ANSI.ansidata()) :: t([a]) when a: term()
+  @spec aggregate_values([t(a)], binary()) :: t([a]) when a: term()
   def aggregate_values(results, msg) do
     results
     |> do_aggregate_values([], [])
     |> case do
-      {values, []} ->
+      {values, []} when is_list(values) ->
         {:ok, values}
 
       {_, errors} when is_list(errors) ->
@@ -32,7 +32,7 @@ defmodule Serum.Result do
     end
   end
 
-  @spec do_aggregate_values([t(a)], [a], [t(a)]) :: {[a], [t(a)]} when a: term()
+  @spec do_aggregate_values([t(a)], [a], [Error.t()]) :: {[a], [Error.t()]} when a: term()
   defp do_aggregate_values(results, values, errors)
 
   defp do_aggregate_values([], values, errors) do
@@ -43,7 +43,7 @@ defmodule Serum.Result do
     do_aggregate_values(results, [value | values], errors)
   end
 
-  defp do_aggregate_values([{:error, _} = error | results], values, errors) do
+  defp do_aggregate_values([{:error, error} | results], values, errors) do
     do_aggregate_values(results, values, [error | errors])
   end
 
