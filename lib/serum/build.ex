@@ -11,6 +11,9 @@ defmodule Serum.Build do
   alias Serum.Build.FileProcessor
   alias Serum.Build.FragmentGenerator
   alias Serum.Build.PageGenerator
+  alias Serum.Error
+  alias Serum.Error.POSIXMessage
+  alias Serum.Error.SimpleMessage
   alias Serum.Plugin
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
@@ -106,7 +109,12 @@ defmodule Serum.Build do
     Timex.local()
     Result.return()
   rescue
-    _ -> {:error, "system timezone is not set"}
+    _ ->
+      {:error,
+       %Error{
+         message: %SimpleMessage{text: "system timezone is not set"},
+         caused_by: []
+       }}
   end
 
   # Checks if the effective user have a write
@@ -124,8 +132,16 @@ defmodule Serum.Build do
       {:ok, _} -> :ok
     end
     |> case do
-      :ok -> Result.return()
-      err -> {:error, {err, dest, 0}}
+      :ok ->
+        Result.return()
+
+      err ->
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: err},
+           caused_by: [],
+           file: %Serum.File{src: dest}
+         }}
     end
   end
 
@@ -142,8 +158,16 @@ defmodule Serum.Build do
     |> Enum.map(&Path.join(dest, &1))
     |> Enum.map(fn path ->
       case File.rm_rf(path) do
-        {:ok, _} -> Result.return()
-        {:error, reason, ^path} -> {:error, {reason, path, 0}}
+        {:ok, _} ->
+          Result.return()
+
+        {:error, reason, ^path} ->
+          {:error,
+           %Error{
+             message: %POSIXMessage{reason: reason},
+             caused_by: [],
+             file: %Serum.File{src: path}
+           }}
       end
     end)
     |> Result.aggregate_values("failed to clean the destination directory:")
