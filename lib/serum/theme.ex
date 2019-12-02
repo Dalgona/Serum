@@ -61,8 +61,12 @@ defmodule Serum.Theme do
   """
 
   use Agent
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_err: 2]
-  alias Serum.Result
+  alias Serum.Error
+  alias Serum.Error.ExceptionMessage
+  alias Serum.Error.POSIXMessage
+  alias Serum.Error.SimpleMessage
 
   defstruct module: nil,
             name: "",
@@ -171,18 +175,16 @@ defmodule Serum.Theme do
 
   def load(nil) do
     Agent.update(__MODULE__, fn _ -> nil end)
-
-    {:ok, %__MODULE__{}}
+    Result.return(%__MODULE__{})
   end
 
   def load(module) do
     case make_theme(module) do
       {:ok, theme} ->
         Agent.update(__MODULE__, fn _ -> theme end)
+        Result.return(theme)
 
-        {:ok, theme}
-
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
@@ -194,30 +196,27 @@ defmodule Serum.Theme do
 
     validate_serum_version(name, module.serum())
 
-    result = %__MODULE__{
+    Result.return(%__MODULE__{
       module: module,
       name: name,
       description: module.description(),
       author: module.author(),
       legal: module.legal(),
       version: version
-    }
-
-    {:ok, result}
+    })
   rescue
     exception ->
-      ex_name = module_name(exception.__struct__)
-      ex_msg = Exception.message(exception)
-      mod_name = module_name(module)
-      msg = "#{ex_name} while loading theme (module: #{mod_name}): #{ex_msg}"
-
-      {:error, msg}
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
+         caused_by: []
+       }}
   end
 
-  @spec validate_serum_version(binary(), Version.requirement()) :: :ok
+  @spec validate_serum_version(binary(), Version.requirement()) :: Result.t({})
   defp validate_serum_version(name, requirement) do
     if Version.match?(@serum_version, requirement) do
-      :ok
+      Result.return()
     else
       msg =
         "The theme \"#{name}\" is not compatible with " <>
@@ -233,7 +232,7 @@ defmodule Serum.Theme do
   def get_includes do
     case Agent.get(__MODULE__, & &1) do
       %__MODULE__{} = theme -> do_get_includes(theme)
-      nil -> {:ok, %{}}
+      nil -> Result.return(%{})
     end
   end
 
@@ -247,9 +246,9 @@ defmodule Serum.Theme do
           |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
           |> Map.new()
 
-        {:ok, result}
+        Result.return(result)
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
@@ -259,7 +258,7 @@ defmodule Serum.Theme do
   def get_templates do
     case Agent.get(__MODULE__, & &1) do
       %__MODULE__{} = theme -> do_get_templates(theme)
-      nil -> {:ok, %{}}
+      nil -> Result.return(%{})
     end
   end
 
@@ -273,92 +272,118 @@ defmodule Serum.Theme do
           |> Enum.filter(&String.ends_with?(elem(&1, 1), ".html.eex"))
           |> Map.new()
 
-        {:ok, result}
+        Result.return(result)
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
 
   @spec get_list(atom(), atom(), list()) :: Result.t([binary()])
   defp get_list(module, fun, args) do
-    with {:ok, paths} <- call_function(module, fun, args),
-         :ok <- check_list_type(paths) do
-      {:ok, paths}
-    else
-      {:error, _} = error ->
-        error
+    Result.run do
+      paths <- call_function(module, fun, args)
+      check_list_type(paths, "#{module_name(module)}.#{fun}: ")
 
-      {:bad, x} ->
-        callee = "#{module_name(module)}.#{fun}"
-        msg = "#{callee}: expected a list of strings, got: #{inspect(x)}"
-
-        {:error, msg}
-
-      {:bad_item, x} ->
-        callee = "#{module_name(module)}.#{fun}"
-        msg = "#{callee} expected a list of strings, got: #{inspect(x)} in the list"
-
-        {:error, msg}
+      Result.return(paths)
     end
   end
 
-  @spec check_list_type(term()) :: :ok | {:bad, term()} | {:bad_item, term()}
-  defp check_list_type(maybe_list)
-  defp check_list_type([]), do: :ok
-  defp check_list_type([x | xs]) when is_binary(x), do: check_list_type(xs)
-  defp check_list_type([x | _xs]), do: {:bad_item, x}
-  defp check_list_type(x), do: {:bad, x}
+  @spec check_list_type(term(), binary()) :: Result.t({})
+  defp check_list_type(maybe_list, prefix)
+  defp check_list_type([], _), do: Result.return()
+
+  defp check_list_type([x | xs], prefix) when is_binary(x) do
+    check_list_type(xs, prefix)
+  end
+
+  defp check_list_type([x | _xs], prefix) do
+    msg = "#{prefix} expected a list of strings, got: #{inspect(x)} in the list"
+
+    {:error,
+     %Error{
+       message: %SimpleMessage{text: msg},
+       caused_by: []
+     }}
+  end
+
+  defp check_list_type(x, prefix) do
+    msg = "#{prefix}: expected a list of strings, got: #{inspect(x)}"
+
+    {:error,
+     %Error{
+       message: %SimpleMessage{text: msg},
+       caused_by: []
+     }}
+  end
 
   @doc false
   @spec get_assets() :: Result.t(binary() | false)
   def get_assets do
     case Agent.get(__MODULE__, & &1) do
-      %__MODULE__{} = theme -> get_assets(theme)
+      %__MODULE__{} = theme -> do_get_assets(theme)
       nil -> {:ok, false}
     end
   end
 
-  @spec get_assets(t()) :: Result.t(binary() | false)
-  defp get_assets(%__MODULE__{module: module}) do
+  @spec do_get_assets(t()) :: Result.t(binary() | false)
+  defp do_get_assets(%__MODULE__{module: module}) do
     case call_function(module, :get_assets, []) do
       {:ok, path} when is_binary(path) ->
-        do_get_assets(path)
+        validate_assets_dir(path)
 
       {:ok, false} ->
-        {:ok, false}
+        Result.return(false)
 
-      {:error, _} = error ->
-        error
-
-      x ->
+      {:ok, x} ->
         mod_name = module_name(module)
         msg = "#{mod_name}.get_assets: expected a string, got: #{inspect(x)}"
 
-        {:error, msg}
+        {:error,
+         %Error{
+           message: %SimpleMessage{text: msg},
+           caused_by: []
+         }}
+
+      {:error, %Error{}} = error ->
+        error
     end
   end
 
-  @spec do_get_assets(binary()) :: Result.t(binary())
-  defp do_get_assets(path) do
+  @spec validate_assets_dir(binary()) :: Result.t(binary())
+  defp validate_assets_dir(path) do
     case File.stat(path) do
-      {:ok, %File.Stat{type: :directory}} -> {:ok, path}
-      {:ok, %File.Stat{}} -> {:error, {:enotdir, path, 0}}
-      {:error, reason} -> {:error, {reason, path, 0}}
+      {:ok, %File.Stat{type: :directory}} ->
+        Result.return(path)
+
+      {:ok, %File.Stat{}} ->
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: :enotdir},
+           caused_by: [],
+           file: %Serum.File{src: path}
+         }}
+
+      {:error, reason} ->
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: reason},
+           caused_by: [],
+           file: %Serum.File{src: path}
+         }}
     end
   end
 
   @spec call_function(atom(), atom(), list()) :: Result.t(term())
   defp call_function(module, fun, args) do
-    {:ok, apply(module, fun, args)}
+    Result.return(apply(module, fun, args))
   rescue
     exception ->
-      ex_name = module_name(exception.__struct__)
-      ex_msg = Exception.message(exception)
-      mod_name = module_name(module)
-      msg = "#{ex_name} from #{mod_name}.#{fun}: #{ex_msg}"
-
-      {:error, msg}
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
+         caused_by: []
+       }}
   end
 
   @spec module_name(atom()) :: binary()
