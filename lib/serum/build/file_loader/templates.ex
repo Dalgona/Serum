@@ -37,15 +37,14 @@ defmodule Serum.Build.FileLoader.Templates do
 
   @spec get_project_templates(binary()) :: Result.t(map())
   defp get_project_templates(src) do
-    map =
+    Result.return do
       src
       |> get_subdir("templates")
       |> Path.join("*.html.eex")
       |> Path.wildcard()
       |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
       |> Map.new()
-
-    Result.return(map)
+    end
   end
 
   @spec merge_fun(binary(), binary(), binary()) :: binary()

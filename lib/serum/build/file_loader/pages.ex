@@ -5,6 +5,8 @@ defmodule Serum.Build.FileLoader.Pages do
 
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
+  alias Serum.Error.POSIXMessage
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 
@@ -25,7 +27,12 @@ defmodule Serum.Build.FileLoader.Pages do
         {:error, _} = plugin_error -> plugin_error
       end
     else
-      {:error, {:enoent, pages_dir, 0}}
+      {:error,
+       %Error{
+         message: %POSIXMessage{reason: :enoent},
+         caused_by: [],
+         file: %Serum.File{src: pages_dir}
+       }}
     end
   end
 end

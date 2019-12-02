@@ -43,7 +43,9 @@ defmodule Serum.Build.FileLoaderTest do
     test "fails when one or more sub tasks fail", %{tmp_dir: tmp_dir} do
       File.rm_rf!(Path.join(tmp_dir, "pages"))
 
-      {:error, {:enoent, _, _}} = FileLoader.load_files(tmp_dir)
+      {:error, error} = FileLoader.load_files(tmp_dir)
+
+      assert error.message.reason === :enoent
     end
   end
 end

@@ -3,6 +3,7 @@ defmodule Serum.Build.FileLoader.Posts do
 
   _moduledocp = "A module for loading posts from a project."
 
+  require Serum.Result, as: Result
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy
   alias Serum.Plugin.Client, as: PluginClient
@@ -28,7 +29,7 @@ defmodule Serum.Build.FileLoader.Posts do
     else
       put_err(:warn, "Cannot access `posts/'. No post will be generated.")
 
-      {:ok, []}
+      Result.return([])
     end
   end
 end
