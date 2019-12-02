@@ -29,7 +29,11 @@ defmodule Serum.DevServerTest do
 
       Process.group_leader(self(), ctx.ignore_io)
       File.rename(Path.join(dir, "serum.exs"), Path.join(dir, "serum.exs_"))
-      assert {:error, {:enoent, _, 0}} = DevServer.run(dir, 8080)
+
+      {:error, error} = DevServer.run(dir, 8080)
+
+      assert error.message.reason === :enoent
+
       File.rename(Path.join(dir, "serum.exs_"), Path.join(dir, "serum.exs"))
     end
 

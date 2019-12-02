@@ -3,6 +3,7 @@ defmodule Serum.Build.PageGeneratorTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Build.PageGenerator
+  alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Template.Storage, as: TS
 
@@ -35,7 +36,8 @@ defmodule Serum.Build.PageGeneratorTest do
       TS.load(ctx.bad, :template)
       GlobalBindings.load(ctx.state)
 
-      assert {:error, {_, _errors}} = PageGenerator.run(ctx.fragments)
+      assert {:error, %Error{caused_by: errors}} = PageGenerator.run(ctx.fragments)
+      assert not Enum.empty?(errors)
     end
   end
 end
