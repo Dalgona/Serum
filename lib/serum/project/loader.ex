@@ -3,10 +3,14 @@ defmodule Serum.Project.Loader do
 
   _moduledocp = "A module for loading Serum project definition files."
 
+  require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.Error.ExceptionMessage
+  alias Serum.Error.POSIXMessage
+  alias Serum.Error.SimpleMessage
   alias Serum.GlobalBindings
   alias Serum.Project
   alias Serum.Project.ElixirValidator
-  alias Serum.Result
   alias Serum.Theme
 
   @doc """
@@ -25,9 +29,9 @@ defmodule Serum.Project.Loader do
           base_url: proj.base_url
         })
 
-        {:ok, %Project{proj | src: src, dest: dest}}
+        Result.return(%Project{proj | src: src, dest: dest})
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
@@ -39,7 +43,12 @@ defmodule Serum.Project.Loader do
     if File.exists?(exs_path) do
       load_exs(exs_path)
     else
-      {:error, {:enoent, exs_path, 0}}
+      {:error,
+       %Error{
+         message: %POSIXMessage{reason: :enoent},
+         caused_by: [],
+         file: %Serum.File{src: exs_path}
+       }}
     end
   end
 
@@ -48,36 +57,55 @@ defmodule Serum.Project.Loader do
     with {:ok, data} <- File.read(exs_path),
          {map, _} <- Code.eval_string(data, [], file: exs_path),
          :ok <- ElixirValidator.validate(map) do
-      {:ok, Project.new(Map.put(map, :theme, %Theme{module: map[:theme]}))}
+      Result.return(Project.new(Map.put(map, :theme, %Theme{module: map[:theme]})))
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
-        {:error, {reason, exs_path, 0}}
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: reason},
+           caused_by: [],
+           file: %Serum.File{src: exs_path}
+         }}
 
       # From ElixirValidator.validate/2:
       {:invalid, message} when is_binary(message) ->
-        {:error, {message, exs_path, 0}}
+        {:error,
+         %Error{
+           message: %SimpleMessage{text: message},
+           caused_by: [],
+           file: %Serum.File{src: exs_path}
+         }}
 
       {:invalid, messages} when is_list(messages) ->
-        sub_errors =
+        errors =
           Enum.map(messages, fn message ->
-            {:error, {message, exs_path, 0}}
+            {:error,
+             %Error{
+               message: %SimpleMessage{text: message},
+               caused_by: [],
+               file: %Serum.File{src: exs_path}
+             }}
           end)
 
-        {:error, {:project_validator, sub_errors}}
+        Result.aggregate_values(errors, "failed to validate `serum.exs`:")
     end
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
-      {:error, {e.description, e.file, e.line}}
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: e, stacktrace: __STACKTRACE__},
+         caused_by: [],
+         file: %Serum.File{src: e.file},
+         line: e.line
+       }}
 
     e ->
-      err_name =
-        e.__struct__
-        |> to_string()
-        |> String.replace_prefix("Elixir.", "")
-
-      err_msg = "#{err_name} while evaluating: #{Exception.message(e)}"
-
-      {:error, {err_msg, exs_path, 0}}
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: e, stacktrace: __STACKTRACE__},
+         caused_by: [],
+         file: %Serum.File{src: exs_path}
+       }}
   end
 end
