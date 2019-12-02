@@ -6,6 +6,14 @@ defmodule Serum.Build.FileCopierTest do
   alias Serum.Result
   alias Serum.Theme
 
+  [
+    "theme_modules/dummy_theme.ex",
+    "theme_modules/empty_theme.ex",
+    "theme_modules/failing_theme.ex"
+  ]
+  |> Enum.map(&fixture/1)
+  |> Enum.each(&Code.require_file/1)
+
   setup do
     src = get_tmp_dir("serum_test_")
     dest = get_tmp_dir("serum_test_")
