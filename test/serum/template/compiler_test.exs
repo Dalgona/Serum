@@ -2,6 +2,7 @@ defmodule Serum.Template.CompilerTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
+  alias Serum.Error
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
 
@@ -31,7 +32,7 @@ defmodule Serum.Template.CompilerTest do
         |> Enum.map(&Serum.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, {_, errors}} = TC.compile_files(files, type: :template)
+      {:error, %Error{caused_by: errors}} = TC.compile_files(files, type: :template)
 
       assert length(errors) === length(files)
     end
