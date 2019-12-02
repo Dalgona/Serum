@@ -9,7 +9,7 @@ defmodule Serum.Error do
           message: Format.t(),
           caused_by: [t()],
           file: Serum.File.t() | nil,
-          line: integer()
+          line: integer() | nil
         }
 
   defimpl String.Chars do
