@@ -2,6 +2,7 @@ defmodule Serum.Build.FileProcessorTest do
   use ExUnit.Case
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
+  alias Serum.Error
   alias Serum.Build.FileProcessor
   alias Serum.GlobalBindings
   alias Serum.Project.Loader, as: ProjectLoader
@@ -73,38 +74,29 @@ defmodule Serum.Build.FileProcessorTest do
   setup(do: on_exit(fn -> Agent.update(GlobalBindings, fn _ -> {%{}, []} end) end))
 
   describe "process_files/2" do
-    test "everything went all", ctx do
+    test "processes valid source files", ctx do
       assert {:ok, processed} = FileProcessor.process_files(ctx.good, ctx.proj)
     end
 
-    test "bad templates", ctx do
+    test "fails with bad templates", ctx do
       files = %{ctx.good | includes: [], templates: ctx.bad.templates}
+      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.proj)
 
-      assert {:error, {_, errors}} = FileProcessor.process_files(files, ctx.proj)
-
-      assert Enum.all?(errors, fn {:error, {_, f, _}} ->
-               String.contains?(f, ".html.eex")
-             end)
+      assert Enum.all?(errors, fn %Error{file: file} -> file.src =~ ~r/.html.eex$/ end)
     end
 
-    test "bad pages", ctx do
+    test "fails with bad pages", ctx do
       files = %{ctx.good | pages: ctx.bad.pages}
+      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.proj)
 
-      assert {:error, {_, errors}} = FileProcessor.process_files(files, ctx.proj)
-
-      assert Enum.all?(errors, fn {:error, {_, f, _}} ->
-               String.contains?(f, "pages")
-             end)
+      assert Enum.all?(errors, fn %Error{file: file} -> file.src =~ "pages" end)
     end
 
-    test "bad posts", ctx do
+    test "fails with bad posts", ctx do
       files = %{ctx.good | posts: ctx.bad.posts}
+      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.proj)
 
-      assert {:error, {_, errors}} = FileProcessor.process_files(files, ctx.proj)
-
-      assert Enum.all?(errors, fn {:error, {_, f, _}} ->
-               String.contains?(f, "posts")
-             end)
+      assert Enum.all?(errors, fn %Error{file: file} -> file.src =~ "posts" end)
     end
   end
 

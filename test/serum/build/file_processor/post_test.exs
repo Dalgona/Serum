@@ -2,6 +2,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
+  alias Serum.Error
   alias Serum.Build.FileProcessor.Post, as: PostProcessor
   alias Serum.Project.Loader, as: ProjectLoader
 
@@ -63,7 +64,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
         |> Enum.map(&Serum.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, {_, errors}} = PostProcessor.process_posts(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = PostProcessor.process_posts(files, ctx.proj)
 
       assert length(errors) === length(files)
     end
