@@ -13,7 +13,7 @@ defmodule Serum.Build.FileProcessor.PostList do
   @doc false
   @spec generate_lists([map()], Project.t()) :: Result.t({[PostList.t()], tag_counts()})
   def generate_lists(compact_posts, proj)
-  def generate_lists([], _proj), do: {:ok, {[], []}}
+  def generate_lists([], _proj), do: Result.return({[], []})
 
   def generate_lists(compact_posts, proj) do
     put_msg(:info, "Generating post lists...")

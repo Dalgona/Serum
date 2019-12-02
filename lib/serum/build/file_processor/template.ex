@@ -12,11 +12,11 @@ defmodule Serum.Build.FileProcessor.Template do
   def compile_templates(%{templates: templates, includes: includes}) do
     put_msg(:info, "Compiling and loading templates...")
 
-    with {:ok, _} <- compile_and_load(includes, :include),
-         {:ok, _} <- compile_and_load(templates, :template) do
+    Result.run do
+      compile_and_load(includes, :include)
+      compile_and_load(templates, :template)
+
       Result.return()
-    else
-      {:error, %Error{}} = error -> error
     end
   end
 

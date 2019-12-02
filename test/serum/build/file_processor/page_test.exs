@@ -3,6 +3,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
   require Serum.TestHelper
   import Serum.Build.FileProcessor.Page
   import Serum.TestHelper, only: :macros
+  alias Serum.Error
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
@@ -90,7 +91,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
         |> Enum.map(&Serum.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, {_, errors}} = preprocess_pages(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = preprocess_pages(files, ctx.proj)
 
       assert length(errors) === length(files)
     end
@@ -105,7 +106,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
         |> Enum.map(fn {:ok, file} -> file end)
 
       {:ok, {pages, _}} = preprocess_pages(files, ctx.proj)
-      {:error, {_, errors}} = process_pages(pages, ctx.proj)
+      {:error, %Error{caused_by: errors}} = process_pages(pages, ctx.proj)
 
       assert length(errors) === length(files)
     end

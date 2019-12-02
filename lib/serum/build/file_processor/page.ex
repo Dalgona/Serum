@@ -25,7 +25,7 @@ defmodule Serum.Build.FileProcessor.Page do
       {:ok, pages} ->
         sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
 
-        {:ok, {sorted_pages, Enum.map(sorted_pages, &Page.compact/1)}}
+        Result.return({sorted_pages, Enum.map(sorted_pages, &Page.compact/1)})
 
       {:error, %Error{}} = error ->
         error
@@ -51,10 +51,18 @@ defmodule Serum.Build.FileProcessor.Page do
       header = Map.put(header, :label, header[:label] || header.title)
       page = Page.new(file2.src, {header, extras}, rest, proj)
 
-      {:ok, page}
+      Result.return(page)
     else
-      {:invalid, message} -> {:error, {message, file.src, 0}}
-      {:error, %Error{}} = plugin_error -> plugin_error
+      {:invalid, message} ->
+        {:error,
+         %Error{
+           message: %SimpleMessage{text: message},
+           caused_by: [],
+           file: file
+         }}
+
+      {:error, %Error{}} = plugin_error ->
+        plugin_error
     end
   end
 

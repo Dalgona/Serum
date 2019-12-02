@@ -13,7 +13,7 @@ defmodule Serum.Build.FileProcessor.Post do
   @doc false
   @spec process_posts([Serum.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
   def process_posts(files, proj)
-  def process_posts([], _proj), do: {:ok, {[], []}}
+  def process_posts([], _proj), do: Result.return({[], []})
 
   def process_posts(files, proj) do
     put_msg(:info, "Processing post files...")
