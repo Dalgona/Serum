@@ -6,6 +6,8 @@ defmodule Serum.Build.FileEmitter do
   """
 
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
+  alias Serum.Error.POSIXMessage
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 
@@ -24,7 +26,7 @@ defmodule Serum.Build.FileEmitter do
         |> Enum.map(&write_file/1)
         |> Result.aggregate_values("failed to write files:")
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
@@ -42,8 +44,16 @@ defmodule Serum.Build.FileEmitter do
   @spec create_dir(binary()) :: Result.t({})
   defp create_dir(dir) do
     case File.mkdir_p(dir) do
-      :ok -> put_msg(:mkdir, dir)
-      {:error, reason} -> {:error, {reason, dir, 0}}
+      :ok ->
+        put_msg(:mkdir, dir)
+
+      {:error, reason} ->
+        {:error,
+         %Error{
+           message: %POSIXMessage{reason: reason},
+           caused_by: [],
+           file: %Serum.File{src: dir}
+         }}
     end
   end
 
@@ -51,7 +61,7 @@ defmodule Serum.Build.FileEmitter do
   defp write_file(file) do
     case Serum.File.write(file) do
       {:ok, ^file} -> PluginClient.wrote_file(file)
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
   end
 end
