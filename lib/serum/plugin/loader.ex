@@ -3,10 +3,13 @@ defmodule Serum.Plugin.Loader do
 
   _moduledocp = "A module for loading Serum plugins from serum.exs."
 
+  require Serum.Result, as: Result
   import Serum.IOProxy
+  alias Serum.Error
+  alias Serum.Error.ExceptionMessage
+  alias Serum.Error.SimpleMessage
   alias Serum.Plugin
   alias Serum.Plugin.EnvMatcher
-  alias Serum.Result
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
   @elixir_version Version.parse!(System.version())
@@ -20,8 +23,36 @@ defmodule Serum.Plugin.Loader do
     |> Result.aggregate_values(@msg_load_failed)
     |> case do
       {:ok, specs} -> do_load_plugins(specs)
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
+  end
+
+  @spec validate_spec(term()) :: Result.t(Plugin.spec())
+  defp validate_spec(maybe_spec)
+  defp validate_spec(module) when is_atom(module), do: Result.return(module)
+
+  defp validate_spec({module, opts}) when is_atom(module) and is_list(opts) do
+    if Keyword.keyword?(opts) do
+      Result.return({module, opts})
+    else
+      {:error,
+       %Error{
+         message: %SimpleMessage{
+           text: "expected the second tuple element to be a keyword list, got: #{inspect(opts)}"
+         },
+         caused_by: []
+       }}
+    end
+  end
+
+  defp validate_spec(x) do
+    {:error,
+     %Error{
+       message: %SimpleMessage{
+         text: "#{inspect(x)} is not a valid Serum plugin specification"
+       },
+       caused_by: []
+     }}
   end
 
   @spec do_load_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
@@ -37,30 +68,11 @@ defmodule Serum.Plugin.Loader do
     |> case do
       {:ok, plugins} ->
         update_agent(plugins)
+        Result.return(plugins)
 
-        {:ok, plugins}
-
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
-  end
-
-  @spec validate_spec(term()) :: Result.t(Plugin.spec())
-  defp validate_spec(maybe_spec)
-  defp validate_spec(module) when is_atom(module), do: {:ok, module}
-
-  defp validate_spec({module, opts}) when is_atom(module) and is_list(opts) do
-    if Keyword.keyword?(opts) do
-      {:ok, {module, opts}}
-    else
-      {:error,
-       "expected the second tuple element to be a keyword list, " <>
-         "got: #{inspect(opts)}"}
-    end
-  end
-
-  defp validate_spec(x) do
-    {:error, "#{inspect(x)} is not a valid Serum plugin specification"}
   end
 
   @spec make_plugin(Plugin.spec()) :: Result.t(Plugin.t())
@@ -81,48 +93,48 @@ defmodule Serum.Plugin.Loader do
     validate_elixir_version(name, elixir)
     validate_serum_version(name, serum)
 
-    plugin = %Plugin{
+    Result.return(%Plugin{
       module: module,
       name: name,
       version: version,
       description: module.description(),
       implements: module.implements(),
       args: args
-    }
-
-    {:ok, plugin}
+    })
   rescue
     exception ->
-      ex_name = module_name(exception.__struct__)
-      ex_msg = Exception.message(exception)
-      msg = "#{ex_name} while loading plugin (module: #{module}): #{ex_msg}"
-
-      {:error, msg}
+      {:error,
+       %Error{
+         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
+         caused_by: []
+       }}
   end
 
-  @spec validate_elixir_version(binary(), Version.requirement()) :: :ok
+  @spec validate_elixir_version(binary(), Version.requirement()) :: Result.t()
   defp validate_elixir_version(name, requirement) do
     if Version.match?(@elixir_version, requirement) do
-      :ok
+      Result.return()
     else
-      msg =
-        "The plugin \"#{name}\" is not compatible with " <>
-          "the current version of Elixir(#{@elixir_version}). " <>
-          "This plugin may not work as intended."
+      msg = [
+        "The plugin \"#{name}\" is not compatible with ",
+        "the current version of Elixir(#{@elixir_version}). ",
+        "This plugin may not work as intended."
+      ]
 
       put_err(:warn, msg)
     end
   end
 
-  @spec validate_serum_version(binary(), Version.requirement()) :: :ok
+  @spec validate_serum_version(binary(), Version.requirement()) :: Result.t()
   defp validate_serum_version(name, requirement) do
     if Version.match?(@serum_version, requirement) do
-      :ok
+      Result.return()
     else
-      msg =
-        "The plugin \"#{name}\" is not compatible with " <>
-          "the current version of Serum(#{@serum_version}). " <>
-          "This plugin may not work as intended."
+      msg = [
+        "The plugin \"#{name}\" is not compatible with ",
+        "the current version of Serum(#{@serum_version}). ",
+        "This plugin may not work as intended."
+      ]
 
       put_err(:warn, msg)
     end
@@ -140,10 +152,5 @@ defmodule Serum.Plugin.Loader do
       |> Map.new()
 
     Agent.update(Plugin, fn _ -> map end)
-  end
-
-  @spec module_name(atom()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end

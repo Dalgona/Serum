@@ -4,6 +4,7 @@ defmodule Serum.Plugin.LoaderTest do
   import ExUnit.CaptureIO
   import Serum.Plugin.Loader
   import Serum.TestHelper, only: :macros
+  alias Serum.Error
   alias Serum.IOProxy
   alias Serum.Plugin
 
@@ -26,7 +27,6 @@ defmodule Serum.Plugin.LoaderTest do
   describe "load_plugins/1" do
     test "always loads plugins without :only option" do
       plugin_specs = [Serum.DummyPlugin1, {Serum.DummyPlugin2, []}]
-
       {:ok, loaded_plugins} = load_plugins(plugin_specs)
 
       assert length(loaded_plugins) === 2
@@ -78,13 +78,13 @@ defmodule Serum.Plugin.LoaderTest do
         {Serum.DummyPlugin3, only: :dev}
       ]
 
-      assert {:error, {_, errors}} = load_plugins(plugin_specs)
+      assert {:error, %Error{caused_by: errors}} = load_plugins(plugin_specs)
       assert length(errors) === 2
     end
 
     test "returns an error when the plugin fails to load" do
-      {:error, {_, [error | _]}} = load_plugins([Serum.FailingPlugin2])
-      {:error, message} = error
+      {:error, error} = load_plugins([Serum.FailingPlugin2])
+      message = to_string(error)
 
       assert message =~ "RuntimeError"
       assert message =~ "test: version"
