@@ -100,9 +100,7 @@ defmodule Serum.Result do
         expr -> quote(do: {:ok, _} <- unquote(expr))
       end)
 
-    quote do
-      with(unquote_splicing(leadings), do: unquote(last), else: unquote(else_expr))
-    end
+    {:with, [], leadings ++ [[do: last, else: else_expr]]}
   end
 
   @doc "Expands into `{:ok, {}}` tuple."

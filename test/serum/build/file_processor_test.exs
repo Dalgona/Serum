@@ -2,8 +2,8 @@ defmodule Serum.Build.FileProcessorTest do
   use ExUnit.Case
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
-  alias Serum.Error
   alias Serum.Build.FileProcessor
+  alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Project.Loader, as: ProjectLoader
 

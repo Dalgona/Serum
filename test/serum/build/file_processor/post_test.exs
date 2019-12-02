@@ -2,8 +2,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
-  alias Serum.Error
   alias Serum.Build.FileProcessor.Post, as: PostProcessor
+  alias Serum.Error
   alias Serum.Project.Loader, as: ProjectLoader
 
   setup_all do
