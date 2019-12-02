@@ -9,13 +9,7 @@ defmodule Serum.Result do
   alias Serum.Error.Format
   alias Serum.Error.SimpleMessage
 
-  @type t(type) :: {:ok, type} | error()
-
-  @type error :: {:error, err_details()}
-  @type err_details :: msg_detail() | full_detail() | nest_detail() | Error.t()
-  @type msg_detail :: binary()
-  @type full_detail :: {binary(), binary(), non_neg_integer()}
-  @type nest_detail :: {term(), [error()]}
+  @type t(type) :: {:ok, type} | {:error, Error.t()}
 
   @doc """
   Takes a list of results with values and checks if there is no error.
@@ -25,7 +19,7 @@ defmodule Serum.Result do
 
   Returns an aggregated error object if there is one or more errors.
   """
-  @spec aggregate_values([t(term())], term()) :: t([term()])
+  @spec aggregate_values([t(a)], IO.ANSI.ansidata()) :: t([a]) when a: term()
   def aggregate_values(results, msg) do
     results
     |> do_aggregate_values([], [])
@@ -38,7 +32,7 @@ defmodule Serum.Result do
     end
   end
 
-  @spec do_aggregate_values([t(term())], [term()], [t(term())]) :: {[term()], [t(term())]}
+  @spec do_aggregate_values([t(a)], [a], [t(a)]) :: {[a], [t(a)]} when a: term()
   defp do_aggregate_values(results, values, errors)
 
   defp do_aggregate_values([], values, errors) do
@@ -73,31 +67,6 @@ defmodule Serum.Result do
   @spec do_get_message(t(term), non_neg_integer()) :: IO.chardata()
   defp do_get_message(result, depth)
   defp do_get_message({:ok, _}, depth), do: indented("No error detected", depth)
-
-  defp do_get_message({:error, msg}, depth) when is_binary(msg) do
-    indented(msg, depth)
-  end
-
-  defp do_get_message({:error, {posix, file, line}}, depth) when is_atom(posix) do
-    msg = posix |> :file.format_error() |> IO.iodata_to_binary()
-
-    do_get_message({:error, {msg, file, line}}, depth)
-  end
-
-  defp do_get_message({:error, {msg, file, 0}}, depth) when is_binary(msg) do
-    indented([file, ": ", msg], depth)
-  end
-
-  defp do_get_message({:error, {msg, file, line}}, depth) when is_binary(msg) do
-    indented([file, ?:, to_string(line), ": ", msg], depth)
-  end
-
-  defp do_get_message({:error, {msg, errors}}, depth) when is_list(errors) do
-    head = indented([:bright, :red, to_string(msg), ?:, :reset], depth)
-    children = Enum.map(errors, &do_get_message(&1, depth + 1))
-
-    [head | children] |> Enum.intersperse(?\n) |> IO.ANSI.format()
-  end
 
   defp do_get_message({:error, %Error{} = error}, depth) do
     error |> Format.format_text(depth) |> IO.ANSI.format()
