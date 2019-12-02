@@ -88,25 +88,28 @@ defmodule Serum.ThemeTest do
 
     test "fails if the returned value is not a list" do
       {:ok, _theme} = load(Serum.SuperWeirdTheme1)
+      {:error, error} = get_includes()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_includes()
-      assert String.contains?(msg, "Serum.SuperWeirdTheme1.get_includes")
-      assert String.contains?(msg, inspect("/foo/bar/baz.html.eex"))
+      assert msg =~ "Serum.SuperWeirdTheme1.get_includes"
+      assert msg =~ inspect("/foo/bar/baz.html.eex")
     end
 
     test "fails if the returned list has non-binary values" do
       {:ok, _theme} = load(Serum.SuperWeirdTheme2)
+      {:error, error} = get_includes()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_includes()
-      assert String.contains?(msg, "Serum.SuperWeirdTheme2.get_includes")
-      assert String.contains?(msg, inspect(42))
+      assert msg =~ "Serum.SuperWeirdTheme2.get_includes"
+      assert msg =~ inspect(42)
     end
 
     test "may also fail in some other cases" do
       {:ok, _theme} = load(Serum.FailingTheme)
+      {:error, error} = get_includes()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_includes()
-      assert String.contains?(msg, "test error from get_includes/0")
+      assert msg =~ "test error from get_includes/0"
     end
 
     test "does nothing if the theme module is nil" do
@@ -145,25 +148,28 @@ defmodule Serum.ThemeTest do
 
     test "fails if the returned value is not a list" do
       load(Serum.SuperWeirdTheme1)
+      {:error, error} = get_templates()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_templates()
-      assert String.contains?(msg, "Serum.SuperWeirdTheme1.get_templates")
-      assert String.contains?(msg, inspect("/foo/bar/baz.html.eex"))
+      assert msg =~ "Serum.SuperWeirdTheme1.get_templates"
+      assert msg =~ inspect("/foo/bar/baz.html.eex")
     end
 
     test "fails if the returned list has non-binary values" do
       load(Serum.SuperWeirdTheme2)
+      {:error, error} = get_templates()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_templates()
-      assert String.contains?(msg, "Serum.SuperWeirdTheme2.get_templates")
-      assert String.contains?(msg, inspect(42))
+      assert msg =~ "Serum.SuperWeirdTheme2.get_templates"
+      assert msg =~ inspect(42)
     end
 
     test "may also fail in some other cases" do
       load(Serum.FailingTheme)
+      {:error, error} = get_templates()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_templates()
-      assert String.contains?(msg, "test error from get_templates/0")
+      assert msg =~ "test error from get_templates/0"
     end
 
     test "does nothing if the theme module is nil" do
@@ -196,27 +202,30 @@ defmodule Serum.ThemeTest do
       tmp_path = get_tmp_dir("serum_test_")
       {:ok, agent} = Agent.start_link(fn -> tmp_path end, name: Serum.TestAgent)
       {:ok, _theme} = load(Serum.WeirdTheme)
-      expected = {:error, {:enotdir, tmp_path, 0}}
 
       File.touch!(tmp_path)
-      assert expected === get_assets()
+      {:error, error} = get_assets()
       File.rm_rf!(tmp_path)
+
+      assert error.message.reason === :enotdir
 
       :ok = Agent.stop(agent)
     end
 
     test "fails if the returned value is not a binary" do
       load(Serum.SuperWeirdTheme1)
+      {:error, error} = get_assets()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_assets()
-      assert String.contains?(msg, inspect(42))
+      assert msg =~ inspect(42)
     end
 
     test "may also fail in some other cases" do
       load(Serum.FailingTheme)
+      {:error, error} = get_assets()
+      msg = to_string(error)
 
-      assert {:error, msg} = get_assets()
-      assert String.contains?(msg, "test error from get_assets/0")
+      assert msg =~ "test error from get_assets/0"
     end
 
     test "does nothing if the theme module is nil" do
