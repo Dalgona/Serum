@@ -3,18 +3,16 @@ defmodule Serum.Build.FileCopier do
 
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2, put_err: 2]
+  alias Serum.Error
   alias Serum.Theme
 
   @doc false
   @spec copy_files(binary(), binary()) :: Result.t({})
   def copy_files(src, dest) do
-    case copy_theme_assets(dest) do
-      {:ok, _} ->
-        copy_assets(src, dest)
-        do_copy_files(src, dest)
-
-      {:error, _} = error ->
-        error
+    Result.run do
+      copy_theme_assets(dest)
+      copy_assets(src, dest)
+      do_copy_files(src, dest)
     end
   end
 
@@ -23,7 +21,7 @@ defmodule Serum.Build.FileCopier do
     case Theme.get_assets() do
       {:ok, false} -> Result.return()
       {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
   end
 
