@@ -4,6 +4,7 @@ defmodule Serum.Build.FragmentGenerator do
   _moduledocp = "Renders page/post/post list structs into a page fragment."
 
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
@@ -25,7 +26,7 @@ defmodule Serum.Build.FragmentGenerator do
   defp task_fun(fragment_source) do
     case Fragment.Source.to_fragment(fragment_source) do
       {:ok, fragment} -> PluginClient.rendered_fragment(fragment)
-      {:error, _} = error -> error
+      {:error, %Error{}} = error -> error
     end
   end
 end

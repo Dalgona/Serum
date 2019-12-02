@@ -4,6 +4,7 @@ defmodule Serum.Build.PageGenerator do
   _moduledocp = "A module responsible for rendering complete HTML pages."
 
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
@@ -41,7 +42,7 @@ defmodule Serum.Build.PageGenerator do
 
         PluginClient.rendered_page(file)
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end
