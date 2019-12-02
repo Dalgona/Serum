@@ -7,6 +7,7 @@ defmodule Serum.Build.FileLoader.Includes do
 
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Theme
@@ -24,10 +25,10 @@ defmodule Serum.Build.FileLoader.Includes do
         |> PluginClient.reading_templates()
         |> case do
           {:ok, files} -> read_files(files)
-          {:error, _} = plugin_error -> plugin_error
+          {:error, %Error{}} = plugin_error -> plugin_error
         end
 
-      {:error, _} = error ->
+      {:error, %Error{}} = error ->
         error
     end
   end

@@ -8,6 +8,8 @@ defmodule Serum.Build.FileLoader.Templates do
   require Serum.Result, as: Result
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Error
+  alias Serum.Error.POSIXMessage
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Theme
@@ -17,35 +19,33 @@ defmodule Serum.Build.FileLoader.Templates do
   def load(src) do
     put_msg(:info, "Loading template files...")
 
-    with {:ok, theme_paths} <- Theme.get_templates(),
-         {:ok, proj_paths} <- get_project_templates(src),
-         merged <- Map.merge(theme_paths, proj_paths, &merge_fun/3),
-         {:ok, _} <- validate_required(merged, src) do
+    Result.run do
+      theme_paths <- Theme.get_templates()
+      proj_paths <- get_project_templates(src)
+      merged = Map.merge(theme_paths, proj_paths, &merge_fun/3)
+      validate_required(merged, src)
+
       merged
       |> Enum.map(&elem(&1, 1))
       |> PluginClient.reading_templates()
       |> case do
         {:ok, files} -> read_files(files)
-        {:error, _} = plugin_error -> plugin_error
+        {:error, %Error{}} = plugin_error -> plugin_error
       end
-    else
-      {:error, _} = error ->
-        error
     end
   end
 
   @spec get_project_templates(binary()) :: Result.t(map())
   defp get_project_templates(src) do
-    templates_dir = get_subdir(src, "templates")
-
     map =
-      templates_dir
+      src
+      |> get_subdir("templates")
       |> Path.join("*.html.eex")
       |> Path.wildcard()
       |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
       |> Map.new()
 
-    {:ok, map}
+    Result.return(map)
   end
 
   @spec merge_fun(binary(), binary(), binary()) :: binary()
@@ -68,10 +68,15 @@ defmodule Serum.Build.FileLoader.Templates do
       missings when is_list(missings) ->
         errors =
           Enum.map(missings, fn missing ->
-            {:error, {:enoent, Path.join([src, "templates", missing]), 0}}
+            {:error,
+             %Error{
+               message: %POSIXMessage{reason: :enoent},
+               caused_by: [],
+               file: %Serum.File{src: Path.join([src, "templates", missing])}
+             }}
           end)
 
-        {:error, {:file_loader, errors}}
+        Result.aggregate_values(errors, "some required templates are missing:")
     end
   end
 end
