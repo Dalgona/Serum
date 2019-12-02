@@ -1,9 +1,9 @@
 defmodule Serum.ResultTest do
   use ExUnit.Case, async: true
+  require Serum.Result, as: Result
   alias Serum.Error
   alias Serum.Error.Format
   alias Serum.Error.SimpleMessage
-  alias Serum.Result
 
   describe "aggregate_values/2" do
     test "processes a list of successful results with value" do
@@ -51,6 +51,47 @@ defmodule Serum.ResultTest do
       result = {:error, %Error{message: %SimpleMessage{text: "test error"}, caused_by: []}}
 
       assert Result.get_message(result, 0) =~ "test error"
+    end
+  end
+
+  describe "run/1" do
+    test "expands to appropriate `with` construct" do
+      ast =
+        quote do
+          Result.run do
+            x <- foo()
+            y = bar()
+            baz()
+            spam()
+          end
+        end
+
+      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
+
+      assert generated_code =~ ~r/\{:ok, x\} <- foo\(\),/
+      assert generated_code =~ ~r/y = bar\(\),/
+      assert generated_code =~ ~r/\{:ok, _\} <- baz\(\)/
+      assert generated_code =~ ~r/\s*spam\(\)/
+      assert generated_code =~ ~r/else\n\s*\{:error, %Serum.Error\{\}\} = error ->\n\s*error/
+    end
+  end
+
+  describe "run/2" do
+    test "modifies else clauses according to the given argument" do
+      ast =
+        quote do
+          Result.run do
+            x <- foo()
+            y <- bar()
+            baz()
+          else
+            :oh_no -> nil
+          end
+        end
+
+      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
+
+      assert generated_code =~ ~r/else\n\s*:oh_no ->\n\s*nil\n\s*end/
     end
   end
 end
