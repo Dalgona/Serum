@@ -110,4 +110,21 @@ defmodule Serum.Result do
   defmacro return(expr)
   defmacro return(do: do_block), do: quote(do: {:ok, unquote(do_block)})
   defmacro return(expr), do: quote(do: {:ok, unquote(expr)})
+
+  @doc "Expands into `{:error, %Error{...}}` tuple."
+  defmacro fail({:__aliases__, _, [type]}, args, opts \\ [])
+           when is_atom(type) and is_list(args) and is_list(opts) do
+    msg_module = Module.concat(Serum.Error, "#{type}Message")
+    caused_by = opts[:caused_by] || []
+
+    quote do
+      {:error,
+       %Serum.Error{
+         message: unquote(msg_module).message(unquote(args)),
+         caused_by: unquote(caused_by),
+         file: unquote(opts[:file]),
+         line: unquote(opts[:line])
+       }}
+    end
+  end
 end

@@ -94,4 +94,30 @@ defmodule Serum.ResultTest do
       assert generated_code =~ ~r/else\n\s*:oh_no ->\n\s*nil\n\s*end/
     end
   end
+
+  describe "fail/3" do
+    test "expands into appropriate error expression" do
+      ast =
+        quote do
+          Result.fail(Simple, ["test error"], file: %Serum.File{src: "nofile"}, line: 3)
+        end
+
+      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
+
+      assert generated_code =~ ~r/^\{:error, %Serum.Error/
+      assert generated_code =~ "Serum.Error.SimpleMessage.message([\"test error\"])"
+      assert generated_code =~ ~r/file: %Serum.File{[^}]*src: \"nofile\"/
+      assert generated_code =~ "caused_by: []"
+      assert generated_code =~ "line: 3"
+    end
+
+    test "expands into appropriate error expression, with default opts" do
+      ast = quote(do: Result.fail(Simple, ["test error"]))
+      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
+
+      assert generated_code =~ "caused_by: []"
+      assert generated_code =~ "file: nil"
+      assert generated_code =~ "line: nil"
+    end
+  end
 end
