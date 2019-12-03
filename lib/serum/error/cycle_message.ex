@@ -4,9 +4,13 @@ defmodule Serum.Error.CycleMessage do
   detected while expanding includes.
   """
 
+  @behaviour Serum.Error.Message
+
   defstruct [:cycle]
 
   @type t :: %__MODULE__{cycle: [String.Chars.t()]}
+
+  def message([items]) when is_list(items), do: %__MODULE__{cycle: items}
 
   defimpl Serum.Error.Format do
     alias Serum.Error.CycleMessage
