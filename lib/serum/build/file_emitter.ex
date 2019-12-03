@@ -5,11 +5,10 @@ defmodule Serum.Build.FileEmitter do
   A module responsible for writing each complete HTML page to a file.
   """
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Error
-  alias Serum.Error.POSIXMessage
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Result
 
   @doc """
   Write files described by `%Serum.File{}` to actual files on disk.
@@ -44,16 +43,8 @@ defmodule Serum.Build.FileEmitter do
   @spec create_dir(binary()) :: Result.t({})
   defp create_dir(dir) do
     case File.mkdir_p(dir) do
-      :ok ->
-        put_msg(:mkdir, dir)
-
-      {:error, reason} ->
-        {:error,
-         %Error{
-           message: %POSIXMessage{reason: reason},
-           caused_by: [],
-           file: %Serum.File{src: dir}
-         }}
+      :ok -> put_msg(:mkdir, dir)
+      {:error, reason} -> Result.fail(POSIX, [reason], file: %Serum.File{src: dir})
     end
   end
 

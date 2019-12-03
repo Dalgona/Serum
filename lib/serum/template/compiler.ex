@@ -5,7 +5,6 @@ defmodule Serum.Template.Compiler do
 
   require Serum.Result, as: Result
   alias Serum.Error
-  alias Serum.Error.SimpleMessage
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Template
 
@@ -60,17 +59,8 @@ defmodule Serum.Template.Compiler do
 
       Result.return({name, template2})
     else
-      {:ct_error, msg, line} ->
-        {:error,
-         %Error{
-           message: %SimpleMessage{text: msg},
-           caused_by: [],
-           file: file,
-           line: line
-         }}
-
-      {:error, %Error{}} = plugin_error ->
-        plugin_error
+      {:ct_error, msg, line} -> Result.fail(Simple, [msg], file: file, line: line)
+      {:error, %Error{}} = plugin_error -> plugin_error
     end
   end
 
@@ -79,10 +69,7 @@ defmodule Serum.Template.Compiler do
   def compile_string(string) do
     {:ok, EEx.compile_string(@inject <> string)}
   rescue
-    e in EEx.SyntaxError ->
-      {:ct_error, e.message, e.line}
-
-    e in [SyntaxError, TokenMissingError] ->
-      {:ct_error, e.description, e.line}
+    e in EEx.SyntaxError -> {:ct_error, e.message, e.line}
+    e in [SyntaxError, TokenMissingError] -> {:ct_error, e.description, e.line}
   end
 end

@@ -30,7 +30,6 @@ defmodule Serum.Page do
 
   require Serum.Result, as: Result
   alias Serum.Error
-  alias Serum.Error.SimpleMessage
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Template
@@ -104,17 +103,8 @@ defmodule Serum.Page do
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
       Fragment.new(page.file, page.output, metadata, html)
     else
-      nil ->
-        {:error,
-         %Error{
-           message: %SimpleMessage{
-             text: "the template \"#{template_name}\" is not available"
-           },
-           caused_by: []
-         }}
-
-      {:error, %Error{}} = error ->
-        error
+      nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
+      {:error, %Error{}} = error -> error
     end
   end
 

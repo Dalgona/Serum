@@ -4,7 +4,6 @@ defmodule Serum.Build.FileProcessor.Page do
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Error
-  alias Serum.Error.SimpleMessage
   alias Serum.Markdown
   alias Serum.Page
   alias Serum.Plugin.Client, as: PluginClient
@@ -53,16 +52,8 @@ defmodule Serum.Build.FileProcessor.Page do
 
       Result.return(page)
     else
-      {:invalid, message} ->
-        {:error,
-         %Error{
-           message: %SimpleMessage{text: message},
-           caused_by: [],
-           file: file
-         }}
-
-      {:error, %Error{}} = plugin_error ->
-        plugin_error
+      {:invalid, message} -> Result.fail(Simple, [message], file: file)
+      {:error, %Error{}} = plugin_error -> plugin_error
     end
   end
 
@@ -107,13 +98,7 @@ defmodule Serum.Build.FileProcessor.Page do
       Result.return(%Page{page | data: html})
     else
       {:ct_error, msg, line} ->
-        {:error,
-         %Error{
-           message: %SimpleMessage{text: msg},
-           caused_by: [],
-           file: %Serum.File{src: page.file},
-           line: line
-         }}
+        Result.fail(Simple, [msg], file: %Serum.File{src: page.file}, line: line)
 
       {:error, %Error{}} = error ->
         error

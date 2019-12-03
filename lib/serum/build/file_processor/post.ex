@@ -4,7 +4,6 @@ defmodule Serum.Build.FileProcessor.Post do
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Error
-  alias Serum.Error.SimpleMessage
   alias Serum.Markdown
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Post
@@ -58,16 +57,8 @@ defmodule Serum.Build.FileProcessor.Post do
 
       PluginClient.processed_post(post)
     else
-      {:invalid, message} ->
-        {:error,
-         %Error{
-           message: %SimpleMessage{text: message},
-           caused_by: [],
-           file: file
-         }}
-
-      {:error, %Error{}} = plugin_error ->
-        plugin_error
+      {:invalid, message} -> Result.fail(Simple, [message], file: file)
+      {:error, %Error{}} = plugin_error -> plugin_error
     end
   end
 end

@@ -4,8 +4,6 @@ defmodule Serum.Renderer do
   _moduledocp = "This module provides functions for rendering pages into HTML."
 
   require Serum.Result, as: Result
-  alias Serum.Error
-  alias Serum.Error.ExceptionMessage
   alias Serum.GlobalBindings
   alias Serum.Template
 
@@ -19,12 +17,6 @@ defmodule Serum.Renderer do
 
     Result.return(html)
   rescue
-    exception ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
-         caused_by: [],
-         file: %Serum.File{src: template.file}
-       }}
+    e -> Result.fail(Exception, [e, __STACKTRACE__], file: %Serum.File{src: template.file})
   end
 end

@@ -64,9 +64,6 @@ defmodule Serum.Theme do
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_err: 2]
   alias Serum.Error
-  alias Serum.Error.ExceptionMessage
-  alias Serum.Error.POSIXMessage
-  alias Serum.Error.SimpleMessage
 
   defstruct module: nil,
             name: "",
@@ -205,12 +202,7 @@ defmodule Serum.Theme do
       version: version
     })
   rescue
-    exception ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
-         caused_by: []
-       }}
+    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
   end
 
   @spec validate_serum_version(binary(), Version.requirement()) :: Result.t({})
@@ -300,21 +292,13 @@ defmodule Serum.Theme do
   defp check_list_type([x | _xs], prefix) do
     msg = "#{prefix} expected a list of strings, got: #{inspect(x)} in the list"
 
-    {:error,
-     %Error{
-       message: %SimpleMessage{text: msg},
-       caused_by: []
-     }}
+    Result.fail(Simple, [msg])
   end
 
   defp check_list_type(x, prefix) do
     msg = "#{prefix}: expected a list of strings, got: #{inspect(x)}"
 
-    {:error,
-     %Error{
-       message: %SimpleMessage{text: msg},
-       caused_by: []
-     }}
+    Result.fail(Simple, [msg])
   end
 
   @doc false
@@ -339,11 +323,7 @@ defmodule Serum.Theme do
         mod_name = module_name(module)
         msg = "#{mod_name}.get_assets: expected a string, got: #{inspect(x)}"
 
-        {:error,
-         %Error{
-           message: %SimpleMessage{text: msg},
-           caused_by: []
-         }}
+        Result.fail(Simple, [msg])
 
       {:error, %Error{}} = error ->
         error
@@ -353,24 +333,9 @@ defmodule Serum.Theme do
   @spec validate_assets_dir(binary()) :: Result.t(binary())
   defp validate_assets_dir(path) do
     case File.stat(path) do
-      {:ok, %File.Stat{type: :directory}} ->
-        Result.return(path)
-
-      {:ok, %File.Stat{}} ->
-        {:error,
-         %Error{
-           message: %POSIXMessage{reason: :enotdir},
-           caused_by: [],
-           file: %Serum.File{src: path}
-         }}
-
-      {:error, reason} ->
-        {:error,
-         %Error{
-           message: %POSIXMessage{reason: reason},
-           caused_by: [],
-           file: %Serum.File{src: path}
-         }}
+      {:ok, %File.Stat{type: :directory}} -> Result.return(path)
+      {:ok, %File.Stat{}} -> Result.fail(POSIX, [:enotdir], file: %Serum.File{src: path})
+      {:error, reason} -> Result.fail(POSIX, [reason], file: %Serum.File{src: path})
     end
   end
 
@@ -378,12 +343,7 @@ defmodule Serum.Theme do
   defp call_function(module, fun, args) do
     Result.return(apply(module, fun, args))
   rescue
-    exception ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
-         caused_by: []
-       }}
+    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
   end
 
   @spec module_name(atom()) :: binary()

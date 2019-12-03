@@ -6,8 +6,6 @@ defmodule Serum.Plugin.Loader do
   require Serum.Result, as: Result
   import Serum.IOProxy
   alias Serum.Error
-  alias Serum.Error.ExceptionMessage
-  alias Serum.Error.SimpleMessage
   alias Serum.Plugin
   alias Serum.Plugin.EnvMatcher
 
@@ -35,24 +33,14 @@ defmodule Serum.Plugin.Loader do
     if Keyword.keyword?(opts) do
       Result.return({module, opts})
     else
-      {:error,
-       %Error{
-         message: %SimpleMessage{
-           text: "expected the second tuple element to be a keyword list, got: #{inspect(opts)}"
-         },
-         caused_by: []
-       }}
+      message = "expected the second tuple element to be a keyword list, got: #{inspect(opts)}"
+
+      Result.fail(Simple, [message])
     end
   end
 
   defp validate_spec(x) do
-    {:error,
-     %Error{
-       message: %SimpleMessage{
-         text: "#{inspect(x)} is not a valid Serum plugin specification"
-       },
-       caused_by: []
-     }}
+    Result.fail(Simple, ["#{inspect(x)} is not a valid Serum plugin specification"])
   end
 
   @spec do_load_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
@@ -102,12 +90,7 @@ defmodule Serum.Plugin.Loader do
       args: args
     })
   rescue
-    exception ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
-         caused_by: []
-       }}
+    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
   end
 
   @spec validate_elixir_version(binary(), Version.requirement()) :: Result.t()

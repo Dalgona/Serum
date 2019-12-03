@@ -5,9 +5,6 @@ defmodule Serum.Project.Loader do
 
   require Serum.Result, as: Result
   alias Serum.Error
-  alias Serum.Error.ExceptionMessage
-  alias Serum.Error.POSIXMessage
-  alias Serum.Error.SimpleMessage
   alias Serum.GlobalBindings
   alias Serum.Project
   alias Serum.Project.ElixirValidator
@@ -43,12 +40,7 @@ defmodule Serum.Project.Loader do
     if File.exists?(exs_path) do
       load_exs(exs_path)
     else
-      {:error,
-       %Error{
-         message: %POSIXMessage{reason: :enoent},
-         caused_by: [],
-         file: %Serum.File{src: exs_path}
-       }}
+      Result.fail(POSIX, [:enoent], file: %Serum.File{src: exs_path})
     end
   end
 
@@ -61,51 +53,25 @@ defmodule Serum.Project.Loader do
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
-        {:error,
-         %Error{
-           message: %POSIXMessage{reason: reason},
-           caused_by: [],
-           file: %Serum.File{src: exs_path}
-         }}
+        Result.fail(POSIX, [reason], file: %Serum.File{src: exs_path})
 
       # From ElixirValidator.validate/2:
       {:invalid, message} when is_binary(message) ->
-        {:error,
-         %Error{
-           message: %SimpleMessage{text: message},
-           caused_by: [],
-           file: %Serum.File{src: exs_path}
-         }}
+        Result.fail(Simple, [message], file: %Serum.File{src: exs_path})
 
       {:invalid, messages} when is_list(messages) ->
         errors =
           Enum.map(messages, fn message ->
-            {:error,
-             %Error{
-               message: %SimpleMessage{text: message},
-               caused_by: [],
-               file: %Serum.File{src: exs_path}
-             }}
+            Result.fail(Simple, [message], file: %Serum.File{src: exs_path})
           end)
 
         Result.aggregate_values(errors, "failed to validate `serum.exs`:")
     end
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: e, stacktrace: __STACKTRACE__},
-         caused_by: [],
-         file: %Serum.File{src: e.file},
-         line: e.line
-       }}
+      Result.fail(Exception, [e, __STACKTRACE__], file: %Serum.File{src: e.file}, line: e.line)
 
     e ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: e, stacktrace: __STACKTRACE__},
-         caused_by: [],
-         file: %Serum.File{src: exs_path}
-       }}
+      Result.fail(Exception, [e, __STACKTRACE__], file: %Serum.File{src: exs_path})
   end
 end

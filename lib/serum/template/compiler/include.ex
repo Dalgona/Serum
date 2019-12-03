@@ -5,8 +5,6 @@ defmodule Serum.Template.Compiler.Include do
 
   require Serum.Result, as: Result
   alias Serum.Error
-  alias Serum.Error.CycleMessage
-  alias Serum.Error.SimpleMessage
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
@@ -63,11 +61,8 @@ defmodule Serum.Template.Compiler.Include do
         {quote(do: (fn -> unquote(new_include.ast) end).()), new_context}
 
       nil ->
-        error = %Error{
-          message: %SimpleMessage{text: "include not found: \"#{arg}\""},
-          caused_by: [],
-          file: %Serum.File{src: context.template.file}
-        }
+        file = %Serum.File{src: context.template.file}
+        {:error, error} = Result.fail(Simple, ["include not found: \"#{arg}\""], file: file)
 
         {ast, %{context | error: {:error, error}}}
     end
@@ -80,12 +75,7 @@ defmodule Serum.Template.Compiler.Include do
     if name in context.stack do
       cycle = context.stack |> Enum.reverse() |> Enum.drop_while(&(&1 != name))
 
-      {:error,
-       %Error{
-         message: %CycleMessage{cycle: cycle},
-         caused_by: [],
-         file: %Serum.File{src: context.template.file}
-       }}
+      Result.fail(Cycle, [cycle], file: %Serum.File{src: context.template.file})
     else
       Result.return()
     end

@@ -8,8 +8,6 @@ defmodule Serum.Plugin.Client do
   require Serum.Result, as: Result
   import Serum.Plugin.Client.Macros
   alias Serum.Error
-  alias Serum.Error.ExceptionMessage
-  alias Serum.Error.SimpleMessage
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Plugin
@@ -72,15 +70,10 @@ defmodule Serum.Plugin.Client do
           "#{module_name(plugin.module)}.#{fun} returned " <>
             "an unexpected value: #{inspect(term)}"
 
-        {:error, %Error{message: %SimpleMessage{text: message}, caused_by: []}}
+        Result.fail(Simple, [message])
     end
   rescue
-    exception ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
-         caused_by: []
-       }}
+    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
   end
 
   @spec call_function(atom(), [a | term()]) :: Result.t(a) when a: term()
@@ -110,15 +103,10 @@ defmodule Serum.Plugin.Client do
           "#{module_name(plugin.module)}.#{fun} returned " <>
             "an unexpected value: #{inspect(term)}"
 
-        {:error, %Error{message: %SimpleMessage{text: message}, caused_by: []}}
+        Result.fail(Simple, [message])
     end
   rescue
-    exception ->
-      {:error,
-       %Error{
-         message: %ExceptionMessage{exception: exception, stacktrace: __STACKTRACE__},
-         caused_by: []
-       }}
+    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
   end
 
   @spec module_name(atom()) :: binary()

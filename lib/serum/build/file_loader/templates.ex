@@ -9,7 +9,6 @@ defmodule Serum.Build.FileLoader.Templates do
   import Serum.Build.FileLoader.Common
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Error
-  alias Serum.Error.POSIXMessage
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Theme
@@ -67,12 +66,9 @@ defmodule Serum.Build.FileLoader.Templates do
       missings when is_list(missings) ->
         errors =
           Enum.map(missings, fn missing ->
-            {:error,
-             %Error{
-               message: %POSIXMessage{reason: :enoent},
-               caused_by: [],
-               file: %Serum.File{src: Path.join([src, "templates", missing])}
-             }}
+            Result.fail(POSIX, [:enoent],
+              file: %Serum.File{src: Path.join([src, "templates", missing])}
+            )
           end)
 
         Result.aggregate_values(errors, "some required templates are missing:")
