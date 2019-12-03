@@ -36,6 +36,6 @@ defmodule Serum.Build.FileProcessor.Template do
   defp expand_includes(templates) do
     templates
     |> Enum.map(&TC.Include.expand/1)
-    |> Result.aggregate_values("failed to expand includes:")
+    |> Result.aggregate("failed to expand includes:")
   end
 end

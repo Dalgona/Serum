@@ -41,7 +41,7 @@ defmodule Serum.Template.Compiler do
     files
     |> Task.async_stream(&compile_file(&1, options))
     |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values("failed to compile EEx templates:")
+    |> Result.aggregate("failed to compile EEx templates:")
     |> case do
       {:ok, list} -> Result.return(Map.new(list))
       {:error, %Error{}} = error -> error

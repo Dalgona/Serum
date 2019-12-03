@@ -19,7 +19,7 @@ defmodule Serum.Build.FragmentGenerator do
     |> List.flatten()
     |> Task.async_stream(&task_fun(&1))
     |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate_values("failed to generate HTML fragments:")
+    |> Result.aggregate("failed to generate HTML fragments:")
   end
 
   @spec task_fun(struct()) :: Result.t(Fragment.t())

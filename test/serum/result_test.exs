@@ -5,10 +5,10 @@ defmodule Serum.ResultTest do
   alias Serum.Error.Format
   alias Serum.Error.SimpleMessage
 
-  describe "aggregate_values/2" do
+  describe "aggregate/2" do
     test "processes a list of successful results with value" do
       results = Enum.map(1..5, &{:ok, &1})
-      result = Result.aggregate_values(results, "foo")
+      result = Result.aggregate(results, "foo")
       expected = {:ok, [1, 2, 3, 4, 5]}
 
       assert result === expected
@@ -16,7 +16,7 @@ defmodule Serum.ResultTest do
 
     test "processes a list of successful/failed results" do
       results = [ok: 1, error: "error 1", ok: 2, error: "error 2", ok: 3]
-      {:error, error} = Result.aggregate_values(results, "foo")
+      {:error, error} = Result.aggregate(results, "foo")
 
       message =
         error.message
@@ -36,7 +36,7 @@ defmodule Serum.ResultTest do
         error: "error 2"
       ]
 
-      {:error, error} = Result.aggregate_values(results, "foo")
+      {:error, error} = Result.aggregate(results, "foo")
 
       assert length(error.caused_by) === 2
     end

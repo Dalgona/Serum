@@ -18,7 +18,7 @@ defmodule Serum.Plugin.Loader do
   def load_plugins(modules) do
     modules
     |> Enum.map(&validate_spec/1)
-    |> Result.aggregate_values(@msg_load_failed)
+    |> Result.aggregate(@msg_load_failed)
     |> case do
       {:ok, specs} -> do_load_plugins(specs)
       {:error, %Error{}} = error -> error
@@ -52,7 +52,7 @@ defmodule Serum.Plugin.Loader do
       {module, _} when is_atom(module) -> module
     end)
     |> Enum.map(&make_plugin/1)
-    |> Result.aggregate_values(@msg_load_failed)
+    |> Result.aggregate(@msg_load_failed)
     |> case do
       {:ok, plugins} ->
         update_agent(plugins)

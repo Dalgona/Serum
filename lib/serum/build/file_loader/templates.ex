@@ -71,7 +71,7 @@ defmodule Serum.Build.FileLoader.Templates do
             )
           end)
 
-        Result.aggregate_values(errors, "some required templates are missing:")
+        Result.aggregate(errors, "some required templates are missing:")
     end
   end
 end

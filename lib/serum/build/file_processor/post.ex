@@ -21,7 +21,7 @@ defmodule Serum.Build.FileProcessor.Post do
       files
       |> Task.async_stream(&process_post(&1, proj))
       |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate_values("failed to process posts:")
+      |> Result.aggregate("failed to process posts:")
 
     Result.run do
       posts <- result

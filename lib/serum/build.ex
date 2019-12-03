@@ -147,6 +147,6 @@ defmodule Serum.Build do
         {:error, reason, ^path} -> Result.fail(POSIX, [reason], file: %Serum.File{src: path})
       end
     end)
-    |> Result.aggregate_values("failed to clean the destination directory:")
+    |> Result.aggregate("failed to clean the destination directory:")
   end
 end

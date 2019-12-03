@@ -91,7 +91,7 @@ defmodule Serum.PostList do
 
     [first_dup, first | rest]
     |> Enum.map(&PluginClient.processed_list/1)
-    |> Result.aggregate_values("failed to generate post list \"#{list_title}\":")
+    |> Result.aggregate("failed to generate post list \"#{list_title}\":")
   end
 
   @spec compact(t()) :: map()

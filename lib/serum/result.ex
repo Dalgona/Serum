@@ -19,10 +19,10 @@ defmodule Serum.Result do
 
   Returns an aggregated error object if there is one or more errors.
   """
-  @spec aggregate_values([t(a)], binary()) :: t([a]) when a: term()
-  def aggregate_values(results, msg) do
+  @spec aggregate([t(a)], binary()) :: t([a]) when a: term()
+  def aggregate(results, msg) do
     results
-    |> do_aggregate_values([], [])
+    |> do_aggregate([], [])
     |> case do
       {values, []} when is_list(values) ->
         {:ok, values}
@@ -32,19 +32,19 @@ defmodule Serum.Result do
     end
   end
 
-  @spec do_aggregate_values([t(a)], [a], [Error.t()]) :: {[a], [Error.t()]} when a: term()
-  defp do_aggregate_values(results, values, errors)
+  @spec do_aggregate([t(a)], [a], [Error.t()]) :: {[a], [Error.t()]} when a: term()
+  defp do_aggregate(results, values, errors)
 
-  defp do_aggregate_values([], values, errors) do
+  defp do_aggregate([], values, errors) do
     {Enum.reverse(values), errors |> Enum.reverse() |> Enum.uniq()}
   end
 
-  defp do_aggregate_values([{:ok, value} | results], values, errors) do
-    do_aggregate_values(results, [value | values], errors)
+  defp do_aggregate([{:ok, value} | results], values, errors) do
+    do_aggregate(results, [value | values], errors)
   end
 
-  defp do_aggregate_values([{:error, error} | results], values, errors) do
-    do_aggregate_values(results, values, [error | errors])
+  defp do_aggregate([{:error, error} | results], values, errors) do
+    do_aggregate(results, values, [error | errors])
   end
 
   @doc "Prints an error object in a beautiful format."

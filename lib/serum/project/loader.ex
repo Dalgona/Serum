@@ -65,7 +65,7 @@ defmodule Serum.Project.Loader do
             Result.fail(Simple, [message], file: %Serum.File{src: exs_path})
           end)
 
-        Result.aggregate_values(errors, "failed to validate `serum.exs`:")
+        Result.aggregate(errors, "failed to validate `serum.exs`:")
     end
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
