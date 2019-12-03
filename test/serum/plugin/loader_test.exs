@@ -75,11 +75,12 @@ defmodule Serum.Plugin.LoaderTest do
         Serum.DummyPlugin1,
         123,
         {Serum.DummyPlugin2},
-        {Serum.DummyPlugin3, only: :dev}
+        {Serum.DummyPlugin3, only: :dev},
+        {Serum.DummyPlugin1, [:foo]}
       ]
 
       assert {:error, %Error{caused_by: errors}} = load_plugins(plugin_specs)
-      assert length(errors) === 2
+      assert length(errors) === 3
     end
 
     test "returns an error when the plugin fails to load" do

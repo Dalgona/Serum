@@ -38,12 +38,20 @@ defmodule Serum.Build.FileEmitterTest do
       assert length(entry_count) === 13
     end
 
-    test "super rare situation here", ctx do
+    test "returns an error when fails to create directories", ctx do
       File.chmod!(ctx.tmp_dir, 0o500)
 
-      {:error, _} = FileEmitter.run(ctx.files)
+      assert {:error, _} = FileEmitter.run(ctx.files)
 
       File.chmod!(ctx.tmp_dir, 0o755)
+    end
+
+    test "returns an error when fails to write files", ctx do
+      path = Path.join(ctx.tmp_dir, "file1")
+      :ok = File.touch(path)
+      :ok = File.chmod(path, 0o400)
+
+      assert {:error, _} = FileEmitter.run(ctx.files)
     end
   end
 end

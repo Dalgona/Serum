@@ -43,10 +43,9 @@ defmodule Serum.Build.FileLoader.TemplatesTest do
 
       make_files(templates_dir)
       File.rm!(Path.join(templates_dir, "base.html.eex"))
-      File.mkdir_p!(theme_dir)
       File.mkdir_p!(Path.join(theme_dir, "templates"))
 
-      ~w(base lorem ipsum)
+      ~w(base page lorem ipsum)
       |> Enum.map(&(&1 <> ".html.eex"))
       |> Enum.map(&Path.join([theme_dir, "templates", &1]))
       |> Enum.each(&File.touch!/1)

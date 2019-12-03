@@ -77,4 +77,12 @@ defmodule Serum.Template.HelpersTest do
       assert_raise RuntimeError, fn -> Helpers.render("bad") end
     end
   end
+
+  describe "include/1 (macro)" do
+    test "raises an error because this is an invalid call" do
+      ast = quote(do: Helpers.include("foo"))
+
+      assert_raise RuntimeError, fn -> Macro.expand(ast, __ENV__) end
+    end
+  end
 end

@@ -20,7 +20,7 @@ defmodule Serum.BuildTest do
     {:ok, [src: src, dest: dest, proj: proj]}
   end
 
-  test "everything went well", %{dest: dest, proj: proj} do
+  test "builds a valid Serum project", %{dest: dest, proj: proj} do
     assert {:ok, ^dest} = Build.build(proj)
 
     # Clean the destination dir when is not empty
@@ -32,14 +32,14 @@ defmodule Serum.BuildTest do
     end)
   end
 
-  test "skip copying assets and media", %{src: src, dest: dest, proj: proj} do
+  test "can skip copying assets and media", %{src: src, dest: dest, proj: proj} do
     File.rm_rf!(Path.join(src, "assets"))
     File.rm_rf!(Path.join(src, "media"))
 
     assert {:ok, ^dest} = Build.build(proj)
   end
 
-  test "no write permission on dest", %{dest: dest, proj: proj} do
+  test "fails when there is no write permission", %{dest: dest, proj: proj} do
     File.chmod!(dest, 0o555)
 
     assert {:error, _} = Build.build(proj)
@@ -56,13 +56,19 @@ defmodule Serum.BuildTest do
     File.chmod!(parent, 0o755)
   end
 
-  test "failed to load required files", %{src: src, proj: proj} do
+  test "fails when the output directory cannot be accessed", %{dest: dest, proj: proj} do
+    proj = %{proj | dest: Path.join([dest, "foo", "bar", "baz"])}
+
+    assert {:error, _} = Build.build(proj)
+  end
+
+  test "aborts when failed to load required files", %{src: src, proj: proj} do
     File.rm_rf!(Path.join(src, "templates"))
 
     assert {:error, _} = Build.build(proj)
   end
 
-  test "failed to process some files", %{src: src, proj: proj} do
+  test "aborts when failed to process some files", %{src: src, proj: proj} do
     "pages/bad-*.*"
     |> fixture()
     |> Path.wildcard()
