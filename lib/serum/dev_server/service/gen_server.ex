@@ -6,12 +6,12 @@ defmodule Serum.DevServer.Service.GenServer do
   """
 
   use GenServer
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
   alias Serum.Build
   alias Serum.DevServer.Service
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
-  alias Serum.Result
 
   @behaviour Service
 
@@ -163,7 +163,7 @@ defmodule Serum.DevServer.Service.GenServer do
   defp do_rebuild(src, dest) do
     with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
          {:ok, ^dest} <- Build.build(proj) do
-      :ok
+      Result.return()
     else
       {:error, _} = error -> build_failed(error)
     end

@@ -3,11 +3,11 @@ defmodule Serum.DevServer do
   The Serum development server.
   """
 
+  require Serum.Result, as: Result
   alias Serum.DevServer.Logger
   alias Serum.DevServer.Service
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
-  alias Serum.Result
 
   @doc """
   Starts the Serum development server.
@@ -29,12 +29,12 @@ defmodule Serum.DevServer do
           "could not start the Serum development server. " <>
             "Make sure the port #{port} is not used by other applications"
 
-        {:error, msg}
+        Result.fail(Simple, [msg])
 
       {:error, {:shutdown, reason}} when not is_list(reason) ->
         msg = "could not start the Serum development server: #{inspect(reason)}"
 
-        {:error, msg}
+        Result.fail(Simple, [msg])
 
       {:error, _} = error ->
         error
