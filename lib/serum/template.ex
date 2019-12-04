@@ -1,10 +1,16 @@
 defmodule Serum.Template do
   @moduledoc "Defines a struct which stores a template and its information."
 
+  defstruct name: "",
+            type: :template,
+            file: %Serum.File{},
+            ast: nil,
+            include_resolved?: false
+
   @type t() :: %__MODULE__{
           name: binary(),
           type: type(),
-          file: binary(),
+          file: Serum.File.t(),
           ast: Macro.t(),
           include_resolved?: boolean()
         }
@@ -12,18 +18,12 @@ defmodule Serum.Template do
   @type collection() :: %{optional(binary()) => t()}
   @type type() :: :template | :include
 
-  defstruct name: "",
-            type: :template,
-            file: nil,
-            ast: nil,
-            include_resolved?: false
-
-  @spec new(Macro.t(), binary(), type(), binary()) :: t()
-  def new(ast, name, type, path) do
+  @spec new(Macro.t(), binary(), type(), Serum.File.t()) :: t()
+  def new(ast, name, type, file) do
     %__MODULE__{
       name: name,
       type: type,
-      file: path,
+      file: file,
       ast: ast,
       include_resolved?: false
     }
