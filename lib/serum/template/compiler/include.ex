@@ -44,7 +44,7 @@ defmodule Serum.Template.Compiler.Include do
 
       {new_template, new_context}
     else
-      {:error, _} = error -> {t, %{context | error: error}}
+      {:error, %Error{}} = error -> {t, %{context | error: error}}
       {_, %{error: {:error, %Error{}} = error}} -> {t, %{context | error: error}}
     end
   end
@@ -61,7 +61,7 @@ defmodule Serum.Template.Compiler.Include do
         {quote(do: (fn -> unquote(new_include.ast) end).()), new_context}
 
       nil ->
-        file = %Serum.File{src: context.template.file}
+        file = context.template.file
         {:error, error} = Result.fail(Simple, ["include not found: \"#{arg}\""], file: file)
 
         {ast, %{context | error: {:error, error}}}
@@ -75,7 +75,7 @@ defmodule Serum.Template.Compiler.Include do
     if name in context.stack do
       cycle = context.stack |> Enum.reverse() |> Enum.drop_while(&(&1 != name))
 
-      Result.fail(Cycle, [cycle], file: %Serum.File{src: context.template.file})
+      Result.fail(Cycle, [cycle], file: context.template.file)
     else
       Result.return()
     end

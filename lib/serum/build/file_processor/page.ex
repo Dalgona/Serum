@@ -89,7 +89,8 @@ defmodule Serum.Build.FileProcessor.Page do
   defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
     Result.run do
       ast <- TC.compile_string(page.data)
-      template = Template.new(ast, page.file, :template, page.file)
+      # TODO: Replace %Serum.File{...} with a real struct after updating Serum.Page
+      template = Template.new(ast, page.file, :template, %Serum.File{src: page.file})
       new_template <- TC.Include.expand(template)
       html <- Renderer.render_fragment(new_template, [])
 
