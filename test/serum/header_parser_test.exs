@@ -28,7 +28,7 @@ defmodule Serum.HeaderParserTest do
         my_int: 42
       }
 
-      assert {:ok, {^expected, %{}, _}} = parse_header(data, @options, @required)
+      assert {:ok, {^expected, %{}, _, 5}} = parse_header(data, @options, @required)
     end
 
     test "fails when single required key is missing" do
@@ -38,8 +38,8 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:invalid, msg} = parse_header(data, @options, @required)
-      assert String.ends_with?(msg, "it's missing")
+      assert {:error, error} = parse_header(data, @options, @required)
+      assert to_string(error) =~ "is required"
     end
 
     test "fails when multiple required keys are missing" do
@@ -49,8 +49,8 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:invalid, msg} = parse_header(data, @options, @required)
-      assert String.ends_with?(msg, "they are missing")
+      assert {:error, error} = parse_header(data, @options, @required)
+      assert to_string(error) =~ "are required"
     end
 
     test "parses extra metadata" do
@@ -64,7 +64,7 @@ defmodule Serum.HeaderParserTest do
       expected = %{my_str: "Hello, world!"}
       expected_extra = %{"extra1" => "Lorem ipsum"}
 
-      assert {:ok, {^expected, ^expected_extra, _}} = parse_header(data, @options)
+      assert {:ok, {^expected, ^expected_extra, _, 5}} = parse_header(data, @options)
     end
 
     test "ignores preceding data" do
@@ -82,7 +82,7 @@ defmodule Serum.HeaderParserTest do
         my_int: 42
       }
 
-      assert {:ok, {^expected, %{}, _}} = parse_header(data, @options)
+      assert {:ok, {^expected, %{}, _, 7}} = parse_header(data, @options)
     end
 
     test "fails when no header is found" do
@@ -92,7 +92,19 @@ defmodule Serum.HeaderParserTest do
       ÒωÓ
       """
 
-      assert {:invalid, _} = parse_header(data, @options)
+      assert {:error, error} = parse_header(data, @options)
+      assert to_string(error) =~ "header not found"
+    end
+
+    test "fails when parse errors occurred" do
+      data = """
+      ---
+      my_int: asdf
+      ---
+      """
+
+      assert {:error, error} = parse_header(data, @options)
+      assert to_string(error) =~ "invalid integer"
     end
   end
 end

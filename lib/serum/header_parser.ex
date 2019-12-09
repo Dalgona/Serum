@@ -20,15 +20,15 @@ defmodule Serum.HeaderParser do
   actual value of a metadata.
   """
 
+  require Serum.Result, as: Result
+  alias Serum.Error
+  alias Serum.HeaderParser.Extract
   alias Serum.HeaderParser.ValueTransformer
 
-  @type options :: [{atom, value_type}]
-  @type value_type :: :string | :integer | :datetime | {:list, value_type}
-  @type value :: binary | integer | DateTime.t() | [binary] | [integer] | [DateTime.t()]
-  @type parse_result :: {:ok, {map(), map(), binary()}} | {:invalid, binary()}
-
-  @typep extract_ok :: {:ok, [binary], binary}
-  @typep extract_err :: {:error, binary}
+  @type options :: [{atom(), value_type()}]
+  @type value_type :: :string | :integer | :datetime | {:list, value_type()}
+  @type value :: binary() | integer() | DateTime.t() | [binary()] | [integer()] | [DateTime.t()]
+  @typep parse_result :: Result.t({map(), map(), binary(), integer()})
 
   @doc """
   Reads lines from a binary `data` and extracts the header into a map.
@@ -56,127 +56,58 @@ defmodule Serum.HeaderParser do
     You cannot make a list of lists.
   """
   @spec parse_header(binary(), options(), [atom()]) :: parse_result()
-
   def parse_header(data, options, required \\ []) do
-    case extract_header(data, [], false) do
-      {:ok, header_lines, rest_data} ->
-        key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
-        req_strings = Enum.map(required, &to_string/1)
+    Result.run do
+      {kvs, rest, next_line} <- Extract.extract_header(data)
 
-        kv_lists =
-          header_lines
-          |> Enum.map(&split_kv/1)
-          |> Enum.group_by(&(elem(&1, 0) in key_strings))
+      key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
+      kv_groups = Enum.group_by(kvs, &(elem(elem(&1, 0), 0) in key_strings))
+      accepted_kv = kv_groups[true] || []
+      extras = kv_groups |> Map.get(false, []) |> Enum.map(&elem(&1, 0))
 
-        %{
-          true: accepted_kv,
-          false: extra_kv
-        } = Map.merge(%{true: [], false: []}, kv_lists)
+      find_missing(accepted_kv, required, next_line)
+      parsed <- transform_values(accepted_kv, options)
 
-        with [] <- find_missing(accepted_kv, req_strings),
-             {:ok, parsed} <- transform_values(accepted_kv, options, []) do
-          extras =
-            Enum.map(extra_kv, fn {k, v} ->
-              {k, ValueTransformer.transform_value(k, v, :string)}
-            end)
-
-          {:ok, {Map.new(parsed), Map.new(extras), rest_data}}
-        else
-          error -> handle_error(error)
-        end
-
-      error ->
-        handle_error(error)
+      Result.return({Map.new(parsed), Map.new(extras), rest, next_line})
     end
   end
 
-  @spec extract_header(binary, [binary], boolean) :: extract_ok | extract_err
-  defp extract_header(data, acc, open?)
+  @spec find_missing([{binary(), binary()}], [atom()], integer()) :: Result.t()
+  defp find_missing(kv_list, required, line) do
+    req_strings = required |> Enum.map(&to_string/1) |> MapSet.new()
+    keys = kv_list |> Enum.map(&elem(elem(&1, 0), 0)) |> MapSet.new()
 
-  defp extract_header(data, acc, false) do
-    case String.split(data, ~r/\r?\n/, parts: 2) do
-      ["---", rest] ->
-        extract_header(rest, acc, true)
-
-      [line, rest] when is_binary(line) ->
-        extract_header(rest, acc, false)
-
-      [_] ->
-        {:error, "header not found"}
-    end
-  end
-
-  defp extract_header(data, acc, true) do
-    case String.split(data, ~r/\r?\n/, parts: 2) do
-      ["---", rest] ->
-        {:ok, acc, rest}
-
-      [line, rest] when is_binary(line) ->
-        extract_header(rest, [line | acc], true)
-
-      [_] ->
-        {:error, "encountered unexpected end of file"}
-    end
-  end
-
-  @spec split_kv(binary) :: {binary, binary}
-  defp split_kv(line) do
-    line
-    |> String.split(":", parts: 2)
-    |> Enum.map(&String.trim/1)
+    req_strings
+    |> MapSet.difference(keys)
+    |> MapSet.to_list()
     |> case do
-      [k] -> {k, ""}
-      [k, v] -> {k, v}
+      [] -> Result.return()
+      missings -> Result.fail(Simple, [missing_message(missings)], line: line)
     end
   end
 
-  @spec find_missing([{binary(), binary()}], [binary()]) :: [binary()]
-  defp find_missing(kv_list, req_strings) do
-    kv_list |> Enum.map(&elem(&1, 0)) |> do_find_missing(req_strings)
+  @spec missing_message([binary()]) :: binary()
+  defp missing_message(missings)
+  defp missing_message([missing]), do: "`#{missing}` is required, but missing"
+
+  defp missing_message(missings) do
+    repr = missings |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
+
+    "#{repr} are required, but missing"
   end
 
-  @spec do_find_missing([binary], [binary], [binary]) :: [binary]
-  defp do_find_missing(keys, required, acc \\ [])
-  defp do_find_missing(_keys, [], acc), do: acc
+  @spec transform_values([{{binary(), binary()}, integer()}], keyword(atom())) ::
+          Result.t([{atom(), value()}])
+  defp transform_values(kvs, options) do
+    kvs
+    |> Enum.map(fn {{key, _value} = kv, line} ->
+      atom_key = String.to_existing_atom(key)
 
-  defp do_find_missing(keys, [h | t], acc) do
-    if h in keys do
-      do_find_missing(keys, t, acc)
-    else
-      do_find_missing(keys, t, [h | acc])
-    end
-  end
-
-  @spec transform_values([{binary, binary}], keyword(atom), keyword(value)) ::
-          {:error, binary} | {:ok, keyword(value)}
-
-  defp transform_values([], _options, acc) do
-    {:ok, acc}
-  end
-
-  defp transform_values([{k, v} | rest], options, acc) do
-    atom_k = String.to_existing_atom(k)
-
-    case ValueTransformer.transform_value(k, v, options[atom_k]) do
-      {:error, _} = error -> error
-      value -> transform_values(rest, options, [{atom_k, value} | acc])
-    end
-  end
-
-  @spec handle_error(term) :: {:invalid, binary()}
-  defp handle_error(term)
-
-  defp handle_error([missing]) do
-    {:invalid, "`#{missing}` is required, but it's missing"}
-  end
-
-  defp handle_error([_ | _] = missing) do
-    repr = missing |> Enum.map(&"`#{&1}`") |> Enum.reverse() |> Enum.join(", ")
-
-    {:invalid, "#{repr} are required, but they are missing"}
-  end
-
-  defp handle_error({:error, error}) do
-    {:invalid, "header parse error: #{error}"}
+      case ValueTransformer.transform_value(kv, options[atom_key], line) do
+        {:ok, value} -> Result.return({atom_key, value})
+        {:error, %Error{}} = error -> error
+      end
+    end)
+    |> Result.aggregate("failed to parse the header:")
   end
 end
