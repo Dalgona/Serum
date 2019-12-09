@@ -12,6 +12,14 @@ defmodule Serum.Error do
           line: integer() | nil
         }
 
+  @doc "Performs pre-order traversal over the given error."
+  @spec prewalk(t(), (t() -> t())) :: t()
+  def prewalk(error, fun) do
+    %__MODULE__{caused_by: errors} = error2 = fun.(error)
+
+    %__MODULE__{error2 | caused_by: Enum.map(errors, &prewalk(&1, fun))}
+  end
+
   defimpl String.Chars do
     alias Serum.Error.Format
 
