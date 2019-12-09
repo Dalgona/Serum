@@ -55,10 +55,16 @@ defmodule Serum.HeaderParser do
     value must have the same type, either `:string`, `:integer`, or `:datetime`.
     You cannot make a list of lists.
   """
-  @spec parse_header(binary(), options(), [atom()]) :: parse_result()
-  def parse_header(data, options, required \\ []) do
+  @spec parse_header(Serum.File.t(), options(), [atom()]) :: parse_result()
+  def parse_header(file, options, required \\ [])
+
+  def parse_header(%Serum.File{in_data: nil} = file, _, _) do
+    Result.fail(Simple, ["cannot parse header: the file is not loaded"], file: file)
+  end
+
+  def parse_header(file, options, required) do
     Result.run do
-      {kvs, rest, next_line} <- Extract.extract_header(data)
+      {kvs, rest, next_line} <- Extract.extract_header(file.in_data)
 
       key_strings = options |> Keyword.keys() |> Enum.map(&to_string/1)
       kv_groups = Enum.group_by(kvs, &(elem(elem(&1, 0), 0) in key_strings))
@@ -69,6 +75,8 @@ defmodule Serum.HeaderParser do
       parsed <- transform_values(accepted_kv, options)
 
       Result.return({Map.new(parsed), Map.new(extras), rest, next_line})
+    else
+      {:error, %Error{} = e} -> {:error, Error.prewalk(e, &%Error{&1 | file: file})}
     end
   end
 

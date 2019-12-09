@@ -23,12 +23,14 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
+      file = %Serum.File{src: "testfile", in_data: data}
+
       expected = %{
         my_str: "Hello, world!",
         my_int: 42
       }
 
-      assert {:ok, {^expected, %{}, _, 5}} = parse_header(data, @options, @required)
+      assert {:ok, {^expected, %{}, _, 5}} = parse_header(file, @options, @required)
     end
 
     test "fails when single required key is missing" do
@@ -38,7 +40,9 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:error, error} = parse_header(data, @options, @required)
+      file = %Serum.File{src: "testfile", in_data: data}
+
+      assert {:error, error} = parse_header(file, @options, @required)
       assert to_string(error) =~ "is required"
     end
 
@@ -49,7 +53,9 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:error, error} = parse_header(data, @options, @required)
+      file = %Serum.File{src: "testfile", in_data: data}
+
+      assert {:error, error} = parse_header(file, @options, @required)
       assert to_string(error) =~ "are required"
     end
 
@@ -61,10 +67,11 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
+      file = %Serum.File{src: "testfile", in_data: data}
       expected = %{my_str: "Hello, world!"}
       expected_extra = %{"extra1" => "Lorem ipsum"}
 
-      assert {:ok, {^expected, ^expected_extra, _, 5}} = parse_header(data, @options)
+      assert {:ok, {^expected, ^expected_extra, _, 5}} = parse_header(file, @options)
     end
 
     test "ignores preceding data" do
@@ -77,12 +84,14 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
+      file = %Serum.File{src: "testfile", in_data: data}
+
       expected = %{
         my_str: "Hello, world!",
         my_int: 42
       }
 
-      assert {:ok, {^expected, %{}, _, 7}} = parse_header(data, @options)
+      assert {:ok, {^expected, %{}, _, 7}} = parse_header(file, @options)
     end
 
     test "fails when no header is found" do
@@ -92,7 +101,9 @@ defmodule Serum.HeaderParserTest do
       ÒωÓ
       """
 
-      assert {:error, error} = parse_header(data, @options)
+      file = %Serum.File{src: "testfile", in_data: data}
+
+      assert {:error, error} = parse_header(file, @options)
       assert to_string(error) =~ "header not found"
     end
 
@@ -103,7 +114,9 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      assert {:error, error} = parse_header(data, @options)
+      file = %Serum.File{src: "testfile", in_data: data}
+
+      assert {:error, error} = parse_header(file, @options)
       assert to_string(error) =~ "invalid integer"
     end
   end
