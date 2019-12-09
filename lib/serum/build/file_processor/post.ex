@@ -3,7 +3,6 @@ defmodule Serum.Build.FileProcessor.Post do
 
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Error
   alias Serum.Markdown
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Post
@@ -45,8 +44,10 @@ defmodule Serum.Build.FileProcessor.Post do
 
     required = [:title, :date]
 
-    with {:ok, %{in_data: data} = file2} <- PluginClient.processing_post(file),
-         {:ok, {header, extras, rest}} <- parse_header(data, opts, required) do
+    Result.run do
+      %{in_data: data} = file2 <- PluginClient.processing_post(file)
+      {header, extras, rest, _next_line} <- parse_header(data, opts, required)
+
       header = %{
         header
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
@@ -56,9 +57,6 @@ defmodule Serum.Build.FileProcessor.Post do
       post = Post.new(file2.src, {header, extras}, html, proj)
 
       PluginClient.processed_post(post)
-    else
-      {:invalid, message} -> Result.fail(Simple, [message], file: file)
-      {:error, %Error{}} = plugin_error -> plugin_error
     end
   end
 end
