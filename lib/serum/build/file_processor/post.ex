@@ -54,7 +54,7 @@ defmodule Serum.Build.FileProcessor.Post do
       }
 
       html = Markdown.to_html(rest, proj)
-      post = Post.new(file2.src, {header, extras}, html, proj)
+      post = Post.new(file2, {header, extras}, html, proj)
 
       PluginClient.processed_post(post)
     end

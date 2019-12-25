@@ -4,7 +4,7 @@ defmodule Serum.Post do
 
   ## Fields
 
-  * `file`: Source path
+  * `file`: Source file
   * `title`: Post title
   * `date`: Post date (formatted)
   * `raw_date`: Post date (erlang tuple style)
@@ -25,7 +25,7 @@ defmodule Serum.Post do
   alias Serum.Template.Storage, as: TS
 
   @type t :: %__MODULE__{
-          file: binary(),
+          file: Serum.File.t(),
           title: binary(),
           date: binary(),
           raw_date: :calendar.datetime(),
@@ -52,8 +52,8 @@ defmodule Serum.Post do
     :template
   ]
 
-  @spec new(binary(), {map(), map()}, binary(), map()) :: t()
-  def new(path, {header, extras}, html, proj) do
+  @spec new(Serum.File.t(), {map(), map()}, binary(), map()) :: t()
+  def new(file, {header, extras}, html, proj) do
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
@@ -61,12 +61,12 @@ defmodule Serum.Post do
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)
 
     filename =
-      path
+      file.src
       |> String.replace_suffix("md", "html")
       |> Path.relative_to(proj.src)
 
     %__MODULE__{
-      file: path,
+      file: file,
       title: header[:title],
       tags: tags,
       html: html,
@@ -104,7 +104,7 @@ defmodule Serum.Post do
 
     with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
-      Fragment.new(post.file, post.output, metadata, html)
+      Fragment.new(post.file.src, post.output, metadata, html)
     else
       nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
       {:error, %Error{}} = error -> error
