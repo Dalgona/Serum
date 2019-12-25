@@ -3,7 +3,7 @@ defmodule Serum.Page do
   Defines a struct describing a normal page.
 
   ## Fields
-  * `file`: Source path
+  * `file`: Source file
   * `type`: Type of source file
   * `title`: Page title
   * `label`: Page label
@@ -15,7 +15,7 @@ defmodule Serum.Page do
   """
 
   @type t :: %__MODULE__{
-          file: binary(),
+          file: Serum.File.t(),
           type: binary(),
           title: binary(),
           label: binary(),
@@ -49,10 +49,10 @@ defmodule Serum.Page do
     :template
   ]
 
-  @spec new(binary(), {map(), map()}, binary(), map()) :: t()
-  def new(path, {header, extras}, data, proj) do
+  @spec new(Serum.File.t(), {map(), map()}, binary(), map()) :: t()
+  def new(file, {header, extras}, data, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
-    filename = Path.relative_to(path, page_dir)
+    filename = Path.relative_to(file.src, page_dir)
     type = get_type(filename)
 
     {url, output} =
@@ -63,7 +63,7 @@ defmodule Serum.Page do
     __MODULE__
     |> struct(header)
     |> Map.merge(%{
-      file: path,
+      file: file,
       type: type,
       url: url,
       output: output,
@@ -101,7 +101,7 @@ defmodule Serum.Page do
 
     with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
-      Fragment.new(page.file, page.output, metadata, html)
+      Fragment.new(page.file.src, page.output, metadata, html)
     else
       nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
       {:error, %Error{}} = error -> error

@@ -49,7 +49,7 @@ defmodule Serum.Build.FileProcessor.Page do
       file2 <- PluginClient.processing_page(file)
       {header, extras, rest, _next_line} <- parse_header(file2, opts, required)
       header = Map.put(header, :label, header[:label] || header.title)
-      page = Page.new(file2.src, {header, extras}, rest, proj)
+      page = Page.new(file2, {header, extras}, rest, proj)
 
       Result.return(page)
     end
