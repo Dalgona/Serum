@@ -16,7 +16,7 @@ defmodule Serum.Fragment do
   alias Serum.Plugin.Client, as: PluginClient
 
   @type t :: %__MODULE__{
-          file: binary() | nil,
+          file: Serum.File.t(),
           output: binary(),
           metadata: map(),
           data: binary()
@@ -25,7 +25,7 @@ defmodule Serum.Fragment do
   defstruct [:file, :output, :metadata, :data]
 
   @doc "Creates a new `Fragment` struct."
-  @spec new(binary() | nil, binary(), map(), binary()) :: Result.t(t())
+  @spec new(Serum.File.t(), binary(), map(), binary()) :: Result.t(t())
   def new(file, output, metadata, data) do
     data
     |> Floki.parse()

@@ -143,7 +143,7 @@ defmodule Serum.PostList do
     bindings = [page: metadata]
 
     case Renderer.render_fragment(template, bindings) do
-      {:ok, html} -> Fragment.new(nil, post_list.output, metadata, html)
+      {:ok, html} -> Fragment.new(%Serum.File{}, post_list.output, metadata, html)
       {:error, %Error{}} = error -> error
     end
   end

@@ -104,7 +104,7 @@ defmodule Serum.Post do
 
     with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
-      Fragment.new(post.file.src, post.output, metadata, html)
+      Fragment.new(post.file, post.output, metadata, html)
     else
       nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
       {:error, %Error{}} = error -> error

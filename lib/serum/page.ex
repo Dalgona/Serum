@@ -101,7 +101,7 @@ defmodule Serum.Page do
 
     with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
-      Fragment.new(page.file.src, page.output, metadata, html)
+      Fragment.new(page.file, page.output, metadata, html)
     else
       nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
       {:error, %Error{}} = error -> error
