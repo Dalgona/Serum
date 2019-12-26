@@ -35,43 +35,43 @@ defmodule Serum.Project.Loader do
 
   @spec do_load(binary()) :: Result.t(Project.t())
   defp do_load(src) do
-    exs_path = Path.join(src, "serum.exs")
+    exs_file = %Serum.File{src: Path.join(src, "serum.exs")}
 
-    if File.exists?(exs_path) do
-      load_exs(exs_path)
-    else
-      Result.fail(POSIX, [:enoent], file: %Serum.File{src: exs_path})
+    Result.run do
+      file <- Serum.File.read(exs_file)
+      proj <- load_exs(file)
+
+      Result.return(proj)
     end
   end
 
-  @spec load_exs(binary()) :: Result.t(Project.t())
-  defp load_exs(exs_path) do
-    with {:ok, data} <- File.read(exs_path),
-         {map, _} <- Code.eval_string(data, [], file: exs_path),
+  @spec load_exs(Serum.File.t()) :: Result.t(Project.t())
+  defp load_exs(file) do
+    with {map, _} <- Code.eval_string(file.in_data, [], file: file.src),
          :ok <- ElixirValidator.validate(map) do
       Result.return(Project.new(Map.put(map, :theme, %Theme{module: map[:theme]})))
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
-        Result.fail(POSIX, [reason], file: %Serum.File{src: exs_path})
+        Result.fail(POSIX, [reason], file: file)
 
       # From ElixirValidator.validate/2:
       {:invalid, message} when is_binary(message) ->
-        Result.fail(Simple, [message], file: %Serum.File{src: exs_path})
+        Result.fail(Simple, [message], file: file)
 
       {:invalid, messages} when is_list(messages) ->
         errors =
           Enum.map(messages, fn message ->
-            Result.fail(Simple, [message], file: %Serum.File{src: exs_path})
+            Result.fail(Simple, [message], file: file)
           end)
 
         Result.aggregate(errors, "failed to validate `serum.exs`:")
     end
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
-      Result.fail(Exception, [e, __STACKTRACE__], file: %Serum.File{src: e.file}, line: e.line)
+      Result.fail(Exception, [e, __STACKTRACE__], file: file, line: e.line)
 
     e ->
-      Result.fail(Exception, [e, __STACKTRACE__], file: %Serum.File{src: exs_path})
+      Result.fail(Exception, [e, __STACKTRACE__], file: file)
   end
 end
