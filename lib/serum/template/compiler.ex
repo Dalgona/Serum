@@ -12,12 +12,13 @@ defmodule Serum.Template.Compiler do
 
   @default_options [type: :template]
 
-  @inject """
-  <%
-  require Serum.Template.Helpers
-  import Serum.Template.Helpers
-  %>
-  """
+  inject =
+    quote do
+      require Serum.Template.Helpers
+      import Serum.Template.Helpers
+    end
+
+  @inject inject
 
   @doc """
   Compiles a list of template files.
@@ -67,7 +68,7 @@ defmodule Serum.Template.Compiler do
   @doc "Compiles the given EEx string."
   @spec compile_string(binary()) :: {:ok, Macro.t()} | {:ct_error, binary(), integer()}
   def compile_string(string) do
-    {:ok, EEx.compile_string(@inject <> string)}
+    {:ok, {:__block__, [], [@inject, EEx.compile_string(string)]}}
   rescue
     e in EEx.SyntaxError -> {:ct_error, e.message, e.line}
     e in [SyntaxError, TokenMissingError] -> {:ct_error, e.description, e.line}
