@@ -12,8 +12,8 @@ defmodule Serum.Template.HelpersTest do
     bad = quote(do: raise("test"))
 
     includes = %{
-      "good" => Template.new(good, "good", :include, "good"),
-      "bad" => Template.new(bad, "bad", :include, "bad")
+      "good" => Template.new(good, "good", :include, %Serum.File{src: "good.html.eex"}),
+      "bad" => Template.new(bad, "bad", :include, %Serum.File{src: "bad.html.eex"})
     }
 
     TS.load(includes, :include)
