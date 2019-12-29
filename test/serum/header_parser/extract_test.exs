@@ -31,17 +31,17 @@ defmodule Serum.HeaderParser.ExtractTest do
       Dolor
       """
 
-      assert {:error, %Error{line: 4}} = Extract.extract_header(data)
+      assert {:error, %Error{line: 3}} = Extract.extract_header(data)
     end
 
     test "returns an error if header is not properly closed" do
       data = """
-      ===
+      ---
       title: Hello, world!
       tags: foo, bar
       """
 
-      assert {:error, %Error{line: 4}} = Extract.extract_header(data)
+      assert {:error, %Error{line: 3}} = Extract.extract_header(data)
     end
   end
 end
