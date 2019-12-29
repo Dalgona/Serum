@@ -12,6 +12,8 @@ defmodule Serum.Build.FileProcessor.Page do
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
 
+  @next_line_key "__serum__next_line__"
+
   @spec preprocess_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
   def preprocess_pages(files, proj) do
     put_msg(:info, "Processing page files...")
@@ -47,9 +49,14 @@ defmodule Serum.Build.FileProcessor.Page do
 
     Result.run do
       file2 <- PluginClient.processing_page(file)
-      {header, extras, rest, _next_line} <- parse_header(file2, opts, required)
+      {header, extras, rest, next_line} <- parse_header(file2, opts, required)
       header = Map.put(header, :label, header[:label] || header.title)
       page = Page.new(file2, {header, extras}, rest, proj)
+
+      page = %Page{
+        page
+        | extras: Map.put(page.extras, @next_line_key, next_line)
+      }
 
       Result.return(page)
     end
@@ -70,8 +77,13 @@ defmodule Serum.Build.FileProcessor.Page do
   @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(page, proj) do
     case do_process_page(page, proj) do
-      {:ok, page} -> PluginClient.processed_page(page)
-      {:error, %Error{}} = error -> error
+      {:ok, page} ->
+        page = %Page{page | extras: Map.delete(page.extras, @next_line_key)}
+
+        PluginClient.processed_page(page)
+
+      {:error, %Error{}} = error ->
+        error
     end
   end
 
@@ -88,7 +100,8 @@ defmodule Serum.Build.FileProcessor.Page do
 
   defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
     Result.run do
-      ast <- TC.compile_string(page.data)
+      line = page.extras[@next_line_key] || 1
+      ast <- TC.compile_string(page.data, line: line)
       template = Template.new(ast, page.file.src, :template, page.file)
       new_template <- TC.Include.expand(template)
       html <- Renderer.render_fragment(new_template, [])
