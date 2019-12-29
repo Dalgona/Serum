@@ -90,7 +90,7 @@ defmodule Serum.HeaderParser do
     |> MapSet.to_list()
     |> case do
       [] -> Result.return()
-      missings -> Result.fail(Simple, [missing_message(missings)], line: line)
+      missings -> Result.fail(Simple, [missing_message(missings)], line: line - 1)
     end
   end
 
