@@ -66,9 +66,9 @@ defmodule Serum.Template.Compiler do
   end
 
   @doc "Compiles the given EEx string."
-  @spec compile_string(binary()) :: {:ok, Macro.t()} | {:ct_error, binary(), integer()}
-  def compile_string(string) do
-    {:ok, {:__block__, [], [@inject, EEx.compile_string(string)]}}
+  @spec compile_string(binary(), keyword()) :: {:ok, Macro.t()} | {:ct_error, binary(), integer()}
+  def compile_string(string, compile_options \\ []) do
+    {:ok, {:__block__, [], [@inject, EEx.compile_string(string, compile_options)]}}
   rescue
     e in EEx.SyntaxError -> {:ct_error, e.message, e.line}
     e in [SyntaxError, TokenMissingError] -> {:ct_error, e.description, e.line}
