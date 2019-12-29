@@ -87,7 +87,7 @@ defmodule Serum.Error do
     @spec extract_lines(binary(), integer()) :: {[line()], line(), [line()]}
     defp extract_lines(data, line) do
       {:ok, string_io} = StringIO.open(data)
-      stream = IO.stream(string_io, :line)
+      stream = string_io |> IO.stream(:line) |> Stream.map(&String.trim_trailing/1)
 
       [current | prev] =
         stream
@@ -108,7 +108,7 @@ defmodule Serum.Error do
         [:bright, :yellow],
         String.pad_leading(to_string(line), gutter_width),
         [:normal, :light_black, " | ", :bright, :yellow],
-        [str, :reset]
+        [str, :reset, ?\n]
       ]
     end
 
@@ -119,7 +119,7 @@ defmodule Serum.Error do
           :light_black,
           String.pad_leading(to_string(line), gutter_width),
           [" | ", :reset],
-          [str, :reset]
+          [str, :reset, ?\n]
         ]
       end)
     end
@@ -129,7 +129,21 @@ defmodule Serum.Error do
     defp indented(str, 0), do: str
 
     defp indented(str, indent) do
-      [List.duplicate("  ", indent - 1), :red, "- ", :reset, str]
+      rest_indent = List.duplicate("  ", indent)
+
+      [line | lines] =
+        str
+        |> IO.ANSI.format_fragment()
+        |> IO.iodata_to_binary()
+        |> String.split(~r/\r?\n/)
+
+      [
+        [List.duplicate("  ", indent - 1), :red, "- ", :reset, line],
+        case lines do
+          [] -> ""
+          lines -> [?\n, rest_indent, Enum.intersperse(lines, [?\n, rest_indent])]
+        end
+      ]
     end
   end
 end
