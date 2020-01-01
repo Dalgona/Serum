@@ -14,7 +14,8 @@ defmodule Serum.Mixfile do
       preferred_cli_env: preferred_cli_env(),
       deps: deps(),
       package: package(),
-      docs: docs()
+      docs: docs(),
+      elixirc_paths: elixirc_paths(Mix.env())
     ]
   end
 
@@ -100,4 +101,7 @@ defmodule Serum.Mixfile do
       ]
     ]
   end
+
+  defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(_), do: ["lib"]
 end
