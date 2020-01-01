@@ -19,7 +19,7 @@ defmodule Serum.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :eex, :cowboy, :tzdata], mod: {Serum, []}]
+    [extra_applications: [:logger, :eex, :cowboy, :tzdata], mod: {Serum, []}]
   end
 
   defp preferred_cli_env do
