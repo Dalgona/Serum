@@ -5,11 +5,13 @@ defmodule Serum.DevServer.Prompt do
 
   import Serum.IOProxy, only: [put_err: 2]
   alias Serum.DevServer.Service
+  alias Serum.DevServer.CommandHandler
 
   @type options :: [allow_detach: boolean()]
   @type result :: {:ok, :detached} | {:ok, :quitted} | {:error, :noproc}
 
   @service Application.get_env(:serum, :service, Service.GenServer)
+  @command_handler Application.get_env(:serum, :command_handler, CommandHandler.Impl)
 
   @doc """
   Tries to start a Serum development server command line interface.
@@ -65,6 +67,7 @@ defmodule Serum.DevServer.Prompt do
     Available commands are:
       help   Displays this help message
       build  Rebuilds the project
+      open   Open the site in a browser
       quit   Stops the server and quit
     """
     |> IO.write()
@@ -79,6 +82,7 @@ defmodule Serum.DevServer.Prompt do
       build   Rebuilds the project
       detach  Detaches from this command line interface
               while keeping the Serum development server running
+      open    Open the site in a browser
       quit    Stops the server and quit
     """
     |> IO.write()
@@ -103,6 +107,13 @@ defmodule Serum.DevServer.Prompt do
 
   defp do_run_command("detach", %{allow_detach: true}) do
     :detach
+  end
+
+  defp do_run_command("open", _options) do
+    case @command_handler.open_url("http://localhost:#{@service.port()}") do
+      :ok -> :ok
+      _ -> put_err(:warn, "Can't open browser")
+    end
   end
 
   defp do_run_command("quit", _options) do
