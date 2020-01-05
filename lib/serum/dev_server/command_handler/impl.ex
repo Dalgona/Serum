@@ -2,7 +2,7 @@ defmodule Serum.DevServer.CommandHandler.Impl do
   @moduledoc false
 
   _moduledocp = """
-  A implementation of `Serum.DevServer.CommandHandler` behaviour.
+  An implementation of `Serum.DevServer.CommandHandler` behaviour.
   """
 
   alias Serum.DevServer.CommandHandler
