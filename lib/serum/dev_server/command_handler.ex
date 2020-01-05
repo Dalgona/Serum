@@ -6,5 +6,5 @@ defmodule Serum.DevServer.CommandHandler do
   """
 
   @doc "Open the url in a browser."
-  @callback open_url(url :: binary()) :: {:ok | :error}
+  @callback open_url(url :: binary()) :: :ok | :error
 end
