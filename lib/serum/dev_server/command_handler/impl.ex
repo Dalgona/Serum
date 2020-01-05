@@ -10,7 +10,7 @@ defmodule Serum.DevServer.CommandHandler.Impl do
   @behaviour CommandHandler
 
   @impl CommandHandler
-  @spec open_url(url :: binary()) :: {:ok | :error}
+  @spec open_url(url :: binary()) :: :ok | :error
   def open_url(url) do
     open_command =
       case :os.type() do
