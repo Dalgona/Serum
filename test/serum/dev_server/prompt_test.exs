@@ -115,6 +115,19 @@ defmodule Serum.DevServer.PromptTest do
       assert_received :ok
     end
 
+    test "prints a warning when failed to open a browser" do
+      Serum.DevServer.CommandHandler.Mock
+      |> expect(:open_url, fn "http://localhost:8080" -> :error end)
+
+      stderr =
+        capture_io(:stderr, fn ->
+          send(self(), run_command("open", %{}))
+        end)
+
+      assert stderr =~ "Can't open a browser"
+      assert_received :ok
+    end
+
     test "handles 'quit' command", %{site: site} do
       assert File.exists?(site)
 
