@@ -112,7 +112,7 @@ defmodule Serum.DevServer.Prompt do
   defp do_run_command("open", _options) do
     case @command_handler.open_url("http://localhost:#{@service.port()}") do
       :ok -> :ok
-      _ -> put_err(:warn, "Can't open browser")
+      _ -> put_err(:warn, "Can't open a browser")
     end
   end
 
