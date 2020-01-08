@@ -14,12 +14,13 @@ defmodule Serum.Mixfile do
       preferred_cli_env: preferred_cli_env(),
       deps: deps(),
       package: package(),
-      docs: docs()
+      docs: docs(),
+      elixirc_paths: elixirc_paths(Mix.env())
     ]
   end
 
   def application do
-    [applications: [:logger, :eex, :cowboy, :tzdata], mod: {Serum, []}]
+    [extra_applications: [:logger, :eex, :cowboy, :tzdata], mod: {Serum, []}]
   end
 
   defp preferred_cli_env do
@@ -42,7 +43,8 @@ defmodule Serum.Mixfile do
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
       {:floki, "~> 0.20"},
       {:ex_doc, "~> 0.20", only: :dev, runtime: false},
-      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
+      {:mox, "~> 0.5", only: :test}
     ]
   end
 
@@ -99,4 +101,7 @@ defmodule Serum.Mixfile do
       ]
     ]
   end
+
+  defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(_), do: ["lib"]
 end
