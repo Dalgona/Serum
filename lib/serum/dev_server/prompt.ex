@@ -4,8 +4,9 @@ defmodule Serum.DevServer.Prompt do
   """
 
   import Serum.IOProxy, only: [put_err: 2]
-  alias Serum.DevServer.Service
   alias Serum.DevServer.CommandHandler
+  alias Serum.DevServer.Service
+  alias Serum.GlobalBindings
 
   @type options :: [allow_detach: boolean()]
   @type result :: {:ok, :detached} | {:ok, :quitted} | {:error, :noproc}
@@ -110,7 +111,10 @@ defmodule Serum.DevServer.Prompt do
   end
 
   defp do_run_command("open", _options) do
-    case @command_handler.open_url("http://localhost:#{@service.port()}") do
+    base_url = GlobalBindings.get(:site)[:base_url]
+    abs_url = "http://localhost:#{@service.port()}#{base_url}"
+
+    case @command_handler.open_url(abs_url) do
       :ok -> :ok
       _ -> put_err(:warn, "Can't open a browser")
     end
