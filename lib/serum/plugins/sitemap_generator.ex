@@ -24,8 +24,8 @@ defmodule Serum.Plugins.SitemapGenerator do
   alias Serum.Post
 
   def name, do: "Create sitemap for search engine"
-  def version, do: "1.1.0"
-  def elixir, do: "~> 1.8"
+  def version, do: "1.2.0"
+  def elixir, do: ">= 1.8.0"
   def serum, do: unquote(serum_req)
 
   def description do
