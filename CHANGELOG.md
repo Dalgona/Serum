@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## v1.4.0 &mdash: 2020-01-11
+## v1.4.0 &mdash; 2020-01-11
 
 ### Added
 
