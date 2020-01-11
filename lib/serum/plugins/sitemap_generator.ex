@@ -19,8 +19,9 @@ defmodule Serum.Plugins.SitemapGenerator do
   serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
 
   require EEx
-  require Serum.Result, as: Result
   alias Serum.GlobalBindings
+  alias Serum.Page
+  alias Serum.Post
 
   def name, do: "Create sitemap for search engine"
   def version, do: "1.1.0"
@@ -34,11 +35,12 @@ defmodule Serum.Plugins.SitemapGenerator do
   def implements, do: [build_succeeded: 3]
 
   def build_succeeded(_src, dest, _args) do
-    Result.run do
-      write_sitemap(dest)
+    pages = GlobalBindings.get(:all_pages)
+    posts = GlobalBindings.get(:all_posts)
 
-      Result.return()
-    end
+    dest
+    |> create_file(pages, posts)
+    |> Serum.File.write()
   end
 
   sitemap_path =
@@ -48,10 +50,19 @@ defmodule Serum.Plugins.SitemapGenerator do
     |> Path.join("sitemap.xml.eex")
 
   EEx.function_from_file(:defp, :sitemap_xml, sitemap_path, [
-    :all_posts,
+    :pages,
+    :posts,
     :transformer,
     :server_root
   ])
+
+  @spec create_file(binary(), [Page.t()], [Post.t()]) :: Serum.File.t()
+  defp create_file(dest, pages, posts) do
+    %Serum.File{
+      dest: Path.join(dest, "sitemap.xml"),
+      out_data: sitemap_xml(pages, posts, &to_w3c_format/1, get_server_root())
+    }
+  end
 
   defp to_w3c_format(erl_datetime) do
     # reference to https://www.w3.org/TR/NOTE-datetime
@@ -62,17 +73,5 @@ defmodule Serum.Plugins.SitemapGenerator do
     :site
     |> GlobalBindings.get()
     |> Map.fetch!(:server_root)
-  end
-
-  @spec write_sitemap(binary()) :: Result.t(Serum.File.t())
-  defp write_sitemap(dest) do
-    all_posts = GlobalBindings.get(:all_posts)
-
-    file = %Serum.File{
-      dest: Path.join(dest, "sitemap.xml"),
-      out_data: sitemap_xml(all_posts, &to_w3c_format/1, get_server_root())
-    }
-
-    Serum.File.write(file)
   end
 end
