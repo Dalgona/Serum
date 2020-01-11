@@ -5,6 +5,7 @@ defmodule Serum.DevServer.PromptTest do
   import Serum.DevServer.Prompt
   import Serum.TestHelper
   alias Serum.DevServer.Service
+  alias Serum.GlobalBindings
   alias Serum.IOProxy
 
   @commands ~w(build help open quit)
@@ -13,7 +14,12 @@ defmodule Serum.DevServer.PromptTest do
     {:ok, io_opts} = IOProxy.config()
 
     IOProxy.config(mute_err: false)
-    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+    GlobalBindings.load(%{site: %{base_url: "/test-site/"}})
+
+    on_exit(fn ->
+      IOProxy.config(Keyword.new(io_opts))
+      GlobalBindings.load(%{})
+    end)
   end
 
   setup do
@@ -104,7 +110,7 @@ defmodule Serum.DevServer.PromptTest do
 
     test "handles 'open' command" do
       Serum.DevServer.CommandHandler.Mock
-      |> expect(:open_url, fn "http://localhost:8080" -> :ok end)
+      |> expect(:open_url, fn "http://localhost:8080/test-site/" -> :ok end)
 
       stderr =
         capture_io(:stderr, fn ->
@@ -117,7 +123,7 @@ defmodule Serum.DevServer.PromptTest do
 
     test "prints a warning when failed to open a browser" do
       Serum.DevServer.CommandHandler.Mock
-      |> expect(:open_url, fn "http://localhost:8080" -> :error end)
+      |> expect(:open_url, fn "http://localhost:8080/test-site/" -> :error end)
 
       stderr =
         capture_io(:stderr, fn ->
