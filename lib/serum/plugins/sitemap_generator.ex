@@ -34,13 +34,24 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   def implements, do: [build_succeeded: 3]
 
-  def build_succeeded(_src, dest, _args) do
-    pages = GlobalBindings.get(:all_pages)
-    posts = GlobalBindings.get(:all_posts)
+  def build_succeeded(_src, dest, args) do
+    {pages, posts} = get_items(args[:for])
 
     dest
     |> create_file(pages, posts)
     |> Serum.File.write()
+  end
+
+  @spec get_items(term()) :: {[Page.t()], [Post.t()]}
+  defp get_items(arg)
+  defp get_items(nil), do: get_items([:posts])
+  defp get_items(arg) when not is_list(arg), do: get_items([arg])
+
+  defp get_items(arg) do
+    pages = if :pages in arg, do: GlobalBindings.get(:all_pages), else: []
+    posts = if :posts in arg, do: GlobalBindings.get(:all_posts), else: []
+
+    {pages, posts}
   end
 
   sitemap_path =
