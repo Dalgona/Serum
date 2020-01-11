@@ -35,14 +35,26 @@
 </ul>
 </nav>
       <hr>
-      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="sitemap-generator-plugin">Sitemap Generator Plugin</h1><p>About 1 minute to read</p><hr/></header><p>Use <code class="inline">Serum.Plugins.SitemapGenerator</code> Plugin to have a <code class="inline">sitemap.xml</code> and the
-corresponding <code class="inline">robots.txt</code> generated. These files can later be used to help
-search engines index your blog posts. This plugin is included in the <code class="inline">serum</code>
-package, so you don’t need to add an extra dependency to use this plugin.</p><pre><code class="lang-elixir"># serum.exs:
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="sitemap-generator-plugin">Sitemap Generator Plugin</h1><p>About 1 minute to read</p><hr/></header><p>Use <code class="inline">Serum.Plugins.SitemapGenerator</code> Plugin to generate a <code class="inline">sitemap.xml</code> file.
+This file can later be used to help search engines index your blog posts.</p><p>This plugin is included in the <code class="inline">serum</code> package, so you don’t need to add an
+extra dependency to use this plugin.</p><pre><code class="lang-elixir"># serum.exs:
 %{
   server_root: &quot;https://example.io&quot;,
   plugins: [
     {Serum.Plugins.SitemapGenerator, only: :prod}
+  ]
+}</code></pre><p>By default, this plugin generates sitemap entries only for your blog posts.
+You can change this behavior by setting the <code class="inline">:for</code> option.</p><pre><code class="lang-elixir"># serum.exs:
+%{
+  plugins: [
+    # Generate sitemap entries only for pages.
+    {Serum.Plugins.SitemapGenerator, args: [for: [:pages]]}
+
+    # Same as above.
+    {Serum.Plugins.SitemapGenerator, args: [for: :pages]}
+
+    # Generate sitemap entries for both pages and posts
+    {Serum.Plugins.SitemapGenerator, args: [for: [:pages, :posts]]}
   ]
 }</code></pre></div></article></main>
       <hr>
@@ -50,13 +62,13 @@ package, so you don’t need to add an extra dependency to use this plugin.</p><
         
 
 <p>
-  Copyright &copy; 2019 Eunbin Jeong (Dalgona.)
+  Copyright &copy; 2020 Eunbin Jeong (Dalgona.)
   <a href="https://dalgona.github.io">[Website]</a>
   <a href="https://github.com/Dalgona">[GitHub]</a>
 </p>
 
         <p>
-          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.3.0,
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.4.0,
           with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
         </p>
       </footer>
