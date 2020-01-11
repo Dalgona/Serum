@@ -1,13 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <%= for post <- all_posts do %>
+  <% today = transformer.(Timex.local()) %>
+
+  <%= for page <- pages do %>
+    <url>
+      <loc><%= Path.join(server_root, page.url) %></loc>
+      <lastmod><%= today %></lastmod>
+      <changefreq>weekly</changefreq>
+      <priority>1.0</priority>
+    </url>
+  <% end %>
+
+  <%= for post <- posts do %>
     <url>
       <loc><%= Path.join(server_root, post.url) %></loc>
-
       <lastmod><%= transformer.(post.raw_date) %></lastmod>
-      
       <changefreq>weekly</changefreq>
-
       <priority>1.0</priority>
     </url>
   <% end %>
