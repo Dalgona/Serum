@@ -1,5 +1,35 @@
 # Serum Changelog
 
+## v1.4.0 &mdash: 2020-01-11
+
+### Added
+
+- Added `open` command to the Serum development server CLI. This command opens
+  your website in the default web browser of your desktop environment. Special
+  thanks to **[@nallwhy](https://github.com/nallwhy)**!
+- Users can now configure the `Serum.Plugins.SitemapGenerator` plugin so that
+  it generates entries for pages, posts, or both.
+
+  ```elixir
+  %{
+    plugins: [
+      # Generate sitemap entries for pages only.
+      {Serum.Plugins.SitemapGenerator, for: :pages},
+      # Generate sitemap entries for posts only.
+      {Serum.Plugins.SitemapGenerator, for: :posts},
+      # Generate sitemap entries for both pages and posts.
+      {Serum.Plugins.SitemapGenerator, for: [:pages, :posts]},
+      # Generate sitemap entries for posts only. (Backward comptatibility)
+      Serum.Plugins.SitemapGenerator
+    ]
+  }
+  ```
+
+### Changed
+
+- The `Serum.Plugins.SitemapGenerator` plugin no longer generates `robots.txt`
+  file. Create and put your own `robots.txt` to your `files/` directory.
+
 ## v1.3.0 &mdash; 2019-11-28
 
 ### Fixed
