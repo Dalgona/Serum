@@ -30,7 +30,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
 
   describe "build_succeeded/3" do
     test "generates items for posts by default", %{dir: dir} do
-      :ok = P.build_succeeded("", dir, [])
+      {:ok, _} = P.build_succeeded("", dir, [])
       sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
       refute String.contains?(sitemap, "http://example.com/index.html")
@@ -38,7 +38,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     end
 
     test "generates items for pages", %{dir: dir} do
-      :ok = P.build_succeeded("", dir, for: :pages)
+      {:ok, _} = P.build_succeeded("", dir, for: :pages)
       sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
       assert String.contains?(sitemap, "http://example.com/index.html")
@@ -46,7 +46,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     end
 
     test "generates items for both pages and posts", %{dir: dir} do
-      :ok = P.build_succeeded("", dir, for: [:pages, :posts])
+      {:ok, _} = P.build_succeeded("", dir, for: [:pages, :posts])
       sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
       assert String.contains?(sitemap, "http://example.com/index.html")
