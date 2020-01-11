@@ -115,8 +115,13 @@ defmodule Serum.DevServer.Prompt do
     abs_url = "http://localhost:#{@service.port()}#{base_url}"
 
     case @command_handler.open_url(abs_url) do
-      :ok -> :ok
-      _ -> put_err(:warn, "This command is not supported on your system.")
+      :ok ->
+        :ok
+
+      _ ->
+        put_err(:warn, "This command is not supported on your system.")
+
+        :ok
     end
   end
 

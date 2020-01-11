@@ -130,7 +130,7 @@ defmodule Serum.DevServer.PromptTest do
           send(self(), run_command("open", %{}))
         end)
 
-      assert stderr =~ "Can't open a browser"
+      assert stderr =~ "not supported"
       assert_received :ok
     end
 
