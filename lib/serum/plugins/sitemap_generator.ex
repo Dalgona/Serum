@@ -34,30 +34,23 @@ defmodule Serum.Plugins.SitemapGenerator do
   def implements, do: [build_succeeded: 3]
 
   def build_succeeded(_src, dest, _args) do
-    with {:ok, _} <- write_sitemap(dest),
-         {:ok, _} <- write_robots(dest) do
-      :ok
-    else
+    case write_sitemap(dest) do
+      {:ok, _} -> :ok
       {:error, _} = error -> error
     end
   end
 
-  res_dir =
+  sitemap_path =
     :serum
     |> :code.priv_dir()
-    |> IO.iodata_to_binary()
     |> Path.join("build_resources")
-
-  sitemap_path = Path.join(res_dir, "sitemap.xml.eex")
-  robots_path = Path.join(res_dir, "robots.txt.eex")
+    |> Path.join("sitemap.xml.eex")
 
   EEx.function_from_file(:defp, :sitemap_xml, sitemap_path, [
     :all_posts,
     :transformer,
     :server_root
   ])
-
-  EEx.function_from_file(:defp, :robots_txt, robots_path, [:sitemap_path])
 
   defp to_w3c_format(erl_datetime) do
     # reference to https://www.w3.org/TR/NOTE-datetime
@@ -77,16 +70,6 @@ defmodule Serum.Plugins.SitemapGenerator do
     file = %Serum.File{
       dest: Path.join(dest, "sitemap.xml"),
       out_data: sitemap_xml(all_posts, &to_w3c_format/1, get_server_root())
-    }
-
-    Serum.File.write(file)
-  end
-
-  @spec write_robots(binary()) :: Result.t(Serum.File.t())
-  defp write_robots(dest) do
-    file = %Serum.File{
-      dest: Path.join(dest, "robots.txt"),
-      out_data: robots_txt(Path.join(get_server_root(), "sitemap.xml"))
     }
 
     Serum.File.write(file)
