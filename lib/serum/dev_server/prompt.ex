@@ -68,7 +68,7 @@ defmodule Serum.DevServer.Prompt do
     Available commands are:
       help   Displays this help message
       build  Rebuilds the project
-      open   Open the site in a browser
+      open   Opens the website in the default web browser
       quit   Stops the server and quit
     """
     |> IO.write()
@@ -83,7 +83,7 @@ defmodule Serum.DevServer.Prompt do
       build   Rebuilds the project
       detach  Detaches from this command line interface
               while keeping the Serum development server running
-      open    Open the site in a browser
+      open    Opens the website in the default web browser
       quit    Stops the server and quit
     """
     |> IO.write()
@@ -116,7 +116,7 @@ defmodule Serum.DevServer.Prompt do
 
     case @command_handler.open_url(abs_url) do
       :ok -> :ok
-      _ -> put_err(:warn, "Can't open a browser")
+      _ -> put_err(:warn, "This command is not supported on your system.")
     end
   end
 
