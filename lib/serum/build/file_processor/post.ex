@@ -24,7 +24,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
     Result.run do
       posts <- result
-      sorted_posts = Enum.sort(posts, &(&1.raw_date > &2.raw_date))
+      sorted_posts = Enum.sort(posts, &(DateTime.compare(&1.date, &2.date) == :gt))
       posts2 <- PluginClient.processed_posts(sorted_posts)
 
       Result.return({posts2, Enum.map(posts2, &Post.compact/1)})

@@ -7,7 +7,6 @@ defmodule Serum.Post do
   * `file`: Source file
   * `title`: Post title
   * `date`: Post date (formatted)
-  * `raw_date`: Post date (erlang tuple style)
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
   * `html`: Post contents converted into HTML
@@ -28,7 +27,6 @@ defmodule Serum.Post do
           file: Serum.File.t(),
           title: binary(),
           date: binary(),
-          raw_date: :calendar.datetime(),
           tags: [Tag.t()],
           url: binary(),
           html: binary(),
@@ -42,7 +40,6 @@ defmodule Serum.Post do
     :file,
     :title,
     :date,
-    :raw_date,
     :tags,
     :url,
     :html,
@@ -57,7 +54,6 @@ defmodule Serum.Post do
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
-    raw_date = to_erl_datetime(datetime)
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)
 
     filename =
@@ -71,7 +67,6 @@ defmodule Serum.Post do
       tags: tags,
       html: html,
       preview: preview,
-      raw_date: raw_date,
       date: date_str,
       url: Path.join(proj.base_url, filename),
       output: Path.join(proj.dest, filename),
@@ -85,15 +80,6 @@ defmodule Serum.Post do
     post
     |> Map.drop(~w(__struct__ file html output)a)
     |> Map.put(:type, :post)
-  end
-
-  @spec to_erl_datetime(term()) :: :calendar.datetime()
-  defp to_erl_datetime(obj) do
-    case Timex.to_erl(obj) do
-      {{_y, _m, _d}, {_h, _i, _s}} = erl_datetime -> erl_datetime
-      {_y, _m, _d} = erl_date -> {erl_date, {0, 0, 0}}
-      _ -> {{0, 1, 1}, {0, 0, 0}}
-    end
   end
 
   @spec to_fragment(t()) :: Result.t(Fragment.t())
