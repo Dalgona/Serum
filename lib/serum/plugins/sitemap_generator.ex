@@ -75,9 +75,10 @@ defmodule Serum.Plugins.SitemapGenerator do
     }
   end
 
-  defp to_w3c_format(erl_datetime) do
+  @spec to_w3c_format(DateTime.t()) :: binary()
+  defp to_w3c_format(datetime) do
     # reference to https://www.w3.org/TR/NOTE-datetime
-    Timex.format!(erl_datetime, "%Y-%m-%d", :strftime)
+    Timex.format!(datetime, "%Y-%m-%d", :strftime)
   end
 
   defp get_server_root do

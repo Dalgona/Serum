@@ -14,7 +14,7 @@
   <%= for post <- posts do %>
     <url>
       <loc><%= Path.join(server_root, post.url) %></loc>
-      <lastmod><%= transformer.(post.raw_date) %></lastmod>
+      <lastmod><%= transformer.(post.date) %></lastmod>
       <changefreq>weekly</changefreq>
       <priority>1.0</priority>
     </url>
