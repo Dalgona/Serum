@@ -10,7 +10,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     bindings = %{
       site: %{server_root: "http://example.com/"},
       all_pages: [%Page{url: "index.html"}],
-      all_posts: [%Post{url: "posts/hello.html", raw_date: Timex.local()}]
+      all_posts: [%Post{url: "posts/hello.html", date: Timex.local()}]
     }
 
     GlobalBindings.load(bindings)

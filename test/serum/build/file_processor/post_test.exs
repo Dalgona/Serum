@@ -19,8 +19,14 @@ defmodule Serum.Build.FileProcessor.PostTest do
 
       assert %{
                title: "Test Post",
-               date: "2019-01-01",
-               raw_date: {{2019, 1, 1}, {12, 34, 56}},
+               date: %DateTime{
+                 year: 2019,
+                 month: 1,
+                 day: 1,
+                 hour: 12,
+                 minute: 34,
+                 second: 56
+               },
                tags: [%{name: "tag1"}, %{name: "tag2"}]
              } = post
 
@@ -33,8 +39,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
 
       assert %{
                title: "Test Post",
-               date: "2019-01-01",
-               raw_date: {{2019, 1, 1}, {0, 0, 0}},
+               date: %DateTime{year: 2019, month: 1, day: 1},
                tags: [%{name: "tag3"}, %{name: "tag4"}]
              } = post
 
@@ -47,8 +52,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
 
       assert %{
                title: "Test Post",
-               date: "2019-01-01",
-               raw_date: {{2019, 1, 1}, {0, 0, 0}},
+               date: %DateTime{year: 2019, month: 1, day: 1},
                tags: []
              } = post
 
