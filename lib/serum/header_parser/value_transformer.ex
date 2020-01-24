@@ -65,6 +65,12 @@ defmodule Serum.HeaderParser.ValueTransformer do
 
   @spec local_datetime(DateTime.t() | NaiveDateTime.t()) :: DateTime.t()
   defp local_datetime(dt) do
-    dt |> Timex.to_erl() |> Timex.to_datetime(:local)
+    dt
+    |> Timex.to_erl()
+    |> Timex.to_datetime(:local)
+    |> case do
+      %DateTime{} = datetime -> datetime
+      %Timex.AmbiguousDateTime{after: after_datetime} -> after_datetime
+    end
   end
 end
