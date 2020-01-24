@@ -6,7 +6,7 @@ defmodule Serum.Post do
 
   * `file`: Source file
   * `title`: Post title
-  * `date`: Post date (formatted)
+  * `date`: A `DateTime` struct representing the post date
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
   * `html`: Post contents converted into HTML
@@ -26,7 +26,7 @@ defmodule Serum.Post do
   @type t :: %__MODULE__{
           file: Serum.File.t(),
           title: binary(),
-          date: binary(),
+          date: DateTime.t(),
           tags: [Tag.t()],
           url: binary(),
           html: binary(),
@@ -53,7 +53,6 @@ defmodule Serum.Post do
   def new(file, {header, extras}, html, proj) do
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
-    date_str = Timex.format!(datetime, proj.date_format)
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)
 
     filename =
@@ -67,7 +66,7 @@ defmodule Serum.Post do
       tags: tags,
       html: html,
       preview: preview,
-      date: date_str,
+      date: datetime,
       url: Path.join(proj.base_url, filename),
       output: Path.join(proj.dest, filename),
       template: header[:template],
