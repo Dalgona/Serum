@@ -12,6 +12,8 @@ defmodule Serum.Post do
   * `html`: Post contents converted into HTML
   * `preview`: Preview text of the post
   * `output`: Destination path
+  * `extras`: A map for storing arbitrary key-value data
+  * `template`: Name of custom template or `nil`
   """
 
   require Serum.Result, as: Result

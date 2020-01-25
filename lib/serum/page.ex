@@ -12,6 +12,8 @@ defmodule Serum.Page do
   * `url`: Absolute URL of the page within the website
   * `output`: Destination path
   * `data`: Source data
+  * `extras`: A map for storing arbitrary key-value data
+  * `template`: Name of custom template or `nil`
   """
 
   @type t :: %__MODULE__{
