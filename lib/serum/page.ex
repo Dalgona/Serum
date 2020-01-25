@@ -81,17 +81,16 @@ defmodule Serum.Page do
     |> Map.put(:type, :page)
   end
 
-  @spec get_type(binary) :: binary()
+  @spec get_type(binary()) :: binary()
   defp get_type(filename) do
-    case Path.extname(filename) do
-      ".eex" ->
-        filename
-        |> Path.basename(".eex")
-        |> Path.extname()
-        |> Kernel.<>(".eex")
-
-      ext ->
-        ext
+    filename
+    |> Path.basename()
+    |> String.split(".", parts: 2)
+    |> Enum.reverse()
+    |> hd()
+    |> case do
+      "html.eex" -> "html"
+      type -> type
     end
   end
 
