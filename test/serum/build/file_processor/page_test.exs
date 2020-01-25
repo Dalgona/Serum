@@ -29,7 +29,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
                label: "test-md",
                group: "test",
                order: 1,
-               type: ".md"
+               type: "md"
              } = page
 
       assert page.data =~ "Hello, world!"
@@ -37,35 +37,17 @@ defmodule Serum.Build.FileProcessor.PageTest do
       validate_compact(compact_page)
     end
 
-    test "preprocesses HTML files", %{proj: proj} do
-      file = read("pages/good-html.html")
+    test "preprocesses HTML-EEx files", %{proj: proj} do
+      file = read("pages/good-html.html.eex")
       {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
       {:ok, [page]} = process_pages(pages, proj)
 
       assert %{
-               title: "Test HTML Page",
-               label: "test-html",
-               group: "test",
-               order: 2,
-               type: ".html"
-             } = page
-
-      assert page.data =~ "Hello, world!"
-
-      validate_compact(compact_page)
-    end
-
-    test "preprocesses EEx files", %{proj: proj} do
-      file = read("pages/good-eex.html.eex")
-      {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
-      {:ok, [page]} = process_pages(pages, proj)
-
-      assert %{
-               title: "Test EEx Page",
+               title: "Test HTML-EEx Page",
                label: "test-eex",
                group: "test",
                order: 3,
-               type: ".html.eex"
+               type: "html"
              } = page
 
       assert page.data =~ "Hello, world!"
