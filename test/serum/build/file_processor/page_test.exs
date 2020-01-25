@@ -32,6 +32,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
                type: "md"
              } = page
 
+      assert String.ends_with?(page.output, ".html")
       assert page.data =~ "Hello, world!"
 
       validate_compact(compact_page)
@@ -50,6 +51,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
                type: "html"
              } = page
 
+      assert String.ends_with?(page.output, ".html")
       assert page.data =~ "Hello, world!"
 
       validate_compact(compact_page)
@@ -60,6 +62,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
       {:ok, file} = Serum.File.read(file)
       {:ok, {[page], [compact_page]}} = preprocess_pages([file], ctx.proj)
 
+      assert String.ends_with?(page.output, ".html")
       assert page.label === "Test Page"
       assert compact_page.label === "Test Page"
     end

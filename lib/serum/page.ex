@@ -55,10 +55,10 @@ defmodule Serum.Page do
   def new(file, {header, extras}, data, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
     filename = Path.relative_to(file.src, page_dir)
-    type = get_type(filename)
+    {type, original_ext} = get_type(filename)
 
     {url, output} =
-      with name <- String.replace_suffix(filename, type, ".html") do
+      with name <- String.replace_suffix(filename, original_ext, "html") do
         {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
       end
 
@@ -81,7 +81,7 @@ defmodule Serum.Page do
     |> Map.put(:type, :page)
   end
 
-  @spec get_type(binary()) :: binary()
+  @spec get_type(binary()) :: {binary(), binary()}
   defp get_type(filename) do
     filename
     |> Path.basename()
@@ -89,8 +89,8 @@ defmodule Serum.Page do
     |> Enum.reverse()
     |> hd()
     |> case do
-      "html.eex" -> "html"
-      type -> type
+      "html.eex" -> {"html", "html.eex"}
+      type -> {type, type}
     end
   end
 
