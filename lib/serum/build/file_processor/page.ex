@@ -90,15 +90,11 @@ defmodule Serum.Build.FileProcessor.Page do
   @spec do_process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp do_process_page(page, proj)
 
-  defp do_process_page(%Page{type: ".md"} = page, proj) do
+  defp do_process_page(%Page{type: "md"} = page, proj) do
     Result.return(%Page{page | data: Markdown.to_html(page.data, proj)})
   end
 
-  defp do_process_page(%Page{type: ".html"} = page, _proj) do
-    Result.return(page)
-  end
-
-  defp do_process_page(%Page{type: ".html.eex"} = page, _proj) do
+  defp do_process_page(%Page{type: "html"} = page, _proj) do
     Result.run do
       line = page.extras[@next_line_key] || 1
       ast <- TC.compile_string(page.data, line: line)
