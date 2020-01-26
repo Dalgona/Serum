@@ -76,29 +76,14 @@ defmodule Serum.Build.FileProcessor.Page do
 
   @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(page, proj) do
-    case do_process_page(page, proj) do
-      {:ok, page} ->
-        page = %Page{page | extras: Map.delete(page.extras, @next_line_key)}
-
-        PluginClient.processed_page(page)
-
-      {:error, %Error{}} = error ->
-        error
-    end
-  end
-
-  @spec do_process_page(Page.t(), Project.t()) :: Result.t(Page.t())
-  defp do_process_page(page, proj)
-
-  defp do_process_page(%Page{type: "md"} = page, proj) do
     Result.run do
       line = page.extras[@next_line_key] || 1
       ast <- TC.compile_string(page.data, line: line)
       template = Template.new(ast, page.file.src, :template, page.file)
-      new_template <- TC.Include.expand(template)
-      md <- Renderer.render_fragment(new_template, [])
+      expanded_template <- TC.Include.expand(template)
+      rendered <- Renderer.render_fragment(expanded_template, [])
 
-      Result.return(%Page{page | data: Markdown.to_html(md, proj)})
+      Result.return(%Page{page | data: process_data(rendered, page.type, proj)})
     else
       {:ct_error, msg, line} ->
         Result.fail(Simple, [msg], file: page.file, line: line)
@@ -108,21 +93,8 @@ defmodule Serum.Build.FileProcessor.Page do
     end
   end
 
-  defp do_process_page(%Page{type: "html"} = page, _proj) do
-    Result.run do
-      line = page.extras[@next_line_key] || 1
-      ast <- TC.compile_string(page.data, line: line)
-      template = Template.new(ast, page.file.src, :template, page.file)
-      new_template <- TC.Include.expand(template)
-      html <- Renderer.render_fragment(new_template, [])
-
-      Result.return(%Page{page | data: html})
-    else
-      {:ct_error, msg, line} ->
-        Result.fail(Simple, [msg], file: page.file, line: line)
-
-      {:error, %Error{}} = error ->
-        error
-    end
-  end
+  @spec process_data(binary(), binary(), Project.t()) :: binary()
+  defp process_data(data, type, proj)
+  defp process_data(data, "md", proj), do: Markdown.to_html(data, proj)
+  defp process_data(data, _type, _proj), do: data
 end
