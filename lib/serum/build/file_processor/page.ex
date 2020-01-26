@@ -91,7 +91,21 @@ defmodule Serum.Build.FileProcessor.Page do
   defp do_process_page(page, proj)
 
   defp do_process_page(%Page{type: "md"} = page, proj) do
-    Result.return(%Page{page | data: Markdown.to_html(page.data, proj)})
+    Result.run do
+      line = page.extras[@next_line_key] || 1
+      ast <- TC.compile_string(page.data, line: line)
+      template = Template.new(ast, page.file.src, :template, page.file)
+      new_template <- TC.Include.expand(template)
+      md <- Renderer.render_fragment(new_template, [])
+
+      Result.return(%Page{page | data: Markdown.to_html(md, proj)})
+    else
+      {:ct_error, msg, line} ->
+        Result.fail(Simple, [msg], file: page.file, line: line)
+
+      {:error, %Error{}} = error ->
+        error
+    end
   end
 
   defp do_process_page(%Page{type: "html"} = page, _proj) do

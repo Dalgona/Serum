@@ -19,7 +19,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
   end
 
   describe "preprocess_pages/2" do
-    test "preprocesses markdown files", %{proj: proj} do
+    test "preprocesses markdown-EEx files", %{proj: proj} do
       file = read("pages/good-md.md")
       {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
       {:ok, [page]} = process_pages(pages, proj)
