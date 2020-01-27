@@ -11,7 +11,6 @@ defmodule Serum.Post do
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
   * `data`: Source or processed contents data
-  * `preview`: Preview text of the post
   * `output`: Destination path
   * `extras`: A map for storing arbitrary key-value data
   * `template`: Name of custom template or `nil`
@@ -20,8 +19,6 @@ defmodule Serum.Post do
   require Serum.Result, as: Result
   alias Serum.Error
   alias Serum.Fragment
-  # TODO: See line 63.
-  # alias Serum.Post.PreviewGenerator
   alias Serum.Renderer
   alias Serum.Tag
   alias Serum.Template
@@ -35,7 +32,6 @@ defmodule Serum.Post do
           tags: [Tag.t()],
           url: binary(),
           data: binary(),
-          preview: binary(),
           output: binary(),
           extras: map(),
           template: binary() | nil
@@ -49,7 +45,6 @@ defmodule Serum.Post do
     :tags,
     :url,
     :data,
-    :preview,
     :output,
     :extras,
     :template
@@ -60,8 +55,6 @@ defmodule Serum.Post do
     filename = Path.relative_to(file.src, proj.src)
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
-    # TODO: Move this to somewhere else
-    # preview = PreviewGenerator.generate_preview(html, proj.preview_length)
     {type, original_ext} = get_type(filename)
 
     {url, output} =
@@ -75,8 +68,6 @@ defmodule Serum.Post do
       title: header[:title],
       tags: tags,
       data: data,
-      # TODO: See line 63.
-      preview: "",
       date: datetime,
       url: url,
       output: output,
