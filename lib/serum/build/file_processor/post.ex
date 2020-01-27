@@ -53,8 +53,8 @@ defmodule Serum.Build.FileProcessor.Post do
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
 
-      html = Markdown.to_html(rest, proj)
-      post = Post.new(file2, {header, extras}, html, proj)
+      data = Markdown.to_html(rest, proj)
+      post = Post.new(file2, {header, extras}, data, proj)
 
       PluginClient.processed_post(post)
     end

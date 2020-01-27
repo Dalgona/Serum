@@ -10,7 +10,7 @@ defmodule Serum.Post do
   * `date`: A `DateTime` struct representing the post date
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
-  * `html`: Post contents converted into HTML
+  * `data`: Source or processed contents data
   * `preview`: Preview text of the post
   * `output`: Destination path
   * `extras`: A map for storing arbitrary key-value data
@@ -20,7 +20,8 @@ defmodule Serum.Post do
   require Serum.Result, as: Result
   alias Serum.Error
   alias Serum.Fragment
-  alias Serum.Post.PreviewGenerator
+  # TODO: See line 63.
+  # alias Serum.Post.PreviewGenerator
   alias Serum.Renderer
   alias Serum.Tag
   alias Serum.Template
@@ -33,7 +34,7 @@ defmodule Serum.Post do
           date: DateTime.t(),
           tags: [Tag.t()],
           url: binary(),
-          html: binary(),
+          data: binary(),
           preview: binary(),
           output: binary(),
           extras: map(),
@@ -47,7 +48,7 @@ defmodule Serum.Post do
     :date,
     :tags,
     :url,
-    :html,
+    :data,
     :preview,
     :output,
     :extras,
@@ -55,11 +56,12 @@ defmodule Serum.Post do
   ]
 
   @spec new(Serum.File.t(), {map(), map()}, binary(), map()) :: t()
-  def new(file, {header, extras}, html, proj) do
+  def new(file, {header, extras}, data, proj) do
     filename = Path.relative_to(file.src, proj.src)
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
-    preview = PreviewGenerator.generate_preview(html, proj.preview_length)
+    # TODO: Move this to somewhere else
+    # preview = PreviewGenerator.generate_preview(html, proj.preview_length)
     {type, original_ext} = get_type(filename)
 
     {url, output} =
@@ -72,8 +74,9 @@ defmodule Serum.Post do
       type: type,
       title: header[:title],
       tags: tags,
-      html: html,
-      preview: preview,
+      data: data,
+      # TODO: See line 63.
+      preview: "",
       date: datetime,
       url: url,
       output: output,
@@ -85,7 +88,7 @@ defmodule Serum.Post do
   @spec compact(t()) :: map()
   def compact(%__MODULE__{} = post) do
     post
-    |> Map.drop(~w(__struct__ file html output type)a)
+    |> Map.drop(~w(__struct__ file data output type)a)
     |> Map.put(:type, :post)
   end
 
@@ -106,7 +109,7 @@ defmodule Serum.Post do
   def to_fragment(post) do
     metadata = compact(post)
     template_name = post.template || "post"
-    bindings = [page: metadata, contents: post.html]
+    bindings = [page: metadata, contents: post.data]
 
     with %Template{} = template <- TS.get(template_name, :template),
          {:ok, html} <- Renderer.render_fragment(template, bindings) do
