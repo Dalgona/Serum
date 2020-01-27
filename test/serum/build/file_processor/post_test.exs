@@ -1,23 +1,54 @@
 defmodule Serum.Build.FileProcessor.PostTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   require Serum.TestHelper
+  import Serum.Build.FileProcessor.Post
   import Serum.TestHelper, only: :macros
-  alias Serum.Build.FileProcessor.Post, as: PostProcessor
   alias Serum.Error
+  alias Serum.Post
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.Template
+  alias Serum.Template.Storage, as: TS
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+    template = Template.new("Hello, world!", "test", :template, "test.html.eex")
+
+    TS.load(%{"test" => template}, :include)
+    on_exit(fn -> TS.reset() end)
 
     {:ok, [proj: proj]}
   end
 
-  describe "process_posts/2" do
-    test "good post", ctx do
-      {:ok, result} = process("posts/good-post.md", ctx.proj)
-      {[post], [compact_post]} = result
+  describe "preprocess_posts/2 and process_posts/2" do
+    test "process HTML-EEx posts", %{proj: proj} do
+      file = read("posts/good-html.html.eex")
+      {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
+      {:ok, [post]} = process_posts(posts, proj)
 
-      assert %{
+      assert %Post{
+               type: "html",
+               title: "Test HTML-EEx Post",
+               date: %DateTime{
+                 year: 2020,
+                 month: 1,
+                 day: 1,
+                 hour: 0,
+                 minute: 0,
+                 second: 0
+               },
+               tags: [%{name: "serum"}, %{name: "test"}]
+             } = post
+
+      assert_compact(compact_post)
+    end
+
+    test "process markdown posts", %{proj: proj} do
+      file = read("posts/good-post.md")
+      {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
+      {:ok, [post]} = process_posts(posts, proj)
+
+      assert %Post{
+               type: "md",
                title: "Test Post",
                date: %DateTime{
                  year: 2019,
@@ -33,11 +64,13 @@ defmodule Serum.Build.FileProcessor.PostTest do
       assert_compact(compact_post)
     end
 
-    test "good, date without time", ctx do
-      {:ok, result} = process("posts/good-alternative-date.md", ctx.proj)
-      {[post], [compact_post]} = result
+    test "process markdown posts with simplified date", %{proj: proj} do
+      file = read("posts/good-alternative-date.md")
+      {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
+      {:ok, [post]} = process_posts(posts, proj)
 
-      assert %{
+      assert %Post{
+               type: "md",
                title: "Test Post",
                date: %DateTime{year: 2019, month: 1, day: 1},
                tags: [%{name: "tag3"}, %{name: "tag4"}]
@@ -46,11 +79,13 @@ defmodule Serum.Build.FileProcessor.PostTest do
       assert_compact(compact_post)
     end
 
-    test "good, without tags", ctx do
-      {:ok, result} = process("posts/good-minimal-header.md", ctx.proj)
-      {[post], [compact_post]} = result
+    test "process markdown posts without any tag", %{proj: proj} do
+      file = read("posts/good-minimal-header.md")
+      {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
+      {:ok, [post]} = process_posts(posts, proj)
 
-      assert %{
+      assert %Post{
+               type: "md",
                title: "Test Post",
                date: %DateTime{year: 2019, month: 1, day: 1},
                tags: []
@@ -59,7 +94,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
       assert_compact(compact_post)
     end
 
-    test "fail on bad posts", ctx do
+    test "fail when malformed posts are given", %{proj: proj} do
       files =
         fixture("posts")
         |> Path.join("bad-*.md")
@@ -68,16 +103,32 @@ defmodule Serum.Build.FileProcessor.PostTest do
         |> Enum.map(&Serum.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, %Error{caused_by: errors}} = PostProcessor.process_posts(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = preprocess_posts(files, proj)
+
+      assert length(errors) === length(files)
+    end
+
+    test "fail when malformed EEx posts are given", %{proj: proj} do
+      files =
+        fixture("posts")
+        |> Path.join("bad-*.html.eex")
+        |> Path.wildcard()
+        |> Enum.map(&%Serum.File{src: &1})
+        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(fn {:ok, file} -> file end)
+
+      {:ok, {posts, _}} = preprocess_posts(files, proj)
+      {:error, %Error{caused_by: errors}} = process_posts(posts, proj)
 
       assert length(errors) === length(files)
     end
   end
 
-  defp process(fixture_path, proj) do
-    {:ok, file} = Serum.File.read(%Serum.File{src: fixture(fixture_path)})
+  defp read(path) do
+    file = %Serum.File{src: fixture(path)}
+    {:ok, file} = Serum.File.read(file)
 
-    PostProcessor.process_posts([file], proj)
+    file
   end
 
   defp assert_compact(map) do

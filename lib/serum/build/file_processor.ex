@@ -44,10 +44,11 @@ defmodule Serum.Build.FileProcessor do
     Result.run do
       compile_templates(files)
       {pages, compact_pages} <- preprocess_pages(page_files, proj)
-      {posts, compact_posts} <- process_posts(post_files, proj)
+      {posts, compact_posts} <- preprocess_posts(post_files, proj)
       {lists, tag_counts} <- generate_lists(compact_posts, proj)
       update_global_bindings(compact_pages, compact_posts, tag_counts)
       pages <- process_pages(pages, proj)
+      posts <- process_posts(posts, proj)
 
       Result.return(%{
         pages: pages,

@@ -1,0 +1,9 @@
+---
+title: Test Post
+date: 2020-01-01
+---
+
+<p>This page cannot be processed because
+the EEx code below does not compile.</p>
+
+<%=

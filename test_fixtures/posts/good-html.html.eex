@@ -1,0 +1,9 @@
+---
+title: Test HTML-EEx Post
+date: 2020-01-01
+tags: serum, test
+---
+
+<h1><%= include("test") %></h1>
+
+The quick brown fox jumps over the lazy dog.

@@ -1,0 +1,8 @@
+---
+title: Test Post
+date: 2020-01-01
+---
+
+<p>An error will occur while processing this EEx page.</p>
+
+<%= raise "they shall not pass" %>
