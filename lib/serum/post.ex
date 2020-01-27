@@ -5,6 +5,7 @@ defmodule Serum.Post do
   ## Fields
 
   * `file`: Source file
+  * `type`: Type of source file
   * `title`: Post title
   * `date`: A `DateTime` struct representing the post date
   * `tags`: A list of tags
@@ -27,6 +28,7 @@ defmodule Serum.Post do
 
   @type t :: %__MODULE__{
           file: Serum.File.t(),
+          type: binary(),
           title: binary(),
           date: DateTime.t(),
           tags: [Tag.t()],
@@ -40,6 +42,7 @@ defmodule Serum.Post do
 
   defstruct [
     :file,
+    :type,
     :title,
     :date,
     :tags,
@@ -53,24 +56,27 @@ defmodule Serum.Post do
 
   @spec new(Serum.File.t(), {map(), map()}, binary(), map()) :: t()
   def new(file, {header, extras}, html, proj) do
+    filename = Path.relative_to(file.src, proj.src)
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)
+    {type, original_ext} = get_type(filename)
 
-    filename =
-      file.src
-      |> String.replace_suffix("md", "html")
-      |> Path.relative_to(proj.src)
+    {url, output} =
+      with name <- String.replace_suffix(filename, original_ext, "html") do
+        {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
+      end
 
     %__MODULE__{
       file: file,
+      type: type,
       title: header[:title],
       tags: tags,
       html: html,
       preview: preview,
       date: datetime,
-      url: Path.join(proj.base_url, filename),
-      output: Path.join(proj.dest, filename),
+      url: url,
+      output: output,
       template: header[:template],
       extras: extras
     }
@@ -79,8 +85,21 @@ defmodule Serum.Post do
   @spec compact(t()) :: map()
   def compact(%__MODULE__{} = post) do
     post
-    |> Map.drop(~w(__struct__ file html output)a)
+    |> Map.drop(~w(__struct__ file html output type)a)
     |> Map.put(:type, :post)
+  end
+
+  @spec get_type(binary()) :: {binary(), binary()}
+  defp get_type(filename) do
+    filename
+    |> Path.basename()
+    |> String.split(".", parts: 2)
+    |> Enum.reverse()
+    |> hd()
+    |> case do
+      "html.eex" -> {"html", "html.eex"}
+      type -> {type, type}
+    end
   end
 
   @spec to_fragment(t()) :: Result.t(Fragment.t())
