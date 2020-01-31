@@ -3,14 +3,11 @@ defmodule Serum.Build.FileProcessor.Page do
 
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
+  alias Serum.Build.FileProcessor.Content
   alias Serum.Error
-  alias Serum.Markdown
   alias Serum.Page
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
-  alias Serum.Renderer
-  alias Serum.Template
-  alias Serum.Template.Compiler, as: TC
 
   @next_line_key "__serum__next_line__"
 
@@ -76,25 +73,11 @@ defmodule Serum.Build.FileProcessor.Page do
 
   @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(page, proj) do
-    Result.run do
-      line = page.extras[@next_line_key] || 1
-      ast <- TC.compile_string(page.data, line: line)
-      template = Template.new(ast, page.file.src, :template, page.file)
-      expanded_template <- TC.Include.expand(template)
-      rendered <- Renderer.render_fragment(expanded_template, [])
+    process_opts = [file: page.file, line: page.extras[@next_line_key]]
 
-      Result.return(%Page{page | data: process_data(rendered, page.type, proj)})
-    else
-      {:ct_error, msg, line} ->
-        Result.fail(Simple, [msg], file: page.file, line: line)
-
-      {:error, %Error{}} = error ->
-        error
+    case Content.process_content(page.data, page.type, proj, process_opts) do
+      {:ok, data} -> Result.return(%Page{page | data: data})
+      {:error, %Error{}} = error -> error
     end
   end
-
-  @spec process_data(binary(), binary(), Project.t()) :: binary()
-  defp process_data(data, type, proj)
-  defp process_data(data, "md", proj), do: Markdown.to_html(data, proj)
-  defp process_data(data, _type, _proj), do: data
 end
