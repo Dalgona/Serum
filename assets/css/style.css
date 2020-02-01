@@ -124,7 +124,7 @@ article header p {
 article > div p,
 article > div ul,
 article > div ol {
-  line-height: 1.6em;
+  line-height: 1.8em;
 }
 
 article > div img,
@@ -167,6 +167,54 @@ article.list li.article h2 {
 article.list p.post-preview {
   margin: 0.5em 0 1.5em 0;
   opacity: 0.8;
+}
+
+article.list ul.pagination {
+  display: flex;
+  padding: 0;
+  list-style-type: none;
+}
+
+article.list ul.pagination li {
+  display: inline-block;
+}
+
+article.list ul.pagination .page-button {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 0.2em 0.625em 0.25em;
+  border: 2px solid rgba(128, 128, 128, 0.25);
+}
+
+article.list ul.pagination a.page-button:hover {
+  text-decoration: none;
+  background-color: rgba(128, 128, 128, 0.125);
+}
+
+article.list ul.pagination a.page-button:active {
+  opacity: 0.75;
+}
+
+article.list ul.pagination .page-button.current {
+  border-color: transparent;
+  background-color: rgba(128, 128, 128, 0.25);
+  cursor: default;
+}
+
+article.list ul.pagination span.ellipsis {
+  display: inline-block;
+  width: 1em;
+  height: 1px;
+  margin: 0 3px;
+  background: silver;
+}
+
+article.list ul.pagination li:first-child .page-button {
+  margin-left: 0;
+}
+
+article.list ul.pagination li:last-child .page-button {
+  margin-right: 0;
 }
 
 p.post-date {
