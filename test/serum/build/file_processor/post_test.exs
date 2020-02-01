@@ -20,28 +20,6 @@ defmodule Serum.Build.FileProcessor.PostTest do
   end
 
   describe "preprocess_posts/2 and process_posts/2" do
-    test "process HTML-EEx posts", %{proj: proj} do
-      file = read("posts/good-html.html.eex")
-      {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
-      {:ok, [post]} = process_posts(posts, proj)
-
-      assert %Post{
-               type: "html",
-               title: "Test HTML-EEx Post",
-               date: %DateTime{
-                 year: 2020,
-                 month: 1,
-                 day: 1,
-                 hour: 0,
-                 minute: 0,
-                 second: 0
-               },
-               tags: [%{name: "serum"}, %{name: "test"}]
-             } = post
-
-      assert_compact(compact_post)
-    end
-
     test "process markdown posts", %{proj: proj} do
       file = read("posts/good-post.md")
       {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
@@ -59,6 +37,28 @@ defmodule Serum.Build.FileProcessor.PostTest do
                  second: 56
                },
                tags: [%{name: "tag1"}, %{name: "tag2"}]
+             } = post
+
+      assert_compact(compact_post)
+    end
+
+    test "process HTML-EEx posts", %{proj: proj} do
+      file = read("posts/good-html.html.eex")
+      {:ok, {posts, [compact_post]}} = preprocess_posts([file], proj)
+      {:ok, [post]} = process_posts(posts, proj)
+
+      assert %Post{
+               type: "html",
+               title: "Test HTML-EEx Post",
+               date: %DateTime{
+                 year: 2020,
+                 month: 1,
+                 day: 1,
+                 hour: 0,
+                 minute: 0,
+                 second: 0
+               },
+               tags: [%{name: "serum"}, %{name: "test"}]
              } = post
 
       assert_compact(compact_post)

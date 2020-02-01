@@ -4,6 +4,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
   import Serum.Build.FileProcessor.Page
   import Serum.TestHelper, only: :macros
   alias Serum.Error
+  alias Serum.Page
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
@@ -18,13 +19,13 @@ defmodule Serum.Build.FileProcessor.PageTest do
     {:ok, [proj: proj]}
   end
 
-  describe "preprocess_pages/2" do
-    test "preprocesses markdown-EEx files", %{proj: proj} do
+  describe "preprocess_pages/2 and process_posts/2" do
+    test "preprocesses markdown files", %{proj: proj} do
       file = read("pages/good-md.md")
       {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
       {:ok, [page]} = process_pages(pages, proj)
 
-      assert %{
+      assert %Page{
                title: "Test Markdown Page",
                label: "test-md",
                group: "test",
@@ -43,7 +44,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
       {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
       {:ok, [page]} = process_pages(pages, proj)
 
-      assert %{
+      assert %Page{
                title: "Test HTML-EEx Page",
                label: "test-eex",
                group: "test",
