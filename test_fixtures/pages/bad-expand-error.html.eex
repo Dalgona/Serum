@@ -1,0 +1,7 @@
+---
+title: Test Page
+---
+
+<p>Processing will fail because this template is trying to include a non-existent template.</p>
+
+<%= include "foobarbaz_quux" %>
