@@ -149,6 +149,7 @@ defmodule Serum.PostList do
   end
 
   defimpl Fragment.Source do
+    alias Serum.Fragment
     alias Serum.PostList
     alias Serum.Result
 

@@ -93,7 +93,7 @@ defmodule Serum.Plugin.Loader do
     exception -> Result.fail(Exception, [exception, __STACKTRACE__])
   end
 
-  @spec validate_elixir_version(binary(), Version.requirement()) :: Result.t()
+  @spec validate_elixir_version(binary(), Version.requirement()) :: Result.t({})
   defp validate_elixir_version(name, requirement) do
     if Version.match?(@elixir_version, requirement) do
       Result.return()
@@ -108,7 +108,7 @@ defmodule Serum.Plugin.Loader do
     end
   end
 
-  @spec validate_serum_version(binary(), Version.requirement()) :: Result.t()
+  @spec validate_serum_version(binary(), Version.requirement()) :: Result.t({})
   defp validate_serum_version(name, requirement) do
     if Version.match?(@serum_version, requirement) do
       Result.return()

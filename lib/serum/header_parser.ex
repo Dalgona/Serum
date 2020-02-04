@@ -85,7 +85,7 @@ defmodule Serum.HeaderParser do
     end
   end
 
-  @spec find_missing([{binary(), binary()}], [atom()], integer()) :: Result.t()
+  @spec find_missing([{binary(), binary()}], [atom()], integer()) :: Result.t({})
   defp find_missing(kv_list, required, line) do
     req_strings = required |> Enum.map(&to_string/1) |> MapSet.new()
     keys = kv_list |> Enum.map(&elem(elem(&1, 0), 0)) |> MapSet.new()

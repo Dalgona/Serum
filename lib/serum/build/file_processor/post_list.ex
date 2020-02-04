@@ -4,8 +4,10 @@ defmodule Serum.Build.FileProcessor.PostList do
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Error
+  alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
+  alias Serum.Tag
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
   @type tag_counts() :: [{Tag.t(), integer()}]

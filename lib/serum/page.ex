@@ -107,6 +107,7 @@ defmodule Serum.Page do
   end
 
   defimpl Fragment.Source do
+    alias Serum.Fragment
     alias Serum.Page
     alias Serum.Result
 

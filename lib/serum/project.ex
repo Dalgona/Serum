@@ -42,7 +42,7 @@ defmodule Serum.Project do
           pagination: boolean(),
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
-          plugins: [Plugin.plugin_spec()],
+          plugins: [Plugin.spec()],
           theme: Theme.t()
         }
 

@@ -97,6 +97,7 @@ defmodule Serum.Fragment do
   defprotocol Source do
     @moduledoc false
 
+    alias Serum.Fragment
     alias Serum.Result
 
     @spec to_fragment(term()) :: Result.t(Fragment.t())
