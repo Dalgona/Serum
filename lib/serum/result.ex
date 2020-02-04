@@ -76,6 +76,12 @@ defmodule Serum.Result do
   defp indented(str, 0), do: str
   defp indented(str, depth), do: [List.duplicate("  ", depth - 1), :red, "- ", :reset, str]
 
+  @doc "Binds the value of the given `result` to `fun`."
+  @spec bind(Result.t(a), (a -> Result.t(b))) :: Result.t(b) when a: term(), b: term()
+  def bind(result, fun)
+  def bind({:ok, value}, fun), do: fun.(value)
+  def bind({:error, %Error{}} = error, _fun), do: error
+
   @doc "Provides \"do-notation\"-like syntactic sugar for operation chaining."
   defmacro run(do: {:__block__, _, exprs}) do
     [last | leadings] = Enum.reverse(exprs)
