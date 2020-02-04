@@ -3,7 +3,6 @@ defmodule Serum.Build.FileProcessor.Template do
 
   require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
-  alias Serum.Error
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
@@ -22,13 +21,11 @@ defmodule Serum.Build.FileProcessor.Template do
 
   @spec compile_and_load([Serum.File.t()], Template.type()) :: Result.t([Template.t()])
   defp compile_and_load(files, type) do
-    case TC.compile_files(files, type: type) do
-      {:ok, result} ->
-        TS.load(result, type)
-        result |> Enum.map(&elem(&1, 1)) |> expand_includes()
+    Result.run do
+      result <- TC.compile_files(files, type: type)
+      TS.load(result, type)
 
-      {:error, %Error{}} = error ->
-        error
+      result |> Enum.map(&elem(&1, 1)) |> expand_includes()
     end
   end
 

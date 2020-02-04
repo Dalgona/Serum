@@ -55,14 +55,13 @@ defmodule Serum.Template.Compiler.Include do
 
   defp prewalk_fun({:include, _, [arg]} = ast, context) do
     case TS.get(arg, :include) do
-      %Template{} = include ->
+      {:ok, include} ->
         {new_include, new_context} = do_expand(include, context)
 
         {quote(do: (fn -> unquote(new_include.ast) end).()), new_context}
 
-      nil ->
-        file = context.template.file
-        {:error, error} = Result.fail(Simple, ["include not found: \"#{arg}\""], file: file)
+      {:error, %Error{} = error} ->
+        error = %Error{error | file: context.template.file}
 
         {ast, %{context | error: {:error, error}}}
     end

@@ -35,6 +35,7 @@ defmodule Mix.Tasks.Serum.Build do
   ]
 
   @impl true
+  @spec run(any) :: any()
   def run(args) do
     Mix.Project.compile([])
 

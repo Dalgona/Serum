@@ -17,11 +17,9 @@ defmodule Serum.Post do
   """
 
   require Serum.Result, as: Result
-  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Tag
-  alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
   @type t :: %__MODULE__{
@@ -102,12 +100,11 @@ defmodule Serum.Post do
     template_name = post.template || "post"
     bindings = [page: metadata, contents: post.data]
 
-    with %Template{} = template <- TS.get(template_name, :template),
-         {:ok, html} <- Renderer.render_fragment(template, bindings) do
+    Result.run do
+      template <- TS.get(template_name, :template)
+      html <- Renderer.render_fragment(template, bindings)
+
       Fragment.new(post.file, post.output, metadata, html)
-    else
-      nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
-      {:error, %Error{}} = error -> error
     end
   end
 

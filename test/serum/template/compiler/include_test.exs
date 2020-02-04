@@ -7,6 +7,8 @@ defmodule Serum.Template.Compiler.IncludeTest do
 
   setup_all do
     TS.load(includes(), :include)
+
+    :ok
   end
 
   describe "expand/1" do

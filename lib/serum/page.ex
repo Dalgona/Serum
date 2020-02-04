@@ -31,10 +31,8 @@ defmodule Serum.Page do
         }
 
   require Serum.Result, as: Result
-  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Renderer
-  alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
   defstruct [
@@ -100,12 +98,11 @@ defmodule Serum.Page do
     template_name = page.template || "page"
     bindings = [page: metadata, contents: page.data]
 
-    with %Template{} = template <- TS.get(template_name, :template),
-         {:ok, html} <- Renderer.render_fragment(template, bindings) do
+    Result.run do
+      template <- TS.get(template_name, :template)
+      html <- Renderer.render_fragment(template, bindings)
+
       Fragment.new(page.file, page.output, metadata, html)
-    else
-      nil -> Result.fail(Simple, ["the template \"#{template_name}\" is not available"])
-      {:error, %Error{}} = error -> error
     end
   end
 

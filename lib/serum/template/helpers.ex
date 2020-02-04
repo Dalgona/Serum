@@ -13,8 +13,9 @@ defmodule Serum.Template.Helpers do
   exporting functions/macros with the same names.
   """
 
+  require Serum.Result, as: Result
+  alias Serum.Error
   alias Serum.Renderer
-  alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
   @doc "Returns the value of `@site.base_url`."
@@ -91,14 +92,23 @@ defmodule Serum.Template.Helpers do
   """
 
   def render(name, args \\ []) do
-    with %Template{} = template <- TS.get(name, :include),
-         true <- Keyword.keyword?(args),
-         {:ok, html} <- Renderer.render_fragment(template, args: args) do
-      html
+    Result.run do
+      template <- TS.get(name, :include)
+      ensure_keyword(args)
+      Renderer.render_fragment(template, args: args)
+    end
+    |> case do
+      {:ok, html} -> html
+      {:error, %Error{}} = error -> raise Result.get_message(error, 0)
+    end
+  end
+
+  @spec ensure_keyword(term()) :: Result.t({})
+  defp ensure_keyword(args) do
+    if Keyword.keyword?(args) do
+      Result.return()
     else
-      nil -> raise "include not found: \"#{name}\""
-      false -> raise "'args' must be a keyword list, got: #{inspect(args)}"
-      {:error, _} = error -> raise Serum.Result.get_message(error, 0)
+      Result.fail(Simple, ["'args' must be a keyword list, got: #{inspect(args)}"])
     end
   end
 

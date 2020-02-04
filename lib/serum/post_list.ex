@@ -18,7 +18,6 @@ defmodule Serum.PostList do
   """
 
   require Serum.Result, as: Result
-  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
@@ -139,12 +138,13 @@ defmodule Serum.PostList do
   @spec to_fragment(t()) :: Result.t(Fragment.t())
   def to_fragment(post_list) do
     metadata = compact(post_list)
-    template = TS.get("list", :template)
     bindings = [page: metadata]
 
-    case Renderer.render_fragment(template, bindings) do
-      {:ok, html} -> Fragment.new(%Serum.File{}, post_list.output, metadata, html)
-      {:error, %Error{}} = error -> error
+    Result.run do
+      template <- TS.get("list", :template)
+      html <- Renderer.render_fragment(template, bindings)
+
+      Fragment.new(%Serum.File{}, post_list.output, metadata, html)
     end
   end
 

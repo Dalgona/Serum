@@ -3,6 +3,7 @@ defmodule Serum.Build.PageGenerator do
 
   _moduledocp = "A module responsible for rendering complete HTML pages."
 
+  require Serum.Result, as: Result
   import Serum.IOProxy, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Fragment
@@ -16,12 +17,14 @@ defmodule Serum.Build.PageGenerator do
   def run(fragments) do
     put_msg(:info, "Generating complete HTML pages...")
 
-    template = TS.get("base", :template)
+    Result.run do
+      template <- TS.get("base", :template)
 
-    fragments
-    |> Task.async_stream(&render(&1, template))
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate("failed to render HTML pages:")
+      fragments
+      |> Task.async_stream(&render(&1, template))
+      |> Enum.map(&elem(&1, 1))
+      |> Result.aggregate("failed to render HTML pages:")
+    end
   end
 
   @spec render(Fragment.t(), Template.t()) :: Result.t(Serum.File.t())
