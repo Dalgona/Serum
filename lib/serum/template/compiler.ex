@@ -53,24 +53,23 @@ defmodule Serum.Template.Compiler do
   defp compile_file(file, options) do
     Result.run do
       file2 <- PluginClient.processing_template(file)
-      ast <- compile_string(file2.in_data)
+      ast <- compile_string(file2.in_data, file2)
       name = Path.basename(file2.src, ".html.eex")
       template = Template.new(ast, name, options[:type], file2)
       template2 <- PluginClient.processed_template(template)
 
       Result.return({name, template2})
-    else
-      {:ct_error, msg, line} -> Result.fail(Simple, [msg], file: file, line: line)
-      {:error, %Error{}} = plugin_error -> plugin_error
     end
   end
 
   @doc "Compiles the given EEx string."
-  @spec compile_string(binary(), keyword()) :: {:ok, Macro.t()} | {:ct_error, binary(), integer()}
-  def compile_string(string, compile_options \\ []) do
-    {:ok, {:__block__, [], [@inject, EEx.compile_string(string, compile_options)]}}
+  @spec compile_string(binary(), Serum.File.t(), keyword()) :: Result.t(Macro.t())
+  def compile_string(string, %Serum.File{src: src} = file, options \\ []) do
+    options = Keyword.put(options, :file, src)
+
+    {:ok, {:__block__, [], [@inject, EEx.compile_string(string, options)]}}
   rescue
-    e in EEx.SyntaxError -> {:ct_error, e.message, e.line}
-    e in [SyntaxError, TokenMissingError] -> {:ct_error, e.description, e.line}
+    e in [SyntaxError, TokenMissingError, EEx.SyntaxError] ->
+      Result.fail(Exception, [e, __STACKTRACE__], file: file, line: e.line)
   end
 end

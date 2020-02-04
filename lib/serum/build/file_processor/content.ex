@@ -10,7 +10,6 @@ defmodule Serum.Build.FileProcessor.Content do
   """
 
   require Serum.Result, as: Result
-  alias Serum.Error
   alias Serum.Markdown
   alias Serum.Project
   alias Serum.Renderer
@@ -29,17 +28,11 @@ defmodule Serum.Build.FileProcessor.Content do
     file = options[:file]
 
     Result.run do
-      ast <- TC.compile_string(data, line: src_line)
+      ast <- TC.compile_string(data, file, line: src_line)
       template = Template.new(ast, file.src, :template, file)
       expanded_template <- TC.Include.expand(template)
 
       Renderer.render_fragment(expanded_template, [])
-    else
-      {:ct_error, msg, line} ->
-        Result.fail(Simple, [msg], file: file, line: line)
-
-      {:error, %Error{}} = error ->
-        error
     end
   end
 end
