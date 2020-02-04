@@ -81,13 +81,17 @@ defmodule Serum.ResultTest do
           end
         end
 
-      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
+      generated_code = Macro.expand(ast, __ENV__)
 
-      assert generated_code =~ ~r/\{:ok, x\} <- foo\(\),/
-      assert generated_code =~ ~r/y = bar\(\),/
-      assert generated_code =~ ~r/\{:ok, _\} <- baz\(\)/
-      assert generated_code =~ ~r/\s*spam\(\)/
-      assert generated_code =~ ~r/else\n\s*\{:error, %Serum.Error\{\}\} = error ->\n\s*error/
+      expected =
+        quote do
+          Serum.Result.bind(foo(), fn x ->
+            y = bar()
+            Serum.Result.bind(baz(), fn _ -> spam() end)
+          end)
+        end
+
+      assert Macro.to_string(generated_code) === Macro.to_string(expected)
     end
   end
 

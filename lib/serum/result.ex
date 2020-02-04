@@ -83,24 +83,26 @@ defmodule Serum.Result do
   def bind({:error, %Error{}} = error, _fun), do: error
 
   @doc "Provides \"do-notation\"-like syntactic sugar for operation chaining."
-  defmacro run(do: {:__block__, _, exprs}) do
-    [last | leadings] = Enum.reverse(exprs)
+  defmacro run(do: {:__block__, _, exprs}) when is_list(exprs) do
+    exprs
+    |> Enum.reverse()
+    |> Enum.reduce(fn
+      {:<-, _, [lhs, rhs]}, acc ->
+        quote do
+          Serum.Result.bind(unquote(rhs), fn unquote(lhs) -> unquote(acc) end)
+        end
 
-    leadings =
-      leadings
-      |> Enum.reverse()
-      |> Enum.map(fn
-        {:<-, _, [lhs, rhs]} -> quote(do: {:ok, unquote(lhs)} <- unquote(rhs))
-        {:=, _, _} = assignment -> assignment
-        expr -> quote(do: {:ok, _} <- unquote(expr))
-      end)
+      {:=, _, _} = match, acc ->
+        quote do
+          unquote(match)
+          unquote(acc)
+        end
 
-    else_expr =
-      quote do
-        {:error, %Serum.Error{}} = error -> error
-      end
-
-    {:with, [], leadings ++ [[do: last, else: else_expr]]}
+      expr, acc ->
+        quote do
+          Serum.Result.bind(unquote(expr), fn _ -> unquote(acc) end)
+        end
+    end)
   end
 
   @doc "Expands into `{:ok, {}}` tuple."
