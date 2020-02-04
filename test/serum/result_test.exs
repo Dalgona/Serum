@@ -76,25 +76,6 @@ defmodule Serum.ResultTest do
     end
   end
 
-  describe "run/2" do
-    test "modifies else clauses according to the given argument" do
-      ast =
-        quote do
-          Result.run do
-            x <- foo()
-            y <- bar()
-            baz()
-          else
-            :oh_no -> nil
-          end
-        end
-
-      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
-
-      assert generated_code =~ ~r/else\n\s*:oh_no ->\n\s*nil\n\s*end/
-    end
-  end
-
   describe "fail/3" do
     test "expands into appropriate error expression" do
       ast =

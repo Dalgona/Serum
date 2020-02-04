@@ -77,18 +77,7 @@ defmodule Serum.Result do
   defp indented(str, depth), do: [List.duplicate("  ", depth - 1), :red, "- ", :reset, str]
 
   @doc "Provides \"do-notation\"-like syntactic sugar for operation chaining."
-  defmacro run(expr), do: build_run(expr)
-
-  defp build_run(do: do_expr) do
-    default_else =
-      quote do
-        {:error, %Serum.Error{}} = error -> error
-      end
-
-    build_run(do: do_expr, else: default_else)
-  end
-
-  defp build_run(do: {:__block__, _, exprs}, else: else_expr) do
+  defmacro run(do: {:__block__, _, exprs}) do
     [last | leadings] = Enum.reverse(exprs)
 
     leadings =
@@ -99,6 +88,11 @@ defmodule Serum.Result do
         {:=, _, _} = assignment -> assignment
         expr -> quote(do: {:ok, _} <- unquote(expr))
       end)
+
+    else_expr =
+      quote do
+        {:error, %Serum.Error{}} = error -> error
+      end
 
     {:with, [], leadings ++ [[do: last, else: else_expr]]}
   end
