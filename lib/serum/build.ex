@@ -56,7 +56,11 @@ defmodule Serum.Build do
       PluginClient.finalizing(src, dest)
 
       Result.return(dest)
-    else
+    end
+    |> case do
+      {:ok, _} = result ->
+        result
+
       {:error, %Error{}} = error ->
         Result.run do
           PluginClient.build_failed(src, dest, error)

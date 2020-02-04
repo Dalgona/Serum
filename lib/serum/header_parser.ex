@@ -75,8 +75,13 @@ defmodule Serum.HeaderParser do
       parsed <- transform_values(accepted_kv, options)
 
       Result.return({Map.new(parsed), Map.new(extras), rest, next_line})
-    else
-      {:error, %Error{} = e} -> {:error, Error.prewalk(e, &%Error{&1 | file: file})}
+    end
+    |> case do
+      {:ok, _} = result ->
+        result
+
+      {:error, %Error{} = error} ->
+        {:error, Error.prewalk(error, &%Error{&1 | file: file})}
     end
   end
 
