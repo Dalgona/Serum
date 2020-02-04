@@ -20,7 +20,8 @@ defmodule Serum.Template.StorageTest do
       TS.load(@data, :template)
 
       Enum.each(@names, fn name ->
-        assert TS.get(name, :template).ast === name
+        assert {:ok, template} = TS.get(name, :template)
+        assert template.ast === name
       end)
     end
 
@@ -28,7 +29,8 @@ defmodule Serum.Template.StorageTest do
       TS.load(@data, :include)
 
       Enum.each(@names, fn name ->
-        assert TS.get(name, :include).ast === name
+        assert {:ok, include} = TS.get(name, :include)
+        assert include.ast === name
       end)
     end
 
@@ -39,9 +41,9 @@ defmodule Serum.Template.StorageTest do
 
   describe "put/3" do
     test "puts/updates single template" do
-      assert is_nil(TS.get("lorem", :template))
+      assert {:error, _} = TS.get("lorem", :template)
       TS.put("lorem", :template, @data["lorem"])
-      assert not is_nil(TS.get("lorem", :template))
+      assert {:ok, %Template{}} = TS.get("lorem", :template)
     end
 
     test "rejects unknown template types" do
