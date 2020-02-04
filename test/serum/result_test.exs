@@ -54,6 +54,21 @@ defmodule Serum.ResultTest do
     end
   end
 
+  describe "bind/2" do
+    test "binds a value to a function when successful" do
+      double = fn x -> Result.return(x * 2) end
+
+      assert {:ok, 10} === Result.bind(Result.return(5), double)
+    end
+
+    test "passes the error through when failed" do
+      error = Result.fail(Simple, ["test error"])
+      double = fn x -> Result.return(x * 2) end
+
+      assert error === Result.bind(error, double)
+    end
+  end
+
   describe "run/1" do
     test "expands to appropriate `with` construct" do
       ast =
