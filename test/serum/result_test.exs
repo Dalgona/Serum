@@ -95,7 +95,7 @@ defmodule Serum.ResultTest do
     end
   end
 
-  describe "fail/3" do
+  describe "fail/1" do
     test "expands into appropriate error expression" do
       ast =
         quote do

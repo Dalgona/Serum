@@ -129,20 +129,4 @@ defmodule Serum.Result do
        }}
     end
   end
-
-  defmacro fail({:__aliases__, _, [type]}, args, opts \\ [])
-           when is_atom(type) and is_list(args) and is_list(opts) do
-    msg_module = Module.concat(Serum.Error, "#{type}Message")
-    caused_by = opts[:caused_by] || []
-
-    quote do
-      {:error,
-       %Serum.Error{
-         message: unquote(msg_module).message(unquote(args)),
-         caused_by: unquote(caused_by),
-         file: unquote(opts[:file]),
-         line: unquote(opts[:line])
-       }}
-    end
-  end
 end
