@@ -124,7 +124,7 @@ navigation list or a table of contents.</p><h4 id="@all_posts---list-of-all-post
   {%{name: &quot;Tag3&quot;, list_url: &quot;/Serum/tags/Tag3/&quot;}, 5},
   ...
 ]</code></pre><pre><code class="lang-html">&lt;!-- Usage in EEx --&gt;
-&lt;%= for {tag, count} &lt;- @all_tags do&gt;
+&lt;%= for {tag, count} &lt;- @all_tags do %&gt;
   &lt;a href=&quot;&lt;%= tag.list_url %&gt;&quot;&gt;
     &lt;%= tag.name %&gt; &lt;span class=&quot;count&quot;&gt;&lt;%= count %&gt;&lt;/span&gt;
   &lt;/a&gt;
