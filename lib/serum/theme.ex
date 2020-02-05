@@ -202,7 +202,7 @@ defmodule Serum.Theme do
       version: version
     })
   rescue
-    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
+    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec validate_serum_version(binary(), Version.requirement()) :: Result.t({})
@@ -292,13 +292,13 @@ defmodule Serum.Theme do
   defp check_list_type([x | _xs], prefix) do
     msg = "#{prefix} expected a list of strings, got: #{inspect(x)} in the list"
 
-    Result.fail(Simple, [msg])
+    Result.fail(Simple: [msg])
   end
 
   defp check_list_type(x, prefix) do
     msg = "#{prefix}: expected a list of strings, got: #{inspect(x)}"
 
-    Result.fail(Simple, [msg])
+    Result.fail(Simple: [msg])
   end
 
   @doc false
@@ -323,7 +323,7 @@ defmodule Serum.Theme do
         mod_name = module_name(module)
         msg = "#{mod_name}.get_assets: expected a string, got: #{inspect(x)}"
 
-        Result.fail(Simple, [msg])
+        Result.fail(Simple: [msg])
 
       {:error, %Error{}} = error ->
         error
@@ -334,8 +334,8 @@ defmodule Serum.Theme do
   defp validate_assets_dir(path) do
     case File.stat(path) do
       {:ok, %File.Stat{type: :directory}} -> Result.return(path)
-      {:ok, %File.Stat{}} -> Result.fail(POSIX, [:enotdir], file: %Serum.File{src: path})
-      {:error, reason} -> Result.fail(POSIX, [reason], file: %Serum.File{src: path})
+      {:ok, %File.Stat{}} -> Result.fail(POSIX: [:enotdir], file: %Serum.File{src: path})
+      {:error, reason} -> Result.fail(POSIX: [reason], file: %Serum.File{src: path})
     end
   end
 
@@ -343,7 +343,7 @@ defmodule Serum.Theme do
   defp call_function(module, fun, args) do
     Result.return(apply(module, fun, args))
   rescue
-    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
+    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec module_name(atom()) :: binary()

@@ -29,12 +29,12 @@ defmodule Serum.DevServer do
           "could not start the Serum development server. " <>
             "Make sure the port #{port} is not used by other applications"
 
-        Result.fail(Simple, [msg])
+        Result.fail(Simple: [msg])
 
       {:error, {:shutdown, reason}} when not is_list(reason) ->
         msg = "could not start the Serum development server: #{inspect(reason)}"
 
-        Result.fail(Simple, [msg])
+        Result.fail(Simple: [msg])
 
       {:error, _} = error ->
         error

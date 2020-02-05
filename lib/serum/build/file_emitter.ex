@@ -44,7 +44,7 @@ defmodule Serum.Build.FileEmitter do
   defp create_dir(dir) do
     case File.mkdir_p(dir) do
       :ok -> put_msg(:mkdir, dir)
-      {:error, reason} -> Result.fail(POSIX, [reason], file: %Serum.File{src: dir})
+      {:error, reason} -> Result.fail(POSIX: [reason], file: %Serum.File{src: dir})
     end
   end
 

@@ -53,25 +53,25 @@ defmodule Serum.Project.Loader do
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->
-        Result.fail(POSIX, [reason], file: file)
+        Result.fail(POSIX: [reason], file: file)
 
       # From ElixirValidator.validate/2:
       {:invalid, message} when is_binary(message) ->
-        Result.fail(Simple, [message], file: file)
+        Result.fail(Simple: [message], file: file)
 
       {:invalid, messages} when is_list(messages) ->
         errors =
           Enum.map(messages, fn message ->
-            Result.fail(Simple, [message], file: file)
+            Result.fail(Simple: [message], file: file)
           end)
 
         Result.aggregate(errors, "failed to validate `serum.exs`:")
     end
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
-      Result.fail(Exception, [e, __STACKTRACE__], file: file, line: e.line)
+      Result.fail(Exception: [e, __STACKTRACE__], file: file, line: e.line)
 
     e ->
-      Result.fail(Exception, [e, __STACKTRACE__], file: file)
+      Result.fail(Exception: [e, __STACKTRACE__], file: file)
   end
 end

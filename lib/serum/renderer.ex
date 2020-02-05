@@ -18,9 +18,9 @@ defmodule Serum.Renderer do
     Result.return(html)
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
-      Result.fail(Exception, [e, __STACKTRACE__], file: template.file, line: e.line)
+      Result.fail(Exception: [e, __STACKTRACE__], file: template.file, line: e.line)
 
     e ->
-      Result.fail(Exception, [e, __STACKTRACE__], file: template.file)
+      Result.fail(Exception: [e, __STACKTRACE__], file: template.file)
   end
 end

@@ -70,10 +70,10 @@ defmodule Serum.Plugin.Client do
           "#{module_name(plugin.module)}.#{fun} returned " <>
             "an unexpected value: #{inspect(term)}"
 
-        Result.fail(Simple, [message])
+        Result.fail(Simple: [message])
     end
   rescue
-    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
+    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec call_function(atom(), [a | term()]) :: Result.t(a) when a: term()
@@ -103,10 +103,10 @@ defmodule Serum.Plugin.Client do
           "#{module_name(plugin.module)}.#{fun} returned " <>
             "an unexpected value: #{inspect(term)}"
 
-        Result.fail(Simple, [message])
+        Result.fail(Simple: [message])
     end
   rescue
-    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
+    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec module_name(atom()) :: binary()

@@ -66,7 +66,8 @@ defmodule Serum.Build.FileLoader.Templates do
       missings when is_list(missings) ->
         errors =
           Enum.map(missings, fn missing ->
-            Result.fail(POSIX, [:enoent],
+            Result.fail(
+              POSIX: [:enoent],
               file: %Serum.File{src: Path.join([src, "templates", missing])}
             )
           end)

@@ -62,7 +62,7 @@ defmodule Serum.ResultTest do
     end
 
     test "passes the error through when failed" do
-      error = Result.fail(Simple, ["test error"])
+      error = Result.fail(Simple: ["test error"])
       double = fn x -> Result.return(x * 2) end
 
       assert error === Result.bind(error, double)
@@ -99,7 +99,7 @@ defmodule Serum.ResultTest do
     test "expands into appropriate error expression" do
       ast =
         quote do
-          Result.fail(Simple, ["test error"], file: %Serum.File{src: "nofile"}, line: 3)
+          Result.fail(Simple: ["test error"], file: %Serum.File{src: "nofile"}, line: 3)
         end
 
       generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
@@ -112,7 +112,7 @@ defmodule Serum.ResultTest do
     end
 
     test "expands into appropriate error expression, with default opts" do
-      ast = quote(do: Result.fail(Simple, ["test error"]))
+      ast = quote(do: Result.fail(Simple: ["test error"]))
       generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
 
       assert generated_code =~ "caused_by: []"

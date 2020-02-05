@@ -31,7 +31,7 @@ defmodule Serum.File do
   def read(%__MODULE__{src: nil}) do
     msg = "a Serum.File struct with 'src = nil' cannot be used with Serum.File.read/1"
 
-    Result.fail(Simple, [msg])
+    Result.fail(Simple: [msg])
   end
 
   def read(%__MODULE__{src: src} = file) do
@@ -41,7 +41,7 @@ defmodule Serum.File do
         Result.return(%__MODULE__{file | in_data: data})
 
       {:error, reason} ->
-        Result.fail(POSIX, [reason], file: file)
+        Result.fail(POSIX: [reason], file: file)
     end
   end
 
@@ -54,7 +54,7 @@ defmodule Serum.File do
   def write(%__MODULE__{dest: nil}) do
     msg = "a Serum.File struct with 'dest = nil' cannot be used with Serum.File.write/1"
 
-    Result.fail(Simple, [msg])
+    Result.fail(Simple: [msg])
   end
 
   def write(%__MODULE__{dest: dest, out_data: data} = file) do
@@ -64,7 +64,7 @@ defmodule Serum.File do
         Result.return(file)
 
       {:error, reason} ->
-        Result.fail(POSIX, [reason], file: file)
+        Result.fail(POSIX: [reason], file: file)
     end
   end
 

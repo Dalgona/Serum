@@ -35,12 +35,12 @@ defmodule Serum.Plugin.Loader do
     else
       message = "expected the second tuple element to be a keyword list, got: #{inspect(opts)}"
 
-      Result.fail(Simple, [message])
+      Result.fail(Simple: [message])
     end
   end
 
   defp validate_spec(x) do
-    Result.fail(Simple, ["#{inspect(x)} is not a valid Serum plugin specification"])
+    Result.fail(Simple: ["#{inspect(x)} is not a valid Serum plugin specification"])
   end
 
   @spec do_load_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
@@ -90,7 +90,7 @@ defmodule Serum.Plugin.Loader do
       args: args
     })
   rescue
-    exception -> Result.fail(Exception, [exception, __STACKTRACE__])
+    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec validate_elixir_version(binary(), Version.requirement()) :: Result.t({})

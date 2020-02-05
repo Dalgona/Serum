@@ -74,7 +74,7 @@ defmodule Serum.Template.Compiler.Include do
     if name in context.stack do
       cycle = context.stack |> Enum.reverse() |> Enum.drop_while(&(&1 != name))
 
-      Result.fail(Cycle, [cycle], file: context.template.file)
+      Result.fail(Cycle: [cycle], file: context.template.file)
     else
       Result.return()
     end

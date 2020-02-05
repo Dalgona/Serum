@@ -25,7 +25,7 @@ defmodule Serum.Build.FileLoader.Pages do
         {:error, _} = plugin_error -> plugin_error
       end
     else
-      Result.fail(POSIX, [:enoent], file: %Serum.File{src: pages_dir})
+      Result.fail(POSIX: [:enoent], file: %Serum.File{src: pages_dir})
     end
   end
 end

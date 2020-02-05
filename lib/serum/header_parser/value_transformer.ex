@@ -25,7 +25,7 @@ defmodule Serum.HeaderParser.ValueTransformer do
   def transform_value({key, valstr}, :integer, line) do
     case Integer.parse(valstr) do
       {value, ""} -> Result.return(value)
-      _ -> Result.fail(Simple, ["#{key}: invalid integer"], line: line)
+      _ -> Result.fail(Simple: ["#{key}: invalid integer"], line: line)
     end
   end
 
@@ -37,13 +37,13 @@ defmodule Serum.HeaderParser.ValueTransformer do
       {:error, _msg} ->
         case Timex.parse(valstr, @date_format2) do
           {:ok, dt} -> Result.return(local_datetime(dt))
-          {:error, msg} -> Result.fail(Simple, ["#{key}: " <> msg], line: line)
+          {:error, msg} -> Result.fail(Simple: ["#{key}: " <> msg], line: line)
         end
     end
   end
 
   def transform_value({key, _valstr}, {:list, {:list, _type}}, line) do
-    Result.fail(Simple, ["#{key}: \"list of lists\" type is not supported"], line: line)
+    Result.fail(Simple: ["#{key}: \"list of lists\" type is not supported"], line: line)
   end
 
   def transform_value({key, valstr}, {:list, type}, line) when is_atom(type) do
@@ -60,7 +60,7 @@ defmodule Serum.HeaderParser.ValueTransformer do
   end
 
   def transform_value({key, _valstr}, _type, line) do
-    Result.fail(Simple, ["#{key}: invalid value type"], line: line)
+    Result.fail(Simple: ["#{key}: invalid value type"], line: line)
   end
 
   @spec local_datetime(DateTime.t() | NaiveDateTime.t()) :: DateTime.t()
