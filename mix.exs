@@ -34,6 +34,7 @@ defmodule Serum.Mixfile do
 
   defp deps do
     [
+      {:serum_sdk, sdk_spec(Mix.env())},
       {:earmark, "~> 1.3"},
       {:file_system, "~> 0.2"},
       {:microscope, "~> 1.3"},
@@ -47,6 +48,10 @@ defmodule Serum.Mixfile do
       {:mox, "~> 0.5", only: :test}
     ]
   end
+
+  defp sdk_spec(env)
+  defp sdk_spec(env) when env in ~w[dev test]a, do: [path: "./serum_sdk"]
+  defp sdk_spec(_), do: @serum_version
 
   defp package do
     [
