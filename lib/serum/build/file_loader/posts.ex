@@ -5,7 +5,7 @@ defmodule Serum.Build.FileLoader.Posts do
 
   require Serum.Result, as: Result
   import Serum.Build.FileLoader.Common
-  import Serum.IOProxy
+  import Serum.V2.Console
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
 

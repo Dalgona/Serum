@@ -3,7 +3,7 @@ defmodule Serum.DevServer.Prompt do
   Provides access to the Serum development server command line interface.
   """
 
-  import Serum.IOProxy, only: [put_err: 2]
+  import Serum.V2.Console, only: [put_err: 2]
   alias Serum.DevServer.CommandHandler
   alias Serum.DevServer.Service
   alias Serum.GlobalBindings

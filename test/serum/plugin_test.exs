@@ -7,11 +7,11 @@ defmodule Serum.PluginTest do
   import Serum.TestHelper, only: :macros
   alias Serum.File
   alias Serum.Fragment
-  alias Serum.IOProxy
   alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
+  alias Serum.V2.Console
 
   "plugins/*plugin*.ex"
   |> fixture()
@@ -19,10 +19,10 @@ defmodule Serum.PluginTest do
   |> Enum.each(&Code.require_file/1)
 
   setup_all do
-    {:ok, io_opts} = IOProxy.config()
+    {:ok, io_opts} = Console.config()
 
-    IOProxy.config(mute_err: false, mute_msg: false)
-    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+    Console.config(mute_err: false, mute_msg: false)
+    on_exit(fn -> Console.config(Keyword.new(io_opts)) end)
   end
 
   setup do
@@ -88,7 +88,7 @@ defmodule Serum.PluginTest do
   describe "show_info/1" do
     test "prints enough information about loaded plugins" do
       {:ok, plugins} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2])
-      io_proxy = Process.whereis(IOProxy)
+      io_proxy = Process.whereis(Console)
       original_gl = io_proxy |> Process.info() |> Access.get(:group_leader)
       {:ok, string_io} = StringIO.open("")
 

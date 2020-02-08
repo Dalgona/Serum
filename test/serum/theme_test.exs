@@ -3,7 +3,7 @@ defmodule Serum.ThemeTest do
   require Serum.TestHelper
   import Serum.TestHelper
   import Serum.Theme
-  alias Serum.IOProxy
+  alias Serum.V2.Console
 
   "theme_modules/*.ex"
   |> fixture()
@@ -11,10 +11,10 @@ defmodule Serum.ThemeTest do
   |> Enum.each(&Code.require_file/1)
 
   setup_all do
-    {:ok, io_opts} = IOProxy.config()
+    {:ok, io_opts} = Console.config()
 
-    IOProxy.config(mute_err: false)
-    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+    Console.config(mute_err: false)
+    on_exit(fn -> Console.config(Keyword.new(io_opts)) end)
 
     :ok
   end

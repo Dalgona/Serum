@@ -2,7 +2,7 @@ defmodule Serum.Build.FileProcessor.Template do
   @moduledoc false
 
   require Serum.Result, as: Result
-  import Serum.IOProxy, only: [put_msg: 2]
+  import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS

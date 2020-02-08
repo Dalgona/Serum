@@ -3,7 +3,7 @@ defmodule Serum.Project do
   This module defines a struct for storing Serum project metadata.
   """
 
-  import Serum.IOProxy, only: [put_err: 2]
+  import Serum.V2.Console, only: [put_err: 2]
   alias Serum.Plugin
   alias Serum.Theme
 

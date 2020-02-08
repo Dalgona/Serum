@@ -6,18 +6,18 @@ defmodule Serum.DevServer.PromptTest do
   import Serum.TestHelper
   alias Serum.DevServer.Service
   alias Serum.GlobalBindings
-  alias Serum.IOProxy
+  alias Serum.V2.Console
 
   @commands ~w(build help open quit)
 
   setup_all do
-    {:ok, io_opts} = IOProxy.config()
+    {:ok, io_opts} = Console.config()
 
-    IOProxy.config(mute_err: false)
+    Console.config(mute_err: false)
     GlobalBindings.load(%{site: %{base_url: "/test-site/"}})
 
     on_exit(fn ->
-      IOProxy.config(Keyword.new(io_opts))
+      Console.config(Keyword.new(io_opts))
       GlobalBindings.load(%{})
     end)
   end

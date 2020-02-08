@@ -4,7 +4,7 @@ defmodule Serum.Build.PageGenerator do
   _moduledocp = "A module responsible for rendering complete HTML pages."
 
   require Serum.Result, as: Result
-  import Serum.IOProxy, only: [put_msg: 2]
+  import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient

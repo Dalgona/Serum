@@ -5,8 +5,8 @@ defmodule Serum.Plugin.LoaderTest do
   import Serum.Plugin.Loader
   import Serum.TestHelper, only: :macros
   alias Serum.Error
-  alias Serum.IOProxy
   alias Serum.Plugin
+  alias Serum.V2.Console
 
   "plugins/*plugin*.ex"
   |> fixture()
@@ -14,10 +14,10 @@ defmodule Serum.Plugin.LoaderTest do
   |> Enum.each(&Code.require_file/1)
 
   setup_all do
-    {:ok, io_opts} = IOProxy.config()
+    {:ok, io_opts} = Console.config()
 
-    IOProxy.config(mute_err: false, mute_msg: false)
-    on_exit(fn -> IOProxy.config(Keyword.new(io_opts)) end)
+    Console.config(mute_err: false, mute_msg: false)
+    on_exit(fn -> Console.config(Keyword.new(io_opts)) end)
   end
 
   setup do

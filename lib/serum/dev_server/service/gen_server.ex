@@ -7,7 +7,7 @@ defmodule Serum.DevServer.Service.GenServer do
 
   use GenServer
   require Serum.Result, as: Result
-  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
+  import Serum.V2.Console, only: [put_err: 2, put_msg: 2]
   alias Serum.Build
   alias Serum.DevServer.Service
   alias Serum.Project

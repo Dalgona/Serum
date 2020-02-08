@@ -4,7 +4,7 @@ defmodule Serum.Result do
   functions in this project.
   """
 
-  import Serum.IOProxy, only: [put_err: 2]
+  import Serum.V2.Console, only: [put_err: 2]
   alias Serum.Error
   alias Serum.Error.Format
   alias Serum.Error.SimpleMessage

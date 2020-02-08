@@ -4,7 +4,7 @@ defmodule Serum.Plugin.Loader do
   _moduledocp = "A module for loading Serum plugins from serum.exs."
 
   require Serum.Result, as: Result
-  import Serum.IOProxy
+  import Serum.V2.Console
   alias Serum.Error
   alias Serum.Plugin
   alias Serum.Plugin.EnvMatcher

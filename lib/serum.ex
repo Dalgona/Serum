@@ -17,10 +17,10 @@ defmodule Serum do
 
   use Application
   alias Serum.GlobalBindings
-  alias Serum.IOProxy
   alias Serum.Plugin
   alias Serum.Template.Storage, as: TemplateStorage
   alias Serum.Theme
+  alias Serum.V2.Console
 
   @doc """
   Starts the `:serum` application.
@@ -31,7 +31,7 @@ defmodule Serum do
   def start(_type, _args) do
     children = [
       GlobalBindings,
-      IOProxy,
+      Console,
       Plugin,
       Theme,
       TemplateStorage

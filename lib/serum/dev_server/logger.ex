@@ -3,7 +3,7 @@ defmodule Serum.DevServer.Logger do
 
   @behaviour Microscope.Callback
 
-  alias Serum.IOProxy
+  alias Serum.V2.Console
 
   def on_request, do: nil
   def on_200(from, method, path), do: log(200, from, method, path)
@@ -18,7 +18,7 @@ defmodule Serum.DevServer.Logger do
       |> IO.ANSI.format()
       |> IO.iodata_to_binary()
 
-    IOProxy.put_msg(:info, msg)
+    Console.put_msg(:info, msg)
   end
 
   defp status_color(code)

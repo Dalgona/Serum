@@ -11,7 +11,7 @@ defmodule Serum.File do
   """
 
   require Serum.Result, as: Result
-  import Serum.IOProxy, only: [put_msg: 2]
+  import Serum.V2.Console, only: [put_msg: 2]
 
   defstruct [:src, :dest, :in_data, :out_data]
 

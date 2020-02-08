@@ -7,7 +7,7 @@ defmodule Serum.DevServer.LiveReloadHandler do
 
   @behaviour :cowboy_websocket
 
-  import Serum.IOProxy, only: [put_err: 2, put_msg: 2]
+  import Serum.V2.Console, only: [put_err: 2, put_msg: 2]
   alias Serum.DevServer.Service
 
   @impl true

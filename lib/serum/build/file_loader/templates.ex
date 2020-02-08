@@ -7,7 +7,7 @@ defmodule Serum.Build.FileLoader.Templates do
 
   require Serum.Result, as: Result
   import Serum.Build.FileLoader.Common
-  import Serum.IOProxy, only: [put_msg: 2]
+  import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result

@@ -2,7 +2,7 @@ defmodule Serum.Build.FileProcessor.PostList do
   @moduledoc false
 
   require Serum.Result, as: Result
-  import Serum.IOProxy, only: [put_msg: 2]
+  import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Post
   alias Serum.PostList
