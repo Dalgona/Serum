@@ -16,7 +16,7 @@ defmodule Mix.Tasks.Serum.Server do
   @shortdoc "Starts the Serum development server"
 
   use Mix.Task
-  alias Mix.Tasks.Serum.CLIHelper
+  alias Serum.CLIUtils
   alias Serum.DevServer
 
   @options [
@@ -28,10 +28,10 @@ defmodule Mix.Tasks.Serum.Server do
   def run(args) do
     Mix.Project.compile([])
 
-    options = CLIHelper.parse_options(args, @options)
+    options = CLIUtils.parse_options(args, @options)
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    Mix.shell().info(CLIHelper.version_string())
+    Mix.shell().info(CLIUtils.version_string())
 
     case DevServer.run("", options[:port] || 8080) do
       {:ok, _pid} ->

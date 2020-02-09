@@ -23,8 +23,8 @@ defmodule Mix.Tasks.Serum.Gen.Page do
 
   use Mix.Task
   alias Mix.Generator, as: MixGen
-  alias Mix.Tasks.Serum.CLIHelper
   alias OptionParser.ParseError
+  alias Serum.CLIUtils
 
   @options [
     strict: [
@@ -48,7 +48,7 @@ defmodule Mix.Tasks.Serum.Gen.Page do
 
   @impl true
   def run(args) do
-    options = CLIHelper.parse_options(args, @options)
+    options = CLIUtils.parse_options(args, @options)
     :ok = check_required!(options)
     type = check_type!(options[:output])
     output = Path.join("pages/", options[:output])

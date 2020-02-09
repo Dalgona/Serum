@@ -10,7 +10,7 @@ defmodule Mix.Tasks.Serum do
   @shortdoc "Prints a list of available Serum tasks"
 
   use Mix.Task
-  alias Mix.Tasks.Serum.CLIHelper
+  alias Serum.CLIUtils
 
   tasks = %{
     "serum" => "Prints this help message",
@@ -36,10 +36,10 @@ defmodule Mix.Tasks.Serum do
 
   @impl true
   def run(args) do
-    CLIHelper.parse_options(args, strict: [])
+    CLIUtils.parse_options(args, strict: [])
 
     [
-      CLIHelper.version_string(),
+      CLIUtils.version_string(),
       "\nAvailable tasks are:\n",
       unquote(tasks_msg),
       "\nPlease visit ",

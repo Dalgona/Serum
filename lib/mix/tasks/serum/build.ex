@@ -23,8 +23,8 @@ defmodule Mix.Tasks.Serum.Build do
 
   use Mix.Task
   alias IO.ANSI, as: A
-  alias Mix.Tasks.Serum.CLIHelper
   alias Serum.Build
+  alias Serum.CLIUtils
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
 
@@ -38,11 +38,11 @@ defmodule Mix.Tasks.Serum.Build do
   def run(args) do
     Mix.Project.compile([])
 
-    options = CLIHelper.parse_options(args, @options)
+    options = CLIUtils.parse_options(args, @options)
     dest = options[:output] || "site"
     {:ok, _} = Application.ensure_all_started(:serum)
 
-    Mix.shell().info(CLIHelper.version_string())
+    Mix.shell().info(CLIUtils.version_string())
 
     with {:ok, %Project{} = proj} <- ProjectLoader.load("", dest),
          {:ok, ^dest} <- Build.build(proj) do
