@@ -11,6 +11,7 @@ defmodule Serum.V2.File do
   """
 
   require Serum.V2.Result, as: Result
+  import Serum.V2.Console, only: [put_msg: 2]
 
   defstruct [:src, :dest, :in_data, :out_data]
 
@@ -36,6 +37,7 @@ defmodule Serum.V2.File do
   def read(%__MODULE__{src: src} = file) do
     case File.read(src) do
       {:ok, data} when is_binary(data) ->
+        print_read(src)
         Result.return(%__MODULE__{file | in_data: data})
 
       {:error, reason} ->
@@ -58,10 +60,17 @@ defmodule Serum.V2.File do
   def write(%__MODULE__{dest: dest, out_data: data} = file) do
     case File.open(dest, [:write, :utf8], &IO.write(&1, data)) do
       {:ok, _} ->
+        print_write(dest)
         Result.return(file)
 
       {:error, reason} ->
         Result.fail(POSIX: [reason], file: file)
     end
   end
+
+  @spec print_read(binary()) :: Result.t({})
+  defp print_read(src), do: put_msg(:read, src)
+
+  @spec print_write(binary()) :: Result.t({})
+  defp print_write(dest), do: put_msg(:gen, dest)
 end
