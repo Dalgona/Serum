@@ -10,7 +10,7 @@ Like some of other static website generators, Serum focuses on blogging. And if
 you know how to write markdown documents and how to handle EEx templates, you
 can easily build your own website.
 
-## Geting Started
+## Getting Started
 
 Use Mix to install the Serum installer archive from Hex.
 
