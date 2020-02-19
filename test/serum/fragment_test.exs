@@ -56,7 +56,7 @@ defmodule Serum.FragmentTest do
       ]
 
       frag.data
-      |> Floki.parse()
+      |> Floki.parse_document!()
       |> Html.traverse([], &get_ids/2)
       |> elem(1)
       |> Enum.reverse()

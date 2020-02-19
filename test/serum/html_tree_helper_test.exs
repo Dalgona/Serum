@@ -13,7 +13,7 @@ defmodule Serum.HtmlTreeHelperTest do
   </div>
   """
 
-  @html_tree Floki.parse(document)
+  @html_tree Floki.parse_document!(document)
 
   test "if traverse/2 produces expected output" do
     expected_texts = [
