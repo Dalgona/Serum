@@ -41,7 +41,7 @@ defmodule Serum.Mixfile do
       {:credo, "~> 1.0", only: [:dev, :test]},
       {:excoveralls, "~> 0.11", only: [:test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test]},
-      {:floki, "~> 0.20"},
+      {:floki, "0.26.0"},
       {:ex_doc, "~> 0.20", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:mox, "~> 0.5", only: :test}
