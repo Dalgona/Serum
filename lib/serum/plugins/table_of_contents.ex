@@ -68,8 +68,6 @@ defmodule Serum.Plugins.TableOfContents do
 
   @behaviour Serum.Plugin
 
-  alias Serum.HtmlTreeHelper, as: Html
-
   serum_ver = Version.parse!(Mix.Project.config()[:version])
   serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
 
@@ -86,7 +84,7 @@ defmodule Serum.Plugins.TableOfContents do
   def rendering_fragment(html, %{type: :post}, _), do: {:ok, insert_toc(html)}
   def rendering_fragment(html, _, _), do: {:ok, html}
 
-  @spec insert_toc(Html.tree()) :: Html.tree()
+  @spec insert_toc(Floki.html_tree()) :: Floki.html_tree()
   defp insert_toc(html) do
     case Floki.find(html, "serum-toc") do
       [] ->
@@ -95,11 +93,11 @@ defmodule Serum.Plugins.TableOfContents do
       [{"serum-toc", attr_list, _} | _] ->
         {start, end_} = get_range(attr_list)
         state = {start, end_, start, [0], []}
-        {new_tree, new_state} = Html.traverse(html, state, &tree_fun/2)
+        {new_tree, new_state} = Floki.traverse_and_update(html, state, &tree_fun/2)
         items = new_state |> elem(4) |> Enum.reverse()
         toc = {"ul", [{"id", "toc"}, {"class", "serum-toc"}], items}
 
-        Html.traverse(new_tree, fn
+        Floki.traverse_and_update(new_tree, fn
           {"serum-toc", _, _} -> toc
           x -> x
         end)
@@ -126,7 +124,7 @@ defmodule Serum.Plugins.TableOfContents do
     end
   end
 
-  @spec tree_fun(Html.tree(), term()) :: {Html.tree(), term()}
+  @spec tree_fun(Floki.html_tag(), term()) :: {Floki.html_tag(), term()}
   defp tree_fun(tree, state)
 
   defp tree_fun({<<?h::8, ch::8, _::binary>>, _, _} = tree, state) when ch in ?1..?6 do
@@ -149,7 +147,7 @@ defmodule Serum.Plugins.TableOfContents do
 
   defp tree_fun(x, state), do: {x, state}
 
-  @spec strip_a_tags(Html.tree()) :: Html.tree()
+  @spec strip_a_tags(Floki.html_tag()) :: Floki.html_tag()
   defp strip_a_tags(tree)
   defp strip_a_tags({"a", _, children}), do: children
   defp strip_a_tags(x), do: x
@@ -172,15 +170,15 @@ defmodule Serum.Plugins.TableOfContents do
     end
   end
 
-  @spec toc_link(Html.tree(), binary(), binary()) :: Html.tree()
+  @spec toc_link(Floki.html_tag(), binary(), binary()) :: Floki.html_tag()
   defp toc_link({_, _, children} = _header_tag, num_dot, target_id) do
     num_span = {"span", [{"class", "number"}], [num_dot]}
-    contents = Html.traverse(children, &strip_a_tags/1)
+    contents = Floki.traverse_and_update(children, &strip_a_tags/1)
 
     {"a", [{"href", <<?#, target_id::binary>>}], [num_span | contents]}
   end
 
-  @spec try_set_id(Html.tree(), binary()) :: {Html.tree(), binary()}
+  @spec try_set_id(Floki.html_tag(), binary()) :: {Floki.html_tag(), binary()}
   defp try_set_id({tag_name, attrs, children} = tree, new_id) do
     case Enum.find(attrs, fn {k, _} -> k === "id" end) do
       {"id", id} -> {tree, id}
