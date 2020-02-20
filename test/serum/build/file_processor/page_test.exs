@@ -1,5 +1,5 @@
 defmodule Serum.Build.FileProcessor.PageTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case
   require Serum.TestHelper
   import Serum.Build.FileProcessor.Page
   import Serum.TestHelper, only: :macros
