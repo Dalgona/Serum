@@ -3,7 +3,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
   alias Serum.Plugins.TableOfContents, as: TOC
 
   test "without attribute" do
-    html = Floki.parse(get_data())
+    html = Floki.parse_document!(get_data())
     {:ok, html2} = TOC.rendering_fragment(html, %{type: :page}, nil)
     items = Floki.find(html2, "ul.serum-toc li span.number")
 
@@ -30,7 +30,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
   end
 
   test "with attribute" do
-    html = Floki.parse(get_data(2, 4))
+    html = Floki.parse_document!(get_data(2, 4))
     {:ok, html2} = TOC.rendering_fragment(html, %{type: :post}, nil)
     items = Floki.find(html2, "ul.serum-toc li span.number")
 
@@ -54,13 +54,13 @@ defmodule Serum.Plugins.TableOfContentsTest do
   end
 
   test "no serum-toc tag" do
-    html = Floki.parse("Notice me (OwO)")
+    html = Floki.parse_document!("Notice me (OwO)")
     assert {:ok, ^html} = TOC.rendering_fragment(html, %{type: :page}, nil)
   end
 
   test "garbage in, something reasonable out" do
-    html1 = Floki.parse(get_data())
-    html2 = Floki.parse(get_data("a", "b"))
+    html1 = Floki.parse_document!(get_data())
+    html2 = Floki.parse_document!(get_data("a", "b"))
     result1 = TOC.rendering_fragment(html1, %{type: :page}, nil)
     result2 = TOC.rendering_fragment(html2, %{type: :page}, nil)
 
@@ -68,7 +68,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
   end
 
   test "if list element has an id 'toc'" do
-    html = Floki.parse(get_data())
+    html = Floki.parse_document!(get_data())
     {:ok, html2} = TOC.rendering_fragment(html, %{type: :page}, nil)
     {"ul", attrs, _} = html2 |> Floki.find("ul.serum-toc") |> hd()
 
@@ -76,7 +76,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
   end
 
   test "if id attribute is properly set" do
-    html = Floki.parse(get_data(2, 4))
+    html = Floki.parse_document!(get_data(2, 4))
     {:ok, html2} = TOC.rendering_fragment(html, %{type: :page}, nil)
     links = Floki.find(html2, "ul.serum-toc li a")
 

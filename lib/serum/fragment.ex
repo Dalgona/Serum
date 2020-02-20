@@ -10,7 +10,6 @@ defmodule Serum.Fragment do
   * `data`: Contents of the page fragment
   """
 
-  alias Serum.HtmlTreeHelper, as: Html
   alias Serum.Plugin
 
   @type t :: %__MODULE__{
@@ -25,28 +24,30 @@ defmodule Serum.Fragment do
   @doc "Creates a new `Fragment` struct."
   @spec new(binary() | nil, binary(), map(), binary()) :: Result.t(t())
   def new(file, output, metadata, data) do
-    data
-    |> Floki.parse()
-    |> Html.traverse(%{}, &set_header_ids/2)
-    |> elem(0)
-    |> Plugin.rendering_fragment(metadata)
-    |> case do
-      {:ok, html_tree} ->
-        fragment = %__MODULE__{
-          file: file,
-          output: output,
-          metadata: Map.put(metadata, :images, extract_images(html_tree)),
-          data: Floki.raw_html(html_tree)
-        }
+    with {:ok, html_tree} <- Floki.parse_document(data),
+         {:ok, html_tree} <- preprocess(html_tree, metadata) do
+      fragment = %__MODULE__{
+        file: file,
+        output: output,
+        metadata: Map.put(metadata, :images, extract_images(html_tree)),
+        data: Floki.raw_html(html_tree)
+      }
 
-        {:ok, fragment}
-
-      {:error, _} = error ->
-        error
+      {:ok, fragment}
+    else
+      {:error, _} = error -> error
     end
   end
 
-  @spec set_header_ids(Html.tree(), map()) :: {Html.tree(), map()}
+  @spec preprocess(Floki.html_tree(), map()) :: Result.t(Floki.html_tree())
+  defp preprocess(html_tree, metadata) do
+    html_tree
+    |> Floki.traverse_and_update(%{}, &set_header_ids/2)
+    |> elem(0)
+    |> Plugin.rendering_fragment(metadata)
+  end
+
+  @spec set_header_ids(Floki.html_tag(), map()) :: {Floki.html_tag(), map()}
   defp set_header_ids(tree, state)
 
   defp set_header_ids({<<?h, ch::8>>, _, _} = tree, state) when ch in ?1..?6 do
@@ -71,9 +72,9 @@ defmodule Serum.Fragment do
 
   defp set_header_ids(tree, state), do: {tree, state}
 
-  @spec generate_id(Html.tree()) :: binary()
+  @spec generate_id(Floki.html_tag()) :: binary()
   defp generate_id(tree) do
-    tree
+    [tree]
     |> Floki.text()
     |> String.downcase()
     |> String.replace(~r/\s/, "-")
@@ -82,7 +83,7 @@ defmodule Serum.Fragment do
   @spec increase_count(map(), binary()) :: map()
   defp increase_count(map, id), do: Map.update(map, id, 1, &(&1 + 1))
 
-  @spec extract_images(Html.tree()) :: [binary()]
+  @spec extract_images(Floki.html_tree()) :: [binary()]
   defp extract_images(tree) do
     tree
     |> Floki.find("img")

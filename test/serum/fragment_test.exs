@@ -1,7 +1,6 @@
 defmodule Serum.FragmentTest do
   use ExUnit.Case, async: true
   alias Serum.Fragment
-  alias Serum.HtmlTreeHelper, as: Html
 
   @html """
   <h1>Test HTML Document</h1>
@@ -56,8 +55,8 @@ defmodule Serum.FragmentTest do
       ]
 
       frag.data
-      |> Floki.parse()
-      |> Html.traverse([], &get_ids/2)
+      |> Floki.parse_document!()
+      |> Floki.traverse_and_update([], &get_ids/2)
       |> elem(1)
       |> Enum.reverse()
       |> Enum.zip(expected_ids)
