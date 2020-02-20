@@ -4,7 +4,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <title>Serum v1.4.0 Released - Serum</title>
+    <title>Serum v1.4.1 Released - Serum</title>
     <link rel="stylesheet" href="/Serum/assets/css/style.css">
     <link rel="stylesheet" href="/Serum/assets/css/prism.css">
     
@@ -35,21 +35,25 @@
 </ul>
 </nav>
       <hr>
-      <main><article class="post"><header><h1 id="serum-v1.4.0-released">Serum v1.4.0 Released</h1><p>
-      Saturday, 11 Jan 2020
+      <main><article class="post"><header><h1 id="serum-v1.4.1-released">Serum v1.4.1 Released</h1><p>
+      Friday, 21 Feb 2020
       
         <span class="tags">
           Tags:
           
-            <a class="tag" href="/Serum/tags/news">news</a><a class="tag" href="/Serum/tags/release">release</a></span></p></header><div><p>The new Serum v1 release includes the following new features and changes. These
-changes will also be included to the upcoming v2 releases.</p><h2 id="added">Added</h2><ul><li>Added <code class="inline">open</code> command to the Serum development server CLI. This command opens
-your website in the default web browser of your desktop environment. Special
-thanks to <strong><a href="https://github.com/nallwhy">@nallwhy</a></strong>!
-</li><li><p>Users can now configure the <code class="inline">Serum.Plugins.SitemapGenerator</code> plugin so that
-it generates entries for pages, posts, or both.</p><p><a href="/Serum/docs/plugin/sitemap.html">Read the documentation</a> to learn more about the
-new <code class="inline">:for</code> option.</p></li></ul><h2 id="changed">Changed</h2><ul><li>The <code class="inline">Serum.Plugins.SitemapGenerator</code> plugin no longer generates <code class="inline">robots.txt</code>
-file. Create and put your own <code class="inline">robots.txt</code> to your <code class="inline">files/</code> directory.
-</li></ul></div></article></main>
+            <a class="tag" href="/Serum/tags/news">news</a><a class="tag" href="/Serum/tags/release">release</a></span></p></header><div><p>While I am spending most of the Serum development time for “Serum v2” works, I
+would like to announce a new maintenance release of Serum v1.x: Serum v1.4.1.</p><h2 id="improved">Improved</h2><ul><li>Upgraded Floki, the HTML parser library, to 0.26.0, which provides more
+useful functionalities Serum needs.
+</li><li>Updated some codes that may not work well with the latest version of Floki.
+These codes were causing some noisy warnings during website builds for some
+users, but this issuse is now fixed.
+</li></ul><p><strong>If you are recently getting a bunch of deprecation warnings, please upgrade
+Serum to v1.4.1!</strong></p><p>For those who have been waiting for a big update, I’m sorry. But like I said at
+the beginning, I have been working on the “Serum v2” project, and this is going
+to be a <em>huge</em> one, with many enhancements, many new features, but also with
+many breaking changes.</p><p>In the meantime, there will be some more of minor bug fixes and stability
+improvements for Serum v1, like this. And I’m also planning to write posts
+about what to expect in Serum v2, one topic at a time. So please stay tuned!</p></div></article></main>
       <hr>
       <footer>
         
