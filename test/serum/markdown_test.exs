@@ -32,7 +32,7 @@ defmodule Serum.MarkdownTest do
     tree =
       @markdown
       |> Markdown.to_html(%{base_url: "/test_site/"})
-      |> Floki.parse()
+      |> Floki.parse_document!()
 
     assert [{"h1", _, ["Hello, world!"]}] = Floki.find(tree, "h1")
 
