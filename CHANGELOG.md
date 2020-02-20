@@ -1,5 +1,15 @@
 # Serum Changelog
 
+## v1.4.1 &mdash; 2020-02-20
+
+### Improved
+
+- Upgraded Floki, the HTML parser library, to 0.26.0, which provides more
+  useful functionalities Serum needs.
+- Updated some codes that may not work well with the latest version of Floki.
+  These codes were causing some noisy warnings during website builds for some
+  users, but this issuse is now fixed.
+
 ## v1.4.0 &mdash; 2020-01-11
 
 ### Added
