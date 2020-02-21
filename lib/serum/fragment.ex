@@ -99,14 +99,4 @@ defmodule Serum.Fragment do
     end)
     |> List.flatten()
   end
-
-  defprotocol Source do
-    @moduledoc false
-
-    alias Serum.Fragment
-    alias Serum.V2.Result
-
-    @spec to_fragment(term()) :: Result.t(Fragment.t())
-    def to_fragment(x)
-  end
 end
