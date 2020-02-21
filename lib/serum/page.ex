@@ -30,11 +30,6 @@ defmodule Serum.Page do
           template: binary() | nil
         }
 
-  require Serum.V2.Result, as: Result
-  alias Serum.Fragment
-  alias Serum.Renderer
-  alias Serum.Template.Storage, as: TS
-
   defstruct [
     :file,
     :type,
@@ -89,31 +84,6 @@ defmodule Serum.Page do
     |> case do
       "html.eex" -> {"html", "html.eex"}
       type -> {type, type}
-    end
-  end
-
-  @spec to_fragment(t()) :: Result.t(Fragment.t())
-  def to_fragment(page) do
-    metadata = compact(page)
-    template_name = page.template || "page"
-    bindings = [page: metadata, contents: page.data]
-
-    Result.run do
-      template <- TS.get(template_name, :template)
-      html <- Renderer.render_fragment(template, bindings)
-
-      Fragment.new(page.file, page.output, metadata, html)
-    end
-  end
-
-  defimpl Fragment.Source do
-    alias Serum.Fragment
-    alias Serum.Page
-    alias Serum.V2.Result
-
-    @spec to_fragment(Page.t()) :: Result.t(Fragment.t())
-    def to_fragment(page) do
-      Page.to_fragment(page)
     end
   end
 end

@@ -18,12 +18,8 @@ defmodule Serum.PostList do
   """
 
   require Serum.V2.Result, as: Result
-  alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Renderer
   alias Serum.Tag
-  alias Serum.Template.Storage, as: TS
-  alias Serum.V2
 
   @type t :: %__MODULE__{
           tag: maybe_tag(),
@@ -134,29 +130,5 @@ defmodule Serum.PostList do
     proj.list_title_tag
     |> :io_lib.format([tag_name])
     |> IO.iodata_to_binary()
-  end
-
-  @spec to_fragment(t()) :: Result.t(Fragment.t())
-  def to_fragment(post_list) do
-    metadata = compact(post_list)
-    bindings = [page: metadata]
-
-    Result.run do
-      template <- TS.get("list", :template)
-      html <- Renderer.render_fragment(template, bindings)
-
-      Fragment.new(%V2.File{}, post_list.output, metadata, html)
-    end
-  end
-
-  defimpl Fragment.Source do
-    alias Serum.Fragment
-    alias Serum.PostList
-    alias Serum.V2.Result
-
-    @spec to_fragment(PostList.t()) :: Result.t(Fragment.t())
-    def to_fragment(fragment) do
-      PostList.to_fragment(fragment)
-    end
   end
 end

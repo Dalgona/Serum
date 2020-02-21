@@ -16,11 +16,7 @@ defmodule Serum.Post do
   * `template`: Name of custom template or `nil`
   """
 
-  require Serum.V2.Result, as: Result
-  alias Serum.Fragment
-  alias Serum.Renderer
   alias Serum.Tag
-  alias Serum.Template.Storage, as: TS
 
   @type t :: %__MODULE__{
           file: Serum.File.t(),
@@ -91,31 +87,6 @@ defmodule Serum.Post do
     |> case do
       "html.eex" -> {"html", "html.eex"}
       type -> {type, type}
-    end
-  end
-
-  @spec to_fragment(t()) :: Result.t(Fragment.t())
-  def to_fragment(post) do
-    metadata = compact(post)
-    template_name = post.template || "post"
-    bindings = [page: metadata, contents: post.data]
-
-    Result.run do
-      template <- TS.get(template_name, :template)
-      html <- Renderer.render_fragment(template, bindings)
-
-      Fragment.new(post.file, post.output, metadata, html)
-    end
-  end
-
-  defimpl Fragment.Source do
-    alias Serum.Fragment
-    alias Serum.Post
-    alias Serum.V2.Result
-
-    @spec to_fragment(Post.t()) :: Result.t(Fragment.t())
-    def to_fragment(post) do
-      Post.to_fragment(post)
     end
   end
 end
