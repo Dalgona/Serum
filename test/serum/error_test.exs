@@ -3,12 +3,13 @@ defmodule Serum.ErrorTest do
 
   alias Serum.Error
   alias Serum.Error.SimpleMessage
+  alias Serum.V2
 
   setup_all do
     error = %Error{
       message: %SimpleMessage{text: "test error"},
       caused_by: [],
-      file: %Serum.File{src: "testfile"},
+      file: %V2.File{src: "testfile"},
       line: 3
     }
 

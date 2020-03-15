@@ -9,6 +9,7 @@ defmodule Serum.Project.Loader do
   alias Serum.Project
   alias Serum.Project.ElixirValidator
   alias Serum.Theme
+  alias Serum.V2
 
   @doc """
   Detects and loads Serum project definition file from the source directory.
@@ -35,17 +36,17 @@ defmodule Serum.Project.Loader do
 
   @spec do_load(binary()) :: Result.t(Project.t())
   defp do_load(src) do
-    exs_file = %Serum.File{src: Path.join(src, "serum.exs")}
+    exs_file = %V2.File{src: Path.join(src, "serum.exs")}
 
     Result.run do
-      file <- Serum.File.read(exs_file)
+      file <- V2.File.read(exs_file)
       proj <- load_exs(file)
 
       Result.return(proj)
     end
   end
 
-  @spec load_exs(Serum.File.t()) :: Result.t(Project.t())
+  @spec load_exs(V2.File.t()) :: Result.t(Project.t())
   defp load_exs(file) do
     with {map, _} <- Code.eval_string(file.in_data, [], file: file.src),
          :ok <- ElixirValidator.validate(map) do

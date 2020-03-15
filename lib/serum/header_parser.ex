@@ -24,6 +24,7 @@ defmodule Serum.HeaderParser do
   alias Serum.Error
   alias Serum.HeaderParser.Extract
   alias Serum.HeaderParser.ValueTransformer
+  alias Serum.V2
 
   @type options :: [{atom(), value_type()}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type()}
@@ -55,10 +56,10 @@ defmodule Serum.HeaderParser do
     value must have the same type, either `:string`, `:integer`, or `:datetime`.
     You cannot make a list of lists.
   """
-  @spec parse_header(Serum.File.t(), options(), [atom()]) :: parse_result()
+  @spec parse_header(V2.File.t(), options(), [atom()]) :: parse_result()
   def parse_header(file, options, required \\ [])
 
-  def parse_header(%Serum.File{in_data: nil} = file, _, _) do
+  def parse_header(%V2.File{in_data: nil} = file, _, _) do
     Result.fail(Simple: ["cannot parse header: the file is not loaded"], file: file)
   end
 

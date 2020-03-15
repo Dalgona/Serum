@@ -4,6 +4,7 @@ defmodule Serum.Build.FileLoader.Common do
   _moduledocp = "Provides common functions shared by other file loader modules"
 
   alias Serum.Result
+  alias Serum.V2
 
   @doc false
   @spec get_subdir(binary(), binary()) :: binary()
@@ -12,11 +13,11 @@ defmodule Serum.Build.FileLoader.Common do
   end
 
   @doc false
-  @spec read_files([binary()]) :: Result.t([Serum.File.t()])
+  @spec read_files([binary()]) :: Result.t([V2.File.t()])
   def read_files(paths) do
     paths
-    |> Stream.map(&%Serum.File{src: &1})
-    |> Enum.map(&Serum.File.read/1)
+    |> Stream.map(&%V2.File{src: &1})
+    |> Enum.map(&V2.File.read/1)
     |> Result.aggregate("failed to load files:")
   end
 end

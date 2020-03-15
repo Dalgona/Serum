@@ -5,12 +5,12 @@ defmodule Serum.PluginTest do
   import Serum.Plugin
   import Serum.Plugin.Client
   import Serum.TestHelper, only: :macros
-  alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
+  alias Serum.V2
   alias Serum.V2.Console
 
   "plugins/*plugin*.ex"
@@ -37,9 +37,9 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = reading_pages(["a", "b", "c"])
       assert {:ok, _} = reading_posts(["a", "b", "c"])
       assert {:ok, _} = reading_templates(["a", "b", "c"])
-      assert {:ok, _} = processing_page(%File{src: "page.md"})
-      assert {:ok, _} = processing_post(%File{src: "post.md"})
-      assert {:ok, _} = processing_template(%File{src: "template.html.eex"})
+      assert {:ok, _} = processing_page(%V2.File{src: "page.md"})
+      assert {:ok, _} = processing_post(%V2.File{src: "post.md"})
+      assert {:ok, _} = processing_template(%V2.File{src: "template.html.eex"})
       assert {:ok, _} = processed_page(%Page{title: "Test Page"})
       assert {:ok, _} = processed_post(%Post{title: "Test Post"})
       assert {:ok, _} = processed_template(%Template{file: "template.html.eex"})
@@ -48,8 +48,8 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = processed_posts([%Post{title: "Test Post 1"}])
       assert {:ok, _} = rendering_fragment(%{type: :page}, [{"p", [], ["Hello, world!"]}])
       assert {:ok, _} = rendered_fragment(%Fragment{output: "test.html"})
-      assert {:ok, _} = rendered_page(%File{dest: "test.html"})
-      assert {:ok, _} = wrote_file(%File{dest: "test.html"})
+      assert {:ok, _} = rendered_page(%V2.File{dest: "test.html"})
+      assert {:ok, _} = wrote_file(%V2.File{dest: "test.html"})
       assert {:ok, _} = build_succeeded("/src", "/dest")
       assert {:ok, _} = build_failed("/src", "/dest", {:error, "sample error"})
       assert {:ok, _} = finalizing("/src", "/dest")
@@ -72,9 +72,9 @@ defmodule Serum.PluginTest do
       [
         build_started("", ""),
         reading_posts([]),
-        processing_page(%File{}),
+        processing_page(%V2.File{}),
         finalizing("", ""),
-        processing_template(%File{}),
+        processing_template(%V2.File{}),
         build_succeeded("", "")
       ]
       |> Enum.map(fn {:error, error} -> to_string(error) end)

@@ -11,9 +11,10 @@ defmodule Serum.Build.FileLoader.Includes do
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Theme
+  alias Serum.V2
 
   @doc false
-  @spec load(binary()) :: Result.t([Serum.File.t()])
+  @spec load(binary()) :: Result.t([V2.File.t()])
   def load(src) do
     put_msg(:info, "Loading includes...")
 

@@ -4,6 +4,7 @@ defmodule Serum.Template.HelpersTest do
   alias Serum.Template
   alias Serum.Template.Helpers
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
   @assigns [site: %{base_url: "/base/url"}]
 
@@ -12,8 +13,8 @@ defmodule Serum.Template.HelpersTest do
     bad = quote(do: raise("test"))
 
     includes = %{
-      "good" => Template.new(good, "good", :include, %Serum.File{src: "good.html.eex"}),
-      "bad" => Template.new(bad, "bad", :include, %Serum.File{src: "bad.html.eex"})
+      "good" => Template.new(good, "good", :include, %V2.File{src: "good.html.eex"}),
+      "bad" => Template.new(bad, "bad", :include, %V2.File{src: "bad.html.eex"})
     }
 
     TS.load(includes, :include)

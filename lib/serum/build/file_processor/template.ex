@@ -6,6 +6,7 @@ defmodule Serum.Build.FileProcessor.Template do
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
   @spec compile_templates(map()) :: Result.t({})
   def compile_templates(%{templates: templates, includes: includes}) do
@@ -19,7 +20,7 @@ defmodule Serum.Build.FileProcessor.Template do
     end
   end
 
-  @spec compile_and_load([Serum.File.t()], Template.type()) :: Result.t([Template.t()])
+  @spec compile_and_load([V2.File.t()], Template.type()) :: Result.t([Template.t()])
   defp compile_and_load(files, type) do
     Result.run do
       result <- TC.compile_files(files, type: type)

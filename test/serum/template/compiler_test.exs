@@ -5,6 +5,7 @@ defmodule Serum.Template.CompilerTest do
   alias Serum.Error
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
   setup do
     on_exit(fn -> TS.reset() end)
@@ -13,8 +14,8 @@ defmodule Serum.Template.CompilerTest do
   describe "compile_files/2" do
     test "compiles templates" do
       key = "good-using-helpers"
-      file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
-      {:ok, file} = Serum.File.read(file)
+      file = %V2.File{src: fixture("templates/#{key}.html.eex")}
+      {:ok, file} = V2.File.read(file)
       {:ok, %{^key => template}} = TC.compile_files([file], type: :template)
       assigns = [site: %{base_url: "/test_site/"}]
       {output, _} = Code.eval_quoted(template.ast, assigns: assigns)
@@ -28,8 +29,8 @@ defmodule Serum.Template.CompilerTest do
         fixture("templates")
         |> Path.join("bad-*.html.eex")
         |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(&%V2.File{src: &1})
+        |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
       {:error, %Error{caused_by: errors}} = TC.compile_files(files, type: :template)

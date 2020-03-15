@@ -64,6 +64,7 @@ defmodule Serum.Theme do
   require Serum.Result, as: Result
   import Serum.V2.Console, only: [put_err: 2]
   alias Serum.Error
+  alias Serum.V2
 
   defstruct module: nil,
             name: "",
@@ -334,8 +335,8 @@ defmodule Serum.Theme do
   defp validate_assets_dir(path) do
     case File.stat(path) do
       {:ok, %File.Stat{type: :directory}} -> Result.return(path)
-      {:ok, %File.Stat{}} -> Result.fail(POSIX: [:enotdir], file: %Serum.File{src: path})
-      {:error, reason} -> Result.fail(POSIX: [reason], file: %Serum.File{src: path})
+      {:ok, %File.Stat{}} -> Result.fail(POSIX: [:enotdir], file: %V2.File{src: path})
+      {:error, reason} -> Result.fail(POSIX: [reason], file: %V2.File{src: path})
     end
   end
 

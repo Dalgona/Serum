@@ -8,6 +8,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
@@ -99,8 +100,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
         fixture("posts")
         |> Path.join("bad-*.md")
         |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(&%V2.File{src: &1})
+        |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
       {:error, %Error{caused_by: errors}} = preprocess_posts(files, proj)
@@ -113,8 +114,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
         fixture("posts")
         |> Path.join("bad-*.html.eex")
         |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(&%V2.File{src: &1})
+        |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
       {:ok, {posts, _}} = preprocess_posts(files, proj)
@@ -125,8 +126,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
   end
 
   defp read(path) do
-    file = %Serum.File{src: fixture(path)}
-    {:ok, file} = Serum.File.read(file)
+    file = %V2.File{src: fixture(path)}
+    {:ok, file} = V2.File.read(file)
 
     file
   end

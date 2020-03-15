@@ -77,13 +77,13 @@ defmodule Serum.Plugin do
   use Agent
   require Serum.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.File
   alias Serum.Fragment
   alias Serum.Page
   alias Serum.Plugin.Loader
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
+  alias Serum.V2
 
   defstruct [:module, :name, :version, :description, :implements, :args]
 
@@ -223,21 +223,21 @@ defmodule Serum.Plugin do
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_page(file :: File.t(), args :: term()) :: Result.t(File.t())
+  @callback processing_page(file :: V2.File.t(), args :: term()) :: Result.t(V2.File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_post(file :: File.t(), args :: term()) :: Result.t(File.t())
+  @callback processing_post(file :: V2.File.t(), args :: term()) :: Result.t(V2.File.t())
 
   @doc """
   Called before Serum processes each input file.
 
   Plugins can alter the raw contents of input files here.
   """
-  @callback processing_template(file :: File.t(), args :: term()) :: Result.t(File.t())
+  @callback processing_template(file :: V2.File.t(), args :: term()) :: Result.t(V2.File.t())
 
   @doc """
   Called after Serum has processed each input file and produced
@@ -300,12 +300,12 @@ defmodule Serum.Plugin do
 
   Plugins can alter the raw contents of the page to be written.
   """
-  @callback rendered_page(file :: File.t(), args :: term()) :: Result.t(File.t())
+  @callback rendered_page(file :: V2.File.t(), args :: term()) :: Result.t(V2.File.t())
 
   @doc """
   Called after writing each output to a file.
   """
-  @callback wrote_file(file :: File.t(), args :: term()) :: Result.t({})
+  @callback wrote_file(file :: V2.File.t(), args :: term()) :: Result.t({})
 
   @doc """
   Called if the whole build process has finished successfully.

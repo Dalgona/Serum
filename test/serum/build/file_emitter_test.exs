@@ -2,6 +2,7 @@ defmodule Serum.Build.FileEmitterTest do
   use ExUnit.Case, async: true
   import Serum.TestHelper
   alias Serum.Build.FileEmitter
+  alias Serum.V2
 
   setup do
     tmp_dir = get_tmp_dir("serum_test_")
@@ -19,7 +20,7 @@ defmodule Serum.Build.FileEmitterTest do
         "dir2/dir2_2/file7"
       ]
       |> Enum.map(&Path.join(tmp_dir, &1))
-      |> Enum.map(&%Serum.File{dest: &1, out_data: "Hello, world!\n"})
+      |> Enum.map(&%V2.File{dest: &1, out_data: "Hello, world!\n"})
 
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 

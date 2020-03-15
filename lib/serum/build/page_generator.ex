@@ -12,8 +12,9 @@ defmodule Serum.Build.PageGenerator do
   alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
-  @spec run([Fragment.t()]) :: Result.t([Serum.File.t()])
+  @spec run([Fragment.t()]) :: Result.t([V2.File.t()])
   def run(fragments) do
     put_msg(:info, "Generating complete HTML pages...")
 
@@ -27,7 +28,7 @@ defmodule Serum.Build.PageGenerator do
     end
   end
 
-  @spec render(Fragment.t(), Template.t()) :: Result.t(Serum.File.t())
+  @spec render(Fragment.t(), Template.t()) :: Result.t(V2.File.t())
   defp render(fragment, template) do
     assigns = [
       page: fragment.metadata,
@@ -36,7 +37,7 @@ defmodule Serum.Build.PageGenerator do
 
     case Renderer.render_fragment(template, assigns) do
       {:ok, html} ->
-        file = %Serum.File{
+        file = %V2.File{
           src: fragment.file.src,
           dest: fragment.output,
           in_data: nil,

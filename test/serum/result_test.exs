@@ -4,6 +4,7 @@ defmodule Serum.ResultTest do
   alias Serum.Error
   alias Serum.Error.Format
   alias Serum.Error.SimpleMessage
+  alias Serum.V2
 
   describe "aggregate/2" do
     test "processes a list of successful results with value" do
@@ -99,14 +100,14 @@ defmodule Serum.ResultTest do
     test "expands into appropriate error expression" do
       ast =
         quote do
-          Result.fail(Simple: ["test error"], file: %Serum.File{src: "nofile"}, line: 3)
+          Result.fail(Simple: ["test error"], file: %V2.File{src: "nofile"}, line: 3)
         end
 
       generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
 
       assert generated_code =~ ~r/^\{:error, %Serum.Error/
       assert generated_code =~ "Serum.Error.SimpleMessage.message([\"test error\"])"
-      assert generated_code =~ ~r/file: %Serum.File{[^}]*src: \"nofile\"/
+      assert generated_code =~ ~r/file: %V2.File{[^}]*src: \"nofile\"/
       assert generated_code =~ "caused_by: []"
       assert generated_code =~ "line: 3"
     end

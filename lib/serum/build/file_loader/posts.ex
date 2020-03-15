@@ -7,10 +7,10 @@ defmodule Serum.Build.FileLoader.Posts do
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Result
+  alias Serum.V2
 
   @doc false
-  @spec load(binary()) :: Result.t([Serum.File.t()])
+  @spec load(binary()) :: Result.t([V2.File.t()])
   def load(src) do
     put_msg(:info, "Loading post files...")
 

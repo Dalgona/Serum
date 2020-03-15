@@ -23,6 +23,7 @@ defmodule Serum.PostList do
   alias Serum.Renderer
   alias Serum.Tag
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
   @type t :: %__MODULE__{
           tag: maybe_tag(),
@@ -144,7 +145,7 @@ defmodule Serum.PostList do
       template <- TS.get("list", :template)
       html <- Renderer.render_fragment(template, bindings)
 
-      Fragment.new(%Serum.File{}, post_list.output, metadata, html)
+      Fragment.new(%V2.File{}, post_list.output, metadata, html)
     end
   end
 

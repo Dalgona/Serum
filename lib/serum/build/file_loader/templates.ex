@@ -12,9 +12,10 @@ defmodule Serum.Build.FileLoader.Templates do
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Result
   alias Serum.Theme
+  alias Serum.V2
 
   @doc false
-  @spec load(binary()) :: Result.t([Serum.File.t()])
+  @spec load(binary()) :: Result.t([V2.File.t()])
   def load(src) do
     put_msg(:info, "Loading template files...")
 
@@ -68,7 +69,7 @@ defmodule Serum.Build.FileLoader.Templates do
           Enum.map(missings, fn missing ->
             Result.fail(
               POSIX: [:enoent],
-              file: %Serum.File{src: Path.join([src, "templates", missing])}
+              file: %V2.File{src: Path.join([src, "templates", missing])}
             )
           end)
 

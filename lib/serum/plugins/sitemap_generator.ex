@@ -22,6 +22,7 @@ defmodule Serum.Plugins.SitemapGenerator do
   alias Serum.GlobalBindings
   alias Serum.Page
   alias Serum.Post
+  alias Serum.V2
 
   def name, do: "Create sitemap for search engine"
   def version, do: "1.2.0"
@@ -39,7 +40,7 @@ defmodule Serum.Plugins.SitemapGenerator do
 
     dest
     |> create_file(pages, posts)
-    |> Serum.File.write()
+    |> V2.File.write()
   end
 
   @spec get_items(term()) :: {[Page.t()], [Post.t()]}
@@ -67,9 +68,9 @@ defmodule Serum.Plugins.SitemapGenerator do
     :server_root
   ])
 
-  @spec create_file(binary(), [Page.t()], [Post.t()]) :: Serum.File.t()
+  @spec create_file(binary(), [Page.t()], [Post.t()]) :: V2.File.t()
   defp create_file(dest, pages, posts) do
-    %Serum.File{
+    %V2.File{
       dest: Path.join(dest, "sitemap.xml"),
       out_data: sitemap_xml(pages, posts, &to_w3c_format/1, get_server_root())
     }

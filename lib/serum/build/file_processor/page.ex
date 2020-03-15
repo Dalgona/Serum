@@ -8,10 +8,11 @@ defmodule Serum.Build.FileProcessor.Page do
   alias Serum.Page
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
+  alias Serum.V2
 
   @next_line_key "__serum__next_line__"
 
-  @spec preprocess_pages([Serum.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
+  @spec preprocess_pages([V2.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
   def preprocess_pages(files, proj) do
     put_msg(:info, "Processing page files...")
 
@@ -30,7 +31,7 @@ defmodule Serum.Build.FileProcessor.Page do
     end
   end
 
-  @spec preprocess_page(Serum.File.t(), Project.t()) :: Result.t(Page.t())
+  @spec preprocess_page(V2.File.t(), Project.t()) :: Result.t(Page.t())
   defp preprocess_page(file, proj) do
     import Serum.HeaderParser
 

@@ -5,12 +5,13 @@ defmodule Serum.Build.FileLoader do
 
   require Serum.Result, as: Result
   alias Serum.Build.FileLoader.{Includes, Pages, Posts, Templates}
+  alias Serum.V2
 
   @type result :: %{
-          templates: [Serum.File.t()],
-          includes: [Serum.File.t()],
-          pages: [Serum.File.t()],
-          posts: [Serum.File.t()]
+          templates: [V2.File.t()],
+          includes: [V2.File.t()],
+          pages: [V2.File.t()],
+          posts: [V2.File.t()]
         }
 
   @doc """

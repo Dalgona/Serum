@@ -1,6 +1,7 @@
 defmodule Serum.HeaderParserTest do
   use ExUnit.Case, async: true
   import Serum.HeaderParser
+  alias Serum.V2
 
   @options [
     my_str: :string,
@@ -23,7 +24,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
 
       expected = %{
         my_str: "Hello, world!",
@@ -40,7 +41,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
 
       assert {:error, error} = parse_header(file, @options, @required)
       assert to_string(error) =~ "is required"
@@ -53,7 +54,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
 
       assert {:error, error} = parse_header(file, @options, @required)
       assert to_string(error) =~ "are required"
@@ -67,7 +68,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
       expected = %{my_str: "Hello, world!"}
       expected_extra = %{"extra1" => "Lorem ipsum"}
 
@@ -84,7 +85,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
 
       expected = %{
         my_str: "Hello, world!",
@@ -101,7 +102,7 @@ defmodule Serum.HeaderParserTest do
       ÒωÓ
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
 
       assert {:error, error} = parse_header(file, @options)
       assert to_string(error) =~ "header not found"
@@ -114,7 +115,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %Serum.File{src: "testfile", in_data: data}
+      file = %V2.File{src: "testfile", in_data: data}
 
       assert {:error, error} = parse_header(file, @options)
       assert to_string(error) =~ "invalid integer"

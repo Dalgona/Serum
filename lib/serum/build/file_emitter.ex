@@ -9,13 +9,14 @@ defmodule Serum.Build.FileEmitter do
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
+  alias Serum.V2
 
   @doc """
-  Write files described by `%Serum.File{}` to actual files on disk.
+  Write files described by `Serum.V2.File` structs to actual files on disk.
 
   Necessary subdirectories will be created if they don't exist.
   """
-  @spec run([Serum.File.t()]) :: Result.t([{}])
+  @spec run([V2.File.t()]) :: Result.t([{}])
   def run(files) do
     put_msg(:info, "Writing output files...")
 
@@ -30,7 +31,7 @@ defmodule Serum.Build.FileEmitter do
     end
   end
 
-  @spec create_dirs([Serum.File.t()]) :: Result.t([{}])
+  @spec create_dirs([V2.File.t()]) :: Result.t([{}])
   defp create_dirs(outputs) do
     outputs
     |> Stream.map(& &1.dest)
@@ -44,13 +45,13 @@ defmodule Serum.Build.FileEmitter do
   defp create_dir(dir) do
     case File.mkdir_p(dir) do
       :ok -> put_msg(:mkdir, dir)
-      {:error, reason} -> Result.fail(POSIX: [reason], file: %Serum.File{src: dir})
+      {:error, reason} -> Result.fail(POSIX: [reason], file: %V2.File{src: dir})
     end
   end
 
-  @spec write_file(Serum.File.t()) :: Result.t({})
+  @spec write_file(V2.File.t()) :: Result.t({})
   defp write_file(file) do
-    case Serum.File.write(file) do
+    case V2.File.write(file) do
       {:ok, ^file} -> PluginClient.wrote_file(file)
       {:error, %Error{}} = error -> error
     end

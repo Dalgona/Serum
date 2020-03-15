@@ -7,9 +7,10 @@ defmodule Serum.Build.FileLoader.Pages do
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
+  alias Serum.V2
 
   @doc false
-  @spec load(binary()) :: Result.t([Serum.File.t()])
+  @spec load(binary()) :: Result.t([V2.File.t()])
   def load(src) do
     put_msg(:info, "Loading page files...")
 
@@ -25,7 +26,7 @@ defmodule Serum.Build.FileLoader.Pages do
         {:error, _} = plugin_error -> plugin_error
       end
     else
-      Result.fail(POSIX: [:enoent], file: %Serum.File{src: pages_dir})
+      Result.fail(POSIX: [:enoent], file: %V2.File{src: pages_dir})
     end
   end
 end

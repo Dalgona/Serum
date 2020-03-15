@@ -6,6 +6,7 @@ defmodule Serum.Build.FileProcessorTest do
   alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.V2
 
   # Here we *roughly* test this module
   # as its individual steps are thoroughly tested by these modules:
@@ -102,8 +103,8 @@ defmodule Serum.Build.FileProcessorTest do
 
   defp read_files(paths) do
     paths
-    |> Enum.map(&%Serum.File{src: &1})
-    |> Enum.map(&Serum.File.read/1)
+    |> Enum.map(&%V2.File{src: &1})
+    |> Enum.map(&V2.File.read/1)
     |> Enum.map(fn {:ok, file} -> file end)
   end
 end

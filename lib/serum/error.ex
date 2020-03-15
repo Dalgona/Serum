@@ -2,13 +2,14 @@ defmodule Serum.Error do
   @moduledoc "Defines a struct describing error information."
 
   alias Serum.Error.Format
+  alias Serum.V2
 
   defstruct [:message, :caused_by, :file, :line]
 
   @type t :: %__MODULE__{
           message: Format.t(),
           caused_by: [t()],
-          file: Serum.File.t() | nil,
+          file: V2.File.t() | nil,
           line: integer() | nil
         }
 
@@ -47,26 +48,26 @@ defmodule Serum.Error do
       Enum.intersperse([head | children], ?\n)
     end
 
-    @spec format_file_text(Serum.File.t() | nil, integer()) :: binary()
+    @spec format_file_text(V2.File.t() | nil, integer()) :: binary()
     defp format_file_text(maybe_file, line)
     defp format_file_text(nil, _line), do: ""
 
-    defp format_file_text(%Serum.File{src: src}, line) do
+    defp format_file_text(%V2.File{src: src}, line) do
       case Exception.format_file_line(src, line) do
         "" -> ""
         str when is_binary(str) -> [str, ?\s]
       end
     end
 
-    @spec format_source_lines(Serum.File.t(), integer() | nil) :: IO.ANSI.ansidata()
+    @spec format_source_lines(V2.File.t(), integer() | nil) :: IO.ANSI.ansidata()
     defp format_source_lines(file, line)
     defp format_source_lines(nil, _line), do: ""
-    defp format_source_lines(%Serum.File{src: nil}, _line), do: ""
-    defp format_source_lines(%Serum.File{in_data: nil}, _line), do: ""
+    defp format_source_lines(%V2.File{src: nil}, _line), do: ""
+    defp format_source_lines(%V2.File{in_data: nil}, _line), do: ""
     defp format_source_lines(_file, nil), do: ""
     defp format_source_lines(_file, line) when line < 1, do: ""
 
-    defp format_source_lines(%Serum.File{in_data: in_data}, line) do
+    defp format_source_lines(%V2.File{in_data: in_data}, line) do
       {prev, current, next} = extract_lines(in_data, line)
 
       gutter_width =

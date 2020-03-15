@@ -16,6 +16,7 @@ defmodule Serum.Build do
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
   alias Serum.Theme
+  alias Serum.V2
 
   @doc """
   Builds the given Serum project.
@@ -130,7 +131,7 @@ defmodule Serum.Build do
     end
     |> case do
       :ok -> Result.return()
-      err -> Result.fail(POSIX: [err], file: %Serum.File{src: dest})
+      err -> Result.fail(POSIX: [err], file: %V2.File{src: dest})
     end
   end
 
@@ -148,7 +149,7 @@ defmodule Serum.Build do
     |> Enum.map(fn path ->
       case File.rm_rf(path) do
         {:ok, _} -> Result.return()
-        {:error, reason, ^path} -> Result.fail(POSIX: [reason], file: %Serum.File{src: path})
+        {:error, reason, ^path} -> Result.fail(POSIX: [reason], file: %V2.File{src: path})
       end
     end)
     |> Result.aggregate("failed to clean the destination directory:")

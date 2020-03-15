@@ -8,6 +8,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
@@ -59,8 +60,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
     end
 
     test "fallbacks to the default label", ctx do
-      file = %Serum.File{src: fixture("pages/good-minimal-header.md")}
-      {:ok, file} = Serum.File.read(file)
+      file = %V2.File{src: fixture("pages/good-minimal-header.md")}
+      {:ok, file} = V2.File.read(file)
       {:ok, {[page], [compact_page]}} = preprocess_pages([file], ctx.proj)
 
       assert String.ends_with?(page.output, ".html")
@@ -73,8 +74,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
         fixture("pages")
         |> Path.join("bad-*.md")
         |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(&%V2.File{src: &1})
+        |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
       {:error, %Error{caused_by: errors}} = preprocess_pages(files, ctx.proj)
@@ -87,8 +88,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
         fixture("pages")
         |> Path.join("bad-*.html.eex")
         |> Path.wildcard()
-        |> Enum.map(&%Serum.File{src: &1})
-        |> Enum.map(&Serum.File.read/1)
+        |> Enum.map(&%V2.File{src: &1})
+        |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
       {:ok, {pages, _}} = preprocess_pages(files, ctx.proj)
@@ -99,8 +100,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
   end
 
   defp read(path) do
-    file = %Serum.File{src: fixture(path)}
-    {:ok, file} = Serum.File.read(file)
+    file = %V2.File{src: fixture(path)}
+    {:ok, file} = V2.File.read(file)
 
     file
   end

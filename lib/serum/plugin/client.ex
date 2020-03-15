@@ -14,14 +14,15 @@ defmodule Serum.Plugin.Client do
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
+  alias Serum.V2
 
   interface :action, build_started(src :: binary(), dest :: binary()) :: Result.t({})
   interface :function, reading_pages(files :: [binary()]) :: Result.t([binary()])
   interface :function, reading_posts(files :: [binary()]) :: Result.t([binary()])
   interface :function, reading_templates(files :: [binary()]) :: Result.t([binary()])
-  interface :function, processing_page(file :: Serum.File.t()) :: Result.t(Serum.File.t())
-  interface :function, processing_post(file :: Serum.File.t()) :: Result.t(Serum.File.t())
-  interface :function, processing_template(file :: Serum.File.t()) :: Result.t(Serum.File.t())
+  interface :function, processing_page(file :: V2.File.t()) :: Result.t(V2.File.t())
+  interface :function, processing_post(file :: V2.File.t()) :: Result.t(V2.File.t())
+  interface :function, processing_template(file :: V2.File.t()) :: Result.t(V2.File.t())
   interface :function, processed_page(page :: Page.t()) :: Result.t(Page.t())
   interface :function, processed_post(post :: Post.t()) :: Result.t(Post.t())
   interface :function, processed_template(template :: Template.t()) :: Result.t(Template.t())
@@ -34,8 +35,8 @@ defmodule Serum.Plugin.Client do
               Result.t(Floki.html_tree())
 
   interface :function, rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
-  interface :function, rendered_page(file :: Serum.File.t()) :: Result.t(Serum.File.t())
-  interface :action, wrote_file(file :: Serum.File.t()) :: Result.t({})
+  interface :function, rendered_page(file :: V2.File.t()) :: Result.t(V2.File.t())
+  interface :action, wrote_file(file :: V2.File.t()) :: Result.t({})
   interface :action, build_succeeded(src :: binary(), dest :: binary()) :: Result.t({})
 
   interface :action,
