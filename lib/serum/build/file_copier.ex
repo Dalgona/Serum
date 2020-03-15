@@ -3,8 +3,8 @@ defmodule Serum.Build.FileCopier do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2, put_err: 2]
-  alias Serum.Error
   alias Serum.Theme
+  alias Serum.V2.Error
 
   @doc false
   @spec copy_files(binary(), binary()) :: Result.t({})

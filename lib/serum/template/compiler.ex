@@ -4,10 +4,10 @@ defmodule Serum.Template.Compiler do
   _moduledocp = "This module handles template loading and preprocessing."
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Template
   alias Serum.V2
+  alias Serum.V2.Error
 
   @type options :: [type: Template.type()]
 

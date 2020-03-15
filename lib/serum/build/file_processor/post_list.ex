@@ -3,11 +3,11 @@ defmodule Serum.Build.FileProcessor.PostList do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.Error
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
   alias Serum.Tag
+  alias Serum.V2.Error
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
   @type tag_counts() :: [{Tag.t(), integer()}]

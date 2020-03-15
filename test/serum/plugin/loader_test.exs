@@ -4,9 +4,9 @@ defmodule Serum.Plugin.LoaderTest do
   import ExUnit.CaptureIO
   import Serum.Plugin.Loader
   import Serum.TestHelper, only: :macros
-  alias Serum.Error
   alias Serum.Plugin
   alias Serum.V2.Console
+  alias Serum.V2.Error
 
   "plugins/*plugin*.ex"
   |> fixture()

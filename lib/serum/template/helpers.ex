@@ -14,9 +14,9 @@ defmodule Serum.Template.Helpers do
   """
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
   alias Serum.Renderer
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2.Error
 
   @doc "Returns the value of `@site.base_url`."
 

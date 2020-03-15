@@ -1,9 +1,9 @@
-defmodule Serum.ErrorTest do
+defmodule Serum.Error.Format.ErrorTest do
   use ExUnit.Case, async: true
 
-  alias Serum.Error
   alias Serum.Error.SimpleMessage
   alias Serum.V2
+  alias Serum.V2.Error
 
   setup_all do
     error = %Error{

@@ -21,10 +21,10 @@ defmodule Serum.HeaderParser do
   """
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
   alias Serum.HeaderParser.Extract
   alias Serum.HeaderParser.ValueTransformer
   alias Serum.V2
+  alias Serum.V2.Error
 
   @type options :: [{atom(), value_type()}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type()}

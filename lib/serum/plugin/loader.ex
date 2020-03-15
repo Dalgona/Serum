@@ -5,9 +5,9 @@ defmodule Serum.Plugin.Loader do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console
-  alias Serum.Error
   alias Serum.Plugin
   alias Serum.Plugin.EnvMatcher
+  alias Serum.V2.Error
 
   @serum_version Version.parse!(Mix.Project.config()[:version])
   @elixir_version Version.parse!(System.version())

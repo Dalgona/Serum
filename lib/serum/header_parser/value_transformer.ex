@@ -6,8 +6,8 @@ defmodule Serum.HeaderParser.ValueTransformer do
   """
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
   alias Serum.HeaderParser
+  alias Serum.V2.Error
 
   @typep kv :: {binary(), binary()}
   @typep type :: HeaderParser.value_type()

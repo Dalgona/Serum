@@ -1,7 +1,7 @@
 defmodule Serum.HeaderParser.ExtractTest do
   use ExUnit.Case, async: true
-  alias Serum.Error
   alias Serum.HeaderParser.Extract
+  alias Serum.V2.Error
 
   describe "extract_header/1" do
     test "extracts well-formed header from binary" do

@@ -3,9 +3,9 @@ defmodule Serum.Build.PageGeneratorTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Build.PageGenerator
-  alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2.Error
 
   setup_all do
     {fragments, _} = Code.eval_file(fixture("precompiled/good-fragments.exs"))

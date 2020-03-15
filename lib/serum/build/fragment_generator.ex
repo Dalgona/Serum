@@ -4,9 +4,9 @@ defmodule Serum.Build.FragmentGenerator do
   _moduledocp = "Renders page/post/post list structs into a page fragment."
 
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
+  alias Serum.V2.Error
   alias Serum.V2.Result
 
   @spec to_fragment(map()) :: Result.t([Fragment.t()])

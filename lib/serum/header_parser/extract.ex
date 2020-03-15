@@ -4,7 +4,7 @@ defmodule Serum.HeaderParser.Extract do
   _moduledocp = "Extracts header lines from the input text data."
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
+  alias Serum.V2.Error
 
   @spec extract_header(binary()) ::
           Result.t({[{{binary(), binary()}, integer()}], binary(), integer()})

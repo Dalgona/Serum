@@ -2,9 +2,9 @@ defmodule Serum.Project.LoaderTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
-  alias Serum.Error
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.V2.Error
 
   setup_all do
     {:ok, [dest: "/path/to/dest/"]}

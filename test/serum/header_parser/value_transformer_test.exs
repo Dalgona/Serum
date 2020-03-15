@@ -1,7 +1,7 @@
 defmodule Serum.HeaderParser.ValueTransformerTest do
   use ExUnit.Case, async: true
   import Serum.HeaderParser.ValueTransformer
-  alias Serum.Error
+  alias Serum.V2.Error
 
   describe "transform_value/3" do
     test "parses an integer value" do

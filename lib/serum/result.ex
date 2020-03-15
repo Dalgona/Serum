@@ -2,9 +2,9 @@ defmodule Serum.Result do
   @moduledoc false
 
   import Serum.V2.Console, only: [put_err: 2]
-  alias Serum.V2.Result
-  alias Serum.Error
   alias Serum.Error.Format
+  alias Serum.V2.Error
+  alias Serum.V2.Result
 
   @doc "Prints an error object in a beautiful format."
   @spec show(Result.t(term()), non_neg_integer()) :: Result.t({})

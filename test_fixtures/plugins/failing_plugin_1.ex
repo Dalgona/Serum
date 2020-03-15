@@ -1,8 +1,8 @@
 defmodule Serum.FailingPlugin1 do
   @behaviour Serum.Plugin
 
-  alias Serum.Error
   alias Serum.Error.SimpleMessage
+  alias Serum.V2.Error
 
   def name, do: "failing_plugin_1"
   def version, do: "0.1.0"

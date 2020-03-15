@@ -3,10 +3,10 @@ defmodule Serum.Build.FileProcessorTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Build.FileProcessor
-  alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.V2
+  alias Serum.V2.Error
 
   # Here we *roughly* test this module
   # as its individual steps are thoroughly tested by these modules:

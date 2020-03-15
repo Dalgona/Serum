@@ -4,10 +4,10 @@ defmodule Serum.Build.FileProcessor.Post do
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Build.FileProcessor.Content
-  alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Post
   alias Serum.Project
+  alias Serum.V2.Error
 
   @next_line_key "__serum__next_line__"
 

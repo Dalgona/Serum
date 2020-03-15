@@ -4,12 +4,12 @@ defmodule Serum.Project.Loader do
   _moduledocp = "A module for loading Serum project definition files."
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Project
   alias Serum.Project.ElixirValidator
   alias Serum.Theme
   alias Serum.V2
+  alias Serum.V2.Error
 
   @doc """
   Detects and loads Serum project definition file from the source directory.

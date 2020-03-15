@@ -4,9 +4,9 @@ defmodule Serum.Template.Compiler.Include do
   _moduledocp = "Provides functions for expanding includes in templates."
 
   require Serum.V2.Result, as: Result
-  alias Serum.Error
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2.Error
 
   @typep context :: %{
            template: Template.t(),
