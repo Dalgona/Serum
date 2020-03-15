@@ -5,13 +5,14 @@ defmodule Serum.Build.FileProcessor.Post do
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Build.FileProcessor.Content
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Post
   alias Serum.Project
+  alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Post
 
   @next_line_key "__serum__next_line__"
 
-  @spec preprocess_posts([Serum.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
+  @spec preprocess_posts([V2.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
   def preprocess_posts(files, proj)
   def preprocess_posts([], _proj), do: Result.return({[], []})
 
@@ -26,14 +27,14 @@ defmodule Serum.Build.FileProcessor.Post do
       {:ok, posts} ->
         sorted_posts = Enum.sort(posts, &(DateTime.compare(&1.date, &2.date) == :gt))
 
-        Result.return({sorted_posts, Enum.map(sorted_posts, &Post.compact/1)})
+        Result.return({sorted_posts, Enum.map(sorted_posts, &Serum.Post.compact/1)})
 
       {:error, %Error{}} = error ->
         error
     end
   end
 
-  @spec preprocess_post(Serum.File.t(), Project.t()) :: Result.t(Post.t())
+  @spec preprocess_post(V2.File.t(), Project.t()) :: Result.t(Post.t())
   defp preprocess_post(file, proj) do
     import Serum.HeaderParser
 
@@ -55,7 +56,7 @@ defmodule Serum.Build.FileProcessor.Post do
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
 
-      post = Post.new(file2, {header, extras}, rest, proj)
+      post = Serum.Post.new(file2, {header, extras}, rest, proj)
 
       post = %Post{
         post
@@ -84,7 +85,7 @@ defmodule Serum.Build.FileProcessor.Post do
 
   @spec process_post(Post.t(), Project.t()) :: Result.t(Post.t())
   defp process_post(post, proj) do
-    process_opts = [file: post.file, line: post.extras[@next_line_key]]
+    process_opts = [file: post.source, line: post.extras[@next_line_key]]
 
     case Content.process_content(post.data, post.type, proj, process_opts) do
       {:ok, data} -> Result.return(%Post{post | data: data})

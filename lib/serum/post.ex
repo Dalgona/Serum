@@ -1,80 +1,45 @@
 defmodule Serum.Post do
-  @moduledoc """
-  Defines a struct representing a blog post page.
+  @moduledoc false
 
-  ## Fields
-
-  * `file`: Source file
-  * `type`: Type of source file
-  * `title`: Post title
-  * `date`: A `DateTime` struct representing the post date
-  * `tags`: A list of tags
-  * `url`: Absolute URL of the blog post in the website
-  * `data`: Source or processed contents data
-  * `output`: Destination path
-  * `extras`: A map for storing arbitrary key-value data
-  * `template`: Name of custom template or `nil`
+  _moduledocp = """
+  Defines functions internally used by Serum to create and manipulate
+  `Serum.V2.Post` structs.
   """
 
-  alias Serum.Project
+  alias Serum.V2
+  alias Serum.V2.Post
   alias Serum.V2.Tag
 
-  @type t :: %__MODULE__{
-          file: Serum.File.t(),
-          type: binary(),
-          title: binary(),
-          date: DateTime.t(),
-          tags: [Tag.t()],
-          url: binary(),
-          data: binary(),
-          output: binary(),
-          extras: map(),
-          template: binary() | nil
-        }
-
-  defstruct [
-    :file,
-    :type,
-    :title,
-    :date,
-    :tags,
-    :url,
-    :data,
-    :output,
-    :extras,
-    :template
-  ]
-
-  @spec new(Serum.File.t(), {map(), map()}, binary(), Project.t()) :: t()
-  def new(file, {header, extras}, data, proj) do
-    filename = Path.relative_to(file.src, proj.src)
+  @spec new(V2.File.t(), {map(), map()}, binary(), Project.t()) :: Post.t()
+  def new(source, {header, extras}, data, proj) do
+    filename = Path.relative_to(source.src, proj.src)
     tags = create_tags(header[:tags] || [], proj)
-    datetime = header[:date]
+    date = header[:date]
     {type, original_ext} = get_type(filename)
 
-    {url, output} =
+    {url, dest} =
       with name <- String.replace_suffix(filename, original_ext, "html") do
         {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
       end
 
-    %__MODULE__{
-      file: file,
+    %Post{
+      source: source,
+      dest: dest,
       type: type,
       title: header[:title],
+      date: date,
       tags: tags,
-      data: data,
-      date: datetime,
       url: url,
-      output: output,
+      data: data,
       template: header[:template],
       extras: extras
     }
   end
 
-  @spec compact(t()) :: map()
-  def compact(%__MODULE__{} = post) do
+  @spec compact(Post.t()) :: map()
+  def compact(%Post{} = post) do
     post
-    |> Map.drop(~w(__struct__ file data output type)a)
+    |> Map.drop(~w(__struct__ source dest type data)a)
     |> Map.put(:type, :post)
   end
 

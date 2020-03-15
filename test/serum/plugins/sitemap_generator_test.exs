@@ -3,8 +3,8 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
   import Serum.TestHelper
   alias Serum.GlobalBindings
   alias Serum.Plugins.SitemapGenerator, as: P
-  alias Serum.Post
   alias Serum.V2.Page
+  alias Serum.V2.Post
 
   setup_all do
     bindings = %{

@@ -3,12 +3,12 @@ defmodule Serum.Build.FileProcessor.PostTest do
   require Serum.TestHelper
   import Serum.Build.FileProcessor.Post
   import Serum.TestHelper, only: :macros
-  alias Serum.Post
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Post
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")

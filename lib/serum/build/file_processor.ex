@@ -6,10 +6,10 @@ defmodule Serum.Build.FileProcessor do
   require Serum.V2.Result, as: Result
   alias Serum.Build.FileLoader
   alias Serum.GlobalBindings
-  alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
   alias Serum.V2.Page
+  alias Serum.V2.Post
   alias Serum.V2.Tag
 
   @type result() :: %{

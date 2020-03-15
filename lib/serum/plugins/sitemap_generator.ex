@@ -20,9 +20,9 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   require EEx
   alias Serum.GlobalBindings
-  alias Serum.Post
   alias Serum.V2
   alias Serum.V2.Page
+  alias Serum.V2.Post
 
   def name, do: "Create sitemap for search engine"
   def version, do: "1.2.0"

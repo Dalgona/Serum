@@ -79,11 +79,11 @@ defmodule Serum.Plugin do
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Fragment
   alias Serum.Plugin.Loader
-  alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Page
+  alias Serum.V2.Post
 
   defstruct [:module, :name, :version, :description, :implements, :args]
 
