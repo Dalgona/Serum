@@ -1,8 +1,8 @@
-defmodule Serum.Error.SimpleMessageTest do
+defmodule Serum.Error.Format.SimpleMessageTest do
   use ExUnit.Case, async: true
 
   alias Serum.Error.Format
-  alias Serum.Error.SimpleMessage
+  alias Serum.V2.Error.SimpleMessage
 
   setup_all do
     message = %SimpleMessage{text: "test error"}

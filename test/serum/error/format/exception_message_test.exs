@@ -1,8 +1,8 @@
-defmodule Serum.Error.ExceptionMessageTest do
+defmodule Serum.Error.Format.ExceptionMessageTest do
   use ExUnit.Case, async: true
 
-  alias Serum.Error.ExceptionMessage
   alias Serum.Error.Format
+  alias Serum.V2.Error.ExceptionMessage
 
   setup_all do
     {exception, stacktrace} =

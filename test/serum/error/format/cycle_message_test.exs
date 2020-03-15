@@ -1,24 +1,26 @@
-defmodule Serum.Error.POSIXMessageTest do
+defmodule Serum.Error.Format.CycleMessageTest do
   use ExUnit.Case, async: true
 
   alias Serum.Error.Format
-  alias Serum.Error.POSIXMessage
+  alias Serum.V2.Error.CycleMessage
 
   setup_all do
-    message = %POSIXMessage{reason: :enoent}
+    message = %CycleMessage{cycle: ["foo", :bar, 'baz']}
 
     {:ok, message: message}
   end
 
   describe "with text formatter" do
-    test "the formatted text contains the string representation of POSIX error", ctx do
+    test "the formatted text contains cycle information", ctx do
       text =
         ctx.message
         |> Format.format_text(0)
         |> IO.ANSI.format()
         |> IO.iodata_to_binary()
 
-      assert text =~ "no such file or directory"
+      Enum.each(~w(foo bar baz), fn name ->
+        assert text =~ name
+      end)
     end
   end
 end

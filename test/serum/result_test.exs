@@ -1,8 +1,8 @@
 defmodule Serum.ResultTest do
   use ExUnit.Case, async: true
   require Serum.Result, as: Result
-  alias Serum.Error.SimpleMessage
   alias Serum.V2.Error
+  alias Serum.V2.Error.SimpleMessage
 
   describe "get_message/2" do
     test "gets a message for {:ok, result}" do
