@@ -6,8 +6,8 @@ defmodule Serum.Build.FileProcessor.PostList do
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
-  alias Serum.Tag
   alias Serum.V2.Error
+  alias Serum.V2.Tag
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
   @type tag_counts() :: [{Tag.t(), integer()}]

@@ -1,12 +1,12 @@
 defmodule Serum.Build.FileProcessor.PostListTest do
   use ExUnit.Case, async: true
   alias Serum.Build.FileProcessor.PostList, as: ListGenerator
-  alias Serum.Tag
+  alias Serum.V2.Tag
 
   setup_all do
     tags1 =
       ~w(tag1 tag2 tag3)
-      |> Enum.map(&%Tag{name: &1, list_url: "/tags/#{&1}/"})
+      |> Enum.map(&%Tag{name: &1, path: "/tags/#{&1}/"})
       |> Stream.cycle()
 
     tags2 = Stream.drop(tags1, 1)

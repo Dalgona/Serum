@@ -4,7 +4,7 @@
   <p>Tags:</p>
   <ul>
     <%= for t <- @page.tags do %>
-      <li><a href="<%= t.list_url %>"><%= t.name %></a></li>
+      <li><a href="<%= t.path %>"><%= t.name %></a></li>
     <% end %>
   </ul>
 <% end %>

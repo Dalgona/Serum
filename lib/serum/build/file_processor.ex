@@ -10,7 +10,7 @@ defmodule Serum.Build.FileProcessor do
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
-  alias Serum.Tag
+  alias Serum.V2.Tag
 
   @type result() :: %{
           pages: [Page.t()],

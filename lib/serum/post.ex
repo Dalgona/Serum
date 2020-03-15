@@ -16,7 +16,8 @@ defmodule Serum.Post do
   * `template`: Name of custom template or `nil`
   """
 
-  alias Serum.Tag
+  alias Serum.Project
+  alias Serum.V2.Tag
 
   @type t :: %__MODULE__{
           file: Serum.File.t(),
@@ -44,10 +45,10 @@ defmodule Serum.Post do
     :template
   ]
 
-  @spec new(Serum.File.t(), {map(), map()}, binary(), map()) :: t()
+  @spec new(Serum.File.t(), {map(), map()}, binary(), Project.t()) :: t()
   def new(file, {header, extras}, data, proj) do
     filename = Path.relative_to(file.src, proj.src)
-    tags = Tag.batch_create(header[:tags] || [], proj)
+    tags = create_tags(header[:tags] || [], proj)
     datetime = header[:date]
     {type, original_ext} = get_type(filename)
 
@@ -75,6 +76,19 @@ defmodule Serum.Post do
     post
     |> Map.drop(~w(__struct__ file data output type)a)
     |> Map.put(:type, :post)
+  end
+
+  @spec create_tags([binary()], Project.t()) :: [Tag.t()]
+  defp create_tags(tag_names, proj) do
+    tag_names
+    |> Enum.uniq()
+    |> Enum.sort()
+    |> Enum.map(
+      &%Tag{
+        name: &1,
+        path: Path.join([proj.base_url, "tags", &1])
+      }
+    )
   end
 
   @spec get_type(binary()) :: {binary(), binary()}

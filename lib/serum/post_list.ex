@@ -19,7 +19,7 @@ defmodule Serum.PostList do
 
   require Serum.V2.Result, as: Result
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Tag
+  alias Serum.V2.Tag
 
   @type t :: %__MODULE__{
           tag: maybe_tag(),
