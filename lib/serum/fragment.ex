@@ -10,7 +10,7 @@ defmodule Serum.Fragment do
   * `data`: Contents of the page fragment
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Plugin.Client, as: PluginClient
 
   @type t :: %__MODULE__{
@@ -104,7 +104,7 @@ defmodule Serum.Fragment do
     @moduledoc false
 
     alias Serum.Fragment
-    alias Serum.Result
+    alias Serum.V2.Result
 
     @spec to_fragment(term()) :: Result.t(Fragment.t())
     def to_fragment(x)

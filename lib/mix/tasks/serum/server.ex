@@ -18,7 +18,6 @@ defmodule Mix.Tasks.Serum.Server do
   use Mix.Task
   alias Mix.Tasks.Serum.CLIHelper
   alias Serum.DevServer
-  alias Serum.Result
 
   @options [
     strict: [port: :integer],
@@ -39,7 +38,7 @@ defmodule Mix.Tasks.Serum.Server do
         DevServer.Prompt.start(allow_detach: false)
 
       {:error, _} = error ->
-        Result.show(error)
+        Serum.Result.show(error)
         System.halt(1)
     end
   end

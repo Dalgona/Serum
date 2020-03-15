@@ -16,7 +16,7 @@ defmodule Serum.Post do
   * `template`: Name of custom template or `nil`
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Tag
@@ -111,7 +111,7 @@ defmodule Serum.Post do
   defimpl Fragment.Source do
     alias Serum.Fragment
     alias Serum.Post
-    alias Serum.Result
+    alias Serum.V2.Result
 
     @spec to_fragment(Post.t()) :: Result.t(Fragment.t())
     def to_fragment(post) do

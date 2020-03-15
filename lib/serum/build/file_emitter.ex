@@ -5,7 +5,7 @@ defmodule Serum.Build.FileEmitter do
   A module responsible for writing each complete HTML page to a file.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient

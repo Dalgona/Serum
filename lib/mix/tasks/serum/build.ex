@@ -27,7 +27,6 @@ defmodule Mix.Tasks.Serum.Build do
   alias Serum.Build
   alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
-  alias Serum.Result
 
   @options [
     strict: [output: :string],
@@ -57,7 +56,7 @@ defmodule Mix.Tasks.Serum.Build do
       |> Mix.shell().info()
     else
       {:error, _} = error ->
-        Result.show(error)
+        Serum.Result.show(error)
         Mix.raise("could not build the website due to above error(s)")
     end
   end

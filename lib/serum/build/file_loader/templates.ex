@@ -5,12 +5,11 @@ defmodule Serum.Build.FileLoader.Templates do
   A module for loading templates from a project or a theme.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Result
   alias Serum.Theme
   alias Serum.V2
 

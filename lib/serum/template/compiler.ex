@@ -3,7 +3,7 @@ defmodule Serum.Template.Compiler do
 
   _moduledocp = "This module handles template loading and preprocessing."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Error
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Template

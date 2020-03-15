@@ -3,7 +3,7 @@ defmodule Serum.Project.Loader do
 
   _moduledocp = "A module for loading Serum project definition files."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Error
   alias Serum.GlobalBindings
   alias Serum.Project

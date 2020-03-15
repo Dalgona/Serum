@@ -9,7 +9,7 @@ defmodule Serum.Build.FileProcessor.Content do
     rendered into HTML documents.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Markdown
   alias Serum.Project
   alias Serum.Renderer

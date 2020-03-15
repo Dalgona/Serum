@@ -4,7 +4,7 @@ defmodule Serum.Template.Storage do
   _moduledocp = "An agent which stores compiled templates and includes."
 
   use Agent
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Template
 
   @initial_value %{template: %{}, include: %{}}

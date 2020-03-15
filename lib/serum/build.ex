@@ -4,7 +4,7 @@ defmodule Serum.Build do
   """
 
   import Serum.V2.Console, only: [put_msg: 2]
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Build.FileCopier
   alias Serum.Build.FileEmitter
   alias Serum.Build.FileLoader

@@ -3,7 +3,7 @@ defmodule Serum.Renderer do
 
   _moduledocp = "This module provides functions for rendering pages into HTML."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.GlobalBindings
   alias Serum.Template
 

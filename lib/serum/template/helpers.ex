@@ -13,7 +13,7 @@ defmodule Serum.Template.Helpers do
   exporting functions/macros with the same names.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Error
   alias Serum.Renderer
   alias Serum.Template.Storage, as: TS
@@ -99,7 +99,7 @@ defmodule Serum.Template.Helpers do
     end
     |> case do
       {:ok, html} -> html
-      {:error, %Error{}} = error -> raise Result.get_message(error, 0)
+      {:error, %Error{}} = error -> raise Serum.Result.get_message(error, 0)
     end
   end
 

@@ -3,7 +3,7 @@ defmodule Serum.Build.FileLoader do
 
   _moduledocp = "A module responsible for loading project files."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Build.FileLoader.{Includes, Pages, Posts, Templates}
   alias Serum.V2
 

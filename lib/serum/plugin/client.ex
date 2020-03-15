@@ -5,7 +5,7 @@ defmodule Serum.Plugin.Client do
 
   # For interface/2 macro
   require Serum.Plugin.Client.Macros
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.Plugin.Client.Macros
   alias Serum.Error
   alias Serum.Fragment

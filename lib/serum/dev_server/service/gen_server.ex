@@ -6,7 +6,7 @@ defmodule Serum.DevServer.Service.GenServer do
   """
 
   use GenServer
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_err: 2, put_msg: 2]
   alias Serum.Build
   alias Serum.DevServer.Service
@@ -171,7 +171,7 @@ defmodule Serum.DevServer.Service.GenServer do
 
   @spec build_failed(Result.t({})) :: Result.t({})
   defp build_failed(error) do
-    Result.show(error)
+    Serum.Result.show(error)
     put_err(:warn, "Error occurred while building the website.")
     put_err(:warn, "The website may not be displayed correctly.")
   end

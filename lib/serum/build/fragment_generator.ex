@@ -7,7 +7,7 @@ defmodule Serum.Build.FragmentGenerator do
   alias Serum.Error
   alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Result
+  alias Serum.V2.Result
 
   @spec to_fragment(map()) :: Result.t([Fragment.t()])
   def to_fragment(map) do

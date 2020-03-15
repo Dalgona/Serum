@@ -3,14 +3,13 @@ defmodule Serum.Build.FileProcessor do
 
   _moduledocp = "Processes the input files to produce the intermediate data."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Build.FileLoader
   alias Serum.GlobalBindings
   alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Project
-  alias Serum.Result
   alias Serum.Tag
 
   @type result() :: %{

@@ -3,8 +3,8 @@ defmodule Serum.Build.FileLoader.Common do
 
   _moduledocp = "Provides common functions shared by other file loader modules"
 
-  alias Serum.Result
   alias Serum.V2
+  alias Serum.V2.Result
 
   @doc false
   @spec get_subdir(binary(), binary()) :: binary()

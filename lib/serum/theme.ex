@@ -61,7 +61,7 @@ defmodule Serum.Theme do
   """
 
   use Agent
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_err: 2]
   alias Serum.Error
   alias Serum.V2

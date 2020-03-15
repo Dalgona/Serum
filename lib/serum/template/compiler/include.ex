@@ -3,7 +3,7 @@ defmodule Serum.Template.Compiler.Include do
 
   _moduledocp = "Provides functions for expanding includes in templates."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Error
   alias Serum.Template
   alias Serum.Template.Storage, as: TS

@@ -5,7 +5,7 @@ defmodule Serum.HeaderParser.ValueTransformer do
   A module for parsing header strings and transforming into appropriate types.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Error
   alias Serum.HeaderParser
 

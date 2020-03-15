@@ -3,7 +3,7 @@ defmodule Serum.DevServer do
   The Serum development server.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.DevServer.Logger
   alias Serum.DevServer.Service
   alias Serum.Project

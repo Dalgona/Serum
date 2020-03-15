@@ -3,7 +3,7 @@ defmodule Serum.Build.FileLoader.Pages do
 
   _moduledocp = "A module for loading pages from a project."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient

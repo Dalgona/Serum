@@ -3,7 +3,7 @@ defmodule Serum.Build.FileLoader.Posts do
 
   _moduledocp = "A module for loading posts from a project."
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console
   alias Serum.Plugin.Client, as: PluginClient

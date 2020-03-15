@@ -20,7 +20,7 @@ defmodule Serum.HeaderParser do
   actual value of a metadata.
   """
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Error
   alias Serum.HeaderParser.Extract
   alias Serum.HeaderParser.ValueTransformer

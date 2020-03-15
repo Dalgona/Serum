@@ -30,7 +30,7 @@ defmodule Serum.Page do
           template: binary() | nil
         }
 
-  require Serum.Result, as: Result
+  require Serum.V2.Result, as: Result
   alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Template.Storage, as: TS
@@ -109,7 +109,7 @@ defmodule Serum.Page do
   defimpl Fragment.Source do
     alias Serum.Fragment
     alias Serum.Page
-    alias Serum.Result
+    alias Serum.V2.Result
 
     @spec to_fragment(Page.t()) :: Result.t(Fragment.t())
     def to_fragment(page) do
