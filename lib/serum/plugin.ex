@@ -78,12 +78,12 @@ defmodule Serum.Plugin do
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Fragment
-  alias Serum.Page
   alias Serum.Plugin.Loader
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
   alias Serum.V2
+  alias Serum.V2.Page
 
   defstruct [:module, :name, :version, :description, :implements, :args]
 

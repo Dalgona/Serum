@@ -2,9 +2,9 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
   use ExUnit.Case
   import Serum.TestHelper
   alias Serum.GlobalBindings
-  alias Serum.Page
   alias Serum.Plugins.SitemapGenerator, as: P
   alias Serum.Post
+  alias Serum.V2.Page
 
   setup_all do
     bindings = %{

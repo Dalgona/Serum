@@ -3,12 +3,12 @@ defmodule Serum.Build.FileProcessor.PageTest do
   require Serum.TestHelper
   import Serum.Build.FileProcessor.Page
   import Serum.TestHelper, only: :macros
-  alias Serum.Page
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Page
 
   setup_all do
     {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
@@ -34,7 +34,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
                type: "md"
              } = page
 
-      assert String.ends_with?(page.output, ".html")
+      assert String.ends_with?(page.dest, ".html")
       assert page.data =~ "Hello, world!"
 
       validate_compact(compact_page)
@@ -53,7 +53,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
                type: "html"
              } = page
 
-      assert String.ends_with?(page.output, ".html")
+      assert String.ends_with?(page.dest, ".html")
       assert page.data =~ "Hello, world!"
 
       validate_compact(compact_page)
@@ -64,7 +64,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
       {:ok, file} = V2.File.read(file)
       {:ok, {[page], [compact_page]}} = preprocess_pages([file], ctx.proj)
 
-      assert String.ends_with?(page.output, ".html")
+      assert String.ends_with?(page.dest, ".html")
       assert page.label === "Test Page"
       assert compact_page.label === "Test Page"
     end
@@ -108,9 +108,9 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
   defp validate_compact(compact_page) do
     refute compact_page[:__struct__]
+    refute compact_page[:source]
+    refute compact_page[:dest]
     refute compact_page[:data]
-    refute compact_page[:file]
-    refute compact_page[:output]
     assert compact_page.type === :page
   end
 end

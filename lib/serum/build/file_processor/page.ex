@@ -4,11 +4,11 @@ defmodule Serum.Build.FileProcessor.Page do
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Build.FileProcessor.Content
-  alias Serum.Page
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
   alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Page
 
   @next_line_key "__serum__next_line__"
 
@@ -24,7 +24,7 @@ defmodule Serum.Build.FileProcessor.Page do
       {:ok, pages} ->
         sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
 
-        Result.return({sorted_pages, Enum.map(sorted_pages, &Page.compact/1)})
+        Result.return({sorted_pages, Enum.map(sorted_pages, &Serum.Page.compact/1)})
 
       {:error, %Error{}} = error ->
         error
@@ -49,7 +49,7 @@ defmodule Serum.Build.FileProcessor.Page do
       file2 <- PluginClient.processing_page(file)
       {header, extras, rest, next_line} <- parse_header(file2, opts, required)
       header = Map.put(header, :label, header[:label] || header.title)
-      page = Page.new(file2, {header, extras}, rest, proj)
+      page = Serum.Page.new(file2, {header, extras}, rest, proj)
 
       page = %Page{
         page
@@ -74,7 +74,7 @@ defmodule Serum.Build.FileProcessor.Page do
 
   @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(page, proj) do
-    process_opts = [file: page.file, line: page.extras[@next_line_key]]
+    process_opts = [file: page.source, line: page.extras[@next_line_key]]
 
     case Content.process_content(page.data, page.type, proj, process_opts) do
       {:ok, data} -> Result.return(%Page{page | data: data})

@@ -6,12 +6,12 @@ defmodule Serum.PluginTest do
   import Serum.Plugin.Client
   import Serum.TestHelper, only: :macros
   alias Serum.Fragment
-  alias Serum.Page
   alias Serum.Post
   alias Serum.PostList
   alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Console
+  alias Serum.V2.Page
 
   "plugins/*plugin*.ex"
   |> fixture()

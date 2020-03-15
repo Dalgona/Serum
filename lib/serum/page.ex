@@ -1,76 +1,44 @@
 defmodule Serum.Page do
-  @moduledoc """
-  Defines a struct describing a normal page.
+  @moduledoc false
 
-  ## Fields
-  * `file`: Source file
-  * `type`: Type of source file
-  * `title`: Page title
-  * `label`: Page label
-  * `group`: A group the page belongs to
-  * `order`: Order of the page within its group
-  * `url`: Absolute URL of the page within the website
-  * `output`: Destination path
-  * `data`: Source data
-  * `extras`: A map for storing arbitrary key-value data
-  * `template`: Name of custom template or `nil`
+  _moduledocp = """
+  Defines functions internally used by Serum to create and manipulate
+  `Serum.V2.Page` structs.
   """
 
-  @type t :: %__MODULE__{
-          file: Serum.File.t(),
-          type: binary(),
-          title: binary(),
-          label: binary(),
-          group: binary(),
-          order: integer(),
-          url: binary(),
-          output: binary(),
-          data: binary(),
-          extras: map(),
-          template: binary() | nil
-        }
+  alias Serum.V2
+  alias Serum.V2.Page
 
-  defstruct [
-    :file,
-    :type,
-    :title,
-    :label,
-    :group,
-    :order,
-    :url,
-    :output,
-    :data,
-    :extras,
-    :template
-  ]
-
-  @spec new(Serum.File.t(), {map(), map()}, binary(), map()) :: t()
-  def new(file, {header, extras}, data, proj) do
+  @spec new(V2.File.t(), {map(), map()}, binary(), map()) :: Page.t()
+  def new(source, {header, extras}, data, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
-    filename = Path.relative_to(file.src, page_dir)
+    filename = Path.relative_to(source.src, page_dir)
     {type, original_ext} = get_type(filename)
 
-    {url, output} =
+    {url, dest} =
       with name <- String.replace_suffix(filename, original_ext, "html") do
         {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
       end
 
-    __MODULE__
-    |> struct(header)
-    |> Map.merge(%{
-      file: file,
+    %Page{
+      source: source,
+      dest: dest,
       type: type,
+      title: header[:title],
+      label: header[:label],
+      group: header[:group],
+      order: header[:order],
       url: url,
-      output: output,
       data: data,
+      template: header[:template],
       extras: extras
-    })
+    }
   end
 
-  @spec compact(t()) :: map()
-  def compact(%__MODULE__{} = page) do
+  @spec compact(Page.t()) :: map()
+  def compact(%Page{} = page) do
     page
-    |> Map.drop(~w(__struct__ data file output type)a)
+    |> Map.drop(~w(__struct__ source dest type data)a)
     |> Map.put(:type, :page)
   end
 
