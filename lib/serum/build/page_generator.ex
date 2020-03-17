@@ -5,13 +5,13 @@ defmodule Serum.Build.PageGenerator do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.Fragment
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Fragment
 
   @spec run([Fragment.t()]) :: Result.t([V2.File.t()])
   def run(fragments) do
@@ -37,8 +37,8 @@ defmodule Serum.Build.PageGenerator do
     case Renderer.render_fragment(template, assigns) do
       {:ok, html} ->
         file = %V2.File{
-          src: fragment.file.src,
-          dest: fragment.output,
+          src: fragment.source.src,
+          dest: fragment.dest,
           in_data: nil,
           out_data: html
         }

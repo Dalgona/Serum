@@ -1,8 +1,8 @@
 defimpl Serum.Fragment.Source, for: Serum.V2.Page do
   require Serum.V2.Result, as: Result
-  alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Template.Storage, as: TS
+  alias Serum.V2.Fragment
   alias Serum.V2.Page
 
   @spec to_fragment(Page.t()) :: Result.t(Fragment.t())
@@ -15,7 +15,7 @@ defimpl Serum.Fragment.Source, for: Serum.V2.Page do
       template <- TS.get(template_name, :template)
       html <- Renderer.render_fragment(template, bindings)
 
-      Fragment.new(page.source, page.dest, metadata, html)
+      Serum.Fragment.new(page.source, page.dest, metadata, html)
     end
   end
 end

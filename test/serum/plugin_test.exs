@@ -5,10 +5,10 @@ defmodule Serum.PluginTest do
   import Serum.Plugin
   import Serum.Plugin.Client
   import Serum.TestHelper, only: :macros
-  alias Serum.Fragment
   alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Console
+  alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList
@@ -47,7 +47,7 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = processed_pages([%Page{title: "Test Page 1"}])
       assert {:ok, _} = processed_posts([%Post{title: "Test Post 1"}])
       assert {:ok, _} = rendering_fragment(%{type: :page}, [{"p", [], ["Hello, world!"]}])
-      assert {:ok, _} = rendered_fragment(%Fragment{output: "test.html"})
+      assert {:ok, _} = rendered_fragment(%Fragment{dest: "test.html"})
       assert {:ok, _} = rendered_page(%V2.File{dest: "test.html"})
       assert {:ok, _} = wrote_file(%V2.File{dest: "test.html"})
       assert {:ok, _} = build_succeeded("/src", "/dest")

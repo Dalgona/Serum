@@ -7,11 +7,11 @@ defmodule Serum.Plugin.Client do
   require Serum.Plugin.Client.Macros
   require Serum.V2.Result, as: Result
   import Serum.Plugin.Client.Macros
-  alias Serum.Fragment
   alias Serum.Plugin
   alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList

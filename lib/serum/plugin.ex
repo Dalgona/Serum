@@ -77,10 +77,10 @@ defmodule Serum.Plugin do
   use Agent
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.Fragment
   alias Serum.Plugin.Loader
   alias Serum.Template
   alias Serum.V2
+  alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList

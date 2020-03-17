@@ -4,9 +4,10 @@ defmodule Serum.Build.FragmentGenerator do
   _moduledocp = "Renders page/post/post list structs into a page fragment."
 
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.Fragment
+  alias Serum.Fragment.Source, as: FragmentSource
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.V2.Error
+  alias Serum.V2.Fragment
   alias Serum.V2.Result
 
   @spec to_fragment(map()) :: Result.t([Fragment.t()])
@@ -24,7 +25,7 @@ defmodule Serum.Build.FragmentGenerator do
 
   @spec task_fun(struct()) :: Result.t(Fragment.t())
   defp task_fun(fragment_source) do
-    case Fragment.Source.to_fragment(fragment_source) do
+    case FragmentSource.to_fragment(fragment_source) do
       {:ok, fragment} -> PluginClient.rendered_fragment(fragment)
       {:error, %Error{}} = error -> error
     end

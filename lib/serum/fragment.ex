@@ -1,37 +1,26 @@
 defmodule Serum.Fragment do
-  @moduledoc """
-  Defines a struct representing a page fragment.
+  @moduledoc false
 
-  ## Fields
-
-  * `file`: Source path. This can be `nil` if created internally.
-  * `output`: Destination path
-  * `metadata`: A map holding extra information about the fragment
-  * `data`: Contents of the page fragment
+  _moduledocp = """
+  Defines functions internally used by Serum to create
+  `Serum.V2.Fragment` structs.
   """
 
   require Serum.V2.Result, as: Result
   alias Serum.Plugin.Client, as: PluginClient
-
-  @type t :: %__MODULE__{
-          file: Serum.File.t(),
-          output: binary(),
-          metadata: map(),
-          data: binary()
-        }
-
-  defstruct [:file, :output, :metadata, :data]
+  alias Serum.V2
+  alias Serum.V2.Fragment
 
   @doc "Creates a new `Fragment` struct."
-  @spec new(Serum.File.t(), binary(), map(), binary()) :: Result.t(t())
-  def new(file, output, metadata, data) do
+  @spec new(V2.File.t(), binary(), map(), binary()) :: Result.t(Fragment.t())
+  def new(source, dest, metadata, data) do
     Result.run do
       html_tree <- parse_html(data)
       html_tree <- preprocess(html_tree, metadata)
 
-      Result.return(%__MODULE__{
-        file: file,
-        output: output,
+      Result.return(%Fragment{
+        source: source,
+        dest: dest,
         metadata: Map.put(metadata, :images, extract_images(html_tree)),
         data: Floki.raw_html(html_tree)
       })

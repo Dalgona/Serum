@@ -3,10 +3,10 @@ defprotocol Serum.Fragment.Source do
 
   _moduledocp = """
   Defines a protocol where implementing structs can be converted into
-  `Serum.Fragment` structs.
+  `Serum.V2.Fragment` structs.
   """
 
-  alias Serum.Fragment
+  alias Serum.V2.Fragment
   alias Serum.V2.Result
 
   @type t :: struct()

@@ -1,9 +1,9 @@
 defimpl Serum.Fragment.Source, for: Serum.V2.PostList do
   require Serum.V2.Result, as: Result
-  alias Serum.Fragment
   alias Serum.Renderer
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
+  alias Serum.V2.Fragment
   alias Serum.V2.PostList
 
   @spec to_fragment(PostList.t()) :: Result.t(Fragment.t())
@@ -15,7 +15,7 @@ defimpl Serum.Fragment.Source, for: Serum.V2.PostList do
       template <- TS.get("list", :template)
       html <- Renderer.render_fragment(template, bindings)
 
-      Fragment.new(%V2.File{}, post_list.dest, metadata, html)
+      Serum.Fragment.new(%V2.File{}, post_list.dest, metadata, html)
     end
   end
 end
