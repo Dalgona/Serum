@@ -4,9 +4,9 @@ defmodule Serum.Build.FileProcessor.PostList do
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.PostList
-  alias Serum.Project
   alias Serum.V2.Error
   alias Serum.V2.Post
+  alias Serum.V2.Project
   alias Serum.V2.Tag
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]
@@ -24,7 +24,7 @@ defmodule Serum.Build.FileProcessor.PostList do
 
     [{nil, compact_posts} | tag_groups]
     |> Task.async_stream(fn {tag, posts} ->
-      PostList.generate(tag, posts, proj)
+      Serum.PostList.generate(tag, posts, proj)
     end)
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate("failed to generate post lists:")

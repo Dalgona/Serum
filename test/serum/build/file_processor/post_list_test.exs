@@ -50,13 +50,11 @@ defmodule Serum.Build.FileProcessor.PostListTest do
       Enum.each(lists2, fn list ->
         assert length(list.posts) === 20
         assert String.starts_with?(list.title, "Posts Tagged")
-        assert list.prev_url === nil and list.next_url === nil
       end)
 
       Enum.each([all1, all2], fn list ->
         assert length(list.posts) === 30
         assert list.title === "All Posts"
-        assert list.prev_url === nil and list.next_url === nil
       end)
     end
 
@@ -97,22 +95,6 @@ defmodule Serum.Build.FileProcessor.PostListTest do
       assert list.title === "All Posts"
     else
       assert String.starts_with?(list.title, "Posts Tagged")
-    end
-
-    last = list.max_page
-
-    case list.current_page do
-      1 ->
-        assert is_nil(list.prev_url)
-        assert String.ends_with?(list.next_url, "page-2.html")
-
-      ^last ->
-        assert String.ends_with?(list.prev_url, "page-#{last - 1}.html")
-        assert is_nil(list.next_url)
-
-      p ->
-        assert String.ends_with?(list.prev_url, "page-#{p - 1}.html")
-        assert String.ends_with?(list.next_url, "page-#{p + 1}.html")
     end
   end
 end
