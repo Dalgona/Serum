@@ -5,9 +5,9 @@ defmodule Serum.Template.Compiler do
 
   require Serum.V2.Result, as: Result
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Error
+  alias Serum.V2.Template
 
   @type options :: [type: Template.type()]
 
@@ -56,7 +56,7 @@ defmodule Serum.Template.Compiler do
       file2 <- PluginClient.processing_template(file)
       ast <- compile_string(file2.in_data, file2)
       name = Path.basename(file2.src, ".html.eex")
-      template = Template.new(ast, name, options[:type], file2)
+      template = Serum.Template.new(ast, name, options[:type], file2)
       template2 <- PluginClient.processed_template(template)
 
       Result.return({name, template2})

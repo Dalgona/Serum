@@ -1,31 +1,20 @@
 defmodule Serum.Template do
-  @moduledoc "Defines a struct which stores a template and its information."
+  @moduledoc false
+
+  _moduledocp = """
+  Defines functions internally used by Serum to create
+  `Serum.V2.Template` structs.
+  """
 
   alias Serum.V2
+  alias Serum.V2.Template
 
-  defstruct name: "",
-            type: :template,
-            file: %V2.File{},
-            ast: nil,
-            include_resolved?: false
-
-  @type t() :: %__MODULE__{
-          name: binary(),
-          type: type(),
-          file: V2.File.t(),
-          ast: Macro.t(),
-          include_resolved?: boolean()
-        }
-
-  @type collection() :: %{optional(binary()) => t()}
-  @type type() :: :template | :include
-
-  @spec new(Macro.t(), binary(), type(), V2.File.t()) :: t()
-  def new(ast, name, type, file) do
-    %__MODULE__{
+  @spec new(Macro.t(), binary(), Template.type(), V2.File.t()) :: Template.t()
+  def new(ast, name, type, source) do
+    %Template{
+      source: source,
       name: name,
       type: type,
-      file: file,
       ast: ast,
       include_resolved?: false
     }

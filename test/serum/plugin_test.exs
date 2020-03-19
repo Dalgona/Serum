@@ -5,13 +5,13 @@ defmodule Serum.PluginTest do
   import Serum.Plugin
   import Serum.Plugin.Client
   import Serum.TestHelper, only: :macros
-  alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Console
   alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList
+  alias Serum.V2.Template
 
   "plugins/*plugin*.ex"
   |> fixture()
@@ -42,7 +42,7 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = processing_template(%V2.File{src: "template.html.eex"})
       assert {:ok, _} = processed_page(%Page{title: "Test Page"})
       assert {:ok, _} = processed_post(%Post{title: "Test Post"})
-      assert {:ok, _} = processed_template(%Template{file: "template.html.eex"})
+      assert {:ok, _} = processed_template(%Template{source: %V2.File{src: "template.html.eex"}})
       assert {:ok, _} = processed_list(%PostList{title: "Test Post List"})
       assert {:ok, _} = processed_pages([%Page{title: "Test Page 1"}])
       assert {:ok, _} = processed_posts([%Post{title: "Test Post 1"}])

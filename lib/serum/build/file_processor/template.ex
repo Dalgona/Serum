@@ -3,10 +3,10 @@ defmodule Serum.Build.FileProcessor.Template do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
-  alias Serum.Template
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
+  alias Serum.V2.Template
 
   @spec compile_templates(map()) :: Result.t({})
   def compile_templates(%{templates: templates, includes: includes}) do

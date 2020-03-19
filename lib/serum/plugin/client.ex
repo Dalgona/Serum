@@ -8,13 +8,13 @@ defmodule Serum.Plugin.Client do
   require Serum.V2.Result, as: Result
   import Serum.Plugin.Client.Macros
   alias Serum.Plugin
-  alias Serum.Template
   alias Serum.V2
   alias Serum.V2.Error
   alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList
+  alias Serum.V2.Template
 
   interface :action, build_started(src :: binary(), dest :: binary()) :: Result.t({})
   interface :function, reading_pages(files :: [binary()]) :: Result.t([binary()])

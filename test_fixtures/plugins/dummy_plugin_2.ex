@@ -50,7 +50,7 @@ defmodule Serum.DummyPlugin2 do
   end
 
   def processed_template(template, _args) do
-    debug("processed_template: #{template.file}")
+    debug("processed_template: #{template.source.src}")
 
     {:ok, template}
   end

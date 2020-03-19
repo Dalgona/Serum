@@ -7,11 +7,11 @@ defmodule Serum.Build.PageGenerator do
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Renderer
-  alias Serum.Template
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
   alias Serum.V2.Error
   alias Serum.V2.Fragment
+  alias Serum.V2.Template
 
   @spec run([Fragment.t()]) :: Result.t([V2.File.t()])
   def run(fragments) do

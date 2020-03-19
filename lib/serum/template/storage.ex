@@ -5,7 +5,7 @@ defmodule Serum.Template.Storage do
 
   use Agent
   require Serum.V2.Result, as: Result
-  alias Serum.Template
+  alias Serum.V2.Template
 
   @initial_value %{template: %{}, include: %{}}
 

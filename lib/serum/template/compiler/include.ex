@@ -4,9 +4,9 @@ defmodule Serum.Template.Compiler.Include do
   _moduledocp = "Provides functions for expanding includes in templates."
 
   require Serum.V2.Result, as: Result
-  alias Serum.Template
   alias Serum.Template.Storage, as: TS
   alias Serum.V2.Error
+  alias Serum.V2.Template
 
   @typep context :: %{
            template: Template.t(),
@@ -61,7 +61,7 @@ defmodule Serum.Template.Compiler.Include do
         {quote(do: (fn -> unquote(new_include.ast) end).()), new_context}
 
       {:error, %Error{} = error} ->
-        error = %Error{error | file: context.template.file}
+        error = %Error{error | file: context.template.source}
 
         {ast, %{context | error: {:error, error}}}
     end
@@ -74,7 +74,7 @@ defmodule Serum.Template.Compiler.Include do
     if name in context.stack do
       cycle = context.stack |> Enum.reverse() |> Enum.drop_while(&(&1 != name))
 
-      Result.fail(Cycle: [cycle], file: context.template.file)
+      Result.fail(Cycle: [cycle], file: context.template.source)
     else
       Result.return()
     end
