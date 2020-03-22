@@ -83,9 +83,9 @@ evaluated to a map.</p><pre><code class="lang-elixir">%{
   result in empty preview texts.</p><p><pre class="lang-elixir"><code>number
 # Or
 {:chars, number}</code></pre></p><p>  Maximum number of characters in a preview text.</p><p><pre class="lang-elixir"><code>{:words, number}</code></pre></p><p>  Maximum number of words in a preview text.</p><p><pre class="lang-elixir"><code>{:paragraphs, number}</code></pre></p><p>  Maximum number of paragraphs in a preview text. Serum counts the number of
-  <code class="inline">&lt;p&gt;</code> tags in a generated HTML content.</p></li></ul><blockquote><p class="title">Note</p><p>It is recommended to explicitly set this property to zero if you are not
+  <code class="inline">&lt;p&gt;</code> tags in a generated HTML content.</p></li></ul><blockquote class="note"><p class="title">Note</p><p>It is recommended to explicitly set this property to zero if you are not
 going to use preview texts, as by doing so some unnecessary HTML
-processing can be skipped.</p></blockquote><pre><code>{: .note}</code></pre><h3 id="miscellaneous">Miscellaneous</h3><ul><li><p><code class="inline">plugins</code> (list, optional)</p><p>  Plugins extend the functionality of Serum by altering source data,
+processing can be skipped.</p></blockquote><h3 id="miscellaneous">Miscellaneous</h3><ul><li><p><code class="inline">plugins</code> (list, optional)</p><p>  Plugins extend the functionality of Serum by altering source data,
   intermediate data, or final outputs during the build process.</p><p>  The documentation for <a href="https://hexdocs.pm/serum/Serum.Plugin.html"><code class="inline">Serum.Plugin</code>
   module</a> describes what Serum
   plugins are, how to use them, and how to create your own Serum plugin.</p></li><li><p><code class="inline">theme</code> (atom, optional)</p><p>  A theme is a set of predefined templates and assets that helps you quickly
