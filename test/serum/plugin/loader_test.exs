@@ -1,7 +1,6 @@
 defmodule Serum.Plugin.LoaderTest do
   use ExUnit.Case
   require Serum.TestHelper
-  import ExUnit.CaptureIO
   import Serum.Plugin.Loader
   import Serum.TestHelper, only: :macros
   alias Serum.Plugin
@@ -53,21 +52,6 @@ defmodule Serum.Plugin.LoaderTest do
 
       assert length(loaded_plugins) === 2
       assert Serum.DummyPlugin2 not in loaded_modules
-    end
-
-    test "prints warning when loading an incompatible plugin" do
-      output =
-        capture_io(:stderr, fn ->
-          {:ok, loaded_plugins} = load_plugins([Serum.IncompatiblePlugin])
-
-          send(self(), loaded_plugins)
-        end)
-
-      receive do
-        loaded_plugins ->
-          assert length(loaded_plugins) === 1
-          assert output =~ "not compatible"
-      end
     end
 
     test "returns an error when an invalid plugin spec was given" do

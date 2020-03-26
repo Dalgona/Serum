@@ -4,13 +4,9 @@ defmodule Serum.Plugin.Loader do
   _moduledocp = "A module for loading Serum plugins from serum.exs."
 
   require Serum.V2.Result, as: Result
-  import Serum.V2.Console
   alias Serum.Plugin
   alias Serum.Plugin.EnvMatcher
   alias Serum.V2.Error
-
-  @serum_version Version.parse!(Mix.Project.config()[:version])
-  @elixir_version Version.parse!(System.version())
 
   @msg_load_failed "failed to load plugins:"
 
@@ -75,11 +71,6 @@ defmodule Serum.Plugin.Loader do
   defp do_make_plugin(module, args) do
     name = module.name()
     version = Version.parse!(module.version())
-    elixir = module.elixir()
-    serum = module.serum()
-
-    validate_elixir_version(name, elixir)
-    validate_serum_version(name, serum)
 
     Result.return(%Plugin{
       module: module,
@@ -91,36 +82,6 @@ defmodule Serum.Plugin.Loader do
     })
   rescue
     exception -> Result.fail(Exception: [exception, __STACKTRACE__])
-  end
-
-  @spec validate_elixir_version(binary(), Version.requirement()) :: Result.t({})
-  defp validate_elixir_version(name, requirement) do
-    if Version.match?(@elixir_version, requirement) do
-      Result.return()
-    else
-      msg = [
-        "The plugin \"#{name}\" is not compatible with ",
-        "the current version of Elixir(#{@elixir_version}). ",
-        "This plugin may not work as intended."
-      ]
-
-      put_err(:warn, msg)
-    end
-  end
-
-  @spec validate_serum_version(binary(), Version.requirement()) :: Result.t({})
-  defp validate_serum_version(name, requirement) do
-    if Version.match?(@serum_version, requirement) do
-      Result.return()
-    else
-      msg = [
-        "The plugin \"#{name}\" is not compatible with ",
-        "the current version of Serum(#{@serum_version}). ",
-        "This plugin may not work as intended."
-      ]
-
-      put_err(:warn, msg)
-    end
   end
 
   @spec update_agent([Plugin.t()]) :: :ok
