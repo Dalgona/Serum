@@ -8,6 +8,7 @@ defmodule Serum.Plugin.Client do
   require Serum.V2.Result, as: Result
   import Serum.Plugin.Client.Macros
   alias Serum.Plugin
+  alias Serum.Project
   alias Serum.V2
   alias Serum.V2.Error
   alias Serum.V2.Fragment
@@ -16,34 +17,34 @@ defmodule Serum.Plugin.Client do
   alias Serum.V2.PostList
   alias Serum.V2.Template
 
-  interface :action, build_started(src :: binary(), dest :: binary()) :: Result.t({})
-  interface :function, reading_pages(files :: [binary()]) :: Result.t([binary()])
-  interface :function, reading_posts(files :: [binary()]) :: Result.t([binary()])
-  interface :function, reading_templates(files :: [binary()]) :: Result.t([binary()])
-  interface :function, processing_page(file :: V2.File.t()) :: Result.t(V2.File.t())
-  interface :function, processing_post(file :: V2.File.t()) :: Result.t(V2.File.t())
-  interface :function, processing_template(file :: V2.File.t()) :: Result.t(V2.File.t())
-  interface :function, processed_page(page :: Page.t()) :: Result.t(Page.t())
-  interface :function, processed_post(post :: Post.t()) :: Result.t(Post.t())
-  interface :function, processed_template(template :: Template.t()) :: Result.t(Template.t())
-  interface :function, processed_list(list :: PostList.t()) :: Result.t(PostList.t())
+  interface :action, build_started(project :: Project.t()) :: Result.t({})
+  interface :action, build_succeeded(project :: Project.t()) :: Result.t({})
+  interface :action, build_failed(project :: Project.t(), result :: Result.t()) :: Result.t({})
+
+  interface :function, reading_pages(paths :: [binary()]) :: Result.t([binary()])
+  interface :function, reading_posts(paths :: [binary()]) :: Result.t([binary()])
+  interface :function, reading_templates(paths :: [binary()]) :: Result.t([binary()])
+
+  interface :function, processing_pages(files :: [V2.File.t()]) :: Result.t([V2.File.t()])
+  interface :function, processing_posts(files :: [V2.File.t()]) :: Result.t([V2.File.t()])
+  interface :function, processing_templates(files :: [V2.File.t()]) :: Result.t([V2.File.t()])
+
   interface :function, processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
   interface :function, processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
 
   interface :function,
-            rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
+            processed_templates(templates :: [Template.t()]) :: Result.t([Template.t()])
+
+  interface :function,
+            generated_post_lists(post_lists :: [[PostList.t()]]) :: Result.t([[PostList.t()]])
+
+  interface :function,
+            generating_fragment(html_tree :: Floki.html_tree(), metadata :: map()) ::
               Result.t(Floki.html_tree())
 
-  interface :function, rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
-  interface :function, rendered_page(file :: V2.File.t()) :: Result.t(V2.File.t())
-  interface :action, wrote_file(file :: V2.File.t()) :: Result.t({})
-  interface :action, build_succeeded(src :: binary(), dest :: binary()) :: Result.t({})
-
-  interface :action,
-            build_failed(src :: binary(), dest :: binary(), result :: Result.t(term)) ::
-              Result.t({})
-
-  interface :action, finalizing(src :: binary(), dest :: binary()) :: Result.t({})
+  interface :function, generated_fragment(fragment :: Fragment.t()) :: Result.t(Fragment.t())
+  interface :function, rendered_pages(files :: [V2.File.t()]) :: Result.t([V2.File.t()])
+  interface :action, wrote_files(files :: [V2.File.t()]) :: Result.t({})
 
   @spec call_action(atom(), [term()]) :: Result.t({})
   defp call_action(fun, args) do
