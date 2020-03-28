@@ -9,7 +9,6 @@ defmodule Serum.Build.FileEmitter do
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.V2
-  alias Serum.V2.Error
 
   @doc """
   Write files described by `Serum.V2.File` structs to actual files on disk.
@@ -20,14 +19,10 @@ defmodule Serum.Build.FileEmitter do
   def run(files) do
     put_msg(:info, "Writing output files...")
 
-    case create_dirs(files) do
-      {:ok, _} ->
-        files
-        |> Enum.map(&write_file/1)
-        |> Result.aggregate("failed to write files:")
-
-      {:error, %Error{}} = error ->
-        error
+    Result.run do
+      create_dirs(files)
+      write_files(files)
+      PluginClient.wrote_files(files)
     end
   end
 
@@ -49,11 +44,10 @@ defmodule Serum.Build.FileEmitter do
     end
   end
 
-  @spec write_file(V2.File.t()) :: Result.t({})
-  defp write_file(file) do
-    case V2.File.write(file) do
-      {:ok, ^file} -> PluginClient.wrote_file(file)
-      {:error, %Error{}} = error -> error
-    end
+  @spec write_files([V2.File.t()]) :: Result.t({})
+  defp write_files(files) do
+    files
+    |> Enum.map(&V2.File.write/1)
+    |> Result.aggregate("failed to write files:")
   end
 end

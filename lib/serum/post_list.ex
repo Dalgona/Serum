@@ -6,14 +6,12 @@ defmodule Serum.PostList do
   `Serum.V2.PostList` structs.
   """
 
-  require Serum.V2.Result, as: Result
-  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.V2.PostList
   alias Serum.V2.Tag
 
   @type maybe_tag :: Tag.t() | nil
 
-  @spec generate(maybe_tag(), [map()], map()) :: Result.t([PostList.t()])
+  @spec generate(maybe_tag(), [map()], map()) :: [PostList.t()]
   def generate(tag, posts, proj) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
@@ -48,8 +46,6 @@ defmodule Serum.PostList do
     }
 
     [first_dup, list | lists]
-    |> Enum.map(&PluginClient.processed_list/1)
-    |> Result.aggregate("failed to generate post list \"#{list_title}\":")
   end
 
   @spec compact(PostList.t()) :: map()

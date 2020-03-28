@@ -40,7 +40,7 @@ defmodule Serum.Fragment do
     html_tree
     |> Floki.traverse_and_update(%{}, &set_header_ids/2)
     |> elem(0)
-    |> PluginClient.rendering_fragment(metadata)
+    |> PluginClient.generating_fragment(metadata)
   end
 
   @spec set_header_ids(Floki.html_tag(), map()) :: {Floki.html_tag(), map()}

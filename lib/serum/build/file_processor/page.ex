@@ -16,19 +16,21 @@ defmodule Serum.Build.FileProcessor.Page do
   def preprocess_pages(files, proj) do
     put_msg(:info, "Processing page files...")
 
+    Result.run do
+      files <- PluginClient.processing_pages(files)
+      pages <- do_preprocess_pages(files, proj)
+      sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
+
+      Result.return({sorted_pages, Enum.map(sorted_pages, &Serum.Page.compact/1)})
+    end
+  end
+
+  @spec do_preprocess_pages([V2.File.t()], Project.t()) :: Result.t([Page.t()])
+  defp do_preprocess_pages(files, proj) do
     files
     |> Task.async_stream(&preprocess_page(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate("failed to preprocess pages:")
-    |> case do
-      {:ok, pages} ->
-        sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
-
-        Result.return({sorted_pages, Enum.map(sorted_pages, &Serum.Page.compact/1)})
-
-      {:error, %Error{}} = error ->
-        error
-    end
   end
 
   @spec preprocess_page(V2.File.t(), Project.t()) :: Result.t(Page.t())
@@ -46,10 +48,9 @@ defmodule Serum.Build.FileProcessor.Page do
     required = [:title]
 
     Result.run do
-      file2 <- PluginClient.processing_page(file)
-      {header, extras, rest, next_line} <- parse_header(file2, opts, required)
+      {header, extras, rest, next_line} <- parse_header(file, opts, required)
       header = Map.put(header, :label, header[:label] || header.title)
-      page = Serum.Page.new(file2, {header, extras}, rest, proj)
+      page = Serum.Page.new(file, {header, extras}, rest, proj)
 
       page = %Page{
         page

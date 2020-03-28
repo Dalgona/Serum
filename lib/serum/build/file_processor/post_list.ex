@@ -3,8 +3,8 @@ defmodule Serum.Build.FileProcessor.PostList do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
+  alias Serum.Plugin.Client, as: PluginClient
   alias Serum.PostList
-  alias Serum.V2.Error
   alias Serum.V2.Post
   alias Serum.V2.Project
   alias Serum.V2.Tag
@@ -22,15 +22,11 @@ defmodule Serum.Build.FileProcessor.PostList do
 
     tag_groups = group_posts_by_tag(compact_posts)
 
-    [{nil, compact_posts} | tag_groups]
-    |> Task.async_stream(fn {tag, posts} ->
-      Serum.PostList.generate(tag, posts, proj)
-    end)
-    |> Enum.map(&elem(&1, 1))
-    |> Result.aggregate("failed to generate post lists:")
-    |> case do
-      {:ok, lists} -> Result.return({List.flatten(lists), get_tag_counts(tag_groups)})
-      {:error, %Error{}} = error -> error
+    Result.run do
+      lists = do_generate_lists(compact_posts, tag_groups, proj)
+      lists <- PluginClient.generated_post_lists(lists)
+
+      Result.return({List.flatten(lists), get_tag_counts(tag_groups)})
     end
   end
 
@@ -53,6 +49,15 @@ defmodule Serum.Build.FileProcessor.PostList do
       end)
 
     group_posts_by_tag(posts, new_acc)
+  end
+
+  @spec do_generate_lists([map()], tag_groups(), Project.t()) :: [[PostList.t()]]
+  defp do_generate_lists(compact_posts, tag_groups, proj) do
+    [{nil, compact_posts} | tag_groups]
+    |> Task.async_stream(fn {tag, posts} ->
+      Serum.PostList.generate(tag, posts, proj)
+    end)
+    |> Enum.map(&elem(&1, 1))
   end
 
   @spec get_tag_counts(tag_groups()) :: tag_counts()

@@ -26,7 +26,7 @@ defmodule Serum.Build.FragmentGenerator do
   @spec task_fun(struct()) :: Result.t(Fragment.t())
   defp task_fun(fragment_source) do
     case FragmentSource.to_fragment(fragment_source) do
-      {:ok, fragment} -> PluginClient.rendered_fragment(fragment)
+      {:ok, fragment} -> PluginClient.generated_fragment(fragment)
       {:error, %Error{}} = error -> error
     end
   end

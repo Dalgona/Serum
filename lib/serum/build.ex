@@ -47,14 +47,13 @@ defmodule Serum.Build do
   8. Copies `assets/` and `media/` directories if they exist.
   """
   @spec build(Project.t()) :: Result.t(binary())
-  def build(%Project{src: src, dest: dest} = proj) do
+  def build(%Project{dest: dest} = proj) do
     Result.run do
       proj <- load_plugins(proj)
-      PluginClient.build_started(src, dest)
+      PluginClient.build_started(proj)
       pre_check(dest)
       do_build(proj)
-      PluginClient.build_succeeded(src, dest)
-      PluginClient.finalizing(src, dest)
+      PluginClient.build_succeeded(proj)
 
       Result.return(dest)
     end
@@ -64,8 +63,7 @@ defmodule Serum.Build do
 
       {:error, %Error{}} = error ->
         Result.run do
-          PluginClient.build_failed(src, dest, error)
-          PluginClient.finalizing(src, dest)
+          PluginClient.build_failed(proj, error)
 
           error
         end

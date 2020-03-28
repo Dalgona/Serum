@@ -6,7 +6,6 @@ defmodule Serum.Template.Compiler do
   require Serum.V2.Result, as: Result
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.V2
-  alias Serum.V2.Error
   alias Serum.V2.Template
 
   @type options :: [type: Template.type()]
@@ -40,26 +39,34 @@ defmodule Serum.Template.Compiler do
   def compile_files(files, options) do
     options = Keyword.merge(@default_options, options)
 
+    Result.run do
+      files <- PluginClient.processing_templates(files)
+      templates <- do_compile_files(files, options)
+      templates <- PluginClient.processed_templates(templates)
+
+      templates
+      |> Enum.map(&{&1.name, &1})
+      |> Map.new()
+      |> Result.return()
+    end
+  end
+
+  @spec do_compile_files([V2.File.t()], options()) :: Result.t([Template.t()])
+  defp do_compile_files(files, options) do
     files
     |> Task.async_stream(&compile_file(&1, options))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate("failed to compile EEx templates:")
-    |> case do
-      {:ok, list} -> Result.return(Map.new(list))
-      {:error, %Error{}} = error -> error
-    end
   end
 
-  @spec compile_file(V2.File.t(), options()) :: Result.t({binary(), Template.t()})
+  @spec compile_file(V2.File.t(), options()) :: Result.t(Template.t())
   defp compile_file(file, options) do
     Result.run do
-      file2 <- PluginClient.processing_template(file)
-      ast <- compile_string(file2.in_data, file2)
-      name = Path.basename(file2.src, ".html.eex")
-      template = Serum.Template.new(ast, name, options[:type], file2)
-      template2 <- PluginClient.processed_template(template)
+      ast <- compile_string(file.in_data, file)
+      name = Path.basename(file.src, ".html.eex")
+      template = Serum.Template.new(ast, name, options[:type], file)
 
-      Result.return({name, template2})
+      Result.return(template)
     end
   end
 

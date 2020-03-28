@@ -19,16 +19,22 @@ defmodule Serum.Build.PageGenerator do
 
     Result.run do
       template <- TS.get("base", :template)
+      files <- render_pages(fragments, template)
 
-      fragments
-      |> Task.async_stream(&render(&1, template))
-      |> Enum.map(&elem(&1, 1))
-      |> Result.aggregate("failed to render HTML pages:")
+      PluginClient.rendered_pages(files)
     end
   end
 
-  @spec render(Fragment.t(), Template.t()) :: Result.t(V2.File.t())
-  defp render(fragment, template) do
+  @spec render_pages([Fragment.t()], Template.t()) :: Result.t([V2.File.t()])
+  defp render_pages(fragments, template) do
+    fragments
+    |> Task.async_stream(&render_page(&1, template))
+    |> Enum.map(&elem(&1, 1))
+    |> Result.aggregate("failed to render HTML pages:")
+  end
+
+  @spec render_page(Fragment.t(), Template.t()) :: Result.t(V2.File.t())
+  defp render_page(fragment, template) do
     assigns = [
       page: fragment.metadata,
       contents: fragment.data
@@ -36,14 +42,12 @@ defmodule Serum.Build.PageGenerator do
 
     case Renderer.render_fragment(template, assigns) do
       {:ok, html} ->
-        file = %V2.File{
+        Result.return(%V2.File{
           src: fragment.source.src,
           dest: fragment.dest,
           in_data: nil,
           out_data: html
-        }
-
-        PluginClient.rendered_page(file)
+        })
 
       {:error, %Error{}} = error ->
         error

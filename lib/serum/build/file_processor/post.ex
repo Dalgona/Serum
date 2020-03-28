@@ -19,19 +19,21 @@ defmodule Serum.Build.FileProcessor.Post do
   def preprocess_posts(files, proj) do
     put_msg(:info, "Processing post files...")
 
+    Result.run do
+      files <- PluginClient.processing_posts(files)
+      posts <- do_preprocess_posts(files, proj)
+      sorted_posts = Enum.sort(posts, &(DateTime.compare(&1.date, &2.date) == :gt))
+
+      Result.return({sorted_posts, Enum.map(sorted_posts, &Serum.Post.compact/1)})
+    end
+  end
+
+  @spec do_preprocess_posts([V2.File.t()], Project.t()) :: Result.t([Post.t()])
+  defp do_preprocess_posts(files, proj) do
     files
     |> Task.async_stream(&preprocess_post(&1, proj))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate("failed to preprocess posts:")
-    |> case do
-      {:ok, posts} ->
-        sorted_posts = Enum.sort(posts, &(DateTime.compare(&1.date, &2.date) == :gt))
-
-        Result.return({sorted_posts, Enum.map(sorted_posts, &Serum.Post.compact/1)})
-
-      {:error, %Error{}} = error ->
-        error
-    end
   end
 
   @spec preprocess_post(V2.File.t(), Project.t()) :: Result.t(Post.t())
@@ -48,15 +50,14 @@ defmodule Serum.Build.FileProcessor.Post do
     required = [:title, :date]
 
     Result.run do
-      file2 <- PluginClient.processing_post(file)
-      {header, extras, rest, next_line} <- parse_header(file2, opts, required)
+      {header, extras, rest, next_line} <- parse_header(file, opts, required)
 
       header = %{
         header
         | date: header[:date] || Timex.to_datetime(Timex.zero(), :local)
       }
 
-      post = Serum.Post.new(file2, {header, extras}, rest, proj)
+      post = Serum.Post.new(file, {header, extras}, rest, proj)
 
       post = %Post{
         post
