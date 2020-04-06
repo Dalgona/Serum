@@ -49,7 +49,7 @@ defmodule Serum.Plugin.Client do
   @spec call_action(atom(), [term()]) :: Result.t({})
   defp call_action(fun, args) do
     Plugin
-    |> Agent.get(&(&1[fun] || []))
+    |> Agent.get(&(&1.callbacks[fun] || []))
     |> do_call_action(fun, args)
   end
 
@@ -81,7 +81,7 @@ defmodule Serum.Plugin.Client do
   @spec call_function(atom(), [a | term()]) :: Result.t(a) when a: term()
   def call_function(fun, [arg | args]) do
     Plugin
-    |> Agent.get(&(&1[fun] || []))
+    |> Agent.get(&(&1.callbacks[fun] || []))
     |> do_call_function(fun, args, arg)
   end
 

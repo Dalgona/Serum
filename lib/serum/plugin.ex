@@ -56,6 +56,7 @@ defmodule Serum.Plugin do
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Loader
+  alias Serum.Plugin.State
 
   defstruct [:module, :name, :version, :description, :implements, :args]
 
@@ -72,9 +73,9 @@ defmodule Serum.Plugin do
   @type plugin_options :: [only: atom() | [atom()], args: term()]
 
   @doc false
-  @spec start_link(any()) :: {:error, any()} | {:ok, pid()}
+  @spec start_link(any()) :: Agent.on_start()
   def start_link(_) do
-    Agent.start_link(fn -> %{} end, name: __MODULE__)
+    Agent.start_link(fn -> %State{} end, name: __MODULE__)
   end
 
   @doc false

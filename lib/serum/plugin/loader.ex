@@ -7,6 +7,7 @@ defmodule Serum.Plugin.Loader do
   alias Serum.Plugin
   alias Serum.Plugin.EnvMatcher
   alias Serum.V2.Error
+  alias Serum.Plugin.State
 
   @msg_load_failed "failed to load plugins:"
 
@@ -95,6 +96,6 @@ defmodule Serum.Plugin.Loader do
       |> Enum.group_by(&elem(&1, 0), &Tuple.delete_at(&1, 0))
       |> Map.new()
 
-    Agent.update(Plugin, fn _ -> map end)
+    Agent.update(Plugin, fn _ -> %State{callbacks: map} end)
   end
 end
