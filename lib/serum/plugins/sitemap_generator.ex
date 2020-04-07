@@ -13,34 +13,33 @@ defmodule Serum.Plugins.SitemapGenerator do
       }
   """
 
-  @behaviour Serum.Plugin
-
-  serum_ver = Version.parse!(Mix.Project.config()[:version])
-  serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
+  use Serum.V2.Plugin
 
   require EEx
   alias Serum.GlobalBindings
+  alias Serum.Project
   alias Serum.V2
   alias Serum.V2.Page
   alias Serum.V2.Post
 
   def name, do: "Create sitemap for search engine"
-  def version, do: "1.2.0"
-  def elixir, do: ">= 1.8.0"
-  def serum, do: unquote(serum_req)
 
   def description do
     "Create a sitemap so that the search engine can index posts."
   end
 
-  def implements, do: [build_succeeded: 3]
+  def implements, do: [build_succeeded: 2]
 
-  def build_succeeded(_src, dest, args) do
+  def init(args), do: {:ok, args}
+
+  def build_succeeded(%Project{dest: dest}, args) do
     {pages, posts} = get_items(args[:for])
 
     dest
     |> create_file(pages, posts)
     |> V2.File.write()
+
+    Result.return(args)
   end
 
   @spec get_items(term()) :: {[Page.t()], [Post.t()]}

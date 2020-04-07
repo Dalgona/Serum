@@ -66,23 +66,16 @@ defmodule Serum.Plugins.TableOfContents do
   with `</serum-toc>`.
   """
 
-  @behaviour Serum.Plugin
-
-  serum_ver = Version.parse!(Mix.Project.config()[:version])
-  serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
+  use Serum.V2.Plugin
 
   def name, do: "Table of Contents"
-  def version, do: "1.1.0"
-  def elixir, do: "~> 1.8"
-  def serum, do: unquote(serum_req)
   def description, do: "Inserts a table of contents into pages or posts."
+  def implements, do: [generating_fragment: 3]
 
-  def implements, do: [rendering_fragment: 3]
-
-  def rendering_fragment(html, metadata, _args)
-  def rendering_fragment(html, %{type: :page}, _), do: {:ok, insert_toc(html)}
-  def rendering_fragment(html, %{type: :post}, _), do: {:ok, insert_toc(html)}
-  def rendering_fragment(html, _, _), do: {:ok, html}
+  def generating_fragment(html, metadata, _args)
+  def generating_fragment(html, %{type: :page}, _), do: Result.return({insert_toc(html), nil})
+  def generating_fragment(html, %{type: :post}, _), do: Result.return({insert_toc(html), nil})
+  def generating_fragment(html, _, _), do: Result.return({html, nil})
 
   @spec insert_toc(Floki.html_tree()) :: Floki.html_tree()
   defp insert_toc(html) do

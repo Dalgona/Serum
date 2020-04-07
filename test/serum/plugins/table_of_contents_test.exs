@@ -4,7 +4,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
 
   test "without attribute" do
     html = Floki.parse_document!(get_data())
-    {:ok, html2} = TOC.rendering_fragment(html, %{type: :page}, nil)
+    {:ok, {html2, _}} = TOC.generating_fragment(html, %{type: :page}, nil)
     items = Floki.find(html2, "ul.serum-toc li span.number")
 
     assert length(items) == 11
@@ -31,7 +31,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
 
   test "with attribute" do
     html = Floki.parse_document!(get_data(2, 4))
-    {:ok, html2} = TOC.rendering_fragment(html, %{type: :post}, nil)
+    {:ok, {html2, _}} = TOC.generating_fragment(html, %{type: :post}, nil)
     items = Floki.find(html2, "ul.serum-toc li span.number")
 
     assert length(items) == 8
@@ -55,21 +55,21 @@ defmodule Serum.Plugins.TableOfContentsTest do
 
   test "no serum-toc tag" do
     html = Floki.parse_document!("Notice me (OwO)")
-    assert {:ok, ^html} = TOC.rendering_fragment(html, %{type: :page}, nil)
+    assert {:ok, {^html, _}} = TOC.generating_fragment(html, %{type: :page}, nil)
   end
 
   test "garbage in, something reasonable out" do
     html1 = Floki.parse_document!(get_data())
     html2 = Floki.parse_document!(get_data("a", "b"))
-    result1 = TOC.rendering_fragment(html1, %{type: :page}, nil)
-    result2 = TOC.rendering_fragment(html2, %{type: :page}, nil)
+    result1 = TOC.generating_fragment(html1, %{type: :page}, nil)
+    result2 = TOC.generating_fragment(html2, %{type: :page}, nil)
 
     assert result1 === result2
   end
 
   test "if list element has an id 'toc'" do
     html = Floki.parse_document!(get_data())
-    {:ok, html2} = TOC.rendering_fragment(html, %{type: :page}, nil)
+    {:ok, {html2, _}} = TOC.generating_fragment(html, %{type: :page}, nil)
     {"ul", attrs, _} = html2 |> Floki.find("ul.serum-toc") |> hd()
 
     assert Enum.any?(attrs, fn {k, v} -> k === "id" and v === "toc" end)
@@ -77,7 +77,7 @@ defmodule Serum.Plugins.TableOfContentsTest do
 
   test "if id attribute is properly set" do
     html = Floki.parse_document!(get_data(2, 4))
-    {:ok, html2} = TOC.rendering_fragment(html, %{type: :page}, nil)
+    {:ok, {html2, _}} = TOC.generating_fragment(html, %{type: :page}, nil)
     links = Floki.find(html2, "ul.serum-toc li a")
 
     expected_hashes = [

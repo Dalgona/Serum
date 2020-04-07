@@ -24,22 +24,17 @@ defmodule Serum.Plugins.LiveReloader do
       }
   """
 
-  @behaviour Serum.Plugin
-
-  serum_ver = Version.parse!(Mix.Project.config()[:version])
-  serum_req = "~> #{serum_ver.major}.#{serum_ver.minor}"
+  use Serum.V2.Plugin
+  alias Serum.V2
 
   def name, do: "Inject Live Reloader Script"
-  def version, do: "1.1.0"
-  def elixir, do: "~> 1.8"
-  def serum, do: unquote(serum_req)
 
   def description do
     "Injects the live reloader script at the end of " <>
       "all HTML files for use in the Serum development server."
   end
 
-  def implements, do: [rendered_page: 2]
+  def implements, do: [rendered_pages: 2]
 
   script_snippet =
     :serum
@@ -48,7 +43,13 @@ defmodule Serum.Plugins.LiveReloader do
     |> Path.join("build_resources/live_reloader.html")
     |> File.read!()
 
-  def rendered_page(%{out_data: data} = file, _args) do
-    {:ok, %{file | out_data: data <> unquote(script_snippet)}}
+  def rendered_pages(files, state) do
+    injected_files =
+      files
+      |> Enum.map(fn %V2.File{out_data: data} = file ->
+        %V2.File{file | out_data: data <> unquote(script_snippet)}
+      end)
+
+    Result.return({injected_files, state})
   end
 end
