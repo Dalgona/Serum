@@ -106,6 +106,16 @@ defmodule Serum.Plugin do
     Result.return()
   end
 
+  @doc false
+  @spec states() :: State.states()
+  def states, do: Agent.get(__MODULE__, & &1.states)
+
+  @doc false
+  @spec update_states(State.states()) :: Result.t()
+  def update_states(states) do
+    Agent.update(__MODULE__, &%State{&1 | states: Map.merge(&1.states, states)})
+  end
+
   @spec module_name(atom()) :: binary()
   defp module_name(module) do
     module |> to_string() |> String.replace_prefix("Elixir.", "")
