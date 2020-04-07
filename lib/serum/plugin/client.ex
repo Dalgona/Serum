@@ -50,29 +50,36 @@ defmodule Serum.Plugin.Client do
   defp call_action(fun, args) do
     Plugin
     |> Agent.get(&(&1.callbacks[fun] || []))
-    |> do_call_action(fun, args)
-  end
-
-  @spec do_call_action([{integer(), Plugin.t()}], atom(), [term()]) :: Result.t({})
-  defp do_call_action(arity_and_plugins, fun, args)
-  defp do_call_action([], _fun, _args), do: Result.return()
-
-  defp do_call_action([{_arity, plugin} | arity_and_plugins], fun, args) do
-    new_args = args ++ [plugin.args]
-
-    case apply(plugin.module, fun, new_args) do
-      {:ok, _} ->
-        do_call_action(arity_and_plugins, fun, args)
+    |> do_call_action(fun, args, Plugin.states())
+    |> case do
+      {:ok, new_states} ->
+        Plugin.update_states(new_states)
+        Result.return()
 
       {:error, %Error{}} = error ->
         error
+    end
+  end
+
+  @spec do_call_action([{integer(), Plugin.t()}], atom(), [term()], map()) :: Result.t(map())
+  defp do_call_action(arity_and_plugins, fun, args, states)
+  defp do_call_action([], _fun, _args, states), do: Result.return(states)
+
+  defp do_call_action([{_arity, plugin} | arity_and_plugins], fun, args, states) do
+    new_args = args ++ [states[plugin.module]]
+    fun_repr = "#{module_name(plugin.module)}.#{fun}"
+
+    case apply(plugin.module, fun, new_args) do
+      {:ok, new_state} ->
+        new_states = Map.put(states, plugin.module, new_state)
+
+        do_call_action(arity_and_plugins, fun, args, new_states)
+
+      {:error, %Error{} = error} ->
+        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
 
       term ->
-        message =
-          "#{module_name(plugin.module)}.#{fun} returned " <>
-            "an unexpected value: #{inspect(term)}"
-
-        Result.fail(Simple: [message])
+        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
     end
   rescue
     exception -> Result.fail(Exception: [exception, __STACKTRACE__])
@@ -82,30 +89,38 @@ defmodule Serum.Plugin.Client do
   def call_function(fun, [arg | args]) do
     Plugin
     |> Agent.get(&(&1.callbacks[fun] || []))
-    |> do_call_function(fun, args, arg)
-  end
-
-  @spec do_call_function([{integer, Plugin.t()}], atom(), [term()], a) :: Result.t(a)
-        when a: term()
-  defp do_call_function(arity_and_plugins, fun, args, acc)
-  defp do_call_function([], _fun, _args, acc), do: {:ok, acc}
-
-  defp do_call_function([{_arity, plugin} | arity_and_plugins], fun, args, acc) do
-    new_args = [acc | args] ++ [plugin.args]
-
-    case apply(plugin.module, fun, new_args) do
-      {:ok, new_acc} ->
-        do_call_function(arity_and_plugins, fun, args, new_acc)
+    |> do_call_function(fun, args, arg, Plugin.states())
+    |> case do
+      {:ok, {value, new_states}} ->
+        Plugin.update_states(new_states)
+        Result.return(value)
 
       {:error, %Error{}} = error ->
         error
+    end
+  end
+
+  @spec do_call_function([{integer, Plugin.t()}], atom(), [term()], a, map()) ::
+          Result.t({a, map()})
+        when a: term()
+  defp do_call_function(arity_and_plugins, fun, args, acc, states)
+  defp do_call_function([], _fun, _args, acc, states), do: Result.return({acc, states})
+
+  defp do_call_function([{_arity, plugin} | arity_and_plugins], fun, args, acc, states) do
+    new_args = [acc | args] ++ [states[plugin.module]]
+    fun_repr = "#{module_name(plugin.module)}.#{fun}"
+
+    case apply(plugin.module, fun, new_args) do
+      {:ok, {new_acc, new_state}} ->
+        new_states = Map.put(states, plugin.module, new_state)
+
+        do_call_function(arity_and_plugins, fun, args, new_acc, new_states)
+
+      {:error, %Error{} = error} ->
+        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
 
       term ->
-        message =
-          "#{module_name(plugin.module)}.#{fun} returned " <>
-            "an unexpected value: #{inspect(term)}"
-
-        Result.fail(Simple: [message])
+        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
     end
   rescue
     exception -> Result.fail(Exception: [exception, __STACKTRACE__])
