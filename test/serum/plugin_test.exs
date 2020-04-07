@@ -7,6 +7,7 @@ defmodule Serum.PluginTest do
   import Serum.TestHelper, only: :macros
   alias Serum.V2
   alias Serum.V2.Console
+  alias Serum.V2.Error
   alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
@@ -29,83 +30,69 @@ defmodule Serum.PluginTest do
     on_exit(fn -> Agent.update(Serum.Plugin, fn _ -> %{} end) end)
   end
 
-  test "callback test" do
-    {:ok, _} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2, Serum.DummyPlugin3])
+  test "all optional callbacks are correctly called" do
+    {:ok, _} = load_plugins([Serum.DummyPlugin])
 
     capture_io(fn ->
-      assert {:ok, _} = build_started("/path/to/src", "/path/to/dest")
+      assert {:ok, _} = build_started(%{})
+      assert {:ok, _} = build_succeeded(%{})
+      assert {:ok, _} = build_failed(%{}, {:error, %Error{}})
       assert {:ok, _} = reading_pages(["a", "b", "c"])
       assert {:ok, _} = reading_posts(["a", "b", "c"])
       assert {:ok, _} = reading_templates(["a", "b", "c"])
-      assert {:ok, _} = processing_page(%V2.File{src: "page.md"})
-      assert {:ok, _} = processing_post(%V2.File{src: "post.md"})
-      assert {:ok, _} = processing_template(%V2.File{src: "template.html.eex"})
-      assert {:ok, _} = processed_page(%Page{title: "Test Page"})
-      assert {:ok, _} = processed_post(%Post{title: "Test Post"})
-      assert {:ok, _} = processed_template(%Template{source: %V2.File{src: "template.html.eex"}})
-      assert {:ok, _} = processed_list(%PostList{title: "Test Post List"})
+      assert {:ok, _} = processing_pages([%V2.File{src: "page.md"}])
+      assert {:ok, _} = processing_posts([%V2.File{src: "post.md"}])
+      assert {:ok, _} = processing_templates([%V2.File{src: "template.html.eex"}])
       assert {:ok, _} = processed_pages([%Page{title: "Test Page 1"}])
       assert {:ok, _} = processed_posts([%Post{title: "Test Post 1"}])
-      assert {:ok, _} = rendering_fragment(%{type: :page}, [{"p", [], ["Hello, world!"]}])
-      assert {:ok, _} = rendered_fragment(%Fragment{dest: "test.html"})
-      assert {:ok, _} = rendered_page(%V2.File{dest: "test.html"})
-      assert {:ok, _} = wrote_file(%V2.File{dest: "test.html"})
-      assert {:ok, _} = build_succeeded("/src", "/dest")
-      assert {:ok, _} = build_failed("/src", "/dest", {:error, "sample error"})
-      assert {:ok, _} = finalizing("/src", "/dest")
+      assert {:ok, _} = processed_templates([%Template{source: %V2.File{src: "base.html.eex"}}])
+      assert {:ok, _} = generated_post_lists([[%PostList{title: "Test Post List"}]])
+      assert {:ok, _} = generating_fragment([{"p", [], ["Hello, world!"]}], %{type: :page})
+      assert {:ok, _} = generated_fragment(%Fragment{dest: "test.html"})
+      assert {:ok, _} = rendered_pages([%V2.File{dest: "test.html"}])
+      assert {:ok, _} = wrote_files([%V2.File{dest: "test.html"}])
     end)
+
+    assert states()[Serum.DummyPlugin] === 1017
   end
 
   test "failing plugin 1" do
-    {:ok, _} = load_plugins([Serum.DummyPlugin1, Serum.FailingPlugin1])
+    {:ok, _} = load_plugins([Serum.FailingPlugin1])
+    patterns = ~w(RuntimeError build_succeeded 123 RuntimeError reading_posts 456)
 
     capture_io(fn ->
-      patterns = [
-        "RuntimeError",
-        "RuntimeError",
-        "test: processing_page",
-        "test: finalizing",
-        "unexpected",
-        "unexpected"
-      ]
-
       [
-        build_started("", ""),
+        build_started(%{}),
+        build_succeeded(%{}),
+        build_failed(%{}, {:error, %Error{}}),
+        reading_pages([]),
         reading_posts([]),
-        processing_page(%V2.File{}),
-        finalizing("", ""),
-        processing_template(%V2.File{}),
-        build_succeeded("", "")
+        reading_templates([])
       ]
       |> Enum.map(fn {:error, error} -> to_string(error) end)
       |> Enum.zip(patterns)
-      |> Enum.each(fn {message, pattern} ->
-        assert message =~ pattern
-      end)
+      |> Enum.each(fn {message, pattern} -> assert message =~ pattern end)
     end)
   end
 
   describe "show_info/1" do
     test "prints enough information about loaded plugins" do
-      {:ok, plugins} = load_plugins([Serum.DummyPlugin1, Serum.DummyPlugin2])
-      io_proxy = Process.whereis(Console)
-      original_gl = io_proxy |> Process.info() |> Access.get(:group_leader)
+      {:ok, plugins} = load_plugins([Serum.DummyPlugin])
+      console = Process.whereis(Console)
+      original_gl = console |> Process.info() |> Access.get(:group_leader)
       {:ok, string_io} = StringIO.open("")
 
-      Process.group_leader(io_proxy, string_io)
+      Process.group_leader(console, string_io)
       show_info(plugins)
-      Process.group_leader(io_proxy, original_gl)
+      Process.group_leader(console, original_gl)
 
       {:ok, {_, output}} = StringIO.close(string_io)
 
       expected = [
-        "dummy_plugin_1",
+        "dummy_plugin",
         "0.0.1",
-        "Serum.DummyPlugin1",
-        "This is dummy plugin no. 1",
-        "dummy_plugin_2",
-        "Serum.DummyPlugin2",
-        "This is dummy plugin no. 2"
+        "Serum.DummyPlugin",
+        "This is a dummy plugin"
       ]
 
       Enum.each(expected, &assert(String.contains?(output, &1)))
