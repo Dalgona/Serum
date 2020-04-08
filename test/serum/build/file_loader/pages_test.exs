@@ -3,10 +3,6 @@ defmodule Serum.Build.FileLoader.PagesTest do
   import Serum.Build.FileLoader.Pages
   alias Serum.Plugin
 
-  "plugins/failing_plugin_1.ex"
-  |> fixture()
-  |> Code.require_file()
-
   describe "load/1" do
     setup do
       tmp_dir = get_tmp_dir("serum_test_")
@@ -47,11 +43,15 @@ defmodule Serum.Build.FileLoader.PagesTest do
     end
 
     test "fails when the loaded plugin fails", %{tmp_dir: tmp_dir} do
+      plugin_mock =
+        get_plugin_mock(%{
+          {:reading_pages, 2} => fn _, _ -> raise "foo" end
+        })
+
       pages_dir = Path.join(tmp_dir, "pages")
+      {:ok, _} = Plugin.load_plugins([plugin_mock])
 
       make_files(pages_dir)
-
-      {:ok, _} = Plugin.load_plugins([Serum.FailingPlugin1])
 
       assert {:error, _} = load(tmp_dir)
     end

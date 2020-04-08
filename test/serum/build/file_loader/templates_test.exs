@@ -5,7 +5,6 @@ defmodule Serum.Build.FileLoader.TemplatesTest do
   alias Serum.Theme
 
   [
-    "plugins/failing_plugin_1.ex",
     "theme_modules/real_dummy_theme.ex",
     "theme_modules/failing_theme.ex"
   ]
@@ -91,10 +90,15 @@ defmodule Serum.Build.FileLoader.TemplatesTest do
     end
 
     test "fails when a plugin fails", %{tmp_dir: tmp_dir} do
+      plugin_mock =
+        get_plugin_mock(%{
+          {:reading_templates, 2} => fn _, _ -> raise "foo" end
+        })
+
       templates_dir = Path.join(tmp_dir, "templates")
+      {:ok, _} = Plugin.load_plugins([plugin_mock])
 
       make_files(templates_dir)
-      Plugin.load_plugins([Serum.FailingPlugin1])
 
       assert {:error, _} = load(tmp_dir)
     end
