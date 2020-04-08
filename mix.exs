@@ -15,7 +15,8 @@ defmodule Serum.Mixfile do
       deps: deps(),
       package: package(),
       docs: docs(),
-      elixirc_paths: elixirc_paths(Mix.env())
+      elixirc_paths: elixirc_paths(Mix.env()),
+      dialyzer: [plt_add_apps: [:mix]]
     ]
   end
 

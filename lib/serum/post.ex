@@ -6,6 +6,7 @@ defmodule Serum.Post do
   `Serum.V2.Post` structs.
   """
 
+  alias Serum.Project
   alias Serum.V2
   alias Serum.V2.Post
   alias Serum.V2.Tag

@@ -4,9 +4,9 @@ defmodule Serum.Build.FileProcessor.PostList do
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.PostList
+  alias Serum.Project
   alias Serum.V2.Post
-  alias Serum.V2.Project
+  alias Serum.V2.PostList
   alias Serum.V2.Tag
 
   @type tag_groups() :: [{Tag.t(), [Post.t()]}]

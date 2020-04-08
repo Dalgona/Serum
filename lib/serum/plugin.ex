@@ -122,7 +122,7 @@ defmodule Serum.Plugin do
   end
 
   @doc false
-  @spec update_states(State.states()) :: Result.t()
+  @spec update_states(State.states()) :: :ok
   def update_states(states) do
     Agent.update(__MODULE__, &%State{&1 | states: Map.merge(&1.states, states)})
   end

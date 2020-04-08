@@ -19,7 +19,9 @@ defmodule Serum.Plugin.Client do
 
   interface :action, build_started(project :: Project.t()) :: Result.t({})
   interface :action, build_succeeded(project :: Project.t()) :: Result.t({})
-  interface :action, build_failed(project :: Project.t(), result :: Result.t()) :: Result.t({})
+
+  interface :action,
+            build_failed(project :: Project.t(), result :: Result.t(term())) :: Result.t({})
 
   interface :function, reading_pages(paths :: [binary()]) :: Result.t([binary()])
   interface :function, reading_posts(paths :: [binary()]) :: Result.t([binary()])
