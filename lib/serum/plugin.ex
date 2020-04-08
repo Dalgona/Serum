@@ -111,6 +111,12 @@ defmodule Serum.Plugin do
   def states, do: Agent.get(__MODULE__, & &1.states)
 
   @doc false
+  @spec plugins_by_callback(atom()) :: [{integer(), t()}]
+  def plugins_by_callback(callback_name) do
+    Agent.get(__MODULE__, &(&1.callbacks[callback_name] || []))
+  end
+
+  @doc false
   @spec update_states(State.states()) :: Result.t()
   def update_states(states) do
     Agent.update(__MODULE__, &%State{&1 | states: Map.merge(&1.states, states)})
