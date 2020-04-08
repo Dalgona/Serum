@@ -39,3 +39,14 @@ defmodule Serum.TestHelper do
     File.cp!(post, Path.join([target, "posts", Path.basename(post)]))
   end
 end
+
+defmodule Serum.Case do
+  use ExUnit.CaseTemplate
+
+  using do
+    quote do
+      import Mox
+      import Serum.TestHelper
+    end
+  end
+end
