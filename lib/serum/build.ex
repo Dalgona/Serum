@@ -59,11 +59,13 @@ defmodule Serum.Build do
     end
     |> case do
       {:ok, _} = result ->
+        Plugin.cleanup_plugins()
         result
 
       {:error, %Error{}} = error ->
         Result.run do
           PluginClient.build_failed(proj, error)
+          Plugin.cleanup_plugins()
 
           error
         end

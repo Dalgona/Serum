@@ -55,6 +55,7 @@ defmodule Serum.Plugin do
   use Agent
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
+  alias Serum.Plugin.Cleanup
   alias Serum.Plugin.Loader
   alias Serum.Plugin.State
 
@@ -81,6 +82,10 @@ defmodule Serum.Plugin do
   @doc false
   @spec load_plugins([spec()]) :: Result.t([t()])
   def load_plugins(plugin_specs), do: Loader.load_plugins(plugin_specs)
+
+  @doc false
+  @spec cleanup_plugins() :: Result.t({})
+  def cleanup_plugins, do: Cleanup.cleanup_plugins()
 
   @doc false
   @spec show_info([t()]) :: Result.t({})
