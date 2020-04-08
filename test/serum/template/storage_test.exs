@@ -1,5 +1,5 @@
 defmodule Serum.Template.StorageTest do
-  use ExUnit.Case
+  use Serum.Case
   alias Serum.Template.Storage, as: TS
   alias Serum.V2.Template
 

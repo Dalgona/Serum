@@ -1,7 +1,6 @@
 defmodule Serum.ThemeTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.TestHelper
-  import Serum.TestHelper
   import Serum.Theme
   alias Serum.V2.Console
 

@@ -1,5 +1,5 @@
 defmodule Serum.Post.PreviewGeneratorTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   import Serum.Post.PreviewGenerator
 
   @html """

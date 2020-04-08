@@ -1,5 +1,5 @@
 defmodule Serum.Build.FileProcessor.PostListTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   alias Serum.Build.FileProcessor.PostList, as: ListGenerator
   alias Serum.V2.Tag
 

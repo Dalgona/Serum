@@ -1,6 +1,5 @@
 defmodule Serum.Plugins.SitemapGeneratorTest do
-  use ExUnit.Case
-  import Serum.TestHelper
+  use Serum.Case
   alias Serum.GlobalBindings
   alias Serum.Plugins.SitemapGenerator, as: P
   alias Serum.Project

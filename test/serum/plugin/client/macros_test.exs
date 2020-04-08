@@ -1,5 +1,5 @@
 defmodule Serum.Plugin.Client.MacrosTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
 
   require Serum.Plugin.Client.Macros, as: Macros
 

@@ -1,5 +1,5 @@
 defmodule Serum.MarkdownTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   alias Serum.Markdown
 
   @markdown """

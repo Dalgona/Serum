@@ -1,10 +1,8 @@
 defmodule Serum.Plugin.LoaderTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.TestHelper
   require Serum.V2.Result, as: Result
-  import Mox
   import Serum.Plugin.Loader
-  import Serum.TestHelper, only: :macros
   alias Serum.Plugin
   alias Serum.Plugin.State
   alias Serum.V2.Console

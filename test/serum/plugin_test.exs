@@ -1,10 +1,9 @@
 defmodule Serum.PluginTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.TestHelper
   import ExUnit.CaptureIO
   import Serum.Plugin
   import Serum.Plugin.Client
-  import Serum.TestHelper, only: :macros
   alias Serum.V2
   alias Serum.V2.Console
   alias Serum.V2.Error

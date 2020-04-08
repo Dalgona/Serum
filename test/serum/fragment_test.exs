@@ -1,5 +1,5 @@
 defmodule Serum.FragmentTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   alias Serum.Fragment
 
   @html """

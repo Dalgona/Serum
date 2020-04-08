@@ -1,7 +1,6 @@
 defmodule Mix.Tasks.Serum.Gen.PageTest do
-  use ExUnit.Case
+  use Serum.Case
   import ExUnit.CaptureIO
-  import Serum.TestHelper
   alias Mix.Tasks.Serum.Gen.Page, as: GenPage
 
   setup do

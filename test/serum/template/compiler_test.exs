@@ -1,7 +1,6 @@
 defmodule Serum.Template.CompilerTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
   alias Serum.V2

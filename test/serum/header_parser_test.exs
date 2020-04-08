@@ -1,5 +1,5 @@
 defmodule Serum.HeaderParserTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   import Serum.HeaderParser
   alias Serum.V2
 

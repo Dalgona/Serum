@@ -1,7 +1,6 @@
 defmodule Serum.Build.FileLoader.TemplatesTest do
-  use ExUnit.Case
+  use Serum.Case
   import Serum.Build.FileLoader.Templates
-  import Serum.TestHelper
   alias Serum.Plugin
   alias Serum.Theme
 

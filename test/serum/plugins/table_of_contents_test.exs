@@ -1,5 +1,5 @@
 defmodule Serum.Plugins.TableOfContentsTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   alias Serum.Plugins.TableOfContents, as: TOC
 
   test "without attribute" do

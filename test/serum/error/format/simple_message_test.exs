@@ -1,5 +1,5 @@
 defmodule Serum.Error.Format.SimpleMessageTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
 
   alias Serum.Error.Format
   alias Serum.V2.Error.SimpleMessage

@@ -1,7 +1,6 @@
 defmodule Serum.Build.FileLoader.PostsTest do
-  use ExUnit.Case
+  use Serum.Case
   import Serum.Build.FileLoader.Posts
-  import Serum.TestHelper
   alias Serum.Plugin
 
   "plugins/failing_plugin_1.ex"

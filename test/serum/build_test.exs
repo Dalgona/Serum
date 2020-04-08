@@ -1,7 +1,6 @@
 defmodule Serum.BuildTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.TestHelper
-  import Serum.TestHelper
   alias Serum.Build
   alias Serum.Project.Loader, as: ProjectLoader
 

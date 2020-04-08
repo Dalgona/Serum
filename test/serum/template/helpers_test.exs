@@ -1,5 +1,5 @@
 defmodule Serum.Template.HelpersTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.Template.Helpers
   alias Serum.Template
   alias Serum.Template.Helpers

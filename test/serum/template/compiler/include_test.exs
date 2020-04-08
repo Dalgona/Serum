@@ -1,5 +1,5 @@
 defmodule Serum.Template.Compiler.IncludeTest do
-  use ExUnit.Case
+  use Serum.Case
   alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Compiler.Include

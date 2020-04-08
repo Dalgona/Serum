@@ -1,6 +1,5 @@
 defmodule Serum.DevServerTest do
-  use ExUnit.Case, async: false
-  import Serum.TestHelper
+  use Serum.Case, async: false
   alias Serum.DevServer
 
   # IMPORTANT NOTE: PLEASE MAKE SURE THE TCP PORT 8080 IS NOT IN USE

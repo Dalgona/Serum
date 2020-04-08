@@ -1,7 +1,6 @@
 defmodule Serum.Build.FileLoader.IncludesTest do
-  use ExUnit.Case
+  use Serum.Case
   import Serum.Build.FileLoader.Includes
-  import Serum.TestHelper
   alias Serum.Plugin
   alias Serum.Theme
 

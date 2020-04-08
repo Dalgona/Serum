@@ -1,7 +1,6 @@
 defmodule Mix.Tasks.Serum.BuildTest do
-  use ExUnit.Case
+  use Serum.Case
   import ExUnit.CaptureIO
-  import Serum.TestHelper
   alias Mix.Tasks.Serum.Build, as: BuildTask
 
   setup do

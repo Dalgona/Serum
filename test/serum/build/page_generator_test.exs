@@ -1,7 +1,6 @@
 defmodule Serum.Build.PageGeneratorTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
   alias Serum.Build.PageGenerator
   alias Serum.GlobalBindings
   alias Serum.Template.Storage, as: TS

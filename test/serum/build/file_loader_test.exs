@@ -1,6 +1,5 @@
 defmodule Serum.Build.FileLoaderTest do
-  use ExUnit.Case, async: true
-  import Serum.TestHelper
+  use Serum.Case, async: true
   alias Serum.Build.FileLoader
 
   setup do

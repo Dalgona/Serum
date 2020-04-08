@@ -1,7 +1,6 @@
 defmodule Serum.Build.FileCopierTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.TestHelper
-  import Serum.TestHelper
   alias Serum.Build.FileCopier, as: FC
   alias Serum.Result
   alias Serum.Theme

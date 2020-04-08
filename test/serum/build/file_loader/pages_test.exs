@@ -1,7 +1,6 @@
 defmodule Serum.Build.FileLoader.PagesTest do
-  use ExUnit.Case
+  use Serum.Case
   import Serum.Build.FileLoader.Pages
-  import Serum.TestHelper
   alias Serum.Plugin
 
   "plugins/failing_plugin_1.ex"

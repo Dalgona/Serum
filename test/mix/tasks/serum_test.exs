@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.SerumTest do
-  use ExUnit.Case
+  use Serum.Case
   import ExUnit.CaptureIO
   alias Mix.Tasks.Serum, as: SerumTask
 

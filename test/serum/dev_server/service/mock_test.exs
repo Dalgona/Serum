@@ -1,5 +1,5 @@
 defmodule Serum.DevServer.Service.MockTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   alias Serum.DevServer.Service.Mock, as: MockService
 
   setup_all do

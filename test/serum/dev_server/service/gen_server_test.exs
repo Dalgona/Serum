@@ -1,7 +1,6 @@
 defmodule Serum.DevServer.Service.GenServerTest do
-  use ExUnit.Case
+  use Serum.Case
   import ExUnit.CaptureIO
-  import Serum.TestHelper
   alias Serum.DevServer
   alias Serum.DevServer.Service.GenServer, as: GS
   alias Serum.V2.Console

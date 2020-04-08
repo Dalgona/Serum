@@ -1,9 +1,7 @@
 defmodule Serum.DevServer.PromptTest do
-  use ExUnit.Case
+  use Serum.Case
   import ExUnit.CaptureIO
-  import Mox
   import Serum.DevServer.Prompt
-  import Serum.TestHelper
   alias Serum.DevServer.Service
   alias Serum.GlobalBindings
   alias Serum.V2.Console

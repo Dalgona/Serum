@@ -1,5 +1,5 @@
 defmodule Serum.HeaderParser.ExtractTest do
-  use ExUnit.Case, async: true
+  use Serum.Case, async: true
   alias Serum.HeaderParser.Extract
   alias Serum.V2.Error
 

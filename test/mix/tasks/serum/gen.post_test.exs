@@ -1,7 +1,6 @@
 defmodule Mix.Tasks.Serum.Gen.PostTest do
-  use ExUnit.Case
+  use Serum.Case
   import ExUnit.CaptureIO
-  import Serum.TestHelper
   alias Mix.Tasks.Serum.Gen.Post, as: GenPost
 
   @re_date ~r/[0-9]{4}-[0-9]{2}-[0-9]{2}/

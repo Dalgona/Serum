@@ -1,7 +1,6 @@
 defmodule Serum.Build.FragmentGeneratorTest do
-  use ExUnit.Case
+  use Serum.Case
   require Serum.TestHelper
-  import Serum.TestHelper, only: :macros
   alias Serum.Build.FragmentGenerator
   alias Serum.GlobalBindings
   alias Serum.Template.Storage, as: TS
