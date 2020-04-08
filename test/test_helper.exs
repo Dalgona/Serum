@@ -3,6 +3,8 @@ ExUnit.start()
 Serum.V2.Console.config(mute_err: true, mute_msg: true)
 
 defmodule Serum.TestHelper do
+  import Mox
+
   @test_dir Path.join(File.cwd!(), "test_fixtures")
 
   defmacro fixture(arg) do
@@ -37,6 +39,21 @@ defmodule Serum.TestHelper do
 
     File.cp!(page, Path.join([target, "pages", Path.basename(page)]))
     File.cp!(post, Path.join([target, "posts", Path.basename(post)]))
+  end
+
+  def get_plugin_mock(callbacks \\ %{}, optional_callbacks) do
+    mock =
+      Serum.V2.Plugin.Mock
+      |> expect(:name, callbacks[:name] || fn -> "" end)
+      |> expect(:version, callbacks[:version] || fn -> "0.1.0" end)
+      |> expect(:description, callbacks[:description] || fn -> "" end)
+      |> expect(:implements, callbacks[:implements] || fn -> Map.keys(optional_callbacks) end)
+      |> expect(:init, callbacks[:init] || fn _ -> {:ok, nil} end)
+      |> expect(:cleanup, callbacks[:cleanup] || fn _ -> {:ok, {}} end)
+
+    Enum.reduce(optional_callbacks, mock, fn {{fun_name, _arity}, code}, mock ->
+      expect(mock, fun_name, code)
+    end)
   end
 end
 
