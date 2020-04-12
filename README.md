@@ -10,6 +10,20 @@ Like some of other static website generators, Serum focuses on blogging. And if
 you know how to write markdown documents and how to handle EEx templates, you
 can easily build your own website.
 
+## 🚧 CURRENT STATUS OF THIS REPOSITORY 🚧
+
+Codes in the `master` branch are currently undergoing **_HUGE_** changes toward
+"Serum 2.0," so don't expect anything would work properly. Also, I'm not going
+to accept any issue or pull request regarding "Serum 2.0" until things are
+kinda ready.
+
+In the meantime, since codes for the existing Serum 1.x versions are still
+maintained in the `v1` branch, you are welcome to open any issue or pull
+request related to Serum 1.x. Just make sure you set the target base branch
+to `v1`, not `master`, when opening pull requests.
+
+I apologize for your inconvenience!
+
 ## Getting Started
 
 Use Mix to install the Serum installer archive from Hex.
