@@ -28,13 +28,14 @@ defmodule Serum.V2.Plugin do
   Instead of directly using the `@behaviour` module attribute, you can `use`
   this module for your convenience. Using this module will...
 
-  - Add default implementations of some required callbacks which can be
+  - Add `@behaviour Serum.V2.Plugin` module attribute,
+  - Require the `Serum.V2.Result` module and make an alias as `Result`,
+  - And add default implementations of some required callbacks which can be
     overridable:
     - `name/0` - returns the app name specified in `mix.exs`.
     - `version/0` - returns the version specified in `mix.exs`.
     - `init/0` - does nothing and return an empty value (`{}`).
     - `cleanup/0` - does nothing.
-  - And require the `Serum.V2.Result` module and make an alias as `Result`.
   """
 
   alias Serum.V2
@@ -127,18 +128,20 @@ defmodule Serum.V2.Plugin do
 
   Each list item must be in the form of `{callback_name, arity}`.
 
-  For example, if your plugin implements `build_started/2` and
-  `build_succeeded/2`, you must implement this callback so that it returns
-  `[build_started: 2, finalizing: 2]`.
+  For example, if your plugin implements `c:build_started/2` and
+  `c:build_succeeded/2`, you must implement this callback so that it returns
+  `[build_started: 2, build_succeeded: 2]`.
 
   #{@required_msg}
   """
   @callback implements() :: [{atom(), integer()}]
 
   @doc """
-  Called after the plugin is loaded. Do some initialization (e.g. start some
-  processes, or create temporary files/directories) here which will be
-  persisted across multiple website builds until the plugin is unloaded.
+  Called after the plugin is loaded.
+
+  Do some initialization (e.g. start some processes, or create temporary
+  files/directories) here which will be persisted across multiple website
+  builds until the plugin is unloaded.
 
   The returned value will be used as the initial state of the plugin.
 
@@ -147,8 +150,9 @@ defmodule Serum.V2.Plugin do
   @callback init(args :: term()) :: Result.t(term())
 
   @doc """
-  Called when the plugin is about to be unloaded. Release or delete any
-  resources created by the `init/1` callback here.
+  Called when the plugin is about to be unloaded.
+
+  Release or delete any resources created by the `c:init/1` callback here.
 
   #{@required_msg}
   """
