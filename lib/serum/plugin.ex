@@ -55,6 +55,7 @@ defmodule Serum.Plugin do
   use Agent
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2]
+  alias Serum.ForeignCode
   alias Serum.Plugin.Cleanup
   alias Serum.Plugin.Loader
   alias Serum.Plugin.State
@@ -100,7 +101,7 @@ defmodule Serum.Plugin do
         " v",
         to_string(p.version),
         :reset,
-        " (#{module_name(p.module)})\n",
+        " (#{ForeignCode.module_name(p.module)})\n",
         :light_black,
         p.description
       ]
@@ -125,10 +126,5 @@ defmodule Serum.Plugin do
   @spec update_states(State.states()) :: :ok
   def update_states(states) do
     Agent.update(__MODULE__, &%State{&1 | states: Map.merge(&1.states, states)})
-  end
-
-  @spec module_name(atom()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end

@@ -3,9 +3,9 @@ defmodule Serum.Theme.Loader do
 
   _moduledocp = "Defines functions for loading a Serum theme."
 
+  require Serum.ForeignCode, as: ForeignCode
   require Serum.V2.Result, as: Result
   alias Serum.Theme
-  alias Serum.V2.Error
 
   @spec load_theme(term()) :: Result.t(Theme.t() | nil)
   def load_theme(maybe_spec)
@@ -59,30 +59,14 @@ defmodule Serum.Theme.Loader do
 
   @spec init_theme(Theme.t()) :: Result.t(term())
   defp init_theme(%Theme{module: module, args: args}) do
-    fun_repr = "#{module_name(module)}.init"
-
-    case module.init(args) do
-      {:ok, state} ->
-        Result.return(state)
-
-      {:error, %Error{} = error} ->
-        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
-
-      term ->
-        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
+    ForeignCode.call module.init(args) do
+      state -> Result.return(state)
     end
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec update_agent(Theme.t(), term()) :: Result.t({})
   defp update_agent(theme, init_state) do
     Agent.update(Theme, fn _ -> {theme, init_state} end)
     Result.return()
-  end
-
-  @spec module_name(module()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end

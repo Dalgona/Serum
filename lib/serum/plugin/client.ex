@@ -4,6 +4,7 @@ defmodule Serum.Plugin.Client do
   _moduledocp = "Provides functions to call callbacks of loaded plugins."
 
   # For interface/2 macro
+  require Serum.ForeignCode, as: ForeignCode
   require Serum.Plugin.Client.Macros
   require Serum.V2.Result, as: Result
   import Serum.Plugin.Client.Macros
@@ -69,22 +70,13 @@ defmodule Serum.Plugin.Client do
 
   defp do_call_action([{_arity, plugin} | arity_and_plugins], fun, args, states) do
     new_args = args ++ [states[plugin.module]]
-    fun_repr = "#{module_name(plugin.module)}.#{fun}"
 
-    case apply(plugin.module, fun, new_args) do
-      {:ok, new_state} ->
+    ForeignCode.call apply(plugin.module, fun, new_args) do
+      new_state ->
         new_states = Map.put(states, plugin.module, new_state)
 
         do_call_action(arity_and_plugins, fun, args, new_states)
-
-      {:error, %Error{} = error} ->
-        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
-
-      term ->
-        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
     end
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec call_function(atom(), [a | term()]) :: Result.t(a) when a: term()
@@ -110,26 +102,12 @@ defmodule Serum.Plugin.Client do
 
   defp do_call_function([{_arity, plugin} | arity_and_plugins], fun, args, acc, states) do
     new_args = [acc | args] ++ [states[plugin.module]]
-    fun_repr = "#{module_name(plugin.module)}.#{fun}"
 
-    case apply(plugin.module, fun, new_args) do
-      {:ok, {new_acc, new_state}} ->
+    ForeignCode.call apply(plugin.module, fun, new_args) do
+      {new_acc, new_state} ->
         new_states = Map.put(states, plugin.module, new_state)
 
         do_call_function(arity_and_plugins, fun, args, new_acc, new_states)
-
-      {:error, %Error{} = error} ->
-        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
-
-      term ->
-        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
     end
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
-  end
-
-  @spec module_name(atom()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end

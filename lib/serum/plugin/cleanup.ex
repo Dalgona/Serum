@@ -5,6 +5,7 @@ defmodule Serum.Plugin.Cleanup do
   Provides functions for cleaning up loaded plugins and unload them.
   """
 
+  require Serum.ForeignCode, as: ForeignCode
   require Serum.V2.Result, as: Result
   import Serum.V2.Console
   alias Serum.Error.Format
@@ -35,24 +36,8 @@ defmodule Serum.Plugin.Cleanup do
 
   @spec do_cleanup_plugin(module(), term()) :: Result.t({})
   defp do_cleanup_plugin(module, state) do
-    fun_repr = "#{module_name(module)}.cleanup"
-
-    case module.cleanup(state) do
-      {:ok, _} ->
-        Result.return()
-
-      {:error, %Error{} = error} ->
-        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
-
-      term ->
-        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
+    ForeignCode.call module.cleanup(state) do
+      _ -> Result.return()
     end
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
-  end
-
-  @spec module_name(atom()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end

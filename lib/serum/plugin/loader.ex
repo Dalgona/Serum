@@ -3,10 +3,10 @@ defmodule Serum.Plugin.Loader do
 
   _moduledocp = "A module for loading Serum plugins from serum.exs."
 
+  require Serum.ForeignCode, as: ForeignCode
   require Serum.V2.Result, as: Result
   alias Serum.Plugin
   alias Serum.Plugin.State
-  alias Serum.V2.Error
 
   @typep init_state :: {module(), term()}
 
@@ -99,20 +99,9 @@ defmodule Serum.Plugin.Loader do
 
   @spec init_plugin(Plugin.t()) :: Result.t(init_state())
   defp init_plugin(%Plugin{module: module, args: args}) do
-    fun_repr = "#{module_name(module)}.init"
-
-    case module.init(args) do
-      {:ok, state} ->
-        Result.return({module, state})
-
-      {:error, %Error{} = error} ->
-        Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
-
-      term ->
-        Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
+    ForeignCode.call module.init(args) do
+      state -> Result.return({module, state})
     end
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
   end
 
   @spec update_agent([Plugin.t()], [init_state()]) :: Result.t({})
@@ -128,10 +117,5 @@ defmodule Serum.Plugin.Loader do
 
     Agent.update(Plugin, fn _ -> %State{states: Map.new(init_states), callbacks: map} end)
     Result.return()
-  end
-
-  @spec module_name(module()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
   end
 end
