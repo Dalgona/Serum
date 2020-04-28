@@ -3,7 +3,7 @@ defmodule Serum.Build.FileCopier do
 
   require Serum.V2.Result, as: Result
   import Serum.V2.Console, only: [put_msg: 2, put_err: 2]
-  alias Serum.Theme
+  alias Serum.Theme.Client, as: ThemeClient
   alias Serum.V2.Error
 
   @doc false
@@ -18,7 +18,7 @@ defmodule Serum.Build.FileCopier do
 
   @spec copy_theme_assets(binary()) :: Result.t({})
   defp copy_theme_assets(dest) do
-    case Theme.get_assets() do
+    case ThemeClient.get_assets() do
       {:ok, false} -> Result.return()
       {:ok, path} -> try_copy(path, Path.join(dest, "assets"))
       {:error, %Error{}} = error -> error

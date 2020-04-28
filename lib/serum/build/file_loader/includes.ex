@@ -8,7 +8,7 @@ defmodule Serum.Build.FileLoader.Includes do
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Theme
+  alias Serum.Theme.Client, as: ThemeClient
   alias Serum.V2
   alias Serum.V2.Error
   alias Serum.V2.Result
@@ -18,7 +18,7 @@ defmodule Serum.Build.FileLoader.Includes do
   def load(src) do
     put_msg(:info, "Loading includes...")
 
-    case Theme.get_includes() do
+    case ThemeClient.get_includes() do
       {:ok, paths} ->
         paths
         |> Map.merge(get_project_includes(src))

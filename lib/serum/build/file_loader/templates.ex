@@ -9,7 +9,7 @@ defmodule Serum.Build.FileLoader.Templates do
   import Serum.Build.FileLoader.Common
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Theme
+  alias Serum.Theme.Client, as: ThemeClient
   alias Serum.V2
   alias Serum.V2.Error
 
@@ -19,7 +19,7 @@ defmodule Serum.Build.FileLoader.Templates do
     put_msg(:info, "Loading template files...")
 
     Result.run do
-      theme_paths <- Theme.get_templates()
+      theme_paths <- ThemeClient.get_templates()
       proj_paths <- get_project_templates(src)
       merged = Map.merge(theme_paths, proj_paths, &merge_fun/3)
       validate_required(merged, src)
