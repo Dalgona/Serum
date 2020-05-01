@@ -55,6 +55,18 @@ defmodule Serum.TestHelper do
       expect(mock, fun_name, code)
     end)
   end
+
+  def get_theme_mock(callbacks \\ %{}) do
+    Serum.V2.Theme.Mock
+    |> expect(:name, callbacks[:name] || fn -> "" end)
+    |> expect(:description, callbacks[:description] || fn -> "" end)
+    |> expect(:version, callbacks[:version] || fn -> "0.1.0" end)
+    |> expect(:init, callbacks[:init] || fn _ -> {:ok, nil} end)
+    |> expect(:cleanup, callbacks[:cleanup] || fn _ -> {:ok, {}} end)
+    |> expect(:get_includes, callbacks[:get_includes] || fn _ -> {:ok, []} end)
+    |> expect(:get_templates, callbacks[:get_templates] || fn _ -> {:ok, []} end)
+    |> expect(:get_assets, callbacks[:get_assets] || fn _ -> {:ok, false} end)
+  end
 end
 
 defmodule Serum.Case do
