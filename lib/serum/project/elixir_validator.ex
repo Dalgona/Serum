@@ -129,7 +129,7 @@ defmodule Serum.Project.ElixirValidator do
         posts_per_page: [is_integer: [], >=: [1]],
         preview_length: [valid_preview_length?: []],
         plugins: [is_list: []],
-        theme: [is_atom: []]
+        theme: [valid_theme_spec?: []]
       ]
     end
 
@@ -170,4 +170,16 @@ defmodule Serum.Project.ElixirValidator do
   defp valid_preview_length?({:words, n}) when is_integer(n) and n >= 0, do: true
   defp valid_preview_length?({:paragraphs, n}) when is_integer(n) and n >= 0, do: true
   defp valid_preview_length?(_), do: false
+
+  @spec valid_theme_spec?(term()) :: boolean()
+  defp valid_theme_spec?(value)
+  defp valid_theme_spec?(nil), do: true
+  defp valid_theme_spec?(module) when is_atom(module), do: true
+
+  defp valid_theme_spec?({module, opts})
+       when not is_nil(module) and is_atom(module) and is_list(opts) do
+    true
+  end
+
+  defp valid_theme_spec?(_), do: false
 end

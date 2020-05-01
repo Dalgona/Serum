@@ -61,221 +61,27 @@ defmodule Serum.Theme do
   """
 
   use Agent
-  require Serum.V2.Result, as: Result
-  import Serum.V2.Console, only: [put_err: 2]
-  alias Serum.V2
-  alias Serum.V2.Error
 
   defstruct module: nil,
             name: "",
             description: "",
-            author: "",
-            legal: "",
-            version: Version.parse!("0.0.0")
+            version: Version.parse!("0.0.0"),
+            args: nil
 
   @type t :: %__MODULE__{
           module: module() | nil,
           name: binary(),
           description: binary(),
-          author: binary(),
-          legal: binary(),
-          version: Version.t()
+          version: Version.t(),
+          args: term()
         }
 
-  @serum_version Version.parse!(Mix.Project.config()[:version])
-
-  #
-  # Theme Consumer Functions
-  #
+  @type spec :: {module(), options()}
+  @type options :: [args: term()]
 
   @doc false
   @spec start_link(any()) :: Agent.on_start()
   def start_link(_) do
-    Agent.start_link(fn -> nil end, name: __MODULE__)
-  end
-
-  @doc false
-  @spec load(module() | nil) :: Result.t(t())
-  def load(module_or_nil)
-
-  def load(nil) do
-    Agent.update(__MODULE__, fn _ -> nil end)
-    Result.return(%__MODULE__{})
-  end
-
-  def load(module) do
-    case make_theme(module) do
-      {:ok, theme} ->
-        Agent.update(__MODULE__, fn _ -> theme end)
-        Result.return(theme)
-
-      {:error, %Error{}} = error ->
-        error
-    end
-  end
-
-  @spec make_theme(module()) :: Result.t(t())
-  defp make_theme(module) do
-    name = module.name()
-    version = Version.parse!(module.version())
-
-    validate_serum_version(name, module.serum())
-
-    Result.return(%__MODULE__{
-      module: module,
-      name: name,
-      description: module.description(),
-      author: module.author(),
-      legal: module.legal(),
-      version: version
-    })
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
-  end
-
-  @spec validate_serum_version(binary(), Version.requirement()) :: Result.t({})
-  defp validate_serum_version(name, requirement) do
-    if Version.match?(@serum_version, requirement) do
-      Result.return()
-    else
-      msg =
-        "The theme \"#{name}\" is not compatible with " <>
-          "the current version of Serum(#{@serum_version}). " <>
-          "This theme may not work as intended."
-
-      put_err(:warn, msg)
-    end
-  end
-
-  @doc false
-  @spec get_includes() :: Result.t(%{optional(binary()) => binary()})
-  def get_includes do
-    case Agent.get(__MODULE__, & &1) do
-      %__MODULE__{} = theme -> do_get_includes(theme)
-      nil -> Result.return(%{})
-    end
-  end
-
-  @spec do_get_includes(t()) :: Result.t(%{optional(binary()) => binary()})
-  defp do_get_includes(%__MODULE__{module: module}) do
-    case get_list(module, :get_includes, []) do
-      {:ok, paths} ->
-        result =
-          paths
-          |> Enum.filter(&String.ends_with?(&1, ".html.eex"))
-          |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
-          |> Map.new()
-
-        Result.return(result)
-
-      {:error, %Error{}} = error ->
-        error
-    end
-  end
-
-  @doc false
-  @spec get_templates() :: Result.t(%{optional(binary()) => binary()})
-  def get_templates do
-    case Agent.get(__MODULE__, & &1) do
-      %__MODULE__{} = theme -> do_get_templates(theme)
-      nil -> Result.return(%{})
-    end
-  end
-
-  @spec do_get_templates(t()) :: Result.t(%{optional(binary()) => binary()})
-  defp do_get_templates(%__MODULE__{module: module}) do
-    case get_list(module, :get_templates, []) do
-      {:ok, paths} ->
-        result =
-          paths
-          |> Enum.map(&{Path.basename(&1, ".html.eex"), &1})
-          |> Enum.filter(&String.ends_with?(elem(&1, 1), ".html.eex"))
-          |> Map.new()
-
-        Result.return(result)
-
-      {:error, %Error{}} = error ->
-        error
-    end
-  end
-
-  @spec get_list(atom(), atom(), list()) :: Result.t([binary()])
-  defp get_list(module, fun, args) do
-    Result.run do
-      paths <- call_function(module, fun, args)
-      check_list_type(paths, "#{module_name(module)}.#{fun}: ")
-
-      Result.return(paths)
-    end
-  end
-
-  @spec check_list_type(term(), binary()) :: Result.t({})
-  defp check_list_type(maybe_list, prefix)
-  defp check_list_type([], _), do: Result.return()
-
-  defp check_list_type([x | xs], prefix) when is_binary(x) do
-    check_list_type(xs, prefix)
-  end
-
-  defp check_list_type([x | _xs], prefix) do
-    msg = "#{prefix} expected a list of strings, got: #{inspect(x)} in the list"
-
-    Result.fail(Simple: [msg])
-  end
-
-  defp check_list_type(x, prefix) do
-    msg = "#{prefix}: expected a list of strings, got: #{inspect(x)}"
-
-    Result.fail(Simple: [msg])
-  end
-
-  @doc false
-  @spec get_assets() :: Result.t(binary() | false)
-  def get_assets do
-    case Agent.get(__MODULE__, & &1) do
-      %__MODULE__{} = theme -> do_get_assets(theme)
-      nil -> {:ok, false}
-    end
-  end
-
-  @spec do_get_assets(t()) :: Result.t(binary() | false)
-  defp do_get_assets(%__MODULE__{module: module}) do
-    case call_function(module, :get_assets, []) do
-      {:ok, path} when is_binary(path) ->
-        validate_assets_dir(path)
-
-      {:ok, false} ->
-        Result.return(false)
-
-      {:ok, x} ->
-        mod_name = module_name(module)
-        msg = "#{mod_name}.get_assets: expected a string, got: #{inspect(x)}"
-
-        Result.fail(Simple: [msg])
-
-      {:error, %Error{}} = error ->
-        error
-    end
-  end
-
-  @spec validate_assets_dir(binary()) :: Result.t(binary())
-  defp validate_assets_dir(path) do
-    case File.stat(path) do
-      {:ok, %File.Stat{type: :directory}} -> Result.return(path)
-      {:ok, %File.Stat{}} -> Result.fail(POSIX: [:enotdir], file: %V2.File{src: path})
-      {:error, reason} -> Result.fail(POSIX: [reason], file: %V2.File{src: path})
-    end
-  end
-
-  @spec call_function(atom(), atom(), list()) :: Result.t(term())
-  defp call_function(module, fun, args) do
-    Result.return(apply(module, fun, args))
-  rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
-  end
-
-  @spec module_name(atom()) :: binary()
-  defp module_name(module) do
-    module |> to_string() |> String.replace_prefix("Elixir.", "")
+    Agent.start_link(fn -> {nil, nil} end, name: __MODULE__)
   end
 end

@@ -14,7 +14,7 @@ defmodule Serum.Build do
   alias Serum.Plugin
   alias Serum.Plugin.Client, as: PluginClient
   alias Serum.Project
-  alias Serum.Theme
+  alias Serum.Theme.Loader, as: ThemeLoader
   alias Serum.V2
   alias Serum.V2.Error
 
@@ -49,7 +49,7 @@ defmodule Serum.Build do
   @spec build(Project.t()) :: Result.t(binary())
   def build(%Project{dest: dest} = proj) do
     Result.run do
-      proj <- load_plugins(proj)
+      load_plugins(proj)
       PluginClient.build_started(proj)
       pre_check(dest)
       do_build(proj)
@@ -76,10 +76,9 @@ defmodule Serum.Build do
   defp load_plugins(proj) do
     Result.run do
       plugins <- Plugin.load_plugins(proj.plugins)
-      theme <- Theme.load(proj.theme.module)
-      Plugin.show_info(plugins)
+      _theme <- ThemeLoader.load_theme(proj.theme)
 
-      Result.return(%Project{proj | theme: theme})
+      Plugin.show_info(plugins)
     end
   end
 

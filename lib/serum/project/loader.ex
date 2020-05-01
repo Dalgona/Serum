@@ -7,7 +7,6 @@ defmodule Serum.Project.Loader do
   alias Serum.GlobalBindings
   alias Serum.Project
   alias Serum.Project.ElixirValidator
-  alias Serum.Theme
   alias Serum.V2
   alias Serum.V2.Error
 
@@ -50,7 +49,7 @@ defmodule Serum.Project.Loader do
   defp load_exs(file) do
     with {map, _} <- Code.eval_string(file.in_data, [], file: file.src),
          :ok <- ElixirValidator.validate(map) do
-      Result.return(Project.new(Map.put(map, :theme, %Theme{module: map[:theme]})))
+      map |> Project.new() |> Result.return()
     else
       # From File.read/1:
       {:error, reason} when is_atom(reason) ->

@@ -4,8 +4,8 @@ defmodule Serum.Project do
   """
 
   import Serum.V2.Console, only: [put_err: 2]
-  alias Serum.Plugin
-  alias Serum.Theme
+  alias Serum.V2.Plugin
+  alias Serum.V2.Theme
 
   @default_date_format "{YYYY}-{0M}-{0D}"
   @default_list_title_tag "Posts Tagged ~s"
@@ -25,7 +25,7 @@ defmodule Serum.Project do
             src: nil,
             dest: nil,
             plugins: [],
-            theme: %Theme{module: nil}
+            theme: nil
 
   @type t :: %__MODULE__{
           src: binary(),
@@ -43,7 +43,7 @@ defmodule Serum.Project do
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
           plugins: [Plugin.spec()],
-          theme: Theme.t()
+          theme: Theme.spec() | nil
         }
 
   @spec default_date_format() :: binary()
