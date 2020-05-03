@@ -76,9 +76,10 @@ defmodule Serum.Build do
   defp load_extensions(proj) do
     Result.run do
       plugins <- Plugin.load(proj.plugins)
-      _theme <- Theme.load(proj.theme)
+      theme <- Theme.load(proj.theme)
 
       Plugin.show_info(plugins)
+      Theme.show_info(theme)
     end
   end
 

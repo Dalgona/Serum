@@ -62,6 +62,8 @@ defmodule Serum.Theme do
 
   use Agent
   require Serum.V2.Result, as: Result
+  import Serum.V2.Console
+  alias Serum.ForeignCode
   alias Serum.Theme.Cleanup
   alias Serum.Theme.Loader
 
@@ -95,4 +97,19 @@ defmodule Serum.Theme do
   @doc false
   @spec cleanup() :: Result.t({})
   defdelegate cleanup, to: Cleanup
+
+  @doc false
+  @spec show_info(t() | nil) :: Result.t({})
+  def show_info(theme_or_nil)
+  def show_info(nil), do: Result.return()
+
+  def show_info(theme) do
+    msg = [
+      [:bright, theme.name, " v", to_string(theme.version), :reset],
+      " (#{ForeignCode.module_name(theme.module)})\n",
+      [:light_black, theme.description]
+    ]
+
+    put_msg(:theme, msg)
+  end
 end

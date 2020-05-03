@@ -96,14 +96,9 @@ defmodule Serum.Plugin do
   def show_info(plugins) do
     Enum.each(plugins, fn p ->
       msg = [
-        :bright,
-        p.name,
-        " v",
-        to_string(p.version),
-        :reset,
+        [:bright, p.name, " v", to_string(p.version), :reset],
         " (#{ForeignCode.module_name(p.module)})\n",
-        :light_black,
-        p.description
+        [:light_black, p.description]
       ]
 
       put_msg(:plugin, msg)
