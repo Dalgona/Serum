@@ -2,16 +2,9 @@ defmodule Serum.Build.FileCopierTest do
   use Serum.Case
   require Serum.TestHelper
   alias Serum.Build.FileCopier, as: FC
-  alias Serum.Result
   alias Serum.Theme
-
-  [
-    "theme_modules/dummy_theme.ex",
-    "theme_modules/empty_theme.ex",
-    "theme_modules/failing_theme.ex"
-  ]
-  |> Enum.map(&fixture/1)
-  |> Enum.each(&Code.require_file/1)
+  alias Serum.Theme.Loader, as: ThemeLoader
+  alias Serum.V2.Error
 
   setup do
     src = get_tmp_dir("serum_test_")
@@ -23,6 +16,7 @@ defmodule Serum.Build.FileCopierTest do
     on_exit(fn ->
       File.rm_rf!(src)
       File.rm_rf!(dest)
+      ThemeLoader.load_theme(nil)
     end)
 
     {:ok, %{src: src, dest: dest}}
@@ -30,7 +24,7 @@ defmodule Serum.Build.FileCopierTest do
 
   describe "copy_files/2 without a theme" do
     setup do
-      Theme.load(nil)
+      ThemeLoader.load_theme(nil)
 
       :ok
     end
@@ -53,22 +47,25 @@ defmodule Serum.Build.FileCopierTest do
   describe "copy_files/2 with a theme" do
     test "copies assets from the theme", %{src: src, dest: dest} do
       tmp_dir = get_tmp_dir("serum_test_")
-      {:ok, _} = Agent.start_link(fn -> tmp_dir end, name: Serum.TestAgent)
+      theme_mock = get_theme_mock(%{get_assets: fn _ -> {:ok, tmp_dir} end})
 
       File.mkdir_p!(tmp_dir)
       File.touch!(Path.join(tmp_dir, "theme_asset"))
-      Theme.load(Serum.DummyTheme)
+
+      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+
       make_structure!(src)
 
-      {:ok, _} = FC.copy_files(src, dest)
-
+      assert {:ok, _} = FC.copy_files(src, dest)
       assert num_of_items(dest) === 6
 
-      :ok = Agent.stop(Serum.TestAgent)
+      File.rm_rf!(tmp_dir)
     end
 
     test "can skip copying assets from the theme", %{src: src, dest: dest} do
-      Theme.load(Serum.EmptyTheme)
+      theme_mock = get_theme_mock(%{get_themes: fn _ -> {:ok, false} end})
+      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+
       make_structure!(src)
 
       {:ok, _} = FC.copy_files(src, dest)
@@ -77,12 +74,11 @@ defmodule Serum.Build.FileCopierTest do
     end
 
     test "fails on theme failure", %{src: src, dest: dest} do
-      Theme.load(Serum.FailingTheme)
+      theme_mock = get_theme_mock(%{get_assets: fn _ -> raise "test: get_assets" end})
+      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
 
-      result = FC.copy_files(src, dest)
-
-      assert {:error, _} = result
-      assert Result.get_message(result, 0) =~ "test error"
+      assert {:error, %Error{} = error} = FC.copy_files(src, dest)
+      assert to_string(error) =~ "test: get_assets"
     end
   end
 
