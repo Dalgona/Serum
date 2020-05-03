@@ -49,7 +49,7 @@ defmodule Serum.Build do
   @spec build(Project.t()) :: Result.t(binary())
   def build(%Project{dest: dest} = proj) do
     Result.run do
-      load_plugins(proj)
+      load_extensions(proj)
       PluginClient.build_started(proj)
       pre_check(dest)
       do_build(proj)
@@ -59,27 +59,33 @@ defmodule Serum.Build do
     end
     |> case do
       {:ok, _} = result ->
-        Plugin.cleanup()
+        cleanup_extensions()
         result
 
       {:error, %Error{}} = error ->
         Result.run do
           PluginClient.build_failed(proj, error)
-          Plugin.cleanup()
+          cleanup_extensions()
 
           error
         end
     end
   end
 
-  @spec load_plugins(Project.t()) :: Result.t(Project.t())
-  defp load_plugins(proj) do
+  @spec load_extensions(Project.t()) :: Result.t(Project.t())
+  defp load_extensions(proj) do
     Result.run do
       plugins <- Plugin.load(proj.plugins)
       _theme <- Theme.load(proj.theme)
 
       Plugin.show_info(plugins)
     end
+  end
+
+  @spec cleanup_extensions() :: Result.t({})
+  defp cleanup_extensions do
+    Plugin.cleanup()
+    Theme.cleanup()
   end
 
   @spec pre_check(binary()) :: Result.t({})
