@@ -11,21 +11,21 @@ defmodule Serum.Theme.Cleanup do
   alias Serum.V2.Error
 
   @doc false
-  @spec cleanup_theme() :: Result.t({})
-  def cleanup_theme do
+  @spec cleanup() :: Result.t({})
+  def cleanup do
     case Agent.get(Theme, & &1) do
       {nil, _} ->
         Result.return()
 
       {%Theme{module: module}, state} ->
-        do_cleanup_theme(module, state)
+        do_cleanup(module, state)
         Agent.update(Theme, fn _ -> {nil, nil} end)
         Result.return()
     end
   end
 
-  @spec do_cleanup_theme(module(), term()) :: Result.t({})
-  defp do_cleanup_theme(module, state) do
+  @spec do_cleanup(module(), term()) :: Result.t({})
+  defp do_cleanup(module, state) do
     case call_cleanup(module, state) do
       {:ok, _} ->
         Result.return()

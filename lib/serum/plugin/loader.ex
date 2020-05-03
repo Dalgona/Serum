@@ -12,8 +12,8 @@ defmodule Serum.Plugin.Loader do
 
   @msg_load_failed "failed to load plugins:"
 
-  @spec load_plugins([term()]) :: Result.t([Plugin.t()])
-  def load_plugins(maybe_specs) do
+  @spec load([term()]) :: Result.t([Plugin.t()])
+  def load(maybe_specs) do
     Result.run do
       specs <- normalize_specs(maybe_specs)
       specs = filter_specs(specs)

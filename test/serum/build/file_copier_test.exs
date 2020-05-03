@@ -3,7 +3,6 @@ defmodule Serum.Build.FileCopierTest do
   require Serum.TestHelper
   alias Serum.Build.FileCopier, as: FC
   alias Serum.Theme
-  alias Serum.Theme.Loader, as: ThemeLoader
   alias Serum.V2.Error
 
   setup do
@@ -16,7 +15,7 @@ defmodule Serum.Build.FileCopierTest do
     on_exit(fn ->
       File.rm_rf!(src)
       File.rm_rf!(dest)
-      ThemeLoader.load_theme(nil)
+      Theme.cleanup()
     end)
 
     {:ok, %{src: src, dest: dest}}
@@ -24,7 +23,7 @@ defmodule Serum.Build.FileCopierTest do
 
   describe "copy_files/2 without a theme" do
     setup do
-      ThemeLoader.load_theme(nil)
+      Theme.load(nil)
 
       :ok
     end
@@ -52,7 +51,7 @@ defmodule Serum.Build.FileCopierTest do
       File.mkdir_p!(tmp_dir)
       File.touch!(Path.join(tmp_dir, "theme_asset"))
 
-      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       make_structure!(src)
 
@@ -64,7 +63,7 @@ defmodule Serum.Build.FileCopierTest do
 
     test "can skip copying assets from the theme", %{src: src, dest: dest} do
       theme_mock = get_theme_mock(%{get_themes: fn _ -> {:ok, false} end})
-      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       make_structure!(src)
 
@@ -75,7 +74,7 @@ defmodule Serum.Build.FileCopierTest do
 
     test "fails on theme failure", %{src: src, dest: dest} do
       theme_mock = get_theme_mock(%{get_assets: fn _ -> raise "test: get_assets" end})
-      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       assert {:error, %Error{} = error} = FC.copy_files(src, dest)
       assert to_string(error) =~ "test: get_assets"

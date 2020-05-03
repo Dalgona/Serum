@@ -2,8 +2,8 @@ defmodule Serum.Plugin.LoaderTest do
   use Serum.Case
   require Serum.TestHelper
   require Serum.V2.Result, as: Result
-  import Serum.Plugin.Loader
   alias Serum.Plugin
+  alias Serum.Plugin.Loader
   alias Serum.Plugin.State
   alias Serum.V2.Console
   alias Serum.V2.Error
@@ -22,10 +22,10 @@ defmodule Serum.Plugin.LoaderTest do
 
   setup do: on_exit(fn -> Agent.update(Plugin, fn _ -> %State{} end) end)
 
-  describe "load_plugins/1" do
+  describe "load/1" do
     test "always loads plugins without :only option" do
       plugin_specs = [Serum.Plugins.LiveReloader, {Serum.Plugins.TableOfContents, []}]
-      {:ok, loaded_plugins} = load_plugins(plugin_specs)
+      {:ok, loaded_plugins} = Loader.load(plugin_specs)
 
       assert length(loaded_plugins) === 2
     end
@@ -37,7 +37,7 @@ defmodule Serum.Plugin.LoaderTest do
         {Serum.Plugins.TableOfContents, only: [:dev, :test]}
       ]
 
-      {:ok, loaded_plugins} = load_plugins(plugin_specs)
+      {:ok, loaded_plugins} = Loader.load(plugin_specs)
       loaded_modules = Enum.map(loaded_plugins, & &1.module)
 
       assert length(loaded_plugins) === 2
@@ -51,7 +51,7 @@ defmodule Serum.Plugin.LoaderTest do
         {Serum.Plugins.SitemapGenerator, [:foo]}
       ]
 
-      assert {:error, %Error{caused_by: errors}} = load_plugins(plugin_specs)
+      assert {:error, %Error{caused_by: errors}} = Loader.load(plugin_specs)
       assert length(errors) === 3
     end
 
@@ -62,7 +62,7 @@ defmodule Serum.Plugin.LoaderTest do
       |> expect(:description, fn -> "" end)
       |> expect(:implements, fn -> [] end)
 
-      {:error, error} = load_plugins([Serum.V2.Plugin.Mock])
+      {:error, error} = Loader.load([Serum.V2.Plugin.Mock])
       message = to_string(error)
 
       assert message =~ "RuntimeError"
@@ -77,7 +77,7 @@ defmodule Serum.Plugin.LoaderTest do
       |> expect(:implements, fn -> [] end)
       |> expect(:init, fn _ -> Result.fail(Simple: ["foo"]) end)
 
-      {:error, error} = load_plugins([Serum.V2.Plugin.Mock])
+      {:error, error} = Loader.load([Serum.V2.Plugin.Mock])
       message = to_string(error)
 
       assert message =~ "foo"
@@ -91,7 +91,7 @@ defmodule Serum.Plugin.LoaderTest do
       |> expect(:implements, fn -> [] end)
       |> expect(:init, fn _ -> 42 end)
 
-      {:error, error} = load_plugins([Serum.V2.Plugin.Mock])
+      {:error, error} = Loader.load([Serum.V2.Plugin.Mock])
       message = to_string(error)
 
       assert message =~ "42"
@@ -105,7 +105,7 @@ defmodule Serum.Plugin.LoaderTest do
       |> expect(:implements, fn -> [] end)
       |> expect(:init, fn _ -> raise "foo" end)
 
-      {:error, error} = load_plugins([Serum.V2.Plugin.Mock])
+      {:error, error} = Loader.load([Serum.V2.Plugin.Mock])
       message = to_string(error)
 
       assert message =~ "RuntimeError"

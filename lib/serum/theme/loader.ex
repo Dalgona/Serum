@@ -7,15 +7,15 @@ defmodule Serum.Theme.Loader do
   require Serum.V2.Result, as: Result
   alias Serum.Theme
 
-  @spec load_theme(term()) :: Result.t(Theme.t() | nil)
-  def load_theme(maybe_spec)
+  @spec load(term()) :: Result.t(Theme.t() | nil)
+  def load(maybe_spec)
 
-  def load_theme(nil) do
+  def load(nil) do
     Agent.update(Theme, fn _ -> {nil, nil} end)
     Result.return(nil)
   end
 
-  def load_theme(maybe_spec) do
+  def load(maybe_spec) do
     Result.run do
       spec <- normalize_spec(maybe_spec)
       theme <- make_theme(spec)

@@ -81,12 +81,12 @@ defmodule Serum.Plugin do
   end
 
   @doc false
-  @spec load_plugins([spec()]) :: Result.t([t()])
-  def load_plugins(plugin_specs), do: Loader.load_plugins(plugin_specs)
+  @spec load([term()]) :: Result.t([t()])
+  defdelegate load(maybe_specs), to: Loader
 
   @doc false
-  @spec cleanup_plugins() :: Result.t({})
-  def cleanup_plugins, do: Cleanup.cleanup_plugins()
+  @spec cleanup() :: Result.t({})
+  defdelegate cleanup, to: Cleanup
 
   @doc false
   @spec show_info([t()]) :: Result.t({})

@@ -3,7 +3,6 @@ defmodule Serum.Theme.CleanupTest do
   require Serum.V2.Result, as: Result
   import ExUnit.CaptureIO
   alias Serum.Theme
-  alias Serum.Theme.Loader
   alias Serum.Theme.Cleanup
   alias Serum.V2.Console
 
@@ -16,15 +15,15 @@ defmodule Serum.Theme.CleanupTest do
     on_exit(fn -> Console.config(Keyword.new(console_config)) end)
   end
 
-  setup do: on_exit(fn -> Agent.update(Theme, fn _ -> {nil, nil} end) end)
+  setup do: on_exit(fn -> Agent.update(Theme, fn _ -> @init_state end) end)
 
-  describe "cleanup_theme/0" do
+  describe "cleanup/0" do
     test "calls cleanup/1 callback and resets the agent" do
       {:ok, pid} = Agent.start_link(fn -> false end)
       theme_mock = get_theme_mock(%{cleanup: fn _ -> dummy_cleanup(pid) end})
-      {:ok, %Theme{}} = Loader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
-      assert {:ok, _} = Cleanup.cleanup_theme()
+      assert {:ok, _} = Cleanup.cleanup()
       assert Agent.get(pid, & &1)
       assert Agent.get(Theme, & &1) === @init_state
 
@@ -33,11 +32,11 @@ defmodule Serum.Theme.CleanupTest do
 
     test "prints a warning when cleanup/1 callback failed" do
       theme_mock = get_theme_mock(%{cleanup: &failing_cleanup/1})
-      {:ok, %Theme{}} = Loader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       stderr =
         capture_io(:stderr, fn ->
-          assert {:ok, _} = Cleanup.cleanup_theme()
+          assert {:ok, _} = Cleanup.cleanup()
         end)
 
       assert stderr =~ "cleanup"
@@ -46,11 +45,11 @@ defmodule Serum.Theme.CleanupTest do
 
     test "prints a warning when cleanup/1 callback returned an unexpected value" do
       theme_mock = get_theme_mock(%{cleanup: &weird_cleanup/1})
-      {:ok, %Theme{}} = Loader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       stderr =
         capture_io(:stderr, fn ->
-          assert {:ok, _} = Cleanup.cleanup_theme()
+          assert {:ok, _} = Cleanup.cleanup()
         end)
 
       assert stderr =~ "123"
@@ -59,11 +58,11 @@ defmodule Serum.Theme.CleanupTest do
 
     test "prints a warning when cleanup/1 callback raised an error" do
       theme_mock = get_theme_mock(%{cleanup: &raising_cleanup/1})
-      {:ok, %Theme{}} = Loader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       stderr =
         capture_io(:stderr, fn ->
-          assert {:ok, _} = Cleanup.cleanup_theme()
+          assert {:ok, _} = Cleanup.cleanup()
         end)
 
       assert stderr =~ "RuntimeError"

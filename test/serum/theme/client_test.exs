@@ -3,10 +3,9 @@ defmodule Serum.Theme.ClientTest do
   require Serum.V2.Result, as: Result
   alias Serum.Theme
   alias Serum.Theme.Client
-  alias Serum.Theme.Loader
   alias Serum.V2.Error
 
-  setup(do: on_exit(fn -> Loader.load_theme(nil) end))
+  setup(do: on_exit(fn -> Theme.cleanup() end))
 
   describe "get_includes/0" do
     test "retrieves a list of include file paths from the loaded theme" do
@@ -60,7 +59,7 @@ defmodule Serum.Theme.ClientTest do
     end
 
     test "returns an empty collection if theme is not loaded" do
-      Loader.load_theme(nil)
+      Theme.load(nil)
 
       assert {:ok, %{}} === Client.get_includes()
     end
@@ -118,7 +117,7 @@ defmodule Serum.Theme.ClientTest do
     end
 
     test "returns an empty collection if theme is not loaded" do
-      Loader.load_theme(nil)
+      Theme.load(nil)
 
       assert {:ok, %{}} === Client.get_templates()
     end
@@ -198,13 +197,13 @@ defmodule Serum.Theme.ClientTest do
     end
 
     test "returns false if theme is not loaded" do
-      Loader.load_theme(nil)
+      Theme.load(nil)
 
       assert {:ok, false} === Client.get_assets()
     end
   end
 
   defp load_mock(callbacks) do
-    {:ok, %Theme{}} = callbacks |> get_theme_mock() |> Loader.load_theme()
+    {:ok, %Theme{}} = callbacks |> get_theme_mock() |> Theme.load()
   end
 end

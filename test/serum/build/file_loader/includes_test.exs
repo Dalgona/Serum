@@ -2,9 +2,7 @@ defmodule Serum.Build.FileLoader.IncludesTest do
   use Serum.Case
   alias Serum.Build.FileLoader.Includes, as: IncludeLoader
   alias Serum.Plugin
-  alias Serum.Plugin.Loader, as: PluginLoader
   alias Serum.Theme
-  alias Serum.Theme.Loader, as: ThemeLoader
   alias Serum.V2.Error
 
   describe "load/1 without a theme or plugin" do
@@ -49,7 +47,7 @@ defmodule Serum.Build.FileLoader.IncludesTest do
 
       on_exit(fn ->
         File.rm_rf!(theme_includes_dir)
-        ThemeLoader.load_theme(nil)
+        Theme.cleanup()
       end)
 
       [theme_includes: theme_includes]
@@ -57,7 +55,7 @@ defmodule Serum.Build.FileLoader.IncludesTest do
 
     test "loads include files", ctx do
       theme_mock = get_theme_mock(%{get_includes: fn _ -> {:ok, ctx.theme_includes} end})
-      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       assert {:ok, files} = IncludeLoader.load(ctx.dir)
       assert length(files) === 5
@@ -65,7 +63,7 @@ defmodule Serum.Build.FileLoader.IncludesTest do
 
     test "returns an error if the loaded theme fails", ctx do
       theme_mock = get_theme_mock(%{get_includes: fn _ -> raise "test: get_includes" end})
-      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+      {:ok, %Theme{}} = Theme.load(theme_mock)
 
       assert {:error, %Error{} = error} = IncludeLoader.load(ctx.dir)
 
@@ -78,7 +76,7 @@ defmodule Serum.Build.FileLoader.IncludesTest do
 
   describe "load/1 with plugins" do
     setup :do_common_setup
-    setup do: on_exit(fn -> PluginLoader.load_plugins([]) end)
+    setup do: on_exit(fn -> Plugin.cleanup() end)
 
     test "returns an error when loaded plugins fail", ctx do
       plugin_mock =
@@ -86,7 +84,7 @@ defmodule Serum.Build.FileLoader.IncludesTest do
           {:reading_templates, 2} => fn _, _ -> raise "test: reading_templates/2" end
         })
 
-      {:ok, [%Plugin{}]} = PluginLoader.load_plugins([plugin_mock])
+      {:ok, [%Plugin{}]} = Plugin.load([plugin_mock])
 
       assert {:error, %Error{} = error} = IncludeLoader.load(ctx.dir)
 

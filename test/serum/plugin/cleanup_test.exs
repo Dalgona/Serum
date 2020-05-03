@@ -18,13 +18,13 @@ defmodule Serum.Plugin.CleanupTest do
     on_exit(fn -> Agent.update(Plugin, fn _ -> %State{} end) end)
   end
 
-  describe "cleanup_plugins/0" do
+  describe "cleanup/0" do
     test "calls cleanup/1 callback for each plugin and resets the agent" do
       {:ok, pid} = Agent.start_link(fn -> false end)
       plugin_mock = get_plugin_mock(%{cleanup: fn _ -> dummy_cleanup(pid) end}, %{})
-      {:ok, _} = Plugin.load_plugins([plugin_mock])
+      {:ok, _} = Plugin.load([plugin_mock])
 
-      assert {:ok, _} = Cleanup.cleanup_plugins()
+      assert {:ok, _} = Cleanup.cleanup()
       assert Agent.get(pid, & &1)
       assert Agent.get(Plugin, & &1) === %State{}
 
@@ -33,11 +33,11 @@ defmodule Serum.Plugin.CleanupTest do
 
     test "prints a warning when cleanup/1 callback failed" do
       plugin_mock = get_plugin_mock(%{cleanup: &failing_cleanup/1}, %{})
-      {:ok, _} = Plugin.load_plugins([plugin_mock])
+      {:ok, _} = Plugin.load([plugin_mock])
 
       stderr =
         capture_io(:stderr, fn ->
-          assert {:ok, _} = Cleanup.cleanup_plugins()
+          assert {:ok, _} = Cleanup.cleanup()
         end)
 
       assert stderr =~ "cleanup"
@@ -46,11 +46,11 @@ defmodule Serum.Plugin.CleanupTest do
 
     test "prints a warning when cleanup/1 callback returned an unexpected value" do
       plugin_mock = get_plugin_mock(%{cleanup: &weird_cleanup/1}, %{})
-      {:ok, _} = Plugin.load_plugins([plugin_mock])
+      {:ok, _} = Plugin.load([plugin_mock])
 
       stderr =
         capture_io(:stderr, fn ->
-          assert {:ok, _} = Cleanup.cleanup_plugins()
+          assert {:ok, _} = Cleanup.cleanup()
         end)
 
       assert stderr =~ "123"
@@ -59,11 +59,11 @@ defmodule Serum.Plugin.CleanupTest do
 
     test "prints a warning when cleanup/1 callback raised an error" do
       plugin_mock = get_plugin_mock(%{cleanup: &raising_cleanup/1}, %{})
-      {:ok, _} = Plugin.load_plugins([plugin_mock])
+      {:ok, _} = Plugin.load([plugin_mock])
 
       stderr =
         capture_io(:stderr, fn ->
-          assert {:ok, _} = Cleanup.cleanup_plugins()
+          assert {:ok, _} = Cleanup.cleanup()
         end)
 
       assert stderr =~ "RuntimeError"

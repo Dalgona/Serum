@@ -30,7 +30,7 @@ defmodule Serum.PluginTest do
   end
 
   test "all optional callbacks are correctly called" do
-    {:ok, _} = load_plugins([Serum.DummyPlugin])
+    {:ok, _} = load([Serum.DummyPlugin])
 
     capture_io(fn ->
       assert {:ok, _} = build_started(%{})
@@ -56,7 +56,7 @@ defmodule Serum.PluginTest do
   end
 
   test "failing plugin 1" do
-    {:ok, _} = load_plugins([Serum.FailingPlugin1])
+    {:ok, _} = load([Serum.FailingPlugin1])
     patterns = ~w(RuntimeError build_succeeded 123 RuntimeError reading_posts 456)
 
     capture_io(fn ->
@@ -76,7 +76,7 @@ defmodule Serum.PluginTest do
 
   describe "show_info/1" do
     test "prints enough information about loaded plugins" do
-      {:ok, plugins} = load_plugins([Serum.DummyPlugin])
+      {:ok, plugins} = load([Serum.DummyPlugin])
       console = Process.whereis(Console)
       original_gl = console |> Process.info() |> Access.get(:group_leader)
       {:ok, string_io} = StringIO.open("")

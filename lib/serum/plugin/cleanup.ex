@@ -13,16 +13,16 @@ defmodule Serum.Plugin.Cleanup do
   alias Serum.Plugin.State
   alias Serum.V2.Error
 
-  @spec cleanup_plugins() :: Result.t({})
-  def cleanup_plugins do
-    Enum.each(Plugin.states(), &cleanup_plugin/1)
+  @spec cleanup() :: Result.t({})
+  def cleanup do
+    Enum.each(Plugin.states(), &cleanup_each/1)
     Agent.update(Plugin, fn _ -> %State{} end)
     Result.return()
   end
 
-  @spec cleanup_plugin({module(), term()}) :: Result.t({})
-  defp cleanup_plugin({module, state}) do
-    case do_cleanup_plugin(module, state) do
+  @spec cleanup_each({module(), term()}) :: Result.t({})
+  defp cleanup_each({module, state}) do
+    case do_cleanup_each(module, state) do
       {:ok, _} ->
         Result.return()
 
@@ -34,8 +34,8 @@ defmodule Serum.Plugin.Cleanup do
     end
   end
 
-  @spec do_cleanup_plugin(module(), term()) :: Result.t({})
-  defp do_cleanup_plugin(module, state) do
+  @spec do_cleanup_each(module(), term()) :: Result.t({})
+  defp do_cleanup_each(module, state) do
     ForeignCode.call module.cleanup(state) do
       _ -> Result.return()
     end

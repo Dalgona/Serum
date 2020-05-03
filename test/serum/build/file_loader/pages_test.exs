@@ -11,7 +11,7 @@ defmodule Serum.Build.FileLoader.PagesTest do
 
       on_exit(fn ->
         File.rm_rf!(tmp_dir)
-        Plugin.load_plugins([])
+        Plugin.cleanup()
       end)
 
       {:ok, tmp_dir: tmp_dir}
@@ -49,7 +49,7 @@ defmodule Serum.Build.FileLoader.PagesTest do
         })
 
       pages_dir = Path.join(tmp_dir, "pages")
-      {:ok, _} = Plugin.load_plugins([plugin_mock])
+      {:ok, _} = Plugin.load([plugin_mock])
 
       make_files(pages_dir)
 

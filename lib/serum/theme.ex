@@ -63,6 +63,7 @@ defmodule Serum.Theme do
   use Agent
   require Serum.V2.Result, as: Result
   alias Serum.Theme.Cleanup
+  alias Serum.Theme.Loader
 
   defstruct module: nil,
             name: "",
@@ -88,6 +89,10 @@ defmodule Serum.Theme do
   end
 
   @doc false
-  @spec cleanup_theme() :: Result.t({})
-  def cleanup_theme, do: Cleanup.cleanup_theme()
+  @spec load(term()) :: Result.t(t() | nil)
+  defdelegate load(maybe_spec), to: Loader
+
+  @doc false
+  @spec cleanup() :: Result.t({})
+  defdelegate cleanup, to: Cleanup
 end
