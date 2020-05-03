@@ -1,115 +1,117 @@
 defmodule Serum.Build.FileLoader.TemplatesTest do
   use Serum.Case
-  import Serum.Build.FileLoader.Templates
+  alias Serum.Build.FileLoader.Templates, as: TemplateLoader
   alias Serum.Plugin
+  alias Serum.Plugin.Loader, as: PluginLoader
   alias Serum.Theme
+  alias Serum.Theme.Loader, as: ThemeLoader
+  alias Serum.V2.Error
 
-  [
-    "theme_modules/real_dummy_theme.ex",
-    "theme_modules/failing_theme.ex"
-  ]
-  |> Enum.map(&fixture/1)
-  |> Enum.each(&Code.require_file/1)
+  describe "load/1 without a theme or plugin" do
+    setup :do_common_setup
 
-  describe "load/1" do
-    setup do
-      tmp_dir = get_tmp_dir("serum_test_")
-
-      File.mkdir_p!(tmp_dir)
-
-      on_exit(fn ->
-        File.rm_rf!(tmp_dir)
-        Plugin.load_plugins([])
-        Theme.load(nil)
-      end)
-
-      {:ok, tmp_dir: tmp_dir}
+    test "loads template files", %{dir: dir} do
+      assert {:ok, files} = TemplateLoader.load(dir)
+      assert length(files) === 6
     end
 
-    test "loads template files without a theme", %{tmp_dir: tmp_dir} do
-      templates_dir = Path.join(tmp_dir, "templates")
+    test "fails when some files cannot be loaded", ctx do
+      base_template_path = Path.join(ctx.templates_dir, "base.html.eex")
 
-      make_files(templates_dir)
+      File.chmod!(base_template_path, 0o000)
 
-      assert {:ok, files} = load(tmp_dir)
-      assert 6 === length(files)
+      assert {:error, %Error{}} = TemplateLoader.load(ctx.dir)
+
+      File.chmod!(base_template_path, 0o644)
     end
 
-    test "loads template files with a theme", %{tmp_dir: tmp_dir} do
-      templates_dir = Path.join(tmp_dir, "templates")
-      theme_dir = get_tmp_dir("serum_test_")
+    test "fails when some of mandatory templates don't exist", ctx do
+      ctx.templates_dir |> Path.join("base.html.eex") |> File.rm!()
 
-      make_files(templates_dir)
-      File.rm!(Path.join(templates_dir, "base.html.eex"))
-      File.mkdir_p!(Path.join(theme_dir, "templates"))
-
-      ~w(base page lorem ipsum)
-      |> Enum.map(&(&1 <> ".html.eex"))
-      |> Enum.map(&Path.join([theme_dir, "templates", &1]))
-      |> Enum.each(&File.touch!/1)
-
-      {:ok, _} = Theme.load(Serum.RealDummyTheme)
-      {:ok, agent} = Agent.start_link(fn -> theme_dir end, name: Serum.TestAgent)
-
-      assert {:ok, files} = load(tmp_dir)
-      assert 8 === length(files)
-
-      :ok = Agent.stop(agent)
-
-      File.rm_rf!(theme_dir)
-    end
-
-    test "fails when some files cannot be loaded", %{tmp_dir: tmp_dir} do
-      templates_dir = Path.join(tmp_dir, "templates")
-      base = Path.join(templates_dir, "base.html.eex")
-
-      make_files(templates_dir)
-      File.chmod!(base, 0o000)
-
-      assert {:error, _} = load(tmp_dir)
-
-      File.chmod!(base, 0o644)
-    end
-
-    test "fails when some of mandatory templates does not exist", %{tmp_dir: tmp_dir} do
-      templates_dir = Path.join(tmp_dir, "templates")
-
-      make_files(templates_dir)
-      templates_dir |> Path.join("base.html.eex") |> File.rm!()
-
-      assert {:error, _} = load(tmp_dir)
-    end
-
-    test "fails when a theme fails", %{tmp_dir: tmp_dir} do
-      templates_dir = Path.join(tmp_dir, "templates")
-
-      make_files(templates_dir)
-      Theme.load(Serum.FailingTheme)
-
-      assert {:error, _} = load(tmp_dir)
-    end
-
-    test "fails when a plugin fails", %{tmp_dir: tmp_dir} do
-      plugin_mock =
-        get_plugin_mock(%{
-          {:reading_templates, 2} => fn _, _ -> raise "foo" end
-        })
-
-      templates_dir = Path.join(tmp_dir, "templates")
-      {:ok, _} = Plugin.load_plugins([plugin_mock])
-
-      make_files(templates_dir)
-
-      assert {:error, _} = load(tmp_dir)
+      assert {:error, %Error{}} = TemplateLoader.load(ctx.dir)
     end
   end
 
-  defp make_files(dir) do
-    File.mkdir_p!(dir)
+  describe "load/1 with a theme" do
+    setup :do_common_setup
+
+    setup do
+      theme_templates_dir = get_tmp_dir("serum_test_")
+
+      File.mkdir_p!(theme_templates_dir)
+
+      theme_templates =
+        ~w(base page lorem ipsum)
+        |> Enum.map(&(&1 <> ".html.eex"))
+        |> Enum.map(&Path.join(theme_templates_dir, &1))
+
+      Enum.each(theme_templates, &File.touch!/1)
+
+      on_exit(fn ->
+        File.rm_rf!(theme_templates_dir)
+        ThemeLoader.load_theme(nil)
+      end)
+
+      [theme_templates: theme_templates]
+    end
+
+    test "loads template files", ctx do
+      ctx.templates_dir |> Path.join("base.html.eex") |> File.rm!()
+
+      theme_mock = get_theme_mock(%{get_templates: fn _ -> {:ok, ctx.theme_templates} end})
+      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+
+      assert {:ok, files} = TemplateLoader.load(ctx.dir)
+      assert length(files) === 8
+    end
+
+    test "returns an error if the loaded theme fails", ctx do
+      theme_mock = get_theme_mock(%{get_templates: fn _ -> raise "test: get_templates" end})
+      {:ok, %Theme{}} = ThemeLoader.load_theme(theme_mock)
+
+      assert {:error, %Error{} = error} = TemplateLoader.load(ctx.dir)
+
+      message = to_string(error)
+
+      assert message =~ "RuntimeError"
+      assert message =~ "test: get_templates"
+    end
+  end
+
+  describe "load/1 with plugins" do
+    setup :do_common_setup
+    setup do: on_exit(fn -> PluginLoader.load_plugins([]) end)
+
+    test "returns an error when loaded plugins fail", ctx do
+      plugin_mock =
+        get_plugin_mock(%{
+          {:reading_templates, 2} => fn _, _ -> raise "test: reading_templates/2" end
+        })
+
+      {:ok, [%Plugin{}]} = PluginLoader.load_plugins([plugin_mock])
+
+      assert {:error, %Error{} = error} = TemplateLoader.load(ctx.dir)
+
+      message = to_string(error)
+
+      assert message =~ "RuntimeError"
+      assert message =~ "test: reading_templates/2"
+    end
+  end
+
+  defp do_common_setup(_context) do
+    tmp_dir = get_tmp_dir("serum_test_")
+    templates_dir = Path.join(tmp_dir, "templates")
+
+    File.mkdir_p!(templates_dir)
 
     ~w(base list page post foo bar)
     |> Enum.map(&(&1 <> ".html.eex"))
-    |> Enum.map(&Path.join(dir, &1))
+    |> Enum.map(&Path.join(templates_dir, &1))
     |> Enum.each(&File.touch!/1)
+
+    on_exit(fn -> File.rm_rf!(tmp_dir) end)
+
+    [dir: tmp_dir, templates_dir: templates_dir]
   end
 end
