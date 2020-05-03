@@ -61,6 +61,8 @@ defmodule Serum.Theme do
   """
 
   use Agent
+  require Serum.V2.Result, as: Result
+  alias Serum.Theme.Cleanup
 
   defstruct module: nil,
             name: "",
@@ -84,4 +86,8 @@ defmodule Serum.Theme do
   def start_link(_) do
     Agent.start_link(fn -> {nil, nil} end, name: __MODULE__)
   end
+
+  @doc false
+  @spec cleanup_theme() :: Result.t({})
+  def cleanup_theme, do: Cleanup.cleanup_theme()
 end
