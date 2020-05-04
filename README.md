@@ -18,9 +18,9 @@ to accept any issue or pull request regarding "Serum 2.0" until things are
 kinda ready.
 
 In the meantime, since codes for the existing Serum 1.x versions are still
-maintained in the `v1` branch, you are welcome to open any issue or pull
+maintained in the `v1/master` branch, you are welcome to open any issue or pull
 request related to Serum 1.x. Just make sure you set the target base branch
-to `v1`, not `master`, when opening pull requests.
+to `v1/master`, not `master`, when opening pull requests.
 
 I apologize for your inconvenience!
 
