@@ -28,11 +28,11 @@ defmodule Serum.Project.ElixirValidatorTest do
   }
 
   describe "validate/1" do
-    test "good, contains required keys only" do
+    test "validates a map containing required keys only" do
       assert :ok = validate(@base_map)
     end
 
-    test "good, also contains optional keys" do
+    test "validates a map containing optional keys" do
       map =
         Map.merge(@base_map, %{
           server_root: "https://example.com/test",
@@ -42,6 +42,9 @@ defmodule Serum.Project.ElixirValidatorTest do
           pagination: true,
           posts_per_page: 10,
           preview_length: 200,
+          posts_path: "posts",
+          posts_url: "blog",
+          tags_url: "blog/tags",
           plugins: [Serum.TestPlugin1, Serum.TestPlugin2],
           theme: Serum.TestTheme
         })
@@ -49,32 +52,32 @@ defmodule Serum.Project.ElixirValidatorTest do
       assert :ok = validate(map)
     end
 
-    test "not a map" do
+    test "fails when the given argument is not a map" do
       assert {:invalid, _} = validate(:foo)
     end
 
-    test "missing one required key" do
+    test "fails when only one required key is missing" do
       map = Map.delete(@base_map, :base_url)
       {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "missing required property:")
     end
 
-    test "missing multiple required keys" do
+    test "fails when multiple required keys are missing" do
       map = Map.drop(@base_map, [:base_url, :site_description])
       {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "missing required properties:")
     end
 
-    test "one extra key" do
+    test "fails when there is one extra key" do
       map = Map.put(@base_map, :foo, :bar)
       {:invalid, msg} = validate(map)
 
       assert String.starts_with?(msg, "unknown property:")
     end
 
-    test "multiple extra keys" do
+    test "fails when there are multiple extra keys" do
       map =
         @base_map
         |> Map.put(:foo, :bar)
@@ -85,16 +88,16 @@ defmodule Serum.Project.ElixirValidatorTest do
       assert String.starts_with?(msg, "unknown properties:")
     end
 
-    test "constraint check 1" do
-      map = Map.put(@base_map, :base_url, "hello")
-      {:invalid, l} = validate(map)
+    test "fails when one value violates a constraint" do
+      {:invalid, l} = @base_map |> Map.put(:base_url, "hello") |> validate()
 
       assert length(l) == 1
     end
 
-    test "constraint check 2" do
-      map =
-        Map.merge(@base_map, %{
+    test "fails when multiple values violate constraints" do
+      {:invalid, l} =
+        @base_map
+        |> Map.merge(%{
           base_url: "hello",
           server_root: "htttps://foo.bar/baz",
           date_format: 3,
@@ -102,8 +105,7 @@ defmodule Serum.Project.ElixirValidatorTest do
           preview_length: -1,
           theme: "Serum.TestTheme"
         })
-
-      {:invalid, l} = validate(map)
+        |> validate()
 
       assert length(l) == 6
     end
