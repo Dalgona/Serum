@@ -2,6 +2,7 @@ defmodule Serum.Build.FileLoaderTest do
   use ExUnit.Case, async: true
   import Serum.TestHelper
   alias Serum.Build.FileLoader
+  alias Serum.Project
 
   setup do
     tmp_dir = get_tmp_dir("serum_test_")
@@ -31,19 +32,21 @@ defmodule Serum.Build.FileLoaderTest do
 
   describe "load_files/1" do
     test "loads four kinds of files", %{tmp_dir: tmp_dir} do
-      {:ok, %{pages: pages, posts: posts, templates: temps, includes: incls}} =
-        FileLoader.load_files(tmp_dir)
+      proj = Project.new(%{src: tmp_dir})
 
-      assert length(pages) === 1
-      assert length(posts) === 1
-      assert length(temps) === 4
-      assert length(incls) === 1
+      assert {:ok, load_result} = FileLoader.load_files(proj)
+
+      Enum.each([pages: 1, posts: 1, templates: 4, includes: 1], fn {k, v} ->
+        assert length(load_result[k]) === v
+      end)
     end
 
     test "fails when one or more sub tasks fail", %{tmp_dir: tmp_dir} do
+      proj = Project.new(%{src: tmp_dir})
+
       File.rm_rf!(Path.join(tmp_dir, "pages"))
 
-      {:error, {:enoent, _, _}} = FileLoader.load_files(tmp_dir)
+      {:error, {:enoent, _, _}} = FileLoader.load_files(proj)
     end
   end
 end

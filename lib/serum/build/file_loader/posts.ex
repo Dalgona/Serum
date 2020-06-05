@@ -9,11 +9,11 @@ defmodule Serum.Build.FileLoader.Posts do
   alias Serum.Result
 
   @doc false
-  @spec load(binary()) :: Result.t([Serum.File.t()])
-  def load(src) do
+  @spec load(binary(), binary()) :: Result.t([Serum.File.t()])
+  def load(src, posts_path) do
     put_msg(:info, "Loading post files...")
 
-    posts_dir = get_subdir(src, "posts")
+    posts_dir = get_subdir(src, posts_path)
 
     if File.exists?(posts_dir) do
       posts_dir
@@ -26,7 +26,7 @@ defmodule Serum.Build.FileLoader.Posts do
         {:error, _} = plugin_error -> plugin_error
       end
     else
-      put_err(:warn, "Cannot access `posts/'. No post will be generated.")
+      put_err(:warn, "Cannot access the posts directory. Your blog will not be generated.")
 
       {:ok, []}
     end

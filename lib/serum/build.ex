@@ -87,7 +87,7 @@ defmodule Serum.Build do
 
   @spec do_build(Project.t()) :: Result.t()
   defp do_build(%{src: src, dest: dest} = proj) do
-    with {:ok, files} <- FileLoader.load_files(src),
+    with {:ok, files} <- FileLoader.load_files(proj),
          {:ok, map} <- FileProcessor.process_files(files, proj),
          {:ok, fragments} <- FragmentGenerator.to_fragment(map),
          {:ok, files} <- PageGenerator.run(fragments),

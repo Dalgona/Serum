@@ -4,6 +4,7 @@ defmodule Serum.Build.FileLoader do
   _moduledocp = "A module responsible for loading project files."
 
   alias Serum.Build.FileLoader.{Includes, Pages, Posts, Templates}
+  alias Serum.Project
   alias Serum.Result
 
   @type result :: %{
@@ -27,12 +28,12 @@ defmodule Serum.Build.FileLoader do
   this function won't fail even if they don't exist. The corresponding lists
   in the resulting map will be empty.
   """
-  @spec load_files(binary()) :: Result.t(result())
-  def load_files(src) do
+  @spec load_files(Project.t()) :: Result.t(result())
+  def load_files(%Project{src: src, posts_path: posts_path}) do
     with {:ok, template_files} <- Templates.load(src),
          {:ok, include_files} <- Includes.load(src),
          {:ok, page_files} <- Pages.load(src),
-         {:ok, post_files} <- Posts.load(src) do
+         {:ok, post_files} <- Posts.load(src, posts_path) do
       {:ok,
        %{
          templates: template_files,
