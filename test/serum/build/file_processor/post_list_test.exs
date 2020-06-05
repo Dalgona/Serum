@@ -1,6 +1,7 @@
 defmodule Serum.Build.FileProcessor.PostListTest do
   use ExUnit.Case, async: true
   alias Serum.Build.FileProcessor.PostList, as: ListGenerator
+  alias Serum.Project
   alias Serum.Tag
 
   setup_all do
@@ -36,7 +37,7 @@ defmodule Serum.Build.FileProcessor.PostListTest do
   describe "generate_lists/2" do
     test "no pagination", ctx do
       posts = ctx.compact_posts
-      proj = Map.put(ctx.proj_template, :pagination, false)
+      proj = Project.new(Map.put(ctx.proj_template, :pagination, false))
       {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, proj)
 
       # (num_of_tags + 1) * (index + page_1)
@@ -62,7 +63,7 @@ defmodule Serum.Build.FileProcessor.PostListTest do
 
     test "chunk every 5 posts", ctx do
       posts = ctx.compact_posts
-      proj = Map.put(ctx.proj_template, :pagination, true)
+      proj = Project.new(Map.put(ctx.proj_template, :pagination, true))
       {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, proj)
 
       # num_of_tags * (index + page_1_to_4) + 1 * (index + page_1_to_6)
