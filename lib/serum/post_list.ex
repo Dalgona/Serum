@@ -64,7 +64,7 @@ defmodule Serum.PostList do
       |> Enum.with_index(1)
 
     max_page = length(paginated_posts)
-    list_dir = (tag && Path.join(proj.tags_url, tag.name)) || proj.posts_url
+    list_dir = (tag && Path.join(proj.tags_path, tag.name)) || proj.posts_path
 
     lists =
       Enum.map(paginated_posts, fn {posts, page} ->

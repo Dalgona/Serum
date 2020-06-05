@@ -14,7 +14,7 @@ defmodule Serum.Tag do
   def new(name, %Project{} = proj) do
     %__MODULE__{
       name: name,
-      list_url: Path.join([proj.base_url, proj.tags_url, name])
+      list_url: Path.join([proj.base_url, proj.tags_path, name])
     }
   end
 

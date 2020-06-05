@@ -42,9 +42,9 @@ defmodule Serum.Project.ElixirValidatorTest do
           pagination: true,
           posts_per_page: 10,
           preview_length: 200,
-          posts_path: "posts",
-          posts_url: "blog",
-          tags_url: "blog/tags",
+          posts_source: "posts",
+          posts_path: "blog",
+          tags_path: "blog/tags",
           plugins: [Serum.TestPlugin1, Serum.TestPlugin2],
           theme: Serum.TestTheme
         })

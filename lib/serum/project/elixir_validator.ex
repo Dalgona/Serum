@@ -18,9 +18,9 @@ defmodule Serum.Project.ElixirValidator do
     :pagination,
     :posts_per_page,
     :preview_length,
+    :posts_source,
     :posts_path,
-    :posts_url,
-    :tags_url,
+    :tags_path,
     :plugins,
     :theme
   ]
@@ -131,9 +131,9 @@ defmodule Serum.Project.ElixirValidator do
         pagination: [is_boolean: []],
         posts_per_page: [is_integer: [], >=: [1]],
         preview_length: [valid_preview_length?: []],
+        posts_source: [is_binary: []],
         posts_path: [is_binary: []],
-        posts_url: [is_binary: []],
-        tags_url: [is_binary: []],
+        tags_path: [is_binary: []],
         plugins: [is_list: []],
         theme: [is_atom: []]
       ]

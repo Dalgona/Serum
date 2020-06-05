@@ -4,7 +4,7 @@ defmodule Serum.TagTest do
   alias Serum.Project
 
   test "batch creation of tags" do
-    proj = Project.new(%{base_url: "/test", tags_url: "blog/tags"})
+    proj = Project.new(%{base_url: "/test", tags_path: "blog/tags"})
     tags = batch_create(["hello", "beautiful", "world"], proj)
 
     # Note that tags should be sorted in lexicographic order.

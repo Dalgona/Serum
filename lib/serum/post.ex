@@ -69,8 +69,8 @@ defmodule Serum.Post do
       preview: preview,
       raw_date: raw_date,
       date: date_str,
-      url: Path.join([proj.base_url, proj.posts_url, output_name]),
-      output: Path.join([proj.dest, proj.posts_url, output_name]),
+      url: Path.join([proj.base_url, proj.posts_path, output_name]),
+      output: Path.join([proj.dest, proj.posts_path, output_name]),
       template: header[:template],
       extras: extras
     }

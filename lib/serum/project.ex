@@ -9,7 +9,7 @@ defmodule Serum.Project do
 
   @default_date_format "{YYYY}-{0M}-{0D}"
   @default_list_title_tag "Posts Tagged ~s"
-  @default_posts_path "posts"
+  @default_posts_source "posts"
 
   defstruct site_name: "",
             site_description: "",
@@ -23,9 +23,9 @@ defmodule Serum.Project do
             pagination: false,
             posts_per_page: 5,
             preview_length: 200,
-            posts_path: @default_posts_path,
-            posts_url: @default_posts_path,
-            tags_url: "tags",
+            posts_source: @default_posts_source,
+            posts_path: @default_posts_source,
+            tags_path: "tags",
             src: nil,
             dest: nil,
             plugins: [],
@@ -46,9 +46,9 @@ defmodule Serum.Project do
           pagination: boolean(),
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
+          posts_source: binary(),
           posts_path: binary(),
-          posts_url: binary(),
-          tags_url: binary(),
+          tags_path: binary(),
           plugins: [Plugin.plugin_spec()],
           theme: Theme.t()
         }
@@ -66,7 +66,7 @@ defmodule Serum.Project do
       map
       |> check_date_format()
       |> check_list_title_format()
-      |> set_default_posts_url()
+      |> set_default_posts_path()
 
     struct(__MODULE__, checked_map)
   end
@@ -116,11 +116,11 @@ defmodule Serum.Project do
       Map.delete(map, :list_title_tag)
   end
 
-  @spec set_default_posts_url(map()) :: map()
-  defp set_default_posts_url(map) do
-    case map[:posts_url] do
-      posts_url when is_binary(posts_url) -> map
-      _ -> Map.put(map, :posts_url, map[:posts_path] || @default_posts_path)
+  @spec set_default_posts_path(map()) :: map()
+  defp set_default_posts_path(map) do
+    case map[:posts_path] do
+      posts_path when is_binary(posts_path) -> map
+      _ -> Map.put(map, :posts_path, map[:posts_source] || @default_posts_source)
     end
   end
 end

@@ -29,11 +29,11 @@ defmodule Serum.Build.FileLoader do
   in the resulting map will be empty.
   """
   @spec load_files(Project.t()) :: Result.t(result())
-  def load_files(%Project{src: src, posts_path: posts_path}) do
+  def load_files(%Project{src: src, posts_source: posts_source}) do
     with {:ok, template_files} <- Templates.load(src),
          {:ok, include_files} <- Includes.load(src),
          {:ok, page_files} <- Pages.load(src),
-         {:ok, post_files} <- Posts.load(src, posts_path) do
+         {:ok, post_files} <- Posts.load(src, posts_source) do
       {:ok,
        %{
          templates: template_files,

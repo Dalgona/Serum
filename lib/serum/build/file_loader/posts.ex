@@ -10,10 +10,10 @@ defmodule Serum.Build.FileLoader.Posts do
 
   @doc false
   @spec load(binary(), binary()) :: Result.t([Serum.File.t()])
-  def load(src, posts_path) do
+  def load(src, posts_source) do
     put_msg(:info, "Loading post files...")
 
-    posts_dir = get_subdir(src, posts_path)
+    posts_dir = get_subdir(src, posts_source)
 
     if File.exists?(posts_dir) do
       posts_dir
