@@ -87,4 +87,35 @@ defmodule Serum.ProjecTest do
       end
     end
   end
+
+  describe "default values for post paths" do
+    test "puts default values when none of them is given" do
+      proj = Project.new(%{})
+
+      assert proj.posts_source === "posts"
+      assert proj.posts_path === "posts"
+      assert proj.tags_path === "tags"
+    end
+
+    test "uses posts_source when posts_path is not given" do
+      proj = Project.new(%{posts_source: "blog"})
+
+      assert proj.posts_source === "blog"
+      assert proj.posts_path === "blog"
+      assert proj.tags_path === "tags"
+    end
+
+    test "does not fallback if all paths are given" do
+      proj =
+        Project.new(%{
+          posts_source: "posts",
+          posts_path: "blog",
+          tags_path: "blog/tags"
+        })
+
+      assert proj.posts_source === "posts"
+      assert proj.posts_path === "blog"
+      assert proj.tags_path === "blog/tags"
+    end
+  end
 end

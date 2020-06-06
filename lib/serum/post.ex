@@ -17,6 +17,7 @@ defmodule Serum.Post do
 
   alias Serum.Fragment
   alias Serum.Post.PreviewGenerator
+  alias Serum.Project
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
@@ -51,18 +52,14 @@ defmodule Serum.Post do
     :template
   ]
 
-  @spec new(binary(), {map(), map()}, binary(), map()) :: t()
-  def new(path, {header, extras}, html, proj) do
+  @spec new(binary(), {map(), map()}, binary(), Project.t()) :: t()
+  def new(path, {header, extras}, html, %Project{} = proj) do
     tags = Tag.batch_create(header[:tags] || [], proj)
     datetime = header[:date]
     date_str = Timex.format!(datetime, proj.date_format)
     raw_date = to_erl_datetime(datetime)
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)
-
-    filename =
-      path
-      |> String.replace_suffix("md", "html")
-      |> Path.relative_to(proj.src)
+    output_name = Path.basename(path, ".md") <> ".html"
 
     %__MODULE__{
       file: path,
@@ -72,8 +69,8 @@ defmodule Serum.Post do
       preview: preview,
       raw_date: raw_date,
       date: date_str,
-      url: Path.join(proj.base_url, filename),
-      output: Path.join(proj.dest, filename),
+      url: Path.join([proj.base_url, proj.posts_path, output_name]),
+      output: Path.join([proj.dest, proj.posts_path, output_name]),
       template: header[:template],
       extras: extras
     }

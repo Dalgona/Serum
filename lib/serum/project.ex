@@ -9,6 +9,7 @@ defmodule Serum.Project do
 
   @default_date_format "{YYYY}-{0M}-{0D}"
   @default_list_title_tag "Posts Tagged ~s"
+  @default_posts_source "posts"
 
   defstruct site_name: "",
             site_description: "",
@@ -22,6 +23,9 @@ defmodule Serum.Project do
             pagination: false,
             posts_per_page: 5,
             preview_length: 200,
+            posts_source: @default_posts_source,
+            posts_path: @default_posts_source,
+            tags_path: "tags",
             src: nil,
             dest: nil,
             plugins: [],
@@ -42,6 +46,9 @@ defmodule Serum.Project do
           pagination: boolean(),
           posts_per_page: pos_integer(),
           preview_length: non_neg_integer(),
+          posts_source: binary(),
+          posts_path: binary(),
+          tags_path: binary(),
           plugins: [Plugin.plugin_spec()],
           theme: Theme.t()
         }
@@ -52,18 +59,19 @@ defmodule Serum.Project do
   @spec default_list_title_tag() :: binary()
   def default_list_title_tag, do: @default_list_title_tag
 
-  @doc "A helper function for creating a new Project struct."
-  @spec new(map) :: t
+  @doc "Creates a new Project struct using the given `map`."
+  @spec new(map()) :: t()
   def new(map) do
     checked_map =
       map
       |> check_date_format()
       |> check_list_title_format()
+      |> set_default_posts_path()
 
     struct(__MODULE__, checked_map)
   end
 
-  @spec check_date_format(map) :: map
+  @spec check_date_format(map()) :: map()
   defp check_date_format(map) do
     case map[:date_format] do
       nil ->
@@ -87,7 +95,7 @@ defmodule Serum.Project do
     end
   end
 
-  @spec check_list_title_format(map) :: map
+  @spec check_list_title_format(map()) :: map()
   defp check_list_title_format(map) do
     case map[:list_title_tag] do
       nil ->
@@ -106,5 +114,13 @@ defmodule Serum.Project do
 
       put_err(:warn, String.trim(msg))
       Map.delete(map, :list_title_tag)
+  end
+
+  @spec set_default_posts_path(map()) :: map()
+  defp set_default_posts_path(map) do
+    case map[:posts_path] do
+      posts_path when is_binary(posts_path) -> map
+      _ -> Map.put(map, :posts_path, map[:posts_source] || @default_posts_source)
+    end
   end
 end

@@ -19,6 +19,7 @@ defmodule Serum.PostList do
 
   alias Serum.Fragment
   alias Serum.Plugin
+  alias Serum.Project
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Tag
@@ -52,8 +53,8 @@ defmodule Serum.PostList do
     :extras
   ]
 
-  @spec generate(maybe_tag(), [map()], map()) :: Result.t([t()])
-  def generate(tag, posts, proj) do
+  @spec generate(maybe_tag(), [map()], Project.t()) :: Result.t([t()])
+  def generate(tag, posts, %Project{} = proj) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
 
@@ -63,7 +64,7 @@ defmodule Serum.PostList do
       |> Enum.with_index(1)
 
     max_page = length(paginated_posts)
-    list_dir = (tag && Path.join("tags", tag.name)) || "posts"
+    list_dir = (tag && Path.join(proj.tags_path, tag.name)) || proj.posts_path
 
     lists =
       Enum.map(paginated_posts, fn {posts, page} ->
@@ -124,7 +125,7 @@ defmodule Serum.PostList do
     Enum.chunk_every(posts, num_posts)
   end
 
-  @spec list_title(maybe_tag(), map()) :: binary()
+  @spec list_title(maybe_tag(), Project.t()) :: binary()
   defp list_title(tag, proj)
   defp list_title(nil, proj), do: proj.list_title_all
 

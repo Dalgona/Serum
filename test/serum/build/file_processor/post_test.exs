@@ -20,7 +20,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
                title: "Test Post",
                date: "2019-01-01",
                raw_date: {{2019, 1, 1}, {12, 34, 56}},
-               tags: [%{name: "tag1"}, %{name: "tag2"}]
+               tags: [%{name: "tag1"}, %{name: "tag2"}],
+               output: "/path/to/dest/posts/good-post.html"
              } = post
 
       assert_compact(compact_post)
@@ -34,7 +35,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
                title: "Test Post",
                date: "2019-01-01",
                raw_date: {{2019, 1, 1}, {0, 0, 0}},
-               tags: [%{name: "tag3"}, %{name: "tag4"}]
+               tags: [%{name: "tag3"}, %{name: "tag4"}],
+               output: "/path/to/dest/posts/good-alternative-date.html"
              } = post
 
       assert_compact(compact_post)
@@ -48,7 +50,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
                title: "Test Post",
                date: "2019-01-01",
                raw_date: {{2019, 1, 1}, {0, 0, 0}},
-               tags: []
+               tags: [],
+               output: "/path/to/dest/posts/good-minimal-header.html"
              } = post
 
       assert_compact(compact_post)

@@ -1,18 +1,19 @@
 defmodule Serum.TagTest do
   use ExUnit.Case, async: true
   import Serum.Tag
+  alias Serum.Project
 
   test "batch creation of tags" do
-    proj = %{base_url: "/test"}
-
-    # Note that tags should be lexicographically sorted.
+    proj = Project.new(%{base_url: "/test", tags_path: "blog/tags"})
     tags = batch_create(["hello", "beautiful", "world"], proj)
+
+    # Note that tags should be sorted in lexicographic order.
     expected_names = ["beautiful", "hello", "world"]
 
     expected_urls = [
-      "/test/tags/beautiful",
-      "/test/tags/hello",
-      "/test/tags/world"
+      "/test/blog/tags/beautiful",
+      "/test/blog/tags/hello",
+      "/test/blog/tags/world"
     ]
 
     [tags, expected_names, expected_urls]
