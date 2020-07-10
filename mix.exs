@@ -36,7 +36,7 @@ defmodule Serum.Mixfile do
   defp deps do
     [
       {:serum_sdk, sdk_spec(Mix.env())},
-      {:earmark, "1.4.4"},
+      {:earmark, "1.4.9"},
       {:file_system, "~> 0.2"},
       {:microscope, "~> 1.3"},
       {:timex, "~> 3.5"},
