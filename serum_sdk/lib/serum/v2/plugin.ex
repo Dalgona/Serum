@@ -39,11 +39,11 @@ defmodule Serum.V2.Plugin do
   """
 
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Fragment
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList
-  # alias Serum.V2.Project
   alias Serum.V2.Result
   alias Serum.V2.Template
 
@@ -163,18 +163,15 @@ defmodule Serum.V2.Plugin do
   #
 
   @doc "Called when Serum started building a project."
-  # @callback build_started(project :: Project.t(), state :: state) :: Result.t(state)
-  @callback build_started(project :: term(), state :: state) :: Result.t(state)
+  @callback build_started(context :: BuildContext.t(), state :: state) :: Result.t(state)
             when state: term()
 
   @doc "Called when Serum finished building a project successfully."
-  # @callback build_succeeded(project :: Project.t(), state :: state) :: Result.t(state)
-  @callback build_succeeded(project :: term(), state :: state) :: Result.t(state)
+  @callback build_succeeded(context :: BuildContext.t(), state :: state) :: Result.t(state)
             when state: term()
 
   @doc "Called when Serum failed to build a project."
-  # @callback build_failed(project :: Project.t(), result :: Result.t(term()), state :: state) ::
-  @callback build_failed(project :: term(), result :: Result.t(term()), state :: state) ::
+  @callback build_failed(context :: BuildContext.t(), result :: Result.t(term()), state :: state) ::
               Result.t(state)
             when state: term()
 
