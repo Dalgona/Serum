@@ -9,8 +9,8 @@ defmodule Serum.Plugin.Client do
   require Serum.V2.Result, as: Result
   import Serum.Plugin.Client.Macros
   alias Serum.Plugin
-  alias Serum.Project
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Error
   alias Serum.V2.Fragment
   alias Serum.V2.Page
@@ -18,11 +18,11 @@ defmodule Serum.Plugin.Client do
   alias Serum.V2.PostList
   alias Serum.V2.Template
 
-  interface :action, build_started(project :: Project.t()) :: Result.t({})
-  interface :action, build_succeeded(project :: Project.t()) :: Result.t({})
+  interface :action, build_started(context :: BuildContext.t()) :: Result.t({})
+  interface :action, build_succeeded(context :: BuildContext.t()) :: Result.t({})
 
   interface :action,
-            build_failed(project :: Project.t(), result :: Result.t(term())) :: Result.t({})
+            build_failed(context :: BuildContext.t(), result :: Result.t(term())) :: Result.t({})
 
   interface :function, reading_pages(paths :: [binary()]) :: Result.t([binary()])
   interface :function, reading_posts(paths :: [binary()]) :: Result.t([binary()])
