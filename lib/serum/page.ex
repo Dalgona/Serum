@@ -6,11 +6,13 @@ defmodule Serum.Page do
   `Serum.V2.Page` structs.
   """
 
+  alias Serum.HeaderParser.ParseResult
+  alias Serum.Project
   alias Serum.V2
   alias Serum.V2.Page
 
-  @spec new(V2.File.t(), {map(), map()}, binary(), map()) :: Page.t()
-  def new(source, {header, extras}, data, proj) do
+  @spec new(V2.File.t(), ParseResult.t(), Project.t()) :: Page.t()
+  def new(source, %ParseResult{} = header, proj) do
     page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
     filename = Path.relative_to(source.src, page_dir)
     {type, original_ext} = get_type(filename)
@@ -24,14 +26,14 @@ defmodule Serum.Page do
       source: source,
       dest: dest,
       type: type,
-      title: header[:title],
-      label: header[:label],
-      group: header[:group],
-      order: header[:order],
+      title: header.data[:title],
+      label: header.data[:label] || header.data[:title],
+      group: header.data[:group],
+      order: header.data[:order],
       url: url,
-      data: data,
-      template: header[:template],
-      extras: extras
+      data: header.rest,
+      template: header.data[:template],
+      extras: Map.put(header.extras, "__serum__next_line__", header.next_line)
     }
   end
 

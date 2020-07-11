@@ -10,8 +10,6 @@ defmodule Serum.Build.FileProcessor.Page do
   alias Serum.V2.Error
   alias Serum.V2.Page
 
-  @next_line_key "__serum__next_line__"
-
   @spec preprocess_pages([V2.File.t()], Project.t()) :: Result.t({[Page.t()], [map()]})
   def preprocess_pages(files, proj) do
     put_msg(:info, "Processing page files...")
@@ -36,6 +34,7 @@ defmodule Serum.Build.FileProcessor.Page do
   @spec preprocess_page(V2.File.t(), Project.t()) :: Result.t(Page.t())
   defp preprocess_page(file, proj) do
     import Serum.HeaderParser
+    alias Serum.HeaderParser.ParseResult
 
     opts = [
       title: :string,
@@ -45,19 +44,9 @@ defmodule Serum.Build.FileProcessor.Page do
       template: :string
     ]
 
-    required = [:title]
-
     Result.run do
-      {header, extras, rest, next_line} <- parse_header(file, opts, required)
-      header = Map.put(header, :label, header[:label] || header.title)
-      page = Serum.Page.new(file, {header, extras}, rest, proj)
-
-      page = %Page{
-        page
-        | extras: Map.put(page.extras, @next_line_key, next_line)
-      }
-
-      Result.return(page)
+      %ParseResult{} = header <- parse_header(file, opts, ~w(title)a)
+      Result.return(Serum.Page.new(file, header, proj))
     end
   end
 
@@ -75,7 +64,7 @@ defmodule Serum.Build.FileProcessor.Page do
 
   @spec process_page(Page.t(), Project.t()) :: Result.t(Page.t())
   defp process_page(page, proj) do
-    process_opts = [file: page.source, line: page.extras[@next_line_key]]
+    process_opts = [file: page.source, line: page.extras["__serum__next_line__"]]
 
     case Content.process_content(page.data, page.type, proj, process_opts) do
       {:ok, data} -> Result.return(%Page{page | data: data})
