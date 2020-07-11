@@ -1,6 +1,7 @@
 defmodule Serum.HeaderParserTest do
   use Serum.Case, async: true
   import Serum.HeaderParser
+  alias Serum.HeaderParser.ParseResult
   alias Serum.V2
 
   @options [
@@ -26,12 +27,17 @@ defmodule Serum.HeaderParserTest do
 
       file = %V2.File{src: "testfile", in_data: data}
 
-      expected = %{
-        my_str: "Hello, world!",
-        my_int: 42
+      expected = %ParseResult{
+        data: %{
+          my_str: "Hello, world!",
+          my_int: 42
+        },
+        extras: %{},
+        rest: "",
+        next_line: 5
       }
 
-      assert {:ok, {^expected, %{}, _, 5}} = parse_header(file, @options, @required)
+      assert {:ok, ^expected} = parse_header(file, @options, @required)
     end
 
     test "fails when single required key is missing" do
@@ -69,10 +75,15 @@ defmodule Serum.HeaderParserTest do
       """
 
       file = %V2.File{src: "testfile", in_data: data}
-      expected = %{my_str: "Hello, world!"}
-      expected_extra = %{"extra1" => "Lorem ipsum"}
 
-      assert {:ok, {^expected, ^expected_extra, _, 5}} = parse_header(file, @options)
+      expected = %ParseResult{
+        data: %{my_str: "Hello, world!"},
+        extras: %{"extra1" => "Lorem ipsum"},
+        rest: "",
+        next_line: 5
+      }
+
+      assert {:ok, ^expected} = parse_header(file, @options)
     end
 
     test "ignores preceding data" do
@@ -87,12 +98,17 @@ defmodule Serum.HeaderParserTest do
 
       file = %V2.File{src: "testfile", in_data: data}
 
-      expected = %{
-        my_str: "Hello, world!",
-        my_int: 42
+      expected = %ParseResult{
+        data: %{
+          my_str: "Hello, world!",
+          my_int: 42
+        },
+        extras: %{},
+        rest: "",
+        next_line: 7
       }
 
-      assert {:ok, {^expected, %{}, _, 7}} = parse_header(file, @options)
+      assert {:ok, ^expected} = parse_header(file, @options)
     end
 
     test "fails when no header is found" do
