@@ -6,16 +6,15 @@ defmodule Serum.Post do
   `Serum.V2.Post` structs.
   """
 
+  alias Serum.HeaderParser.ParseResult
   alias Serum.Project
   alias Serum.V2
   alias Serum.V2.Post
   alias Serum.V2.Tag
 
-  @spec new(V2.File.t(), {map(), map()}, binary(), Project.t()) :: Post.t()
-  def new(source, {header, extras}, data, proj) do
+  @spec new(V2.File.t(), ParseResult.t(), Project.t()) :: Post.t()
+  def new(source, %ParseResult{} = header, proj) do
     filename = Path.relative_to(source.src, proj.src)
-    tags = create_tags(header[:tags] || [], proj)
-    date = header[:date]
     {type, original_ext} = get_type(filename)
 
     {url, dest} =
@@ -27,13 +26,13 @@ defmodule Serum.Post do
       source: source,
       dest: dest,
       type: type,
-      title: header[:title],
-      date: date,
-      tags: tags,
+      title: header.data[:title],
+      date: header.data[:date] || Timex.to_datetime(Timex.zero(), :local),
+      tags: create_tags(header.data[:tags] || [], proj),
       url: url,
-      data: data,
-      template: header[:template],
-      extras: extras
+      data: header.rest,
+      template: header.data[:template],
+      extras: Map.put(header.extras, "__serum__next_line__", header.next_line)
     }
   end
 
