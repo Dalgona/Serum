@@ -22,6 +22,7 @@ defmodule Serum.HeaderParser do
 
   require Serum.V2.Result, as: Result
   alias Serum.HeaderParser.Extract
+  alias Serum.HeaderParser.ParseResult
   alias Serum.HeaderParser.ValueTransformer
   alias Serum.V2
   alias Serum.V2.Error
@@ -29,7 +30,6 @@ defmodule Serum.HeaderParser do
   @type options :: [{atom(), value_type()}]
   @type value_type :: :string | :integer | :datetime | {:list, value_type()}
   @type value :: binary() | integer() | DateTime.t() | [binary()] | [integer()] | [DateTime.t()]
-  @typep parse_result :: Result.t({map(), map(), binary(), integer()})
 
   @doc """
   Reads lines from a binary `data` and extracts the header into a map.
@@ -56,7 +56,7 @@ defmodule Serum.HeaderParser do
     value must have the same type, either `:string`, `:integer`, or `:datetime`.
     You cannot make a list of lists.
   """
-  @spec parse_header(V2.File.t(), options(), [atom()]) :: parse_result()
+  @spec parse_header(V2.File.t(), options(), [atom()]) :: Result.t(ParseResult.t())
   def parse_header(file, options, required \\ [])
 
   def parse_header(%V2.File{in_data: nil} = file, _, _) do
@@ -75,7 +75,12 @@ defmodule Serum.HeaderParser do
       find_missing(accepted_kv, required, next_line)
       parsed <- transform_values(accepted_kv, options)
 
-      Result.return({Map.new(parsed), Map.new(extras), rest, next_line})
+      Result.return(%ParseResult{
+        data: Map.new(parsed),
+        extras: Map.new(extras),
+        rest: rest,
+        next_line: next_line
+      })
     end
     |> case do
       {:ok, _} = result ->
