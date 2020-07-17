@@ -1,5 +1,23 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Added
+
+- Added 3 new configuration items for your Serum project (`serum.exs`), which
+  can be used to customize locations for your blog-related pages:
+
+    - `:posts_source` (string, optional) - Path to a directory which holds
+      source files for your blog posts. Defaults to `"posts"`.
+
+    - `:posts_path` (string, optional) - Path in a output directory which your
+      rendered blog posts will be written to. Defaults to the value of
+      `:posts_source`. (i.e. the default value will be `"posts"` if the value
+      of `:posts_source` is not explicitly given.)
+
+    - `:tags_path` (string, optional) - Path in an output directory which the
+      tag pages will be written to. Defaults to `"tags"`.
+
 ## v1.4.1 &mdash; 2020-02-20
 
 ### Improved
