@@ -1,7 +1,7 @@
 defmodule Serum.Mixfile do
   use Mix.Project
 
-  @serum_version "1.4.1"
+  @serum_version "1.5.0"
 
   def project do
     [
@@ -86,6 +86,7 @@ defmodule Serum.Mixfile do
         ],
         "Built-in Plugins": [
           Serum.Plugins.LiveReloader,
+          Serum.Plugins.PreviewGenerator,
           Serum.Plugins.SitemapGenerator,
           Serum.Plugins.TableOfContents
         ],

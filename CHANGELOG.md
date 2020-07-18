@@ -1,6 +1,6 @@
 # Serum Changelog
 
-## Unreleased Changes
+## v1.5.0 &mdash; 2020-07-19
 
 ### Added
 
@@ -24,7 +24,7 @@
   functionality. Unlike the built-in preview generator, this new plugin can
   generate preview texts not only for blog posts, but also for regular pages.
 
-  [Read the documentation](https://dalgona.github.io/Serum/docs/#extensions)
+  [Read the documentation](https://dalgona.github.io/Serum/docs/plugin/preview.html)
   to learn more about this plugin.
 
 ## v1.4.1 &mdash; 2020-02-20
