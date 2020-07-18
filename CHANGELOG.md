@@ -18,6 +18,15 @@
     - `:tags_path` (string, optional) - Path in an output directory which the
       tag pages will be written to. Defaults to `"tags"`.
 
+- Added a new Serum plugin: `Serum.Plugins.PreviewGenerator`.
+
+  This plugin is a replacement of the built-in preview text generation
+  functionality. Unlike the built-in preview generator, this new plugin can
+  generate preview texts not only for blog posts, but also for regular pages.
+
+  [Read the documentation](https://dalgona.github.io/Serum/docs/#extensions)
+  to learn more about this plugin.
+
 ## v1.4.1 &mdash; 2020-02-20
 
 ### Improved
@@ -42,11 +51,11 @@
   %{
     plugins: [
       # Generate sitemap entries for pages only.
-      {Serum.Plugins.SitemapGenerator, for: :pages},
+      {Serum.Plugins.SitemapGenerator, args: [for: :pages]},
       # Generate sitemap entries for posts only.
-      {Serum.Plugins.SitemapGenerator, for: :posts},
+      {Serum.Plugins.SitemapGenerator, args: [for: :posts]},
       # Generate sitemap entries for both pages and posts.
-      {Serum.Plugins.SitemapGenerator, for: [:pages, :posts]},
+      {Serum.Plugins.SitemapGenerator, args: [for: [:pages, :posts]]},
       # Generate sitemap entries for posts only. (Backward comptatibility)
       Serum.Plugins.SitemapGenerator
     ]
