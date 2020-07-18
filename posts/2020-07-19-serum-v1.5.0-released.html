@@ -1,0 +1,75 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Serum v1.5.0 Released - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+    
+<!--==========================================-->
+<!-- Override "includes/head-extras.html.eex" -->
+<!-- to add more tags inside this <head> tag. -->
+<!--==========================================-->
+
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+<h1><a href="/Serum/">Serum</a></h1>
+<p>A simple static website generator</p>
+</header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+  <li><a href="/Serum/posts">News</a></li>
+</ul>
+</nav>
+      <hr>
+      <main><article class="post"><header><h1 id="serum-v1.5.0-released">Serum v1.5.0 Released</h1><p>
+      Sunday, 19 Jul 2020
+      
+        <span class="tags">
+          Tags:
+          
+            <a class="tag" href="/Serum/tags/news">news</a><a class="tag" href="/Serum/tags/release">release</a></span></p></header><div><p>Since the first release of “Serum v2” is greatly delayed, I am going to release
+a few more versions of Serum v1. As an apology for such delay, these releases
+will include some new features backported from the upcoming “Serum v2” project.</p><p>Here’s the changelog for Serum v1.5.0:</p><h3 id="added">Added</h3><ul><li><p>Added 3 new configuration items for your
+<a href="/Serum/docs/project-definition.html">Serum project (<code class="inline">serum.exs</code>)</a>, which can be
+used to customize locations for your blog-related pages:</p><ul><li><p><code class="inline">:posts_source</code> (string, optional) - Path to a directory which holds
+source files for your blog posts. Defaults to <code class="inline">&quot;posts&quot;</code>.</p></li><li><p><code class="inline">:posts_path</code> (string, optional) - Path in a output directory which your
+rendered blog posts will be written to. Defaults to the value of
+<code class="inline">:posts_source</code>. (i.e. the default value will be <code class="inline">&quot;posts&quot;</code> if the value
+of <code class="inline">:posts_source</code> is not explicitly given.)</p></li><li><p><code class="inline">:tags_path</code> (string, optional) - Path in an output directory which the
+tag pages will be written to. Defaults to <code class="inline">&quot;tags&quot;</code>.</p></li></ul></li><li><p>Added a new Serum plugin: <code class="inline">Serum.Plugins.PreviewGenerator</code>.</p><p>This plugin is a replacement of the built-in preview text generation
+functionality. Unlike the built-in preview generator, this new plugin can
+generate preview texts not only for blog posts, but also for regular pages.</p><p><a href="/Serum/docs/plugin/preview.html">Read the documentation</a> to learn more about
+this plugin.</p></li></ul></div></article></main>
+      <hr>
+      <footer>
+        
+
+<p>
+  Copyright &copy; 2020 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.5.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>

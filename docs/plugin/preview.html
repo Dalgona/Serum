@@ -1,0 +1,107 @@
+
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Preview Text Generator Plugin - Serum</title>
+    <link rel="stylesheet" href="/Serum/assets/css/style.css">
+    <link rel="stylesheet" href="/Serum/assets/css/prism.css">
+    
+<!--==========================================-->
+<!-- Override "includes/head-extras.html.eex" -->
+<!-- to add more tags inside this <head> tag. -->
+<!--==========================================-->
+
+  </head>
+  <body>
+    <div id="wrapper">
+      <header id="top">
+<h1><a href="/Serum/">Serum</a></h1>
+<p>A simple static website generator</p>
+</header>
+      <nav>
+<ul>
+  
+    <li><a href="/Serum/index.html">Home</a></li>
+  
+    <li><a href="/Serum/getting-started.html">Getting Started</a></li>
+  
+    <li><a href="/Serum/microscope.html">Microscope</a></li>
+  
+    <li><a href="/Serum/docs/index.html">Docs</a></li>
+  
+  <li><a href="/Serum/posts">News</a></li>
+</ul>
+</nav>
+      <hr>
+      <main><article><div><p><a href="/Serum/docs/index.html">Go back to the index</a></p><header><h1 id="preview-text-generator-plugin">Preview Text Generator Plugin</h1><p>About 3 minutes to read</p><hr/></header><p><code class="inline">Serum.Plugins.PreviewGenerator</code> is a Serum plugin that generates preview texts
+of pages and blog posts. This plugin is included in the <code class="inline">serum</code> package, so you
+don’t need to add an extra dependency to use this plugin.</p><h2 id="using-the-plugin">Using the Plugin</h2><p>First, add this plugin to your <code class="inline">serum.exs</code>:</p><pre><code class="lang-elixir">%{
+  plugins: [
+    # Use this plugin with default options.
+    Serum.Plugins.PreviewGenerator
+
+    # Or, use this plugin with custom options.
+    {Serum.Plugins.PreviewGenerator, args: options}
+  ]
+}</code></pre><p>By default, this plugin takes the text of the first paragraph (<code class="inline">&lt;p&gt;</code> tag) to
+generate the preview text for each page or blog post. This behavior can be
+customized; see the <a href="#configuration">Configuration section</a> below for a list of
+available options.</p><p>Generated preview texts will be saved in <code class="inline">:extras</code> map of each page or post,
+with <code class="inline">&quot;preview&quot;</code> key. The name of key can also be customized.</p><pre><code class="lang-markup">&lt;%= for post &lt;- @all_posts do %&gt;
+  &lt;div class=&quot;post-list-item&quot;&gt;
+    &lt;!-- ... --&gt;
+    &lt;p class=&quot;preview&quot;&gt;&lt;%= post.extras[&quot;preview&quot;]&lt;/p&gt;
+  &lt;/div&gt;
+&lt;% end %&gt;</code></pre><p>If a page or a blog post already has <code class="inline">extras[&quot;preview&quot;]</code> (or other key
+specified by the <code class="inline">:preview_key</code> option), its value will be used instead.</p><pre><code class="">---
+title: Sample Blog Post
+date: 2020-07-17
+tags: sample
+preview: This string will be used instead as a preview text of this post.
+---
+
+Lorem ipsum dolor sit amet, ...</code></pre><h2 id="configuration">Configuration</h2><ul><li><p><code class="inline">:length</code></p><p>A keyword list which determines the maximum length of each preview text.
+Each item of this keyword list is called a “length spec,” and a length
+spec should look like one of the followings:</p><ul><li><p><code class="inline">{:chars, max_chars}</code> - Limits the maximum length of preview texts to
+<code class="inline">max_chars</code> characters.</p></li><li><p><code class="inline">{:words, max_words}</code> - Limits the maximum length of preview texts to
+<code class="inline">max_words</code> words. Each word is a group of characters splitted by one
+or more whitespace characters.</p></li><li><p><code class="inline">{:paragraphs, max_paragraphs}</code> - Limits the maximum length of preview
+texts to <code class="inline">max_paragraphs</code> paragraphs. This option assumes that contents
+of each page or blog post is well-organized using <code class="inline">&lt;p&gt;</code> tags. Otherwise
+this plugin may produce undesired results.</p></li></ul><p>This keyword list can have more than one length specs. In that case, this
+plugin will “sample” multiple preview texts for each page or blog post,
+and it will pick the shortest one as a final preview text.</p><p>Defaults to <code class="inline">[paragraphs: 1]</code>.</p></li><li><p><code class="inline">:preview_key</code></p><p>  A string which will be used as an alternative key for storing generated
+  preview texts. For example, if you set <code class="inline">:preview_key</code> to <code class="inline">&quot;summary&quot;</code>, you
+  will be able to access the preview text in your templates like this:</p><pre><code class="lang-markup">&lt;% %Serum.Post{} = post %&gt;
+&lt;p&gt;&lt;%= post.extras[&quot;summary&quot;] %&gt;&lt;/p&gt;</code></pre><p>Defaults to <code class="inline">&quot;preview&quot;</code>. If any value is given, any leading or trailing
+whitespaces will be trimmed.</p></li></ul><h3 id="configuration-example">Configuration Example</h3><pre><code class="lang-elixir"># In your serum.exs:
+%{
+  plugins: [
+    {Serum.Plugins.PreviewGenerator,
+     args: [
+       length: [paragraphs: 1, chars: 250],
+       preview_key: &quot;preview_text&quot;
+     ]}
+  ]
+}</code></pre></div></article></main>
+      <hr>
+      <footer>
+        
+
+<p>
+  Copyright &copy; 2020 Eunbin Jeong (Dalgona.)
+  <a href="https://dalgona.github.io">[Website]</a>
+  <a href="https://github.com/Dalgona">[GitHub]</a>
+</p>
+
+        <p>
+          Powered by <a href="https://github.com/Dalgona/Serum">Serum</a> v1.5.0,
+          with <a href="https://github.com/Dalgona/serum-theme-essence">Essence</a> theme
+        </p>
+      </footer>
+    </div>
+    <script src="/Serum/assets/js/prism.js"></script>
+  </body>
+</html>
