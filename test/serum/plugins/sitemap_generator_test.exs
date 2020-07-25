@@ -2,7 +2,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
   use Serum.Case
   alias Serum.GlobalBindings
   alias Serum.Plugins.SitemapGenerator, as: P
-  alias Serum.Project
+  alias Serum.V2.BuildContext
   alias Serum.V2.Page
   alias Serum.V2.Post
 
@@ -30,7 +30,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
 
   describe "build_succeeded/2" do
     test "generates items for posts by default", %{dir: dir} do
-      {:ok, _} = P.build_succeeded(%Project{dest: dir}, [])
+      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, [])
       sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
       refute String.contains?(sitemap, "http://example.com/index.html")
@@ -38,7 +38,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     end
 
     test "generates items for pages", %{dir: dir} do
-      {:ok, _} = P.build_succeeded(%Project{dest: dir}, for: :pages)
+      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, for: :pages)
       sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
       assert String.contains?(sitemap, "http://example.com/index.html")
@@ -46,7 +46,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     end
 
     test "generates items for both pages and posts", %{dir: dir} do
-      {:ok, _} = P.build_succeeded(%Project{dest: dir}, for: [:pages, :posts])
+      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, for: [:pages, :posts])
       sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
       assert String.contains?(sitemap, "http://example.com/index.html")
@@ -56,7 +56,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     test "returns an error when failed to write a file", %{dir: dir} do
       File.chmod!(dir, 0o000)
 
-      {:ok, _} = P.build_succeeded(%Project{dest: dir}, [])
+      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, [])
 
       File.chmod!(dir, 0o755)
     end

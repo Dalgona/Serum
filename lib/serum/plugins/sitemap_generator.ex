@@ -17,8 +17,8 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   require EEx
   alias Serum.GlobalBindings
-  alias Serum.Project
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Page
   alias Serum.V2.Post
 
@@ -32,7 +32,7 @@ defmodule Serum.Plugins.SitemapGenerator do
 
   def init(args), do: {:ok, args}
 
-  def build_succeeded(%Project{dest: dest}, args) do
+  def build_succeeded(%BuildContext{dest_dir: dest}, args) do
     {pages, posts} = get_items(args[:for])
 
     dest
