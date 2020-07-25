@@ -19,11 +19,11 @@ defmodule Serum.BuildTest do
     {:ok, [src: src, dest: dest, proj: proj]}
   end
 
-  test "builds a valid Serum project", %{dest: dest, proj: proj} do
-    assert {:ok, ^dest} = Build.build(proj)
+  test "builds a valid Serum project", %{src: src, dest: dest, proj: proj} do
+    assert {:ok, ^dest} = Build.build(proj, src, dest)
 
     # Clean the destination dir when is not empty
-    assert {:ok, ^dest} = Build.build(proj)
+    assert {:ok, ^dest} = Build.build(proj, src, dest)
 
     ~w(assets media posts test_file.txt)
     |> Enum.each(fn x ->
@@ -35,13 +35,13 @@ defmodule Serum.BuildTest do
     File.rm_rf!(Path.join(src, "assets"))
     File.rm_rf!(Path.join(src, "media"))
 
-    assert {:ok, ^dest} = Build.build(proj)
+    assert {:ok, ^dest} = Build.build(proj, src, dest)
   end
 
-  test "fails when there is no write permission", %{dest: dest, proj: proj} do
+  test "fails when there is no write permission", %{src: src, dest: dest, proj: proj} do
     File.chmod!(dest, 0o555)
 
-    assert {:error, _} = Build.build(proj)
+    assert {:error, _} = Build.build(proj, src, dest)
 
     File.chmod!(dest, 0o755)
     File.rm_rf!(dest)
@@ -50,24 +50,25 @@ defmodule Serum.BuildTest do
 
     File.chmod!(parent, 0o555)
 
-    assert {:error, _} = Build.build(proj)
+    assert {:error, _} = Build.build(proj, src, dest)
 
     File.chmod!(parent, 0o755)
   end
 
-  test "fails when the output directory cannot be accessed", %{dest: dest, proj: proj} do
+  test "fails when the output directory cannot be accessed", %{src: src, dest: dest, proj: proj} do
+    fake_dest = Path.join([dest, "foo", "bar", "baz"])
     proj = %{proj | dest: Path.join([dest, "foo", "bar", "baz"])}
 
-    assert {:error, _} = Build.build(proj)
+    assert {:error, _} = Build.build(proj, src, fake_dest)
   end
 
-  test "aborts when failed to load required files", %{src: src, proj: proj} do
+  test "aborts when failed to load required files", %{src: src, dest: dest, proj: proj} do
     File.rm_rf!(Path.join(src, "templates"))
 
-    assert {:error, _} = Build.build(proj)
+    assert {:error, _} = Build.build(proj, src, dest)
   end
 
-  test "aborts when failed to process some files", %{src: src, proj: proj} do
+  test "aborts when failed to process some files", %{src: src, dest: dest, proj: proj} do
     "pages/bad-*.*"
     |> fixture()
     |> Path.wildcard()
@@ -75,6 +76,6 @@ defmodule Serum.BuildTest do
       File.cp!(file, Path.join([src, "pages", Path.basename(file)]))
     end)
 
-    assert {:error, _} = Build.build(proj)
+    assert {:error, _} = Build.build(proj, src, dest)
   end
 end

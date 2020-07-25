@@ -45,7 +45,7 @@ defmodule Mix.Tasks.Serum.Build do
     Mix.shell().info(CLIUtils.version_string())
 
     with {:ok, %Project{} = proj} <- ProjectLoader.load("", dest),
-         {:ok, ^dest} <- Build.build(proj) do
+         {:ok, ^dest} <- Build.build(proj, "", dest) do
       """
 
       #{A.bright()}Your website is now ready!#{A.reset()}

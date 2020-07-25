@@ -46,8 +46,8 @@ defmodule Serum.Build do
 
   8. Copies `assets/` and `media/` directories if they exist.
   """
-  @spec build(Project.t()) :: Result.t(binary())
-  def build(%Project{dest: dest} = proj) do
+  @spec build(Project.t(), binary(), binary()) :: Result.t(binary())
+  def build(%Project{} = proj, _src, dest) do
     Result.run do
       load_extensions(proj)
       PluginClient.build_started(proj)

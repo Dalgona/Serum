@@ -162,7 +162,7 @@ defmodule Serum.DevServer.Service.GenServer do
   @spec do_rebuild(binary(), binary()) :: Result.t({})
   defp do_rebuild(src, dest) do
     with {:ok, %Project{} = proj} <- ProjectLoader.load(src, dest),
-         {:ok, ^dest} <- Build.build(proj) do
+         {:ok, ^dest} <- Build.build(proj, src, dest) do
       Result.return()
     else
       {:error, _} = error -> build_failed(error)
