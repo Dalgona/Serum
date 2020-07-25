@@ -16,6 +16,7 @@ defmodule Serum.Build do
   alias Serum.Project
   alias Serum.Theme
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Error
 
   @doc """
@@ -47,13 +48,15 @@ defmodule Serum.Build do
   8. Copies `assets/` and `media/` directories if they exist.
   """
   @spec build(Project.t(), binary(), binary()) :: Result.t(binary())
-  def build(%Project{} = proj, _src, dest) do
+  def build(%Project{} = proj, src, dest) do
+    context = %BuildContext{project: proj, source_dir: src, dest_dir: dest}
+
     Result.run do
       load_extensions(proj)
-      PluginClient.build_started(proj)
+      PluginClient.build_started(context)
       pre_check(dest)
-      do_build(proj)
-      PluginClient.build_succeeded(proj)
+      do_build(context)
+      PluginClient.build_succeeded(context)
 
       Result.return(dest)
     end
@@ -64,7 +67,7 @@ defmodule Serum.Build do
 
       {:error, %Error{}} = error ->
         Result.run do
-          PluginClient.build_failed(proj, error)
+          PluginClient.build_failed(context, error)
           cleanup_extensions()
 
           error
@@ -72,7 +75,7 @@ defmodule Serum.Build do
     end
   end
 
-  @spec load_extensions(Project.t()) :: Result.t(Project.t())
+  @spec load_extensions(Project.t()) :: Result.t({})
   defp load_extensions(proj) do
     Result.run do
       plugins <- Plugin.load(proj.plugins)
@@ -100,8 +103,8 @@ defmodule Serum.Build do
     end
   end
 
-  @spec do_build(Project.t()) :: Result.t({})
-  defp do_build(%{src: src, dest: dest} = proj) do
+  @spec do_build(BuildContext.t()) :: Result.t({})
+  defp do_build(%BuildContext{project: %{} = proj, source_dir: src, dest_dir: dest}) do
     Result.run do
       files <- FileLoader.load_files(src)
       map <- FileProcessor.process_files(files, proj)
