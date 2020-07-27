@@ -22,14 +22,10 @@ defmodule Serum.Project do
             pagination: false,
             posts_per_page: 5,
             preview_length: 200,
-            src: nil,
-            dest: nil,
             plugins: [],
             theme: nil
 
   @type t :: %__MODULE__{
-          src: binary(),
-          dest: binary(),
           site_name: binary(),
           site_description: binary(),
           server_root: binary(),

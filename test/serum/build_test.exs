@@ -57,7 +57,6 @@ defmodule Serum.BuildTest do
 
   test "fails when the output directory cannot be accessed", %{src: src, dest: dest, proj: proj} do
     fake_dest = Path.join([dest, "foo", "bar", "baz"])
-    proj = %{proj | dest: Path.join([dest, "foo", "bar", "baz"])}
 
     assert {:error, _} = Build.build(proj, src, fake_dest)
   end

@@ -30,7 +30,7 @@ defmodule Serum.Project.Loader do
           base_url: proj.base_url
         })
 
-      Result.return(%Project{proj | src: src, dest: dest})
+      Result.return(proj)
     end
   end
 
