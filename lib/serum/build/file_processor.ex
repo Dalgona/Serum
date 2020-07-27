@@ -6,7 +6,7 @@ defmodule Serum.Build.FileProcessor do
   require Serum.V2.Result, as: Result
   alias Serum.Build.FileLoader
   alias Serum.GlobalBindings
-  alias Serum.Project
+  alias Serum.V2.BuildContext
   alias Serum.V2.Page
   alias Serum.V2.Post
   alias Serum.V2.PostList
@@ -34,20 +34,20 @@ defmodule Serum.Build.FileProcessor do
   - Updates the `Serum.GlobalBindings` agent so that the above information is
     available later, when rendering pages into fragments or full HTML pages.
   """
-  @spec process_files(FileLoader.result(), Project.t()) :: Result.t(result())
-  def process_files(files, proj) do
+  @spec process_files(FileLoader.result(), BuildContext.t()) :: Result.t(result())
+  def process_files(files, context) do
     import Serum.Build.FileProcessor.{Page, Post, PostList, Template}
 
     %{pages: page_files, posts: post_files} = files
 
     Result.run do
       compile_templates(files)
-      {pages, compact_pages} <- preprocess_pages(page_files, proj)
-      {posts, compact_posts} <- preprocess_posts(post_files, proj)
-      {lists, tag_counts} <- generate_lists(compact_posts, proj)
+      {pages, compact_pages} <- preprocess_pages(page_files, context)
+      {posts, compact_posts} <- preprocess_posts(post_files, context)
+      {lists, tag_counts} <- generate_lists(compact_posts, context)
       update_global_bindings(compact_pages, compact_posts, tag_counts)
-      pages <- process_pages(pages, proj)
-      posts <- process_posts(posts, proj)
+      pages <- process_pages(pages, context)
+      posts <- process_posts(posts, context)
 
       Result.return(%{
         pages: pages,

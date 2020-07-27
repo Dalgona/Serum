@@ -1,6 +1,8 @@
 defmodule Serum.Build.FileProcessor.PostListTest do
   use Serum.Case, async: true
   alias Serum.Build.FileProcessor.PostList, as: ListGenerator
+  alias Serum.Project
+  alias Serum.V2.BuildContext
   alias Serum.V2.Tag
 
   setup_all do
@@ -21,23 +23,14 @@ defmodule Serum.Build.FileProcessor.PostListTest do
         }
       end)
 
-    proj_template = %{
-      src: "/path/to/src/",
-      dest: "/path/to/dest/",
-      base_url: "/",
-      list_title_all: "All Posts",
-      list_title_tag: "Posts Tagged ~s",
-      posts_per_page: 5
-    }
-
-    {:ok, [compact_posts: compact_posts, proj_template: proj_template]}
+    {:ok, [compact_posts: compact_posts]}
   end
 
   describe "generate_lists/2" do
     test "no pagination", ctx do
       posts = ctx.compact_posts
-      proj = Map.put(ctx.proj_template, :pagination, false)
-      {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, proj)
+      context = make_context(pagination: false)
+      {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, context)
 
       # (num_of_tags + 1) * (index + page_1)
       assert length(lists) === (3 + 1) * 2
@@ -60,8 +53,8 @@ defmodule Serum.Build.FileProcessor.PostListTest do
 
     test "chunk every 5 posts", ctx do
       posts = ctx.compact_posts
-      proj = Map.put(ctx.proj_template, :pagination, true)
-      {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, proj)
+      context = make_context(pagination: true, posts_per_page: 5)
+      {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, context)
 
       # num_of_tags * (index + page_1_to_4) + 1 * (index + page_1_to_6)
       assert length(lists) === 3 * (1 + 4) + (1 + 6)
@@ -88,6 +81,23 @@ defmodule Serum.Build.FileProcessor.PostListTest do
       assert state["tag2"] === 5
       assert state["tag3"] === 5
     end
+  end
+
+  @spec make_context(keyword()) :: BuildContext.t()
+  defp make_context(project_overrides) do
+    project =
+      %Project{
+        base_url: "/",
+        list_title_all: "All Posts",
+        list_title_tag: "Posts Tagged ~s"
+      }
+      |> Map.merge(Map.new(project_overrides))
+
+    %BuildContext{
+      project: project,
+      source_dir: "/path/to/src/",
+      dest_dir: "/path/to/dest/"
+    }
   end
 
   defp check_list(list) do

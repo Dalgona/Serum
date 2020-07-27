@@ -6,13 +6,15 @@ defmodule Serum.PostList do
   `Serum.V2.PostList` structs.
   """
 
+  alias Serum.Project
+  alias Serum.V2.BuildContext
   alias Serum.V2.PostList
   alias Serum.V2.Tag
 
   @type maybe_tag :: Tag.t() | nil
 
-  @spec generate(maybe_tag(), [map()], map()) :: [PostList.t()]
-  def generate(tag, posts, proj) do
+  @spec generate(maybe_tag(), [map()], BuildContext.t()) :: [PostList.t()]
+  def generate(tag, posts, %BuildContext{project: %Project{} = proj} = context) do
     paginate? = proj.pagination
     num_posts = proj.posts_per_page
 
@@ -34,7 +36,7 @@ defmodule Serum.PostList do
           title: list_title,
           posts: posts,
           url: Path.join([proj.base_url, list_dir, "page-#{page}.html"]),
-          dest: Path.join([proj.dest, list_dir, "page-#{page}.html"]),
+          dest: Path.join([context.dest_dir, list_dir, "page-#{page}.html"]),
           extras: %{}
         }
       end)
@@ -42,7 +44,7 @@ defmodule Serum.PostList do
     first_dup = %PostList{
       list
       | url: Path.join([proj.base_url, list_dir, "index.html"]),
-        dest: Path.join([proj.dest, list_dir, "index.html"])
+        dest: Path.join([context.dest_dir, list_dir, "index.html"])
     }
 
     [first_dup, list | lists]
@@ -64,7 +66,7 @@ defmodule Serum.PostList do
     Enum.chunk_every(posts, num_posts)
   end
 
-  @spec list_title(maybe_tag(), map()) :: binary()
+  @spec list_title(maybe_tag(), Project.t()) :: binary()
   defp list_title(tag, proj)
   defp list_title(nil, proj), do: proj.list_title_all
 

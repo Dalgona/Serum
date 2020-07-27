@@ -7,19 +7,20 @@ defmodule Serum.Post do
   """
 
   alias Serum.HeaderParser.ParseResult
-  alias Serum.Project
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Post
   alias Serum.V2.Tag
 
-  @spec new(V2.File.t(), ParseResult.t(), Project.t()) :: Post.t()
-  def new(source, %ParseResult{} = header, proj) do
-    filename = Path.relative_to(source.src, proj.src)
+  @spec new(V2.File.t(), ParseResult.t(), BuildContext.t()) :: Post.t()
+  def new(source, %ParseResult{} = header, %BuildContext{} = context) do
+    base_url = context.project.base_url
+    filename = Path.relative_to(source.src, context.source_dir)
     {type, original_ext} = get_type(filename)
 
     {url, dest} =
       with name <- String.replace_suffix(filename, original_ext, "html") do
-        {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
+        {Path.join(base_url, name), Path.join(context.dest_dir, name)}
       end
 
     %Post{
@@ -28,7 +29,7 @@ defmodule Serum.Post do
       type: type,
       title: header.data[:title],
       date: header.data[:date] || Timex.to_datetime(Timex.zero(), :local),
-      tags: create_tags(header.data[:tags] || [], proj),
+      tags: create_tags(header.data[:tags] || [], base_url),
       url: url,
       data: header.rest,
       template: header.data[:template],
@@ -43,15 +44,15 @@ defmodule Serum.Post do
     |> Map.put(:type, :post)
   end
 
-  @spec create_tags([binary()], Project.t()) :: [Tag.t()]
-  defp create_tags(tag_names, proj) do
+  @spec create_tags([binary()], binary()) :: [Tag.t()]
+  defp create_tags(tag_names, base_url) do
     tag_names
     |> Enum.uniq()
     |> Enum.sort()
     |> Enum.map(
       &%Tag{
         name: &1,
-        path: Path.join([proj.base_url, "tags", &1])
+        path: Path.join([base_url, "tags", &1])
       }
     )
   end

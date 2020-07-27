@@ -104,10 +104,10 @@ defmodule Serum.Build do
   end
 
   @spec do_build(BuildContext.t()) :: Result.t({})
-  defp do_build(%BuildContext{project: %{} = proj, source_dir: src, dest_dir: dest}) do
+  defp do_build(%BuildContext{source_dir: src, dest_dir: dest} = context) do
     Result.run do
       files <- FileLoader.load_files(src)
-      map <- FileProcessor.process_files(files, proj)
+      map <- FileProcessor.process_files(files, context)
       fragments <- FragmentGenerator.to_fragment(map)
       generated_files <- PageGenerator.run(fragments)
       FileEmitter.run(generated_files)

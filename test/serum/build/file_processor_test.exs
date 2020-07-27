@@ -5,6 +5,7 @@ defmodule Serum.Build.FileProcessorTest do
   alias Serum.GlobalBindings
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Error
 
   # Here we *roughly* test this module
@@ -14,7 +15,10 @@ defmodule Serum.Build.FileProcessorTest do
   # - Serum.Build.PostListTest
 
   setup_all do
-    {:ok, proj} = ProjectLoader.load(fixture("proj/good"), "/tmp/dest/")
+    source_dir = fixture("proj/good")
+    dest_dir = "/tmp/dest/"
+    {:ok, proj} = ProjectLoader.load(source_dir, dest_dir)
+    context = %BuildContext{project: proj, source_dir: source_dir, dest_dir: dest_dir}
 
     good_page_files =
       fixture("pages")
@@ -68,33 +72,33 @@ defmodule Serum.Build.FileProcessorTest do
       templates: bad_template_files
     }
 
-    {:ok, [good: good, bad: bad, proj: proj]}
+    {:ok, [good: good, bad: bad, context: context]}
   end
 
   setup(do: on_exit(fn -> Agent.update(GlobalBindings, fn _ -> {%{}, []} end) end))
 
   describe "process_files/2" do
     test "processes valid source files", ctx do
-      assert {:ok, processed} = FileProcessor.process_files(ctx.good, ctx.proj)
+      assert {:ok, processed} = FileProcessor.process_files(ctx.good, ctx.context)
     end
 
     test "fails with bad templates", ctx do
       files = %{ctx.good | includes: [], templates: ctx.bad.templates}
-      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.context)
 
       assert Enum.all?(errors, fn %Error{file: file} -> file.src =~ ~r/.html.eex$/ end)
     end
 
     test "fails with bad pages", ctx do
       files = %{ctx.good | pages: ctx.bad.pages}
-      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.context)
 
       assert Enum.all?(errors, fn %Error{file: file} -> file.src =~ "pages" end)
     end
 
     test "fails with bad posts", ctx do
       files = %{ctx.good | posts: ctx.bad.posts}
-      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = FileProcessor.process_files(files, ctx.context)
 
       assert Enum.all?(errors, fn %Error{file: file} -> file.src =~ "posts" end)
     end

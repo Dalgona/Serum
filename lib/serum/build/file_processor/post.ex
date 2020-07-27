@@ -5,37 +5,37 @@ defmodule Serum.Build.FileProcessor.Post do
   import Serum.V2.Console, only: [put_msg: 2]
   alias Serum.Build.FileProcessor.Content
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Project
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Error
   alias Serum.V2.Post
 
-  @spec preprocess_posts([V2.File.t()], Project.t()) :: Result.t({[Post.t()], [map()]})
-  def preprocess_posts(files, proj)
-  def preprocess_posts([], _proj), do: Result.return({[], []})
+  @spec preprocess_posts([V2.File.t()], BuildContext.t()) :: Result.t({[Post.t()], [map()]})
+  def preprocess_posts(files, context)
+  def preprocess_posts([], _context), do: Result.return({[], []})
 
-  def preprocess_posts(files, proj) do
+  def preprocess_posts(files, context) do
     put_msg(:info, "Processing post files...")
 
     Result.run do
       files <- PluginClient.processing_posts(files)
-      posts <- do_preprocess_posts(files, proj)
+      posts <- do_preprocess_posts(files, context)
       sorted_posts = Enum.sort(posts, &(DateTime.compare(&1.date, &2.date) == :gt))
 
       Result.return({sorted_posts, Enum.map(sorted_posts, &Serum.Post.compact/1)})
     end
   end
 
-  @spec do_preprocess_posts([V2.File.t()], Project.t()) :: Result.t([Post.t()])
-  defp do_preprocess_posts(files, proj) do
+  @spec do_preprocess_posts([V2.File.t()], BuildContext.t()) :: Result.t([Post.t()])
+  defp do_preprocess_posts(files, context) do
     files
-    |> Task.async_stream(&preprocess_post(&1, proj))
+    |> Task.async_stream(&preprocess_post(&1, context))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate("failed to preprocess posts:")
   end
 
-  @spec preprocess_post(V2.File.t(), Project.t()) :: Result.t(Post.t())
-  defp preprocess_post(file, proj) do
+  @spec preprocess_post(V2.File.t(), BuildContext.t()) :: Result.t(Post.t())
+  defp preprocess_post(file, context) do
     import Serum.HeaderParser
     alias Serum.HeaderParser.ParseResult
 
@@ -48,18 +48,18 @@ defmodule Serum.Build.FileProcessor.Post do
 
     Result.run do
       %ParseResult{} = header <- parse_header(file, opts, ~w(title date)a)
-      Result.return(Serum.Post.new(file, header, proj))
+      Result.return(Serum.Post.new(file, header, context))
     end
   end
 
   @doc false
-  @spec process_posts([Post.t()], Project.t()) :: Result.t([Post.t()])
-  def process_posts(posts, proj)
-  def process_posts([], _proj), do: Result.return([])
+  @spec process_posts([Post.t()], BuildContext.t()) :: Result.t([Post.t()])
+  def process_posts(posts, context)
+  def process_posts([], _context), do: Result.return([])
 
-  def process_posts(posts, proj) do
+  def process_posts(posts, context) do
     posts
-    |> Task.async_stream(&process_post(&1, proj))
+    |> Task.async_stream(&process_post(&1, context))
     |> Enum.map(&elem(&1, 1))
     |> Result.aggregate("failed to process posts:")
     |> case do
@@ -68,11 +68,11 @@ defmodule Serum.Build.FileProcessor.Post do
     end
   end
 
-  @spec process_post(Post.t(), Project.t()) :: Result.t(Post.t())
-  defp process_post(post, proj) do
+  @spec process_post(Post.t(), BuildContext.t()) :: Result.t(Post.t())
+  defp process_post(post, context) do
     process_opts = [file: post.source, line: post.extras["__serum__next_line__"]]
 
-    case Content.process_content(post.data, post.type, proj, process_opts) do
+    case Content.process_content(post.data, post.type, context, process_opts) do
       {:ok, data} -> Result.return(%Post{post | data: data})
       {:error, %Error{}} = error -> error
     end

@@ -7,19 +7,19 @@ defmodule Serum.Page do
   """
 
   alias Serum.HeaderParser.ParseResult
-  alias Serum.Project
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Page
 
-  @spec new(V2.File.t(), ParseResult.t(), Project.t()) :: Page.t()
-  def new(source, %ParseResult{} = header, proj) do
-    page_dir = (proj.src == "." && "pages") || Path.join(proj.src, "pages")
+  @spec new(V2.File.t(), ParseResult.t(), BuildContext.t()) :: Page.t()
+  def new(source, %ParseResult{} = header, %BuildContext{} = context) do
+    page_dir = (context.source_dir == "." && "pages") || Path.join(context.source_dir, "pages")
     filename = Path.relative_to(source.src, page_dir)
     {type, original_ext} = get_type(filename)
 
     {url, dest} =
       with name <- String.replace_suffix(filename, original_ext, "html") do
-        {Path.join(proj.base_url, name), Path.join(proj.dest, name)}
+        {Path.join(context.project.base_url, name), Path.join(context.dest_dir, name)}
       end
 
     %Page{

@@ -6,24 +6,28 @@ defmodule Serum.Build.FileProcessor.PageTest do
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
+  alias Serum.V2.BuildContext
   alias Serum.V2.Error
   alias Serum.V2.Page
 
   setup_all do
-    {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+    source_dir = fixture("proj/good/")
+    dest_dir = "/path/to/dest/"
+    {:ok, proj} = ProjectLoader.load(source_dir, dest_dir)
+    context = %BuildContext{project: proj, source_dir: source_dir, dest_dir: dest_dir}
     template = Template.new("Hello, world!", "test", :template, "test.html.eex")
 
     TS.load(%{"test" => template}, :include)
     on_exit(fn -> TS.reset() end)
 
-    {:ok, [proj: proj]}
+    {:ok, [context: context]}
   end
 
   describe "preprocess_pages/2 and process_posts/2" do
-    test "preprocesses markdown files", %{proj: proj} do
+    test "preprocesses markdown files", %{context: context} do
       file = read("pages/good-md.md")
-      {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
-      {:ok, [page]} = process_pages(pages, proj)
+      {:ok, {pages, [compact_page]}} = preprocess_pages([file], context)
+      {:ok, [page]} = process_pages(pages, context)
 
       assert %Page{
                title: "Test Markdown Page",
@@ -39,10 +43,10 @@ defmodule Serum.Build.FileProcessor.PageTest do
       validate_compact(compact_page)
     end
 
-    test "preprocesses HTML-EEx files", %{proj: proj} do
+    test "preprocesses HTML-EEx files", %{context: context} do
       file = read("pages/good-html.html.eex")
-      {:ok, {pages, [compact_page]}} = preprocess_pages([file], proj)
-      {:ok, [page]} = process_pages(pages, proj)
+      {:ok, {pages, [compact_page]}} = preprocess_pages([file], context)
+      {:ok, [page]} = process_pages(pages, context)
 
       assert %Page{
                title: "Test HTML-EEx Page",
@@ -58,17 +62,17 @@ defmodule Serum.Build.FileProcessor.PageTest do
       validate_compact(compact_page)
     end
 
-    test "fallbacks to the default label", ctx do
+    test "fallbacks to the default label", %{context: context} do
       file = %V2.File{src: fixture("pages/good-minimal-header.md")}
       {:ok, file} = V2.File.read(file)
-      {:ok, {[page], [compact_page]}} = preprocess_pages([file], ctx.proj)
+      {:ok, {[page], [compact_page]}} = preprocess_pages([file], context)
 
       assert String.ends_with?(page.dest, ".html")
       assert page.label === "Test Page"
       assert compact_page.label === "Test Page"
     end
 
-    test "fails on pages with bad headers", ctx do
+    test "fails on pages with bad headers", %{context: context} do
       files =
         fixture("pages")
         |> Path.join("bad-*.md")
@@ -77,12 +81,12 @@ defmodule Serum.Build.FileProcessor.PageTest do
         |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:error, %Error{caused_by: errors}} = preprocess_pages(files, ctx.proj)
+      {:error, %Error{caused_by: errors}} = preprocess_pages(files, context)
 
       assert length(errors) === length(files)
     end
 
-    test "fails on bad EEx pages", ctx do
+    test "fails on bad EEx pages", %{context: context} do
       files =
         fixture("pages")
         |> Path.join("bad-*.html.eex")
@@ -91,8 +95,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
         |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:ok, {pages, _}} = preprocess_pages(files, ctx.proj)
-      {:error, %Error{caused_by: errors}} = process_pages(pages, ctx.proj)
+      {:ok, {pages, _}} = preprocess_pages(files, context)
+      {:error, %Error{caused_by: errors}} = process_pages(pages, context)
 
       assert length(errors) === length(files)
     end

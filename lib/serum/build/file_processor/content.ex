@@ -11,19 +11,19 @@ defmodule Serum.Build.FileProcessor.Content do
 
   require Serum.V2.Result, as: Result
   alias Serum.Markdown
-  alias Serum.Project
   alias Serum.Renderer
   alias Serum.Template
   alias Serum.Template.Compiler, as: TC
+  alias Serum.V2.BuildContext
 
-  @spec process_content(binary(), binary(), Project.t(), keyword()) :: Result.t(binary())
-  def process_content(data, type, proj, options)
+  @spec process_content(binary(), binary(), BuildContext.t(), keyword()) :: Result.t(binary())
+  def process_content(data, type, context, options)
 
-  def process_content(data, "md", proj, _options) do
-    Result.return(Markdown.to_html(data, proj))
+  def process_content(data, "md", context, _options) do
+    Result.return(Markdown.to_html(data, context.project))
   end
 
-  def process_content(data, "html", _proj, options) do
+  def process_content(data, "html", _context, options) do
     src_line = options[:line] || 1
     file = options[:file]
 
