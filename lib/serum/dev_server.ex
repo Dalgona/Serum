@@ -20,7 +20,7 @@ defmodule Serum.DevServer do
     uniq = Base.url_encode64(:crypto.strong_rand_bytes(6))
     site = Path.expand("serum_" <> uniq, System.tmp_dir!())
 
-    with {:ok, %Project{} = proj} <- ProjectLoader.load(dir, site),
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(dir),
          {:ok, pid} when is_pid(pid) <- do_run(dir, site, port, proj) do
       {:ok, pid}
     else

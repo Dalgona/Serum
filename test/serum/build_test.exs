@@ -12,7 +12,7 @@ defmodule Serum.BuildTest do
     Enum.each([tmp_dir, src, dest], &File.mkdir_p!/1)
     make_project(src)
 
-    {:ok, proj} = ProjectLoader.load(src, dest)
+    {:ok, proj} = ProjectLoader.load(src)
 
     on_exit(fn -> File.rm_rf!(tmp_dir) end)
 

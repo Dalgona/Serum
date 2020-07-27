@@ -44,7 +44,7 @@ defmodule Mix.Tasks.Serum.Build do
 
     Mix.shell().info(CLIUtils.version_string())
 
-    with {:ok, %Project{} = proj} <- ProjectLoader.load("", dest),
+    with {:ok, %Project{} = proj} <- ProjectLoader.load(""),
          {:ok, ^dest} <- Build.build(proj, "", dest) do
       """
 

@@ -17,7 +17,7 @@ defmodule Serum.Build.FileProcessorTest do
   setup_all do
     source_dir = fixture("proj/good")
     dest_dir = "/tmp/dest/"
-    {:ok, proj} = ProjectLoader.load(source_dir, dest_dir)
+    {:ok, proj} = ProjectLoader.load(source_dir)
     context = %BuildContext{project: proj, source_dir: source_dir, dest_dir: dest_dir}
 
     good_page_files =

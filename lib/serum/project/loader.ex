@@ -12,8 +12,8 @@ defmodule Serum.Project.Loader do
   @doc """
   Detects and loads Serum project definition file from the source directory.
   """
-  @spec load(binary(), binary()) :: Result.t(Project.t())
-  def load(src, dest) do
+  @spec load(binary()) :: Result.t(Project.t())
+  def load(src) do
     Result.run do
       file <- V2.File.read(%V2.File{src: Path.join(src, "serum.exs")})
       value <- eval_file(file)

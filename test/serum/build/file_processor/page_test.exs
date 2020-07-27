@@ -13,7 +13,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
   setup_all do
     source_dir = fixture("proj/good/")
     dest_dir = "/path/to/dest/"
-    {:ok, proj} = ProjectLoader.load(source_dir, dest_dir)
+    {:ok, proj} = ProjectLoader.load(source_dir)
     context = %BuildContext{project: proj, source_dir: source_dir, dest_dir: dest_dir}
     template = Template.new("Hello, world!", "test", :template, "test.html.eex")
 
