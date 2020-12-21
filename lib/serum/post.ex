@@ -14,7 +14,7 @@ defmodule Serum.Post do
 
   @spec new(V2.File.t(), ParseResult.t(), BuildContext.t()) :: Post.t()
   def new(source, %ParseResult{} = header, %BuildContext{} = context) do
-    base_url = context.project.base_url
+    base_url = context.project.base_url.path
     filename = Path.relative_to(source.src, context.source_dir)
     {type, original_ext} = get_type(filename)
 

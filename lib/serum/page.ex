@@ -16,11 +16,9 @@ defmodule Serum.Page do
     page_dir = (context.source_dir == "." && "pages") || Path.join(context.source_dir, "pages")
     filename = Path.relative_to(source.src, page_dir)
     {type, original_ext} = get_type(filename)
-
-    {url, dest} =
-      with name <- String.replace_suffix(filename, original_ext, "html") do
-        {Path.join(context.project.base_url, name), Path.join(context.dest_dir, name)}
-      end
+    dest_basename = String.replace_suffix(filename, original_ext, "html")
+    url = Path.join(context.project.base_url.path, dest_basename)
+    dest = Path.join(context.dest_dir, dest_basename)
 
     %Page{
       source: source,

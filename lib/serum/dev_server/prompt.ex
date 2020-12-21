@@ -111,7 +111,7 @@ defmodule Serum.DevServer.Prompt do
   end
 
   defp do_run_command("open", _options) do
-    base_url = GlobalBindings.get(:site)[:base_url]
+    base_url = GlobalBindings.get(:project).base_url.path
     abs_url = "http://localhost:#{@service.port()}#{base_url}"
 
     case @command_handler.open_url(abs_url) do

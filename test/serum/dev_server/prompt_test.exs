@@ -12,7 +12,7 @@ defmodule Serum.DevServer.PromptTest do
     {:ok, io_opts} = Console.config()
 
     Console.config(mute_err: false)
-    GlobalBindings.load(%{site: %{base_url: "/test-site/"}})
+    GlobalBindings.load(%{project: %{base_url: URI.parse("https://example.com/test-site/")}})
 
     on_exit(fn ->
       Console.config(Keyword.new(io_opts))
