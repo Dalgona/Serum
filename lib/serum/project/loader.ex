@@ -5,32 +5,25 @@ defmodule Serum.Project.Loader do
 
   require Serum.V2.Result, as: Result
   alias Serum.GlobalBindings
-  alias Serum.Project
-  alias Serum.Project.ElixirValidator
+  alias Serum.StructValidator.BlogConfiguration, as: BlogValidator
+  alias Serum.StructValidator.Project, as: ProjectValidator
   alias Serum.V2
+  alias Serum.V2.Project
 
   @doc """
-  Detects and loads Serum project definition file from the source directory.
+  Detects and loads Serum project configuration file from the source directory.
   """
   @spec load(binary()) :: Result.t(Project.t())
   def load(src) do
     Result.run do
       file <- V2.File.read(%V2.File{src: Path.join(src, "serum.exs")})
       value <- eval_file(file)
-      ElixirValidator.validate(value)
-      proj = Project.new(value)
+      ProjectValidator.validate(value)
+      BlogValidator.validate(value.blog)
+      project = Serum.Project.new(value)
+      :ok = GlobalBindings.put(:project, project)
 
-      :ok =
-        GlobalBindings.put(:site, %{
-          name: proj.site_name,
-          description: proj.site_description,
-          author: proj.author,
-          author_email: proj.author_email,
-          server_root: proj.server_root,
-          base_url: proj.base_url
-        })
-
-      Result.return(proj)
+      Result.return(project)
     end
   end
 

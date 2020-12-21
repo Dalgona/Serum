@@ -1,3 +1,4 @@
 %{
-  site_name: "Test " + "Website"
+  # ** (ArithmeticError)
+  title: "Test " + "Webite",
 }

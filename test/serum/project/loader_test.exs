@@ -1,9 +1,9 @@
 defmodule Serum.Project.LoaderTest do
   use Serum.Case, async: true
   require Serum.TestHelper
-  alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
   alias Serum.V2.Error
+  alias Serum.V2.Project
 
   describe "load/2" do
     test "loads valid serum.exs file" do
@@ -40,7 +40,7 @@ defmodule Serum.Project.LoaderTest do
       src = fixture("proj/bad-invalid")
       {:error, %Error{caused_by: errors}} = ProjectLoader.load(src)
 
-      assert length(errors) === 5
+      assert length(errors) === 3
     end
   end
 end

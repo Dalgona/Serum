@@ -4,103 +4,54 @@ defmodule Serum.Project do
   """
 
   import Serum.V2.Console, only: [put_err: 2]
-  alias Serum.V2.Plugin
-  alias Serum.V2.Theme
+  alias Serum.V2.Project
+  alias Serum.V2.Project.BlogConfiguration
 
-  @default_date_format "{YYYY}-{0M}-{0D}"
-  @default_list_title_tag "Posts Tagged ~s"
+  @doc """
+  Creates a new `Serum.V2.Project` struct from the given map.
 
-  defstruct site_name: "",
-            site_description: "",
-            server_root: "",
-            base_url: "",
-            author: "",
-            author_email: "",
-            date_format: @default_date_format,
-            list_title_all: "All Posts",
-            list_title_tag: @default_list_title_tag,
-            pagination: false,
-            posts_per_page: 5,
-            preview_length: 200,
-            plugins: [],
-            theme: nil
+  The map is expected to be already validated using
+  `Serum.StructValidator.Project.validate/1` and
+  `Serum.StructValidator.BlogConfiguration.validate/1` functions.
+  """
 
-  @type t :: %__MODULE__{
-          site_name: binary(),
-          site_description: binary(),
-          server_root: binary(),
-          base_url: binary(),
-          author: binary(),
-          author_email: binary(),
-          date_format: binary(),
-          list_title_all: binary(),
-          list_title_tag: binary(),
-          pagination: boolean(),
-          posts_per_page: pos_integer(),
-          preview_length: non_neg_integer(),
-          plugins: [Plugin.spec()],
-          theme: Theme.spec() | nil
-        }
-
-  @spec default_date_format() :: binary()
-  def default_date_format, do: @default_date_format
-
-  @spec default_list_title_tag() :: binary()
-  def default_list_title_tag, do: @default_list_title_tag
-
-  @doc "A helper function for creating a new Project struct."
-  @spec new(map) :: t
-  def new(map) do
-    checked_map =
+  @spec new(map()) :: Project.t()
+  def new(%{base_url: base_url, blog: blog} = map) do
+    new_map = %{
       map
-      |> check_date_format()
-      |> check_list_title_format()
+      | base_url: URI.parse(base_url),
+        blog: make_blog(blog)
+    }
 
-    struct(__MODULE__, checked_map)
+    struct(Project, new_map)
   end
 
-  @spec check_date_format(map) :: map
-  defp check_date_format(map) do
-    case map[:date_format] do
-      nil ->
-        map
+  @spec make_blog(map() | false) :: BlogConfiguration.t() | false
+  defp make_blog(blog_map_or_false)
+  defp make_blog(false), do: false
 
-      fmt when is_binary(fmt) ->
-        case Timex.validate_format(fmt) do
-          :ok ->
-            map
-
-          {:error, message} ->
-            msg = """
-            Invalid date format string `date_format`:
-              #{message}
-            The default format string will be used instead.
-            """
-
-            put_err(:warn, String.trim(msg))
-            Map.delete(map, :date_format)
-        end
-    end
+  defp make_blog(%{} = blog_map) do
+    struct(BlogConfiguration, check_list_title_tag(blog_map))
   end
 
-  @spec check_list_title_format(map) :: map
-  defp check_list_title_format(map) do
-    case map[:list_title_tag] do
+  @spec check_list_title_tag(map()) :: map()
+  defp check_list_title_tag(%{} = blog_map) do
+    case blog_map[:list_title_tag] do
       nil ->
-        map
+        blog_map
 
-      fmt when is_binary(fmt) ->
-        :io_lib.format(fmt, ["test"])
-        map
+      format when is_binary(format) ->
+        :io_lib.format(format, ["test"])
+        blog_map
     end
   rescue
     ArgumentError ->
-      msg = """
-      Invalid post list title format string `list_title_tag`.
+      message = """
+      Invalid post list title format string (`list_title_tag`).
       The default format string will be used instead.
       """
 
-      put_err(:warn, String.trim(msg))
-      Map.delete(map, :list_title_tag)
+      put_err(:warn, String.trim(message))
+      Map.delete(blog_map, :list_title_tag)
   end
 end
