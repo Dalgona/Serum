@@ -5,7 +5,7 @@ defmodule Serum.Markdown do
   This module provides functions related to dealing with markdown data.
   """
 
-  alias Serum.Project
+  alias Serum.V2.Project
 
   @re_media ~r/(?<type>href|src)="(?:%|%25)media:(?<url>[^"]*)"/
   @re_post ~r/(?<type>href|src)="(?:%|%25)post:(?<url>[^"]*)"/
@@ -13,10 +13,10 @@ defmodule Serum.Markdown do
 
   @doc "Converts a markdown document into HTML."
   @spec to_html(binary(), Project.t()) :: binary()
-  def to_html(markdown, proj) do
+  def to_html(markdown, %Project{} = proj) do
     markdown
     |> Earmark.as_html!()
-    |> process_links(proj.base_url)
+    |> process_links(proj.base_url.path)
   end
 
   @spec process_links(binary(), binary()) :: binary()

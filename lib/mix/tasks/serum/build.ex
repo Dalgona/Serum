@@ -25,8 +25,8 @@ defmodule Mix.Tasks.Serum.Build do
   alias IO.ANSI, as: A
   alias Serum.Build
   alias Serum.CLIUtils
-  alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.V2.Project
 
   @options [
     strict: [output: :string],
@@ -36,7 +36,7 @@ defmodule Mix.Tasks.Serum.Build do
   @impl true
   @spec run(any) :: any()
   def run(args) do
-    Mix.Project.compile([])
+    Mix.Task.run("compile")
 
     options = CLIUtils.parse_options(args, @options)
     dest = options[:output] || "site"

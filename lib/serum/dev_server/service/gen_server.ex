@@ -10,8 +10,8 @@ defmodule Serum.DevServer.Service.GenServer do
   import Serum.V2.Console, only: [put_err: 2, put_msg: 2]
   alias Serum.Build
   alias Serum.DevServer.Service
-  alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.V2.Project
 
   @behaviour Service
 

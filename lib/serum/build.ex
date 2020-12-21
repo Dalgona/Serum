@@ -13,11 +13,11 @@ defmodule Serum.Build do
   alias Serum.Build.PageGenerator
   alias Serum.Plugin
   alias Serum.Plugin.Client, as: PluginClient
-  alias Serum.Project
   alias Serum.Theme
   alias Serum.V2
   alias Serum.V2.BuildContext
   alias Serum.V2.Error
+  alias Serum.V2.Project
 
   @doc """
   Builds the given Serum project.

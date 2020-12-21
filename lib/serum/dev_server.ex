@@ -6,8 +6,8 @@ defmodule Serum.DevServer do
   require Serum.V2.Result, as: Result
   alias Serum.DevServer.Logger
   alias Serum.DevServer.Service
-  alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
+  alias Serum.V2.Project
 
   @doc """
   Starts the Serum development server.
@@ -42,13 +42,12 @@ defmodule Serum.DevServer do
   end
 
   @spec do_run(binary(), binary(), integer(), Project.t()) :: Supervisor.on_start()
-  defp do_run(dir, site, port, proj) do
+  defp do_run(dir, site, port, %Project{} = proj) do
     trap_exit = Process.flag(:trap_exit, true)
-    base = proj.base_url
 
     ms_options = [
       port: port,
-      base: base,
+      base: proj.base_url.path,
       callbacks: [Logger],
       index: true,
       extra_routes: [
