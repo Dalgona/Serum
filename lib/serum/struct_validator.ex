@@ -108,8 +108,8 @@ defmodule Serum.StructValidator do
     value
     |> do_validate(module, all_keys, required_keys)
     |> case do
-      {:ok, _} = ok_result ->
-        ok_result
+      {:ok, _} ->
+        Result.return()
 
       {:error, %Error{caused_by: errors} = error} ->
         Result.fail(

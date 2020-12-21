@@ -18,6 +18,6 @@ defmodule Serum.StructValidator.BlogConfiguration do
   end
 
   def validate(term)
-  def validate(false), do: Result.return(false)
+  def validate(false), do: Result.return()
   def validate(term), do: super(term)
 end
