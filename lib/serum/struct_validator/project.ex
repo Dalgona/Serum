@@ -10,7 +10,7 @@ defmodule Serum.StructValidator.Project do
     key :description, rules: [is_binary: []]
     key :base_url, required: true, rules: [is_binary: [], =~: [~r[^https?://]]]
     key :authors, rules: [is_map: []]
-    key :blogs, rules: [map_or_false?: []]
+    key :blog, rules: [map_or_false?: []]
     key :theme, rules: [valid_theme_spec?: []]
     key :plugins, rules: [is_list: []]
   end
