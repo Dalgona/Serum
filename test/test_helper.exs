@@ -74,6 +74,7 @@ defmodule Serum.Case do
 
   using do
     quote do
+      require Serum.TestHelper
       import Mox
       import Serum.TestHelper
     end
