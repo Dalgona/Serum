@@ -40,12 +40,12 @@ defmodule Serum.Mixfile do
       {:file_system, "~> 0.2"},
       {:microscope, "~> 1.3"},
       {:timex, "~> 3.5"},
-      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.11", only: [:test], runtime: false},
+      {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
+      {:excoveralls, "0.13.4", only: [:test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
-      {:floki, "0.27.0"},
-      {:ex_doc, "~> 0.20", only: :dev, runtime: false},
-      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
+      {:floki, "0.29.0"},
+      {:ex_doc, "~> 0.23", only: :dev, runtime: false},
+      {:mix_test_watch, "1.0.2", only: :dev, runtime: false},
       {:mox, "~> 0.5", only: :test}
     ]
   end
