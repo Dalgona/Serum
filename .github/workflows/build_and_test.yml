@@ -9,8 +9,8 @@ jobs:
 
     strategy:
       matrix:
-        otp-version: ['22.3.4.5']
-        elixir-version: ['1.9.4', '1.10.4']
+        otp-version: ['23.0.4', '23.1.5', '23.2.1']
+        elixir-version: ['1.11.2']
 
     env:
       MIX_ENV: test
