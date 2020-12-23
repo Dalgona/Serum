@@ -13,10 +13,10 @@ defmodule Serum.V2.Error.CycleMessage do
   @doc """
   Creates a `Serum.V2.Error.CycleMessage` struct.
 
-  The argument must be a list with exactly one item, which is a list of any
-  term that can be converted into a string via the `String.Chars` protocol.
+  The argument must be a list of any term that can be converted into a string
+  via the `String.Chars` protocol.
   """
   @impl true
-  @spec message([list()]) :: t()
-  def message([items]) when is_list(items), do: %__MODULE__{cycle: items}
+  @spec message([String.Chars.t()]) :: t()
+  def message(items) when is_list(items), do: %__MODULE__{cycle: items}
 end

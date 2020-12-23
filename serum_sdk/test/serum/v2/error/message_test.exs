@@ -8,7 +8,7 @@ defmodule Serum.V2.Error.MessageTest do
   describe "CycleMessage.message/1" do
     test "creates a CycleMessage struct" do
       cycle = ~w[foo bar baz]
-      message = CycleMessage.message([cycle])
+      message = CycleMessage.message(cycle)
 
       assert message.cycle === cycle
     end
@@ -17,7 +17,7 @@ defmodule Serum.V2.Error.MessageTest do
   describe "ExceptionMessage.message/1" do
     test "creates an ExceptionMessage struct" do
       {e, stacktrace} = exception()
-      message = ExceptionMessage.message([e, stacktrace])
+      message = ExceptionMessage.message({e, stacktrace})
 
       assert %RuntimeError{message: "test error"} = message.exception
       assert is_list(message.stacktrace)
@@ -26,13 +26,13 @@ defmodule Serum.V2.Error.MessageTest do
 
   describe "POSIXMessage.message/1" do
     test "creates an POSIXMessage struct" do
-      assert %POSIXMessage{reason: :enoent} = POSIXMessage.message([:enoent])
+      assert %POSIXMessage{reason: :enoent} = POSIXMessage.message(:enoent)
     end
   end
 
   describe "SimpleMessage.message/1" do
     test "creates an SimpleMessage struct" do
-      assert %SimpleMessage{text: "foo"} = SimpleMessage.message(["foo"])
+      assert %SimpleMessage{text: "foo"} = SimpleMessage.message("foo")
     end
   end
 

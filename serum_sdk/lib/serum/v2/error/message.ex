@@ -4,5 +4,5 @@ defmodule Serum.V2.Error.Message do
   @type t :: struct()
 
   @doc "Creates an error message struct from the given arguments."
-  @callback message(args :: [term()]) :: t()
+  @callback message(arg :: term()) :: t()
 end

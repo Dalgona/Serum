@@ -151,15 +151,15 @@ defmodule Serum.V2.Result do
   """
   defmacro fail(args)
 
-  defmacro fail([{msg_type, msg_args} | opts])
-           when is_atom(msg_type) and is_list(msg_args) and is_list(opts) do
+  defmacro fail([{msg_type, msg_arg} | opts])
+           when is_atom(msg_type) and is_list(opts) do
     msg_module = Module.concat(Serum.V2.Error, "#{msg_type}Message")
     caused_by = opts[:caused_by] || []
 
     quote do
       {:error,
        %Serum.V2.Error{
-         message: unquote(msg_module).message(unquote(msg_args)),
+         message: unquote(msg_module).message(unquote(msg_arg)),
          caused_by: unquote(caused_by),
          file: unquote(opts[:file]),
          line: unquote(opts[:line])

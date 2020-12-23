@@ -12,8 +12,8 @@ defmodule Serum.V2.Error.ConstraintMessage do
         }
 
   @impl true
-  @spec message([term()]) :: t()
-  def message([name, value, constraint]) when is_binary(constraint) do
+  @spec message({String.Chars.t(), term(), binary()}) :: t()
+  def message({name, value, constraint}) when is_binary(constraint) do
     %__MODULE__{name: name, value: value, constraint: constraint}
   end
 end

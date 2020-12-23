@@ -7,8 +7,8 @@ defmodule Serum.V2.ErrorTest do
   describe "prewalk/2" do
     test "performs pre-order traversal to modify nested errors" do
       errors = [
-        Result.fail(Simple: ["error 1"]),
-        Result.fail(Simple: ["error 2"])
+        Result.fail(Simple: "error 1"),
+        Result.fail(Simple: "error 2")
       ]
 
       {:error, error} = Result.aggregate(errors, "multiple errors occurred")

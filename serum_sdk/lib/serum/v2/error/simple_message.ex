@@ -10,9 +10,9 @@ defmodule Serum.V2.Error.SimpleMessage do
   @doc """
   Creates a `Serum.V2.Error.SimpleMessage` struct.
 
-  The argument must be a list with exactly one item, which is the message text.
+  The argument must be a string, which contains the message text.
   """
   @impl true
-  @spec message([binary()]) :: t()
-  def message([text]) when is_binary(text), do: %__MODULE__{text: text}
+  @spec message(binary()) :: t()
+  def message(text) when is_binary(text), do: %__MODULE__{text: text}
 end

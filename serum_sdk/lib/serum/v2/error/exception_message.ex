@@ -15,19 +15,18 @@ defmodule Serum.V2.Error.ExceptionMessage do
   @doc """
   Creates a `Serum.V2.Error.ExceptionMessage` struct.
 
-  The argument must be a list with exactly two items, where the first one is an
-  exception information retrieved in a `rescue` block, and the second one is
-  the stacktrace information.
+  The argument must be a tuple with two elements, where the first one is an
+  excetion struct provided in a `rescue` clause, and the second one is a
+  stacktrace.
 
   To get a stacktrace, use `__STACKTRACE__/0` if inside a `rescue` block, or
   `Process.info(self(), :current_stacktrace)` if in anywhere else.
 
-  The second list item cannot be omitted. If the stacktrace information is not
-  available, put `nil` instead.
+  If the stacktrace information is not available, put `nil` instead.
   """
   @impl true
-  @spec message([Exception.t() | Exception.stacktrace()]) :: t()
-  def message([exception, stacktrace]) do
+  @spec message({Exception.t(), Exception.stacktrace()}) :: t()
+  def message({%{__exception__: true} = exception, stacktrace}) do
     %__MODULE__{exception: exception, stacktrace: stacktrace}
   end
 end
