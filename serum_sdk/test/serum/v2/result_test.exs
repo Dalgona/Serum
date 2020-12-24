@@ -112,4 +112,53 @@ defmodule Serum.V2.ResultTest do
       assert error.line === 3
     end
   end
+
+  describe "from_exception/1" do
+    test "expands into a valid expression" do
+      ast =
+        quote do
+          try do
+            raise "oh, no!"
+          rescue
+            e -> Result.from_exception(e)
+          end
+        end
+
+      {expr, _bindings} = Code.eval_quoted(ast, [], __ENV__)
+
+      assert {:error, %Error{} = error} = expr
+
+      assert %ExceptionMessage{
+               exception: %RuntimeError{},
+               stacktrace: [_ | _]
+             } = error.message
+    end
+  end
+
+  describe "from_exception/2" do
+    test "expands into a valid expression" do
+      file = %V2.File{src: "nofile"}
+
+      ast =
+        quote do
+          try do
+            raise "oh, no!"
+          rescue
+            e -> Result.from_exception(e, file: unquote(Macro.escape(file)), line: 3)
+          end
+        end
+
+      {expr, _bindings} = Code.eval_quoted(ast, [], __ENV__)
+
+      assert {:error, %Error{} = error} = expr
+
+      assert %ExceptionMessage{
+               exception: %RuntimeError{},
+               stacktrace: [_ | _]
+             } = error.message
+
+      assert error.file === file
+      assert error.line === 3
+    end
+  end
 end

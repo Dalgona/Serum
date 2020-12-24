@@ -236,4 +236,42 @@ defmodule Serum.V2.Result do
        line: options[:line]
      }}
   end
+
+  @doc """
+  A shortcut macro for creating a failed result from an exception.
+
+  This macro implies that the stacktrace is obtained from the `__STACKTRACE__/0`
+  macro. Therefore it's only valid in `rescue` blocks.
+
+  The second argument is an optional keyword list of options. See `fail/3` for
+  a list of available options.
+
+  ## Example
+
+      iex> try do
+      ...>   3 + "a"
+      ...> rescue
+      ...>   e -> Serum.V2.Result.from_exception(e)
+      ...> end
+      {:error,
+       %Serum.V2.Error{
+         message: %Serum.V2.Error.ExceptionMessage{
+           exception: %ArithmeticError{},
+           stacktrace: [...]
+         },
+         caused_by: [],
+         file: nil,
+         line: nil
+       }}
+  """
+  @spec from_exception(Macro.t(), keyword()) :: Macro.t()
+  defmacro from_exception(exception, options \\ []) do
+    quote do
+      unquote(__MODULE__).fail(
+        Exception,
+        {unquote(exception), __STACKTRACE__},
+        unquote(options)
+      )
+    end
+  end
 end
