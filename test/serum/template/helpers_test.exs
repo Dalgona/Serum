@@ -22,14 +22,6 @@ defmodule Serum.Template.HelpersTest do
     on_exit(fn -> TS.reset() end)
   end
 
-  describe "base/0 (macro)" do
-    test "returns the base URL of the project" do
-      assigns = @assigns
-
-      assert Helpers.base() === "/base/url"
-    end
-  end
-
   describe "base/1 (macro)" do
     test "returns an absolute URL of the given path" do
       assigns = @assigns

@@ -18,12 +18,6 @@ defmodule Serum.Template.Helpers do
   alias Serum.Template.Storage, as: TS
   alias Serum.V2.Error
 
-  @doc "Returns the value of `@site.base_url`."
-
-  defmacro base do
-    quote do: unquote(base!())
-  end
-
   @doc """
   Returns the path relative to `@site.base_url`.
 
