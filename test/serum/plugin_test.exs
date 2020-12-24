@@ -4,7 +4,6 @@ defmodule Serum.PluginTest do
   import ExUnit.CaptureIO
   import Serum.Plugin
   import Serum.Plugin.Client
-  alias Serum.V2
   alias Serum.V2.Console
   alias Serum.V2.Error
   alias Serum.V2.Fragment
@@ -36,20 +35,20 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = build_started(%{})
       assert {:ok, _} = build_succeeded(%{})
       assert {:ok, _} = build_failed(%{}, {:error, %Error{}})
-      assert {:ok, _} = reading_pages(["a", "b", "c"])
-      assert {:ok, _} = reading_posts(["a", "b", "c"])
-      assert {:ok, _} = reading_templates(["a", "b", "c"])
-      assert {:ok, _} = processing_pages([%V2.File{src: "page.md"}])
-      assert {:ok, _} = processing_posts([%V2.File{src: "post.md"}])
-      assert {:ok, _} = processing_templates([%V2.File{src: "template.html.eex"}])
+      assert {:ok, _} = reading_pages(build_list(3, :file_name))
+      assert {:ok, _} = reading_posts(build_list(3, :file_name))
+      assert {:ok, _} = reading_templates(build_list(3, :file_name, type: "html.eex"))
+      assert {:ok, _} = processing_pages([build(:input_file)])
+      assert {:ok, _} = processing_posts([build(:input_file)])
+      assert {:ok, _} = processing_templates([build(:input_file, type: "html.eex")])
       assert {:ok, _} = processed_pages([%Page{title: "Test Page 1"}])
       assert {:ok, _} = processed_posts([%Post{title: "Test Post 1"}])
-      assert {:ok, _} = processed_templates([%Template{source: %V2.File{src: "base.html.eex"}}])
+      assert {:ok, _} = processed_templates([%Template{source: build(:input_file, type: "html.eex")}])
       assert {:ok, _} = generated_post_lists([[%PostList{title: "Test Post List"}]])
       assert {:ok, _} = generating_fragment([{"p", [], ["Hello, world!"]}], %{type: :page})
       assert {:ok, _} = generated_fragment(%Fragment{dest: "test.html"})
-      assert {:ok, _} = rendered_pages([%V2.File{dest: "test.html"}])
-      assert {:ok, _} = wrote_files([%V2.File{dest: "test.html"}])
+      assert {:ok, _} = rendered_pages([build(:output_file, type: "html")])
+      assert {:ok, _} = wrote_files([build(:output_file, type: "html")])
     end)
 
     assert states()[Serum.DummyPlugin] === 1017

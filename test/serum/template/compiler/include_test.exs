@@ -4,7 +4,6 @@ defmodule Serum.Template.Compiler.IncludeTest do
   alias Serum.Template
   alias Serum.Template.Compiler.Include
   alias Serum.Template.Storage, as: TS
-  alias Serum.V2
 
   setup_all do
     TS.load(includes(), :include)
@@ -76,13 +75,13 @@ defmodule Serum.Template.Compiler.IncludeTest do
       {"deep_cycle_3", quote(do: include("deep_cycle_1"))}
     ]
     |> Enum.map(fn {name, ast} ->
-      {name, Template.new(ast, name, :include, %V2.File{src: name})}
+      {name, Template.new(ast, name, :include, build(:input_file, src: name))}
     end)
     |> Enum.into(%{})
 
   defp includes, do: unquote(Macro.escape(include_sources))
 
   defp make_template(ast) do
-    Template.new(ast, "test", :template, %V2.File{src: "nofile"})
+    Template.new(ast, "test", :template, build(:input_file))
   end
 end

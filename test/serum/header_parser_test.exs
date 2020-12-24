@@ -2,7 +2,6 @@ defmodule Serum.HeaderParserTest do
   use Serum.Case, async: true
   import Serum.HeaderParser
   alias Serum.HeaderParser.ParseResult
-  alias Serum.V2
 
   @options [
     my_str: :string,
@@ -25,7 +24,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       expected = %ParseResult{
         data: %{
@@ -47,7 +46,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       assert {:error, error} = parse_header(file, @options, @required)
       assert to_string(error) =~ "is required"
@@ -60,7 +59,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       assert {:error, error} = parse_header(file, @options, @required)
       assert to_string(error) =~ "are required"
@@ -74,7 +73,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       expected = %ParseResult{
         data: %{my_str: "Hello, world!"},
@@ -96,7 +95,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       expected = %ParseResult{
         data: %{
@@ -118,7 +117,7 @@ defmodule Serum.HeaderParserTest do
       ÒωÓ
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       assert {:error, error} = parse_header(file, @options)
       assert to_string(error) =~ "header not found"
@@ -131,7 +130,7 @@ defmodule Serum.HeaderParserTest do
       ---
       """
 
-      file = %V2.File{src: "testfile", in_data: data}
+      file = build(:input_file, in_data: data)
 
       assert {:error, error} = parse_header(file, @options)
       assert to_string(error) =~ "invalid integer"
