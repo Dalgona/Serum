@@ -1,5 +1,7 @@
 ExUnit.start()
 
+{:ok, _} = Application.ensure_all_started(:ex_machina)
+
 Serum.V2.Console.config(mute_err: true, mute_msg: true)
 
 defmodule Serum.TestHelper do
@@ -76,6 +78,7 @@ defmodule Serum.Case do
     quote do
       require Serum.TestHelper
       import Mox
+      import Serum.Factory
       import Serum.TestHelper
     end
   end
