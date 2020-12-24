@@ -2,6 +2,8 @@ defmodule Serum.V2.ResultTest do
   use ExUnit.Case, async: true
   require Serum.V2.Result, as: Result
   alias Serum.V2
+  alias Serum.V2.Error
+  alias Serum.V2.Error.{ExceptionMessage, POSIXMessage, SimpleMessage}
 
   describe "aggregate/2" do
     test "aggregates a list of successful results" do
@@ -42,7 +44,7 @@ defmodule Serum.V2.ResultTest do
     end
 
     test "passes the error through when failed" do
-      error = Result.fail(Simple: "test error")
+      error = Result.fail("test error")
       double = fn x -> Result.return(x * 2) end
 
       assert error === Result.bind(error, double)
@@ -76,28 +78,38 @@ defmodule Serum.V2.ResultTest do
   end
 
   describe "fail/1" do
-    test "expands into appropriate error expression" do
-      ast =
-        quote do
-          Result.fail(Simple: "test error", file: %V2.File{src: "nofile"}, line: 3)
-        end
-
-      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
-
-      assert generated_code =~ ~r/^\{:error, %Serum.V2.Error/
-      assert generated_code =~ "Serum.V2.Error.SimpleMessage.message(\"test error\")"
-      assert generated_code =~ ~r/file: %V2.File{[^}]*src: \"nofile\"/
-      assert generated_code =~ "caused_by: []"
-      assert generated_code =~ "line: 3"
+    test "creates a valid result value" do
+      assert {:error, %Error{} = error} = Result.fail("oh, no!")
+      assert error.message === %SimpleMessage{text: "oh, no!"}
     end
+  end
 
-    test "expands into appropriate error expression, with default opts" do
-      ast = quote(do: Result.fail(Simple: "test error"))
-      generated_code = ast |> Macro.expand(__ENV__) |> Macro.to_string()
+  describe "fail/2, as fail/1 with options" do
+    test "creates a valid result value" do
+      file = %V2.File{src: "nofile"}
 
-      assert generated_code =~ "caused_by: []"
-      assert generated_code =~ "file: nil"
-      assert generated_code =~ "line: nil"
+      assert {:error, %Error{} = error} = Result.fail("oh, no!", file: file, line: 3)
+      assert error.message === %SimpleMessage{text: "oh, no!"}
+      assert error.file === file
+      assert error.line === 3
+    end
+  end
+
+  describe "fail/2, as fail/3 without options" do
+    test "creates a valid result value" do
+      assert {:error, %Error{} = error} = Result.fail(POSIX, :enoent)
+      assert error.message === %POSIXMessage{reason: :enoent}
+    end
+  end
+
+  describe "fail/3" do
+    test "creates a valid result value" do
+      file = %V2.File{src: "nofile"}
+
+      assert {:error, %Error{} = error} = Result.fail(Simple, "oh, no!", file: file, line: 3)
+      assert error.message === %SimpleMessage{text: "oh, no!"}
+      assert error.file === file
+      assert error.line === 3
     end
   end
 end

@@ -29,11 +29,7 @@ defmodule Serum.V2.File do
   """
   @spec read(t()) :: Result.t(t())
   def read(%__MODULE__{src: nil}) do
-    Result.fail(
-      Simple:
-        "a Serum.File struct with 'src = nil' " <>
-          "cannot be used with Serum.File.read/1"
-    )
+    Result.fail("a Serum.File struct with 'src = nil' cannot be used with Serum.File.read/1")
   end
 
   def read(%__MODULE__{src: src} = file) do
@@ -43,7 +39,7 @@ defmodule Serum.V2.File do
         Result.return(%__MODULE__{file | in_data: data})
 
       {:error, reason} ->
-        Result.fail(POSIX: reason, file: file)
+        Result.fail(POSIX, reason, file: file)
     end
   end
 
@@ -54,11 +50,7 @@ defmodule Serum.V2.File do
   """
   @spec write(t()) :: Result.t(t())
   def write(%__MODULE__{dest: nil}) do
-    Result.fail(
-      Simple:
-        "a Serum.File struct with 'dest = nil' " <>
-          "cannot be used with Serum.File.write/1"
-    )
+    Result.fail("a Serum.File struct with 'dest = nil' cannot be used with Serum.File.write/1")
   end
 
   def write(%__MODULE__{dest: dest, out_data: data} = file) do
@@ -68,7 +60,7 @@ defmodule Serum.V2.File do
         Result.return(file)
 
       {:error, reason} ->
-        Result.fail(POSIX: reason, file: file)
+        Result.fail(POSIX, reason, file: file)
     end
   end
 

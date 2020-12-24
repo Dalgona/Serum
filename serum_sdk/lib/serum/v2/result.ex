@@ -125,13 +125,90 @@ defmodule Serum.V2.Result do
   defmacro return(expr), do: quote(do: {:ok, unquote(expr)})
 
   @doc """
-  Creates a failed result.
+  Creates a result value indicating a failure.
 
-  Expands into `{:error, %Serum.Error{...}}` tuple.
+  This function is a shortcut for creating a failed result with a simple,
+  string-based error message, without any options.
+
+  ## Example
+
+      iex> Serum.V2.Result.fail("oh, no!")
+      {:error,
+       %Serum.V2.Error{
+         message: %Serum.V2.Error.SimpleMessage{text: "oh, no!"},
+         caused_by: [],
+         file: nil,
+         line: nil
+       }}
+  """
+  @spec fail(binary()) :: Result.t(term())
+  def fail(msg_string) when is_binary(msg_string), do: fail(msg_string, [])
+
+  @doc """
+  Creates a result value indicating a failure.
+
+  This function has two usages:
+
+  - `fail/3`, but without `options` keyword list
+
+        iex> Serum.V2.Result.fail(POSIX, :enoent)
+        {:error,
+         %Serum.V2.Error{
+           message: %Serum.V2.Error.POSIXMessage{reason: :enoent},
+           caused_by: [],
+           file: nil,
+           line: nil
+         }}
+
+  - `fail/1`, but with an `options` keyword list
+
+        iex> Serum.V2.Result.fail("oh, no!", file: %Serum.V2.File{}, line: 3)
+        {:error,
+        %Serum.V2.Error{
+          message: %Serum.V2.Error.SimpleMessage{text: "oh, no!"},
+          caused_by: [],
+          file: %Serum.V2.File{},
+          line: 3
+        }}
+  """
+  @spec fail(binary() | atom(), keyword() | term()) :: Result.t(term())
+  def fail(msg_type_or_msg_string, msg_arg_or_options)
+
+  def fail(msg_string, options) when is_binary(msg_string) and is_list(options) do
+    fail(Simple, msg_string, options)
+  end
+
+  def fail(msg_type, msg_arg) when is_atom(msg_type) do
+    fail(msg_type, msg_arg, [])
+  end
+
+  @doc """
+  Creates a result value indicating a failure.
+
+  The first argument specifies which type of error message will be used.
+  Possible values are:
+
+  - `Constraint` (or `:Constraint`) for `Serum.V2.Error.ConstraintMessage`
+  - `Cycle` (or `:Cycle`) for `Serum.V2.Error.CycleMessage`
+  - `Exception` (or `:Exception`) for `Serum.V2.Error.ExceptionMessage`
+  - `POSIX` (or `:POSIX`) for `Serum.V2.Error.POSIXMessage`
+  - `Simple` (or `:Simple`) for `Serum.V2.Error.SimpleMessage`
+
+  The second argument is passed to the error message constructor function.
+  See the documentation for each error message struct listed above for more
+  information.
+
+  The third argument, which can be omitted, is a keyword list of options.
+  Available options are:
+
+  - `:caused_by` - a list of `Serum.V2.Error` structs which caused this failure.
+  - `:file` - a `Serum.V2.File` struct which caused this failure.
+  - `:line` - line number in a file specified by `options[:file]`. This is only
+    meaningful when `options[:file]` is set to a valid `Serum.V2.File` struct.
 
   ## Examples
 
-      iex> Serum.V2.Result.fail(Simple: ["oh, no!"])
+      iex> Serum.V2.Result.fail(Simple, "oh, no!")
       {:error,
        %Serum.V2.Error{
          message: %Serum.V2.Error.SimpleMessage{text: "oh, no!"},
@@ -140,7 +217,7 @@ defmodule Serum.V2.Result do
          line: nil
        }}
 
-      iex> Serum.V2.Result.fail(Simple: ["oh, no!"], file: %Serum.File{}, line: 3)
+      iex> Serum.V2.Result.fail(Simple, "oh, no!", file: %Serum.File{}, line: 3)
       {:error,
        %Serum.V2.Error{
          message: %Serum.V2.Error.SimpleMessage{text: "oh, no!"},
@@ -149,21 +226,14 @@ defmodule Serum.V2.Result do
          line: 3
        }}
   """
-  defmacro fail(args)
-
-  defmacro fail([{msg_type, msg_arg} | opts])
-           when is_atom(msg_type) and is_list(opts) do
-    msg_module = Module.concat(Serum.V2.Error, "#{msg_type}Message")
-    caused_by = opts[:caused_by] || []
-
-    quote do
-      {:error,
-       %Serum.V2.Error{
-         message: unquote(msg_module).message(unquote(msg_arg)),
-         caused_by: unquote(caused_by),
-         file: unquote(opts[:file]),
-         line: unquote(opts[:line])
-       }}
-    end
+  @spec fail(atom(), term(), keyword()) :: Result.t(term())
+  def fail(msg_type, msg_arg, options) when is_atom(msg_type) and is_list(options) do
+    {:error,
+     %Error{
+       message: Module.concat(Error, "#{msg_type}Message").message(msg_arg),
+       caused_by: options[:caused_by] || [],
+       file: options[:file],
+       line: options[:line]
+     }}
   end
 end
