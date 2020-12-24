@@ -65,7 +65,62 @@ defmodule Serum.V2.Result do
     do_aggregate(results, values, [error | errors])
   end
 
-  @doc "Binds the value of the given `result` to `fun`."
+  @doc """
+  Binds the value of the given `result` to `fun`.
+
+  This function is useful when a sequence of operations returning result values
+  must be chained.
+
+  ## General Example
+
+  Let's say you have three functions, `foo/1`, `bar/1`, and `baz/1`,
+  all of which performs an operation which may succeed or fail, and returns a
+  result value (i.e. an `{:ok, value}` or `{:error, error}` tuple).
+
+  You have to write a code so that `bar/1` is called with a value returned from
+  `foo/1` if `foo/1` has succeeded, and then `baz/1` is called with a value
+  returned from `bar/1` if `bar/1` has succeeded, and if one of these functions
+  should fail, the entire chain must be aborted immediately and return the first
+  failed result.
+
+  The `bind/2` function is just for this kind of problems:
+
+      bind(foo(x), fn a ->
+        # This function is called only if foo(x) returns {:ok, a}.
+        bind(bar(a), fn b ->
+          # This function is called only if bar(a) returns {:ok, b}.
+          bind(baz(b), fn c ->
+            # This function is called only if baz(b) returns {:ok, c}.
+            # Do something good here.
+          end)
+        end)
+      end)
+
+  You can chain operations with `bind/2` function as much as you need. However,
+  if the chain gets longer, the `run/1` macro might come in handy:
+
+      run do
+        a <- foo(x)
+        b <- bar(a)
+        c <- baz(b)
+
+        # Do something good here.
+      end
+
+  ## Examples
+
+      iex> Serum.V2.Result.bind(
+      ...>   {:ok, 42},
+      ...>   fn x -> Serum.V2.Result.return(to_string(x)) end
+      ...> )
+      {:ok, "42"}
+
+      iex> Serum.V2.Result.bind(
+      ...>   {:error, %Serum.V2.Error{}},
+      ...>   fn x -> Serum.V2.Result.return(to_string(x)) end
+      ...> )
+      {:error, %Serum.V2.Error{}}
+  """
   @spec bind(t(a), (a -> t(b))) :: t(b) when a: term(), b: term()
   def bind(result, fun)
   def bind({:ok, value}, fun), do: fun.(value)
@@ -73,7 +128,7 @@ defmodule Serum.V2.Result do
 
   @doc """
   Provides a convenient syntax for working with a chain of functions returning
-  values in the `t:Serum.Result.t/1` type.
+  values in the `t:Serum.V2.Result.t/1` type.
   """
   defmacro run(do: {:__block__, _, exprs}) when is_list(exprs) do
     exprs
@@ -98,14 +153,15 @@ defmodule Serum.V2.Result do
   end
 
   @doc """
-  Creates a successful result with no returned value.
+  Creates a result value indicating a success.
 
-  Expands into `{:ok, {}}` tuple.
+  Expands into `{:ok, {}}` tuple. An empty tuple (`{}`) means that the
+  operation did not return any meaningful value.
   """
   defmacro return, do: quote(do: {:ok, {}})
 
   @doc """
-  Creates a successful result with a returned value.
+  Creates a result value indicating a success, with a returned value.
 
   ## Examples
 

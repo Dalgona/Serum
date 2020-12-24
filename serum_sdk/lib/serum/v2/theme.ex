@@ -67,7 +67,7 @@ defmodule Serum.V2.Theme do
   will be used while Serum builds a website project.
 
   The returned value will be used as the state for the loaded theme, which
-  can be accessible from `c:cleanup/1`, `c:get_includes/1`, `c:get_templates/1,
+  can be accessible from `c:cleanup/1`, `c:get_includes/1`, `c:get_templates/1`,
   and `c:get_assets/1` callbacks.
   """
   @callback init(args :: term()) :: Result.t(term())
