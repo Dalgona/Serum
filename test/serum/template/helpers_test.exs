@@ -5,8 +5,9 @@ defmodule Serum.Template.HelpersTest do
   alias Serum.Template.Helpers
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
+  alias Serum.V2.Project
 
-  @assigns [site: %{base_url: "/base/url"}]
+  @assigns [project: %Project{base_url: URI.parse("https://example.com/base/url")}]
 
   setup_all do
     good = EEx.compile_string("Hello, <%= @args[:name] %>!")

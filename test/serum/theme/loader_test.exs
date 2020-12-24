@@ -58,7 +58,7 @@ defmodule Serum.Theme.LoaderTest do
     end
 
     test "returns an error if init/0 callback returns an error" do
-      theme_mock = get_theme_mock(%{init: fn _ -> Result.fail(Simple: ["test: init"]) end})
+      theme_mock = get_theme_mock(%{init: fn _ -> Result.fail("test: init") end})
       {:error, %Error{} = error} = Loader.load(theme_mock)
       message = to_string(error)
 

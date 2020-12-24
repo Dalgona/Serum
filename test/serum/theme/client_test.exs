@@ -41,7 +41,7 @@ defmodule Serum.Theme.ClientTest do
     end
 
     test "passes the returned error through" do
-      load_mock(%{get_includes: fn _ -> Result.fail(Simple: ["test: get_includes"]) end})
+      load_mock(%{get_includes: fn _ -> Result.fail("test: get_includes") end})
 
       assert {:error, %Error{} = error} = Client.get_includes()
       assert to_string(error) =~ "test: get_includes"
@@ -99,7 +99,7 @@ defmodule Serum.Theme.ClientTest do
     end
 
     test "passes the returned error through" do
-      load_mock(%{get_templates: fn _ -> Result.fail(Simple: ["test: get_templates"]) end})
+      load_mock(%{get_templates: fn _ -> Result.fail("test: get_templates") end})
 
       assert {:error, %Error{} = error} = Client.get_templates()
       assert to_string(error) =~ "test: get_templates"
@@ -179,7 +179,7 @@ defmodule Serum.Theme.ClientTest do
     end
 
     test "passes the returned error through" do
-      load_mock(%{get_assets: fn _ -> Result.fail(Simple: ["test: get_assets"]) end})
+      load_mock(%{get_assets: fn _ -> Result.fail("test: get_assets") end})
 
       assert {:error, %Error{} = error} = Client.get_assets()
       assert to_string(error) =~ "test: get_assets"

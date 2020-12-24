@@ -75,7 +75,7 @@ defmodule Serum.Theme.CleanupTest do
     Result.return()
   end
 
-  defp failing_cleanup(_), do: Result.fail(Simple: ["cleanup"])
+  defp failing_cleanup(_), do: Result.fail("cleanup")
   defp weird_cleanup(_), do: 123
   defp raising_cleanup(_), do: raise("cleanup")
 end

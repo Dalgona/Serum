@@ -1,8 +1,9 @@
 defmodule Serum.Build.FileProcessor.PostListTest do
   use Serum.Case, async: true
   alias Serum.Build.FileProcessor.PostList, as: ListGenerator
-  alias Serum.Project
   alias Serum.V2.BuildContext
+  alias Serum.V2.Project
+  alias Serum.V2.Project.BlogConfiguration
   alias Serum.V2.Tag
 
   setup_all do
@@ -29,7 +30,7 @@ defmodule Serum.Build.FileProcessor.PostListTest do
   describe "generate_lists/2" do
     test "no pagination", ctx do
       posts = ctx.compact_posts
-      context = make_context(pagination: false)
+      context = make_context(%{blog: %{pagination: false}})
       {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, context)
 
       # (num_of_tags + 1) * (index + page_1)
@@ -53,7 +54,7 @@ defmodule Serum.Build.FileProcessor.PostListTest do
 
     test "chunk every 5 posts", ctx do
       posts = ctx.compact_posts
-      context = make_context(pagination: true, posts_per_page: 5)
+      context = make_context(%{blog: %{pagination: true, posts_per_page: 5}})
       {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, context)
 
       # num_of_tags * (index + page_1_to_4) + 1 * (index + page_1_to_6)
@@ -87,17 +88,27 @@ defmodule Serum.Build.FileProcessor.PostListTest do
   defp make_context(project_overrides) do
     project =
       %Project{
-        base_url: "/",
-        list_title_all: "All Posts",
-        list_title_tag: "Posts Tagged ~s"
+        base_url: URI.parse("https://example.com/"),
+        blog: %BlogConfiguration{
+          list_title_all: "All Posts",
+          list_title_tag: "Posts Tagged ~s"
+        }
       }
-      |> Map.merge(Map.new(project_overrides))
+      |> deep_merge(project_overrides)
 
     %BuildContext{
       project: project,
       source_dir: "/path/to/src/",
       dest_dir: "/path/to/dest/"
     }
+  end
+
+  @spec deep_merge(map(), map()) :: map()
+  defp deep_merge(map1, map2) do
+    Map.merge(map1, map2, fn
+      _key, %{} = value1, %{} = value2 -> deep_merge(value1, value2)
+      _key, _value1, value2 -> value2
+    end)
   end
 
   defp check_list(list) do

@@ -79,7 +79,7 @@ defmodule Serum.Build.FileProcessorTest do
 
   describe "process_files/2" do
     test "processes valid source files", ctx do
-      assert {:ok, processed} = FileProcessor.process_files(ctx.good, ctx.context)
+      assert {:ok, _processed} = FileProcessor.process_files(ctx.good, ctx.context)
     end
 
     test "fails with bad templates", ctx do
