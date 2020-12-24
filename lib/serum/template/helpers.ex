@@ -1,8 +1,6 @@
 defmodule Serum.Template.Helpers do
-  @moduledoc false
-
-  _moduledocp = """
-  Provides helper macros for EEx templates.
+  @moduledoc """
+  A collection of helper macros for EEx templates.
 
   This module provides some helper macros for use in any templates in your
   Serum project, mainly related to accessing website resources.
@@ -11,6 +9,13 @@ defmodule Serum.Template.Helpers do
   is compiled, reducing some boilerplate codes required for creating a useful
   template. However, name conflicts can occur if you import other modules
   exporting functions/macros with the same names.
+
+  There are some assumptions in the rest of this documentation:
+
+  - In project configuration, `:base_url` is set to
+    `"https://example.com/mysite"`, i.e. in EEx templates, `@project.base_url`
+    returns `#URI<"https://example.com/mysite">`.
+  - In blog configuration, `:posts_path` is set to `"posts"`.
   """
 
   require Serum.V2.Result, as: Result
@@ -19,16 +24,14 @@ defmodule Serum.Template.Helpers do
   alias Serum.V2.Error
 
   @doc """
-  Returns the path relative to `@site.base_url`.
+  Returns a path relative to `@project.base_url.path`.
 
   ## Example
 
-      # Suppose @site.base_url is "/mysite/".
-      <%= base("/path/to/some_file.txt") %>
+      <%= url("/path/to/some_file.txt") %>
       ==> /mysite/path/to/some_file.txt
   """
-
-  defmacro base(arg) do
+  defmacro url(arg) do
     quote do: Path.join(unquote(base!()), unquote(arg))
   end
 
@@ -37,17 +40,15 @@ defmodule Serum.Template.Helpers do
 
   ## Examples
 
-      # Suppose @site.base_url is "/mysite/".
-      <%= page("profile/my-projects") %>
+      <%= page_url("profile/my-projects") %>
       ==> /mysite/profile/my-projects.html
 
   Do not append `.html` extension at the end of `arg`.
 
-      <%= page("profile/my-projects.html") %>
-      ==> /mysite/profile/my-projects.html.html (bad)
+      <%= page_url("profile/my-projects.html") %>
+      ==> /mysite/profile/my-projects.html.html (probably not a desired result)
   """
-
-  defmacro page(arg) do
+  defmacro page_url(arg) do
     quote do: Path.join(unquote(base!()), unquote(arg) <> ".html")
   end
 
@@ -56,13 +57,22 @@ defmodule Serum.Template.Helpers do
 
   ## Examples
 
-      # Suppose @site.base_url is "/mysite/".
-      <%= post("2019-02-14-sample-post") %>
+      <%= post_url("2019-02-14-sample-post") %>
       ==> /mysite/posts/2019-02-14-sample-post.html
-  """
 
-  defmacro post(arg) do
-    quote do: Path.join([unquote(base!()), "posts", unquote(arg) <> ".html"])
+  Do not append `.html` extension at the end of `arg`.
+
+      <%= post_url("2019-02-14-sample-post.html") %>
+      ==> /mysite/posts/2019-02-14-sample-post.html.html (probably not a desired result)
+  """
+  defmacro post_url(arg) do
+    quote do
+      Path.join([
+        unquote(base!()),
+        var!(assigns)[:project].blog.posts_path,
+        unquote(arg) <> ".html"
+      ])
+    end
   end
 
   @doc """
@@ -70,12 +80,10 @@ defmodule Serum.Template.Helpers do
 
   ## Examples
 
-      # Suppose @site.base_url is "/mysite/".
-      <%= asset("images/icon.png") %>
+      <%= asset_url("images/icon.png") %>
       ==> /mysite/assets/images/icon.png
   """
-
-  defmacro asset(arg) do
+  defmacro asset_url(arg) do
     quote do: Path.join([unquote(base!()), "assets", unquote(arg)])
   end
 
@@ -84,7 +92,6 @@ defmodule Serum.Template.Helpers do
 
   The `args` parameter must be a keyword list.
   """
-
   def render(name, args \\ []) do
     Result.run do
       template <- TS.get(name, :include)
@@ -106,7 +113,7 @@ defmodule Serum.Template.Helpers do
     end
   end
 
-  defp base!, do: quote(do: get_in(var!(assigns), [:site, :base_url]))
+  defp base!, do: quote(do: var!(assigns)[:project].base_url.path)
 
   defmacro include(_) do
     raise "the include/1 macro is expanded by the Serum template compiler " <>

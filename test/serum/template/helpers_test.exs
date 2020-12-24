@@ -6,8 +6,14 @@ defmodule Serum.Template.HelpersTest do
   alias Serum.Template.Storage, as: TS
   alias Serum.V2
   alias Serum.V2.Project
+  alias Serum.V2.Project.BlogConfiguration
 
-  @assigns [project: %Project{base_url: URI.parse("https://example.com/base/url")}]
+  @assigns [
+    project: %Project{
+      base_url: URI.parse("https://example.com/base/url"),
+      blog: %BlogConfiguration{posts_path: "blog"}
+    }
+  ]
 
   setup_all do
     good = EEx.compile_string("Hello, <%= @args[:name] %>!")
@@ -22,35 +28,35 @@ defmodule Serum.Template.HelpersTest do
     on_exit(fn -> TS.reset() end)
   end
 
-  describe "base/1 (macro)" do
+  describe "url/1 (macro)" do
     test "returns an absolute URL of the given path" do
       assigns = @assigns
 
-      assert Helpers.base("hello/world.html") === "/base/url/hello/world.html"
+      assert Helpers.url("hello/world.html") === "/base/url/hello/world.html"
     end
   end
 
-  describe "page/1 (macro)" do
+  describe "page_url/1 (macro)" do
     test "returns a URL to the given page" do
       assigns = @assigns
 
-      assert Helpers.page("docs/index") === "/base/url/docs/index.html"
+      assert Helpers.page_url("docs/index") === "/base/url/docs/index.html"
     end
   end
 
-  describe "post/1 (macro)" do
+  describe "post_url/1 (macro)" do
     test "returns a URL to the given blog post" do
       assigns = @assigns
 
-      assert Helpers.post("2019-01-01-test") === "/base/url/posts/2019-01-01-test.html"
+      assert Helpers.post_url("2019-01-01-test") === "/base/url/blog/2019-01-01-test.html"
     end
   end
 
-  describe "asset/1 (macro)" do
+  describe "asset_url/1 (macro)" do
     test "returns a URL to the given asset" do
       assigns = @assigns
 
-      assert Helpers.asset("css/style.css") === "/base/url/assets/css/style.css"
+      assert Helpers.asset_url("css/style.css") === "/base/url/assets/css/style.css"
     end
   end
 
