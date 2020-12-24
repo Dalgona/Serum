@@ -1,1 +1,1 @@
-<a href="<%= base("index.html") %>">Home</a>
+<a href="<%= url("index.html") %>">Home</a>

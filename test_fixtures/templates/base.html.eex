@@ -2,11 +2,11 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title><%= @page.title %> - <%= @site.name %></title>
+    <title><%= @page.title %> - <%= @project.title %></title>
   </head>
   <body>
-    <h1><a href="<%= base() %>"><%= @site.name %></a></h1>
-    <p><%= @site.description %></p>
+    <h1><a href="<%= page_url("index") %>"><%= @project.title %></a></h1>
+    <p><%= @project.description %></p>
     <%= include "nav" %>
     <%= @contents %>
   </body>
