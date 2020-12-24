@@ -93,7 +93,7 @@ defmodule Serum.StructValidator do
         if unquote(check_expr) do
           Result.return()
         else
-          Result.fail(Constraint: [name, var!(value), unquote(check_str)])
+          Result.fail(Constraint, {name, var!(value), unquote(check_str)})
         end
       end
     end
@@ -112,10 +112,7 @@ defmodule Serum.StructValidator do
         Result.return()
 
       {:error, %Error{caused_by: errors} = error} ->
-        Result.fail(
-          Simple: [fail_message],
-          caused_by: if(Enum.empty?(errors), do: [error], else: errors)
-        )
+        Result.fail(fail_message, caused_by: if(Enum.empty?(errors), do: [error], else: errors))
     end
   end
 
@@ -136,7 +133,7 @@ defmodule Serum.StructValidator do
   end
 
   defp do_validate(term, _module, _all_keys, _required_keys) do
-    Result.fail(Simple: ["expected a map, got: #{inspect(term)}"])
+    Result.fail("expected a map, got: #{inspect(term)}")
   end
 
   @spec compare_key_sets(term(), term(), binary()) :: Result.t({})
@@ -152,7 +149,7 @@ defmodule Serum.StructValidator do
         prop_word = pluralize_property(difference)
         keys_str = Enum.join(difference, ", ")
 
-        Result.fail(Simple: ["#{message_prefix} #{prop_word}: #{keys_str}"])
+        Result.fail("#{message_prefix} #{prop_word}: #{keys_str}")
     end
   end
 

@@ -16,10 +16,10 @@ defmodule Serum.ForeignCode do
     case_clauses =
       quote do
         {:error, %Error{} = error} ->
-          Result.fail(Simple: ["#{fun_repr} returned an error:"], caused_by: [error])
+          Result.fail("#{fun_repr} returned an error:", caused_by: [error])
 
         term ->
-          Result.fail(Simple: ["#{fun_repr} returned an unexpected value: #{inspect(term)}"])
+          Result.fail("#{fun_repr} returned an unexpected value: #{inspect(term)}")
       end
 
     case_expr = {:case, [], [call_expr, [do: handle_do_block(do_block) ++ case_clauses]]}
@@ -30,7 +30,7 @@ defmodule Serum.ForeignCode do
       try do
         unquote(case_expr)
       rescue
-        exception -> Result.fail(Exception: [exception, __STACKTRACE__])
+        exception -> Result.from_exception(exception)
       end
     end
   end

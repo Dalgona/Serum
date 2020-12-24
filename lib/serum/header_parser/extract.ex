@@ -30,7 +30,7 @@ defmodule Serum.HeaderParser.Extract do
     case String.split(data, ~r/\r?\n/, parts: 2) do
       ["---", rest] -> do_extract_header(rest, acc, line + 1, true)
       [_str, rest] -> do_extract_header(rest, acc, line + 1, false)
-      [_] -> Result.fail(Simple: ["header not found"], line: line - 1)
+      [_] -> Result.fail("header not found", line: line - 1)
     end
   end
 
@@ -38,7 +38,7 @@ defmodule Serum.HeaderParser.Extract do
     case String.split(data, ~r/\r?\n/, parts: 2) do
       ["---", rest] -> Result.return({acc, rest, line + 1})
       [str, rest] -> do_extract_header(rest, [{str, line} | acc], line + 1, true)
-      [_] -> Result.fail(Simple: ["reached unexpected end of file"], line: line - 1)
+      [_] -> Result.fail("reached unexpected end of file", line: line - 1)
     end
   end
 

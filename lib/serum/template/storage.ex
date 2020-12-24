@@ -26,7 +26,7 @@ defmodule Serum.Template.Storage do
   def get(name, type) when is_valid_type(type) do
     case Agent.get(__MODULE__, &get_in(&1, [type, name])) do
       %Template{} = template -> Result.return(template)
-      nil -> Result.fail(Simple: ["#{type} not found: \"#{name}\""])
+      nil -> Result.fail("#{type} not found: \"#{name}\"")
     end
   end
 

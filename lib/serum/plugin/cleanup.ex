@@ -27,8 +27,8 @@ defmodule Serum.Plugin.Cleanup do
         Result.return()
 
       {:error, %Error{} = error} ->
-        message = "an error occurred while cleaning up a plugin"
-        {:error, warn} = Result.fail(Simple: [message], caused_by: [error])
+        {:error, warn} =
+          Result.fail("an error occurred while cleaning up a plugin", caused_by: [error])
 
         put_err(:warn, Format.format_text(warn, 0))
     end

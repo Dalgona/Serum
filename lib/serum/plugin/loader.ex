@@ -40,14 +40,12 @@ defmodule Serum.Plugin.Loader do
     if Keyword.keyword?(opts) do
       Result.return({module, opts})
     else
-      message = "expected the second tuple element to be a keyword list, got: #{inspect(opts)}"
-
-      Result.fail(Simple: [message])
+      Result.fail("expected the second tuple element to be a keyword list, got: #{inspect(opts)}")
     end
   end
 
   defp normalize_spec(x) do
-    Result.fail(Simple: ["#{inspect(x)} is not a valid Serum plugin specification"])
+    Result.fail("#{inspect(x)} is not a valid Serum plugin specification")
   end
 
   @spec filter_specs([Plugin.spec()]) :: [Plugin.spec()]
@@ -87,7 +85,7 @@ defmodule Serum.Plugin.Loader do
       args: opts[:args]
     })
   rescue
-    exception -> Result.fail(Exception: [exception, __STACKTRACE__])
+    exception -> Result.from_exception(exception)
   end
 
   @spec init_plugins([Plugin.t()]) :: Result.t([init_state()])

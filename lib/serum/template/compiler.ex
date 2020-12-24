@@ -78,6 +78,6 @@ defmodule Serum.Template.Compiler do
     {:ok, {:__block__, [], [@inject, EEx.compile_string(string, options)]}}
   rescue
     e in [SyntaxError, TokenMissingError, EEx.SyntaxError] ->
-      Result.fail(Exception: [e, __STACKTRACE__], file: file, line: e.line)
+      Result.from_exception(e, file: file, line: e.line)
   end
 end

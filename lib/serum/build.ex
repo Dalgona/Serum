@@ -121,7 +121,7 @@ defmodule Serum.Build do
     Timex.local()
     Result.return()
   rescue
-    _ -> Result.fail(Simple: ["system timezone is not set"])
+    _ -> Result.fail("system timezone is not set")
   end
 
   # Checks if the effective user have a write
@@ -140,7 +140,7 @@ defmodule Serum.Build do
     end
     |> case do
       :ok -> Result.return()
-      err -> Result.fail(POSIX: [err], file: %V2.File{src: dest})
+      err -> Result.fail(POSIX, err, file: %V2.File{src: dest})
     end
   end
 
@@ -158,7 +158,7 @@ defmodule Serum.Build do
     |> Enum.map(fn path ->
       case File.rm_rf(path) do
         {:ok, _} -> Result.return()
-        {:error, reason, ^path} -> Result.fail(POSIX: [reason], file: %V2.File{src: path})
+        {:error, reason, ^path} -> Result.fail(POSIX, reason, file: %V2.File{src: path})
       end
     end)
     |> Result.aggregate("failed to clean the destination directory:")

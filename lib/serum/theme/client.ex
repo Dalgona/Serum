@@ -63,19 +63,17 @@ defmodule Serum.Theme.Client do
   end
 
   defp check_list_type([x | _xs], fun_name) do
-    message =
+    Result.fail(
       "theme: expected #{fun_name} to return a list of strings, " <>
         "but #{inspect(x)} was in the list"
-
-    Result.fail(Simple: [message])
+    )
   end
 
   defp check_list_type(x, fun_name) do
-    message =
+    Result.fail(
       "theme: expected #{fun_name} to return a list of strings, " <>
         "got: #{inspect(x)} in the list"
-
-    Result.fail(Simple: [message])
+    )
   end
 
   @spec handle_assets_dir(term()) :: Result.t(binary() | false)
@@ -84,17 +82,15 @@ defmodule Serum.Theme.Client do
   defp handle_assets_dir(false), do: Result.return(false)
 
   defp handle_assets_dir(x) do
-    message = "theme: expected get_assets to return a string, got: #{inspect(x)}"
-
-    Result.fail(Simple: [message])
+    Result.fail("theme: expected get_assets to return a string, got: #{inspect(x)}")
   end
 
   @spec validate_assets_dir(binary()) :: Result.t(binary())
   defp validate_assets_dir(path) do
     case File.stat(path) do
       {:ok, %File.Stat{type: :directory}} -> Result.return(path)
-      {:ok, %File.Stat{}} -> Result.fail(POSIX: [:enotdir], file: %V2.File{src: path})
-      {:error, reason} -> Result.fail(POSIX: [reason], file: %V2.File{src: path})
+      {:ok, %File.Stat{}} -> Result.fail(POSIX, :enotdir, file: %V2.File{src: path})
+      {:error, reason} -> Result.fail(POSIX, reason, file: %V2.File{src: path})
     end
   end
 

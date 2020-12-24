@@ -25,16 +25,13 @@ defmodule Serum.DevServer do
       {:ok, pid}
     else
       {:error, {:shutdown, {:failed_to_start_child, _, :eaddrinuse}}} ->
-        msg =
+        Result.fail(
           "could not start the Serum development server. " <>
             "Make sure the port #{port} is not used by other applications"
-
-        Result.fail(Simple: [msg])
+        )
 
       {:error, {:shutdown, reason}} when not is_list(reason) ->
-        msg = "could not start the Serum development server: #{inspect(reason)}"
-
-        Result.fail(Simple: [msg])
+        Result.fail("could not start the Serum development server: #{inspect(reason)}")
 
       {:error, _} = error ->
         error

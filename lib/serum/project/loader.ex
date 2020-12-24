@@ -35,9 +35,9 @@ defmodule Serum.Project.Loader do
     |> Result.return()
   rescue
     e in [CompileError, SyntaxError, TokenMissingError] ->
-      Result.fail(Exception: [e, __STACKTRACE__], file: file, line: e.line)
+      Result.from_exception(e, file: file, line: e.line)
 
     e ->
-      Result.fail(Exception: [e, __STACKTRACE__], file: file)
+      Result.from_exception(e, file: file)
   end
 end

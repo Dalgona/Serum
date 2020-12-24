@@ -31,7 +31,7 @@ defmodule Serum.Fragment do
   defp parse_html(html) do
     case Floki.parse_document(html) do
       {:ok, html_tree} -> Result.return(html_tree)
-      {:error, message} -> Result.fail(Simple: [message])
+      {:error, message} -> Result.fail(message)
     end
   end
 

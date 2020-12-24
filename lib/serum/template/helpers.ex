@@ -108,7 +108,7 @@ defmodule Serum.Template.Helpers do
     if Keyword.keyword?(args) do
       Result.return()
     else
-      Result.fail(Simple: ["'args' must be a keyword list, got: #{inspect(args)}"])
+      Result.fail("'args' must be a keyword list, got: #{inspect(args)}")
     end
   end
 

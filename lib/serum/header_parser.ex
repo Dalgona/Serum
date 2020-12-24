@@ -60,7 +60,7 @@ defmodule Serum.HeaderParser do
   def parse_header(file, options, required \\ [])
 
   def parse_header(%V2.File{in_data: nil} = file, _, _) do
-    Result.fail(Simple: ["cannot parse header: the file is not loaded"], file: file)
+    Result.fail("cannot parse header: the file is not loaded", file: file)
   end
 
   def parse_header(file, options, required) do
@@ -101,7 +101,7 @@ defmodule Serum.HeaderParser do
     |> MapSet.to_list()
     |> case do
       [] -> Result.return()
-      missings -> Result.fail(Simple: [missing_message(missings)], line: line - 1)
+      missings -> Result.fail(missing_message(missings), line: line - 1)
     end
   end
 

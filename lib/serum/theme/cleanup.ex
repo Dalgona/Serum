@@ -32,7 +32,7 @@ defmodule Serum.Theme.Cleanup do
 
       {:error, %Error{} = error} ->
         message = "an error occurred while cleaning up a theme"
-        {:error, warn} = Result.fail(Simple: [message], caused_by: [error])
+        {:error, warn} = Result.fail(message, caused_by: [error])
 
         put_err(:warn, Format.format_text(warn, 0))
     end
