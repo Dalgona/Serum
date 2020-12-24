@@ -1,22 +1,17 @@
 defmodule Serum.Plugins.SitemapGeneratorTest do
   use Serum.Case
-  alias Serum.GlobalBindings
   alias Serum.Plugins.SitemapGenerator, as: P
   alias Serum.V2.BuildContext
   alias Serum.V2.Page
   alias Serum.V2.Post
+  alias Serum.V2.Project
 
   setup_all do
-    bindings = %{
-      site: %{server_root: "http://example.com/"},
-      all_pages: [%Page{url: "index.html"}],
-      all_posts: [%Post{url: "posts/hello.html", date: Timex.local()}]
-    }
+    project = %Project{base_url: URI.parse("https://example.com/")}
+    pages = [%Page{url: "index.html"}]
+    posts = [%Post{url: "posts/hello.html", date: Timex.local()}]
 
-    GlobalBindings.load(bindings)
-    on_exit(fn -> GlobalBindings.load(%{}) end)
-
-    :ok
+    {:ok, project: project, pages: pages, posts: posts}
   end
 
   setup do
@@ -28,37 +23,46 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
     {:ok, dir: dir}
   end
 
+  describe "init/1" do
+    test "initializes the plugin state" do
+      assert {:ok, %{args: [], pages: [], posts: []}} = P.init([])
+    end
+  end
+
+  describe "processed_posts/2" do
+    test "updates the state if `:for` argument is not given", ctx do
+      posts = ctx.posts
+      state = %{args: [], pages: [], posts: []}
+
+      assert {:ok, {^posts, %{posts: ^posts}}} = P.processed_posts(posts, state)
+    end
+
+    test "updates the state if `:posts` is in `args[:for]`", ctx do
+      posts = ctx.posts
+      state = %{args: [for: [:posts]], pages: [], posts: []}
+
+      assert {:ok, {^posts, %{posts: ^posts}}} = P.processed_posts(posts, state)
+    end
+
+    test "leaves the state unmodified if `:posts` is not in `args[:for]`", ctx do
+      posts = ctx.posts
+      state = %{args: [for: [:pages]], pages: [], posts: []}
+
+      assert {:ok, {^posts, %{posts: []}}} = P.processed_posts(posts, state)
+    end
+  end
+
   describe "build_succeeded/2" do
-    test "generates items for posts by default", %{dir: dir} do
-      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, [])
-      sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
+    test "generates a sitemap file", ctx do
+      context = %BuildContext{dest_dir: ctx.dir, project: ctx.project}
+      state = %{args: [], pages: ctx.pages, posts: ctx.posts}
 
-      refute String.contains?(sitemap, "http://example.com/index.html")
-      assert String.contains?(sitemap, "http://example.com/posts/hello.html")
-    end
+      assert {:ok, _} = P.build_succeeded(context, state)
 
-    test "generates items for pages", %{dir: dir} do
-      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, for: :pages)
-      sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
+      sitemap = ctx.dir |> Path.join("sitemap.xml") |> File.read!()
 
-      assert String.contains?(sitemap, "http://example.com/index.html")
-      refute String.contains?(sitemap, "http://example.com/posts/hello.html")
-    end
-
-    test "generates items for both pages and posts", %{dir: dir} do
-      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, for: [:pages, :posts])
-      sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
-
-      assert String.contains?(sitemap, "http://example.com/index.html")
-      assert String.contains?(sitemap, "http://example.com/posts/hello.html")
-    end
-
-    test "returns an error when failed to write a file", %{dir: dir} do
-      File.chmod!(dir, 0o000)
-
-      {:ok, _} = P.build_succeeded(%BuildContext{dest_dir: dir}, [])
-
-      File.chmod!(dir, 0o755)
+      assert String.contains?(sitemap, "https://example.com/index.html")
+      assert String.contains?(sitemap, "https://example.com/posts/hello.html")
     end
   end
 end

@@ -6,7 +6,6 @@ defmodule Serum.Plugins.SitemapGenerator do
 
       # serum.exs:
       %{
-        server_root: "https://example.io",
         plugins: [
           {Serum.Plugins.SitemapGenerator, only: :prod}
         ]
@@ -14,13 +13,19 @@ defmodule Serum.Plugins.SitemapGenerator do
   """
 
   use Serum.V2.Plugin
-
   require EEx
-  alias Serum.GlobalBindings
+  require Serum.V2.Result, as: Result
   alias Serum.V2
   alias Serum.V2.BuildContext
   alias Serum.V2.Page
   alias Serum.V2.Post
+  alias Serum.V2.Project
+
+  @type state :: %{
+          args: keyword(),
+          pages: [Page.t()],
+          posts: [Post.t()]
+        }
 
   def name, do: "Create sitemap for search engine"
 
@@ -28,30 +33,48 @@ defmodule Serum.Plugins.SitemapGenerator do
     "Create a sitemap so that the search engine can index posts."
   end
 
-  def implements, do: [build_succeeded: 2]
-
-  def init(args), do: {:ok, args}
-
-  def build_succeeded(%BuildContext{dest_dir: dest}, args) do
-    {pages, posts} = get_items(args[:for])
-
-    dest
-    |> create_file(pages, posts)
-    |> V2.File.write()
-
-    Result.return(args)
+  def implements do
+    [
+      build_succeeded: 2,
+      processed_pages: 2,
+      processed_posts: 2
+    ]
   end
 
-  @spec get_items(term()) :: {[Page.t()], [Post.t()]}
-  defp get_items(arg)
-  defp get_items(nil), do: get_items([:posts])
-  defp get_items(arg) when not is_list(arg), do: get_items([arg])
+  @spec init(keyword()) :: Result.t(state())
+  def init(args), do: Result.return(%{args: args, pages: [], posts: []})
 
-  defp get_items(arg) do
-    pages = if :pages in arg, do: GlobalBindings.get(:all_pages), else: []
-    posts = if :posts in arg, do: GlobalBindings.get(:all_posts), else: []
+  @spec processed_pages([Page.t()], state()) :: Result.t({[Page.t()], state()})
+  def processed_pages(pages, state) do
+    new_state =
+      case state.args[:for] do
+        nil -> state
+        targets -> if(:pages in targets, do: %{state | pages: pages}, else: state)
+      end
 
-    {pages, posts}
+    Result.return({pages, new_state})
+  end
+
+  @spec processed_posts([Post.t()], state()) :: Result.t({[Post.t()], state()})
+  def processed_posts(posts, state) do
+    new_state =
+      case state.args[:for] do
+        nil -> %{state | posts: posts}
+        targets -> if(:posts in targets, do: %{state | posts: posts}, else: state)
+      end
+
+    Result.return({posts, new_state})
+  end
+
+  @spec build_succeeded(BuildContext.t(), state()) :: Result.t(state())
+  def build_succeeded(%BuildContext{dest_dir: dest, project: project}, state) do
+    server_root = to_string(%URI{project.base_url | path: "/"})
+
+    dest
+    |> create_file(state.pages, state.posts, server_root)
+    |> V2.File.write()
+
+    Result.return(state)
   end
 
   sitemap_path =
@@ -67,11 +90,11 @@ defmodule Serum.Plugins.SitemapGenerator do
     :server_root
   ])
 
-  @spec create_file(binary(), [Page.t()], [Post.t()]) :: V2.File.t()
-  defp create_file(dest, pages, posts) do
+  @spec create_file(binary(), [Page.t()], [Post.t()], binary()) :: V2.File.t()
+  defp create_file(dest, pages, posts, server_root) do
     %V2.File{
       dest: Path.join(dest, "sitemap.xml"),
-      out_data: sitemap_xml(pages, posts, &to_w3c_format/1, get_server_root())
+      out_data: sitemap_xml(pages, posts, &to_w3c_format/1, server_root)
     }
   end
 
@@ -79,11 +102,5 @@ defmodule Serum.Plugins.SitemapGenerator do
   defp to_w3c_format(datetime) do
     # reference to https://www.w3.org/TR/NOTE-datetime
     Timex.format!(datetime, "%Y-%m-%d", :strftime)
-  end
-
-  defp get_server_root do
-    :site
-    |> GlobalBindings.get()
-    |> Map.fetch!(:server_root)
   end
 end
