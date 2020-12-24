@@ -46,7 +46,8 @@ defmodule Serum.Mixfile do
       {:floki, "0.29.0"},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
       {:mix_test_watch, "1.0.2", only: :dev, runtime: false},
-      {:mox, "~> 0.5", only: :test}
+      {:mox, "~> 0.5", only: :test},
+      {:ex_machina, "~> 2.4", only: :test}
     ]
   end
 
