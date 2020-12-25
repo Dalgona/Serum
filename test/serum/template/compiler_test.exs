@@ -16,7 +16,7 @@ defmodule Serum.Template.CompilerTest do
       file = %V2.File{src: fixture("templates/#{key}.html.eex")}
       {:ok, file} = V2.File.read(file)
       {:ok, %{^key => template}} = TC.compile_files([file], type: :template)
-      assigns = [site: %{base_url: "/test_site/"}]
+      assigns = [project: build(:project, base_url: "https://example.com/test_site")]
       {output, _} = Code.eval_quoted(template.ast, assigns: assigns)
 
       assert template.type === :template

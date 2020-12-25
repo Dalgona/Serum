@@ -1,7 +1,6 @@
 defmodule Serum.MarkdownTest do
   use Serum.Case, async: true
   alias Serum.Markdown
-  alias Serum.V2.Project
 
   @markdown """
   # Hello, world!
@@ -32,7 +31,7 @@ defmodule Serum.MarkdownTest do
   test "to_html" do
     tree =
       @markdown
-      |> Markdown.to_html(%Project{base_url: URI.parse("https://example.com/test_site/")})
+      |> Markdown.to_html(build(:project, base_url: "https://example.com/test_site"))
       |> Floki.parse_document!()
 
     assert [{"h1", _, ["Hello, world!"]}] = Floki.find(tree, "h1")

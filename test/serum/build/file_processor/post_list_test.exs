@@ -2,8 +2,6 @@ defmodule Serum.Build.FileProcessor.PostListTest do
   use Serum.Case, async: true
   alias Serum.Build.FileProcessor.PostList, as: ListGenerator
   alias Serum.V2.BuildContext
-  alias Serum.V2.Project
-  alias Serum.V2.Project.BlogConfiguration
   alias Serum.V2.Tag
 
   setup_all do
@@ -86,18 +84,11 @@ defmodule Serum.Build.FileProcessor.PostListTest do
 
   @spec make_context(keyword()) :: BuildContext.t()
   defp make_context(project_overrides) do
-    project =
-      %Project{
-        base_url: URI.parse("https://example.com/"),
-        blog: %BlogConfiguration{
-          list_title_all: "All Posts",
-          list_title_tag: "Posts Tagged ~s"
-        }
-      }
-      |> deep_merge(project_overrides)
-
     %BuildContext{
-      project: project,
+      project:
+        :project
+        |> build(base_url: "https://example.com/")
+        |> deep_merge(project_overrides),
       source_dir: "/path/to/src/",
       dest_dir: "/path/to/dest/"
     }

@@ -4,14 +4,14 @@ defmodule Serum.Template.HelpersTest do
   alias Serum.Template
   alias Serum.Template.Helpers
   alias Serum.Template.Storage, as: TS
-  alias Serum.V2.Project
-  alias Serum.V2.Project.BlogConfiguration
 
   @assigns [
-    project: %Project{
-      base_url: URI.parse("https://example.com/base/url"),
-      blog: %BlogConfiguration{posts_path: "blog"}
-    }
+    project:
+      build(
+        :project,
+        base_url: "https://example.com/base/url",
+        blog: %{posts_path: "blog"}
+      )
   ]
 
   setup_all do

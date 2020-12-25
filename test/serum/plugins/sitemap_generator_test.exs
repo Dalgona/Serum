@@ -4,12 +4,11 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
   alias Serum.V2.BuildContext
   alias Serum.V2.Page
   alias Serum.V2.Post
-  alias Serum.V2.Project
 
   setup_all do
-    project = %Project{base_url: URI.parse("https://example.com/")}
-    pages = [%Page{url: "index.html"}]
-    posts = [%Post{url: "posts/hello.html", date: Timex.local()}]
+    project = build(:project)
+    pages = [%Page{url: "/index.html"}]
+    posts = [%Post{url: "/posts/hello.html", date: Timex.local()}]
 
     {:ok, project: project, pages: pages, posts: posts}
   end
@@ -53,16 +52,18 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
   end
 
   describe "build_succeeded/2" do
-    test "generates a sitemap file", ctx do
-      context = %BuildContext{dest_dir: ctx.dir, project: ctx.project}
+    test "generates a sitemap file", %{dir: dir, project: project} = ctx do
+      context = %BuildContext{dest_dir: dir, project: project}
       state = %{args: [], pages: ctx.pages, posts: ctx.posts}
 
       assert {:ok, _} = P.build_succeeded(context, state)
 
-      sitemap = ctx.dir |> Path.join("sitemap.xml") |> File.read!()
+      sitemap = dir |> Path.join("sitemap.xml") |> File.read!()
 
-      assert String.contains?(sitemap, "https://example.com/index.html")
-      assert String.contains?(sitemap, "https://example.com/posts/hello.html")
+      [ctx.pages, ctx.posts]
+      |> List.flatten()
+      |> Enum.map(&to_string(%URI{project.base_url | path: &1.url}))
+      |> Enum.each(&(assert String.contains?(sitemap, &1)))
     end
   end
 end
