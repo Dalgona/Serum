@@ -3,4 +3,5 @@ defmodule Serum.Factory do
 
   use ExMachina
   use Serum.Factory.Files
+  use Serum.Factory.Projects
 end
