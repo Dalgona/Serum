@@ -2,13 +2,11 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
   use Serum.Case
   alias Serum.Plugins.SitemapGenerator, as: P
   alias Serum.V2.BuildContext
-  alias Serum.V2.Page
-  alias Serum.V2.Post
 
   setup_all do
     project = build(:project)
-    pages = [%Page{url: "/index.html"}]
-    posts = [%Post{url: "/posts/hello.html", date: Timex.local()}]
+    pages = build_list(2, :page)
+    posts = build_list(2, :post)
 
     {:ok, project: project, pages: pages, posts: posts}
   end

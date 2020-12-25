@@ -7,9 +7,6 @@ defmodule Serum.PluginTest do
   alias Serum.V2.Console
   alias Serum.V2.Error
   alias Serum.V2.Fragment
-  alias Serum.V2.Page
-  alias Serum.V2.Post
-  alias Serum.V2.PostList
   alias Serum.V2.Template
 
   "plugins/*plugin*.ex"
@@ -41,14 +38,14 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = processing_pages([build(:input_file)])
       assert {:ok, _} = processing_posts([build(:input_file)])
       assert {:ok, _} = processing_templates([build(:input_file, type: "html.eex")])
-      assert {:ok, _} = processed_pages([%Page{title: "Test Page 1"}])
-      assert {:ok, _} = processed_posts([%Post{title: "Test Post 1"}])
+      assert {:ok, _} = processed_pages(build_list(3, :page))
+      assert {:ok, _} = processed_posts(build_list(3, :post))
       assert {:ok, _} = processed_templates([%Template{source: build(:input_file, type: "html.eex")}])
-      assert {:ok, _} = generated_post_lists([[%PostList{title: "Test Post List"}]])
+      assert {:ok, _} = generated_post_lists([build_list(3, :post_list)])
       assert {:ok, _} = generating_fragment([{"p", [], ["Hello, world!"]}], %{type: :page})
       assert {:ok, _} = generated_fragment(%Fragment{dest: "test.html"})
-      assert {:ok, _} = rendered_pages([build(:output_file, type: "html")])
-      assert {:ok, _} = wrote_files([build(:output_file, type: "html")])
+      assert {:ok, _} = rendered_pages(build_list(3, :output_file, type: "html"))
+      assert {:ok, _} = wrote_files(build_list(3, :output_file, type: "html"))
     end)
 
     assert states()[Serum.DummyPlugin] === 1017
