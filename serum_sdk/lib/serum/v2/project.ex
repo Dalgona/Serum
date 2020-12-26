@@ -4,12 +4,6 @@ defmodule Serum.V2.Project do
 
   ## Fields
 
-  - `source_dir` - directory of the project root. This will be automatically
-    filled by Serum after the project has been successfuly loaded. Do not set
-    or modify this value on your own.
-  - `dest_dir` - path to the output directory. This will be automatically filled
-    by Serum after the project has been successfully loaded. Do not set or
-    modify this value on your own.
   - `title` - title of the website.
   - `description` - description (or subtitle) of the website.
   - `base_url` - absolute path of the root of the website on the Internet. The
