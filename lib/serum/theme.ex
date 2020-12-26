@@ -81,9 +81,6 @@ defmodule Serum.Theme do
           args: term()
         }
 
-  @type spec :: {module(), options()}
-  @type options :: [args: term()]
-
   @doc false
   @spec start_link(any()) :: Agent.on_start()
   def start_link(_) do

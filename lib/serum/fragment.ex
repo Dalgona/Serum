@@ -40,6 +40,7 @@ defmodule Serum.Fragment do
     html_tree
     |> Floki.traverse_and_update(%{}, &set_header_ids/2)
     |> elem(0)
+    |> List.wrap()
     |> PluginClient.generating_fragment(metadata)
   end
 

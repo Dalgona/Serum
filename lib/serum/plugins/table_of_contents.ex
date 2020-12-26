@@ -90,7 +90,9 @@ defmodule Serum.Plugins.TableOfContents do
         items = new_state |> elem(4) |> Enum.reverse()
         toc = {"ul", [{"id", "toc"}, {"class", "serum-toc"}], items}
 
-        Floki.traverse_and_update(new_tree, fn
+        new_tree
+        |> List.wrap()
+        |> Floki.traverse_and_update(fn
           {"serum-toc", _, _} -> toc
           x -> x
         end)

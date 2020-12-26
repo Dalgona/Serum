@@ -8,7 +8,7 @@ defmodule Serum.Factory.PostLists do
         {tag, attrs} = Map.pop(attrs, :tag, build(:tag, project: project))
         {current_page, attrs} = Map.pop(attrs, :current_page, 1)
         {last_page, attrs} = Map.pop(attrs, :last_page, 1)
-        tags = (tag && [tag]) || []
+        tags = List.wrap(tag)
 
         {posts, attrs} =
           Map.pop(attrs, :posts, build_list(3, :post, project: project, tags: tags))

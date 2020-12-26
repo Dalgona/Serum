@@ -7,6 +7,7 @@ defmodule Serum.Plugin.Loader do
   require Serum.V2.Result, as: Result
   alias Serum.Plugin
   alias Serum.Plugin.State
+  alias Serum.V2
 
   @typep init_state :: {module(), term()}
 
@@ -25,14 +26,14 @@ defmodule Serum.Plugin.Loader do
     end
   end
 
-  @spec normalize_specs([term()]) :: Result.t([Plugin.spec()])
+  @spec normalize_specs([term()]) :: Result.t([V2.Plugin.spec()])
   defp normalize_specs(maybe_specs) do
     maybe_specs
     |> Enum.map(&normalize_spec/1)
     |> Result.aggregate(@msg_load_failed)
   end
 
-  @spec normalize_spec(term()) :: Result.t(Plugin.spec())
+  @spec normalize_spec(term()) :: Result.t(V2.Plugin.spec())
   defp normalize_spec(maybe_spec)
   defp normalize_spec(module) when is_atom(module), do: Result.return({module, []})
 
@@ -48,14 +49,14 @@ defmodule Serum.Plugin.Loader do
     Result.fail("#{inspect(x)} is not a valid Serum plugin specification")
   end
 
-  @spec filter_specs([Plugin.spec()]) :: [Plugin.spec()]
+  @spec filter_specs([V2.Plugin.spec()]) :: [V2.Plugin.spec()]
   defp filter_specs(specs) do
     specs
     |> Enum.filter(&env_matches?/1)
     |> Enum.uniq_by(&elem(&1, 0))
   end
 
-  @spec env_matches?(Plugin.spec()) :: boolean()
+  @spec env_matches?(V2.Plugin.spec()) :: boolean()
   def env_matches?({module, opts}) when is_atom(module) and is_list(opts) do
     current_env = Mix.env()
 
@@ -67,14 +68,14 @@ defmodule Serum.Plugin.Loader do
     end
   end
 
-  @spec make_plugins([Plugin.spec()]) :: Result.t([Plugin.t()])
+  @spec make_plugins([V2.Plugin.spec()]) :: Result.t([Plugin.t()])
   defp make_plugins(specs) do
     specs
     |> Enum.map(&make_plugin/1)
     |> Result.aggregate(@msg_load_failed)
   end
 
-  @spec make_plugin(Plugin.spec()) :: Result.t(Plugin.t())
+  @spec make_plugin(V2.Plugin.spec()) :: Result.t(Plugin.t())
   defp make_plugin({module, opts}) do
     Result.return(%Plugin{
       module: module,

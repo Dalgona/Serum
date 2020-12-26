@@ -6,6 +6,7 @@ defmodule Serum.Theme.Loader do
   require Serum.ForeignCode, as: ForeignCode
   require Serum.V2.Result, as: Result
   alias Serum.Theme
+  alias Serum.V2
 
   @spec load(term()) :: Result.t(Theme.t() | nil)
   def load(maybe_spec)
@@ -26,7 +27,7 @@ defmodule Serum.Theme.Loader do
     end
   end
 
-  @spec normalize_spec(term()) :: Result.t(Plugin.spec())
+  @spec normalize_spec(term()) :: Result.t(V2.Theme.spec())
   defp normalize_spec(maybe_spec)
   defp normalize_spec(module) when is_atom(module), do: Result.return({module, []})
 
@@ -45,7 +46,7 @@ defmodule Serum.Theme.Loader do
     Result.fail("#{inspect(x)} is not a valid Serum theme specification")
   end
 
-  @spec make_theme(Theme.spec()) :: Result.t(Theme.t())
+  @spec make_theme(V2.Theme.spec()) :: Result.t(Theme.t())
   defp make_theme({module, opts}) do
     Result.return(%Theme{
       module: module,
