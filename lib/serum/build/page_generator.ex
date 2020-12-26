@@ -43,7 +43,7 @@ defmodule Serum.Build.PageGenerator do
     case Renderer.render_fragment(template, assigns) do
       {:ok, html} ->
         Result.return(%V2.File{
-          src: fragment.source.src,
+          src: fragment.source && fragment.source.src,
           dest: fragment.dest,
           in_data: nil,
           out_data: html
