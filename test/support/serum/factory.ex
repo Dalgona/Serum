@@ -3,6 +3,7 @@ defmodule Serum.Factory do
 
   use ExMachina
   use Serum.Factory.Files
+  use Serum.Factory.Fragments
   use Serum.Factory.GlobalBindings
   use Serum.Factory.Pages
   use Serum.Factory.Posts
