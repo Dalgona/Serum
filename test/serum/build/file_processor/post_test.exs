@@ -26,8 +26,8 @@ defmodule Serum.Build.FileProcessor.PostTest do
   describe "preprocess_posts/2 and process_posts/2" do
     test "process markdown posts", %{context: context} do
       file = read("posts/good-post.md")
-      {:ok, {posts, [compact_post]}} = preprocess_posts([file], context)
-      {:ok, [post]} = process_posts(posts, context)
+      {:ok, preprocessed_posts} = preprocess_posts([file], context)
+      {:ok, [post]} = process_posts(preprocessed_posts, context)
 
       assert %Post{
                type: "md",
@@ -42,14 +42,12 @@ defmodule Serum.Build.FileProcessor.PostTest do
                },
                tags: [%{name: "tag1"}, %{name: "tag2"}]
              } = post
-
-      assert_compact(compact_post)
     end
 
     test "process HTML-EEx posts", %{context: context} do
       file = read("posts/good-html.html.eex")
-      {:ok, {posts, [compact_post]}} = preprocess_posts([file], context)
-      {:ok, [post]} = process_posts(posts, context)
+      {:ok, preprocessed_posts} = preprocess_posts([file], context)
+      {:ok, [post]} = process_posts(preprocessed_posts, context)
 
       assert %Post{
                type: "html",
@@ -64,14 +62,12 @@ defmodule Serum.Build.FileProcessor.PostTest do
                },
                tags: [%{name: "serum"}, %{name: "test"}]
              } = post
-
-      assert_compact(compact_post)
     end
 
     test "process markdown posts with simplified date", %{context: context} do
       file = read("posts/good-alternative-date.md")
-      {:ok, {posts, [compact_post]}} = preprocess_posts([file], context)
-      {:ok, [post]} = process_posts(posts, context)
+      {:ok, preprocessed_posts} = preprocess_posts([file], context)
+      {:ok, [post]} = process_posts(preprocessed_posts, context)
 
       assert %Post{
                type: "md",
@@ -79,14 +75,12 @@ defmodule Serum.Build.FileProcessor.PostTest do
                date: %DateTime{year: 2019, month: 1, day: 1},
                tags: [%{name: "tag3"}, %{name: "tag4"}]
              } = post
-
-      assert_compact(compact_post)
     end
 
     test "process markdown posts without any tag", %{context: context} do
       file = read("posts/good-minimal-header.md")
-      {:ok, {posts, [compact_post]}} = preprocess_posts([file], context)
-      {:ok, [post]} = process_posts(posts, context)
+      {:ok, preprocessed_posts} = preprocess_posts([file], context)
+      {:ok, [post]} = process_posts(preprocessed_posts, context)
 
       assert %Post{
                type: "md",
@@ -94,8 +88,6 @@ defmodule Serum.Build.FileProcessor.PostTest do
                date: %DateTime{year: 2019, month: 1, day: 1},
                tags: []
              } = post
-
-      assert_compact(compact_post)
     end
 
     test "fail when malformed posts are given", %{context: context} do
@@ -121,7 +113,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
         |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:ok, {posts, _}} = preprocess_posts(files, context)
+      {:ok, posts} = preprocess_posts(files, context)
       {:error, %Error{caused_by: errors}} = process_posts(posts, context)
 
       assert length(errors) === length(files)
@@ -133,13 +125,5 @@ defmodule Serum.Build.FileProcessor.PostTest do
     {:ok, file} = V2.File.read(file)
 
     file
-  end
-
-  defp assert_compact(map) do
-    refute map[:__struct__]
-    refute map[:file]
-    refute map[:html]
-    refute map[:output]
-    assert map.type === :post
   end
 end

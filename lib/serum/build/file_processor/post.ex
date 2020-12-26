@@ -10,7 +10,7 @@ defmodule Serum.Build.FileProcessor.Post do
   alias Serum.V2.Error
   alias Serum.V2.Post
 
-  @spec preprocess_posts([V2.File.t()], BuildContext.t()) :: Result.t({[Post.t()], [map()]})
+  @spec preprocess_posts([V2.File.t()], BuildContext.t()) :: Result.t({[Post.t()]})
   def preprocess_posts(files, context)
   def preprocess_posts([], _context), do: Result.return({[], []})
 
@@ -22,7 +22,7 @@ defmodule Serum.Build.FileProcessor.Post do
       posts <- do_preprocess_posts(files, context)
       sorted_posts = Enum.sort(posts, &(DateTime.compare(&1.date, &2.date) == :gt))
 
-      Result.return({sorted_posts, Enum.map(sorted_posts, &Serum.Post.compact/1)})
+      Result.return(sorted_posts)
     end
   end
 

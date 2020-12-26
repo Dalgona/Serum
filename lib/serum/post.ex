@@ -37,13 +37,6 @@ defmodule Serum.Post do
     }
   end
 
-  @spec compact(Post.t()) :: map()
-  def compact(%Post{} = post) do
-    post
-    |> Map.drop(~w(__struct__ source dest type data)a)
-    |> Map.put(:type, :post)
-  end
-
   @spec create_tags([binary()], binary()) :: [Tag.t()]
   defp create_tags(tag_names, base_url) do
     tag_names

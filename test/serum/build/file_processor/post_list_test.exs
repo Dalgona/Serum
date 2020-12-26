@@ -12,24 +12,20 @@ defmodule Serum.Build.FileProcessor.PostListTest do
 
     tags2 = Stream.drop(tags1, 1)
 
-    compact_posts =
+    posts =
       [1..30, tags1, tags2]
       |> Enum.zip()
       |> Enum.map(fn {n, t1, t2} ->
-        %{
-          title: "Test Post #{n}",
-          tags: Enum.sort([t1, t2])
-        }
+        build(:post, title: "Test Post #{n}", tags: Enum.sort([t1, t2]))
       end)
 
-    {:ok, [compact_posts: compact_posts]}
+    {:ok, [posts: posts]}
   end
 
   describe "generate_lists/2" do
     test "no pagination", ctx do
-      posts = ctx.compact_posts
       context = make_context(%{blog: %{pagination: false}})
-      {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, context)
+      {:ok, {lists, counts}} = ListGenerator.generate_lists(ctx.posts, context)
 
       # (num_of_tags + 1) * (index + page_1)
       assert length(lists) === (3 + 1) * 2
@@ -51,9 +47,8 @@ defmodule Serum.Build.FileProcessor.PostListTest do
     end
 
     test "chunk every 5 posts", ctx do
-      posts = ctx.compact_posts
       context = make_context(%{blog: %{pagination: true, posts_per_page: 5}})
-      {:ok, {lists, counts}} = ListGenerator.generate_lists(posts, context)
+      {:ok, {lists, counts}} = ListGenerator.generate_lists(ctx.posts, context)
 
       # num_of_tags * (index + page_1_to_4) + 1 * (index + page_1_to_6)
       assert length(lists) === 3 * (1 + 4) + (1 + 6)

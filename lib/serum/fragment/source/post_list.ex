@@ -8,14 +8,11 @@ defimpl Serum.Fragment.Source, for: Serum.V2.PostList do
 
   @spec to_fragment(PostList.t()) :: Result.t(Fragment.t())
   def to_fragment(post_list) do
-    metadata = Serum.PostList.compact(post_list)
-    bindings = [page: metadata]
-
     Result.run do
       template <- TS.get("list", :template)
-      html <- Renderer.render_fragment(template, bindings)
+      html <- Renderer.render_fragment(template, page: post_list)
 
-      Serum.Fragment.new(%V2.File{}, post_list.dest, metadata, html)
+      Serum.Fragment.new(%V2.File{}, post_list.dest, post_list, html)
     end
   end
 end

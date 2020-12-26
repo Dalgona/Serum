@@ -7,6 +7,7 @@ defmodule Serum.PostList do
   """
 
   alias Serum.V2.BuildContext
+  alias Serum.V2.Post
   alias Serum.V2.PostList
   alias Serum.V2.Project
   alias Serum.V2.Project.BlogConfiguration
@@ -14,7 +15,7 @@ defmodule Serum.PostList do
 
   @type maybe_tag :: Tag.t() | nil
 
-  @spec generate(maybe_tag(), [map()], BuildContext.t()) :: [PostList.t()]
+  @spec generate(maybe_tag(), [Post.t()], BuildContext.t()) :: [PostList.t()]
   def generate(tag, posts, %BuildContext{project: %Project{} = proj} = context) do
     %BlogConfiguration{} = blog = proj.blog
     base_url = proj.base_url.path
@@ -50,14 +51,7 @@ defmodule Serum.PostList do
     [first_dup, list | lists]
   end
 
-  @spec compact(PostList.t()) :: map()
-  def compact(%PostList{} = list) do
-    list
-    |> Map.drop(~w(__struct__ dest)a)
-    |> Map.put(:type, :list)
-  end
-
-  @spec make_chunks([map()], boolean(), pos_integer()) :: [[map()]]
+  @spec make_chunks([Post.t()], boolean(), pos_integer()) :: [[map()]]
   defp make_chunks(posts, paginate?, num_posts)
   defp make_chunks([], _, _), do: [[]]
   defp make_chunks(posts, false, _), do: [posts]

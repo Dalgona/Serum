@@ -13,24 +13,24 @@ defmodule Serum.Build.FileProcessor.PostList do
   @type tag_counts() :: [{Tag.t(), integer()}]
 
   @doc false
-  @spec generate_lists([map()], BuildContext.t()) :: Result.t({[PostList.t()], tag_counts()})
-  def generate_lists(compact_posts, context)
+  @spec generate_lists([Post.t()], BuildContext.t()) :: Result.t({[PostList.t()], tag_counts()})
+  def generate_lists(posts, context)
   def generate_lists([], _context), do: Result.return({[], []})
 
-  def generate_lists(compact_posts, context) do
+  def generate_lists(posts, context) do
     put_msg(:info, "Generating post lists...")
 
-    tag_groups = group_posts_by_tag(compact_posts)
+    tag_groups = group_posts_by_tag(posts)
 
     Result.run do
-      lists = do_generate_lists(compact_posts, tag_groups, context)
+      lists = do_generate_lists(posts, tag_groups, context)
       lists <- PluginClient.generated_post_lists(lists)
 
       Result.return({List.flatten(lists), get_tag_counts(tag_groups)})
     end
   end
 
-  @spec group_posts_by_tag([map()], map()) :: tag_groups()
+  @spec group_posts_by_tag([Post.t()], map()) :: tag_groups()
   defp group_posts_by_tag(posts, acc \\ %{})
 
   defp group_posts_by_tag([], acc) do
@@ -51,11 +51,11 @@ defmodule Serum.Build.FileProcessor.PostList do
     group_posts_by_tag(posts, new_acc)
   end
 
-  @spec do_generate_lists([map()], tag_groups(), BuildContext.t()) :: [[PostList.t()]]
-  defp do_generate_lists(compact_posts, tag_groups, context) do
-    [{nil, compact_posts} | tag_groups]
-    |> Task.async_stream(fn {tag, posts} ->
-      Serum.PostList.generate(tag, posts, context)
+  @spec do_generate_lists([Post.t()], tag_groups(), BuildContext.t()) :: [[PostList.t()]]
+  defp do_generate_lists(posts, tag_groups, context) do
+    [{nil, posts} | tag_groups]
+    |> Task.async_stream(fn {tag, grouped_posts} ->
+      Serum.PostList.generate(tag, grouped_posts, context)
     end)
     |> Enum.map(&elem(&1, 1))
   end
