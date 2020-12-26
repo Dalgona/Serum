@@ -35,13 +35,6 @@ defmodule Serum.Page do
     }
   end
 
-  @spec compact(Page.t()) :: map()
-  def compact(%Page{} = page) do
-    page
-    |> Map.drop(~w(__struct__ source dest type data)a)
-    |> Map.put(:type, :page)
-  end
-
   @spec get_type(binary()) :: {binary(), binary()}
   defp get_type(filename) do
     filename

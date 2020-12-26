@@ -26,8 +26,8 @@ defmodule Serum.Build.FileProcessor.PageTest do
   describe "preprocess_pages/2 and process_posts/2" do
     test "preprocesses markdown files", %{context: context} do
       file = read("pages/good-md.md")
-      {:ok, {pages, [compact_page]}} = preprocess_pages([file], context)
-      {:ok, [page]} = process_pages(pages, context)
+      {:ok, preprocessed_pages} = preprocess_pages([file], context)
+      {:ok, [page]} = process_pages(preprocessed_pages, context)
 
       assert %Page{
                title: "Test Markdown Page",
@@ -39,14 +39,12 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
       assert String.ends_with?(page.dest, ".html")
       assert page.data =~ "Hello, world!"
-
-      validate_compact(compact_page)
     end
 
     test "preprocesses HTML-EEx files", %{context: context} do
       file = read("pages/good-html.html.eex")
-      {:ok, {pages, [compact_page]}} = preprocess_pages([file], context)
-      {:ok, [page]} = process_pages(pages, context)
+      {:ok, preprocessed_pages} = preprocess_pages([file], context)
+      {:ok, [page]} = process_pages(preprocessed_pages, context)
 
       assert %Page{
                title: "Test HTML-EEx Page",
@@ -58,18 +56,15 @@ defmodule Serum.Build.FileProcessor.PageTest do
 
       assert String.ends_with?(page.dest, ".html")
       assert page.data =~ "Hello, world!"
-
-      validate_compact(compact_page)
     end
 
     test "fallbacks to the default label", %{context: context} do
       file = %V2.File{src: fixture("pages/good-minimal-header.md")}
       {:ok, file} = V2.File.read(file)
-      {:ok, {[page], [compact_page]}} = preprocess_pages([file], context)
+      {:ok, [page]} = preprocess_pages([file], context)
 
       assert String.ends_with?(page.dest, ".html")
       assert page.label === "Test Page"
-      assert compact_page.label === "Test Page"
     end
 
     test "fails on pages with bad headers", %{context: context} do
@@ -95,7 +90,7 @@ defmodule Serum.Build.FileProcessor.PageTest do
         |> Enum.map(&V2.File.read/1)
         |> Enum.map(fn {:ok, file} -> file end)
 
-      {:ok, {pages, _}} = preprocess_pages(files, context)
+      {:ok, pages} = preprocess_pages(files, context)
       {:error, %Error{caused_by: errors}} = process_pages(pages, context)
 
       assert length(errors) === length(files)
@@ -107,13 +102,5 @@ defmodule Serum.Build.FileProcessor.PageTest do
     {:ok, file} = V2.File.read(file)
 
     file
-  end
-
-  defp validate_compact(compact_page) do
-    refute compact_page[:__struct__]
-    refute compact_page[:source]
-    refute compact_page[:dest]
-    refute compact_page[:data]
-    assert compact_page.type === :page
   end
 end

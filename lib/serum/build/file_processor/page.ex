@@ -10,7 +10,7 @@ defmodule Serum.Build.FileProcessor.Page do
   alias Serum.V2.Error
   alias Serum.V2.Page
 
-  @spec preprocess_pages([V2.File.t()], BuildContext.t()) :: Result.t({[Page.t()], [map()]})
+  @spec preprocess_pages([V2.File.t()], BuildContext.t()) :: Result.t({[Page.t()]})
   def preprocess_pages(files, context) do
     put_msg(:info, "Processing page files...")
 
@@ -19,7 +19,7 @@ defmodule Serum.Build.FileProcessor.Page do
       pages <- do_preprocess_pages(files, context)
       sorted_pages = Enum.sort(pages, &(&1.order < &2.order))
 
-      Result.return({sorted_pages, Enum.map(sorted_pages, &Serum.Page.compact/1)})
+      Result.return(sorted_pages)
     end
   end
 

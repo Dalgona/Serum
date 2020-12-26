@@ -42,11 +42,11 @@ defmodule Serum.Build.FileProcessor do
 
     Result.run do
       compile_templates(files)
-      {pages, compact_pages} <- preprocess_pages(page_files, context)
+      preprocessed_pages <- preprocess_pages(page_files, context)
       {posts, compact_posts} <- preprocess_posts(post_files, context)
       {lists, tag_counts} <- generate_lists(compact_posts, context)
-      update_global_bindings(compact_pages, compact_posts, tag_counts)
-      pages <- process_pages(pages, context)
+      update_global_bindings(preprocessed_pages, compact_posts, tag_counts)
+      pages <- process_pages(preprocessed_pages, context)
       posts <- process_posts(posts, context)
 
       Result.return(%{
@@ -57,9 +57,9 @@ defmodule Serum.Build.FileProcessor do
     end
   end
 
-  @spec update_global_bindings([map()], [map()], [{Tag.t(), integer()}]) :: Result.t({})
-  def update_global_bindings(compact_pages, compact_posts, tag_counts) do
-    GlobalBindings.put(:all_pages, compact_pages)
+  @spec update_global_bindings([Page.t()], [map()], [{Tag.t(), integer()}]) :: Result.t({})
+  def update_global_bindings(pages, compact_posts, tag_counts) do
+    GlobalBindings.put(:all_pages, pages)
     GlobalBindings.put(:all_posts, compact_posts)
     GlobalBindings.put(:all_tags, tag_counts)
     Result.return()
