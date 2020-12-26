@@ -9,7 +9,7 @@ defmodule Serum.Factory.Tags do
 
         tag = %Serum.V2.Tag{
           name: name,
-          path: Path.join([project.base_url.path, project.blog.tags_path, name])
+          url: Path.join([project.base_url.path, project.blog.tags_path, name])
         }
 
         merge_attributes(tag, attrs)

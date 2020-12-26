@@ -13,7 +13,7 @@ defmodule Serum.Factory.PostLists do
         {posts, attrs} =
           Map.pop(attrs, :posts, build_list(3, :post, project: project, tags: tags))
 
-        dest = Path.join(tag.path, "page-#{current_page}.html")
+        dest = Path.join(tag.url, "page-#{current_page}.html")
 
         title =
           case tag do

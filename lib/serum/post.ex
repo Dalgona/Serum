@@ -52,7 +52,7 @@ defmodule Serum.Post do
     |> Enum.map(
       &%Tag{
         name: &1,
-        path: Path.join([base_url, "tags", &1])
+        url: Path.join([base_url, "tags", &1])
       }
     )
   end

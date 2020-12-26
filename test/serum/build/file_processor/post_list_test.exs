@@ -7,7 +7,7 @@ defmodule Serum.Build.FileProcessor.PostListTest do
   setup_all do
     tags1 =
       ~w(tag1 tag2 tag3)
-      |> Enum.map(&%Tag{name: &1, path: "/tags/#{&1}/"})
+      |> Enum.map(&%Tag{name: &1, url: "/tags/#{&1}/"})
       |> Stream.cycle()
 
     tags2 = Stream.drop(tags1, 1)
