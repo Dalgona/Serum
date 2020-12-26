@@ -15,6 +15,7 @@ defmodule Serum.V2.PostList do
   - `extras` - a map for arbitrary key-value data associated with the post list.
   """
 
+  alias Serum.V2.Post
   alias Serum.V2.Tag
 
   @type t :: %__MODULE__{
@@ -22,7 +23,7 @@ defmodule Serum.V2.PostList do
           current_page: pos_integer(),
           last_page: pos_integer(),
           title: binary(),
-          posts: [map()],
+          posts: [Post.t()],
           url: binary(),
           dest: binary(),
           extras: map()

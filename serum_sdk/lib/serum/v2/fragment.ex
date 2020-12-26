@@ -11,16 +11,19 @@ defmodule Serum.V2.Fragment do
     `nil` if the fragment is created from scratch by Serum or plugins.
   - `dest` - the path on the file system which the complete HTML page for the
     fragment will be written to.
-  - `metadata` - a map holding extra information about the fragment.
+  - `metadata` - a struct or a map holding extra information about the fragment.
   - `data` - contents of the page fragment.
   """
 
   alias Serum.V2
+  alias Serum.V2.Page
+  alias Serum.V2.Post
+  alias Serum.V2.PostList
 
   @type t :: %__MODULE__{
           source: V2.File.t(),
           dest: binary(),
-          metadata: map(),
+          metadata: Page.t() | Post.t() | PostList.t() | map(),
           data: binary()
         }
 
