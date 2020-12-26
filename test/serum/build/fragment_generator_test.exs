@@ -6,12 +6,15 @@ defmodule Serum.Build.FragmentGeneratorTest do
   alias Serum.Template.Storage, as: TS
 
   setup_all do
-    {pages, _} = Code.eval_file(fixture("precompiled/good-pages.exs"))
-    {posts, _} = Code.eval_file(fixture("precompiled/good-posts.exs"))
-    {lists, _} = Code.eval_file(fixture("precompiled/good-lists.exs"))
-    {state, _} = Code.eval_file(fixture("precompiled/good-gb.exs"))
+    project = build(:project)
 
-    {:ok, [pages: pages, posts: posts, lists: lists, state: state]}
+    {:ok,
+     [
+       pages: build_list(3, :page, project: project),
+       posts: build_list(3, :post, project: project),
+       lists: build_list(3, :post_list, project: project),
+       state: build(:global_bindings)
+     ]}
   end
 
   setup do
@@ -23,9 +26,7 @@ defmodule Serum.Build.FragmentGeneratorTest do
 
   describe "to_fragment/2" do
     test "generates fragments from fragment sources", ctx do
-      {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
-
-      TS.load(templates, :template)
+      load_templates()
       GlobalBindings.load(ctx.state)
 
       processed = %{
@@ -41,9 +42,7 @@ defmodule Serum.Build.FragmentGeneratorTest do
     end
 
     test "fails with bad templates", ctx do
-      {templates, _} = Code.eval_file(fixture("precompiled/bad-templates.exs"))
-
-      TS.load(templates, :template)
+      load_templates(break: true)
       GlobalBindings.load(ctx.state)
 
       processed = %{
@@ -56,11 +55,10 @@ defmodule Serum.Build.FragmentGeneratorTest do
     end
 
     test "fails when pages use custom templates which are unavailable", ctx do
-      {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
       [page | pages] = ctx.pages
       bad_page = %{page | template: "foobarbaz"}
 
-      TS.load(templates, :template)
+      load_templates()
       GlobalBindings.load(ctx.state)
 
       processed = %{
@@ -73,11 +71,10 @@ defmodule Serum.Build.FragmentGeneratorTest do
     end
 
     test "fails when posts use custom templates which are unavailable", ctx do
-      {templates, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
       [post | posts] = ctx.posts
       bad_post = %{post | template: "foobarbaz"}
 
-      TS.load(templates, :template)
+      load_templates()
       GlobalBindings.load(ctx.state)
 
       processed = %{

@@ -1,5 +1,5 @@
 defmodule Serum.Build.PageGeneratorTest do
-  use Serum.Case, async: true
+  use Serum.Case
   require Serum.TestHelper
   alias Serum.Build.PageGenerator
   alias Serum.GlobalBindings
@@ -7,12 +7,17 @@ defmodule Serum.Build.PageGeneratorTest do
   alias Serum.V2.Error
 
   setup_all do
-    {fragments, _} = Code.eval_file(fixture("precompiled/good-fragments.exs"))
-    {good, _} = Code.eval_file(fixture("precompiled/good-templates.exs"))
-    {bad, _} = Code.eval_file(fixture("precompiled/bad-templates.exs"))
-    {state, _} = Code.eval_file(fixture("precompiled/good-gb.exs"))
+    project = build(:project)
+    list = build(:post_list, project: project)
+    posts = list.posts
+    pages = build_list(3, :page)
 
-    {:ok, [fragments: fragments, good: good, bad: bad, state: state]}
+    fragments =
+      [list, pages, posts]
+      |> List.flatten()
+      |> Enum.map(&build(:fragment, from: &1))
+
+    {:ok, [fragments: fragments, state: build(:global_bindings)]}
   end
 
   setup do
@@ -24,7 +29,7 @@ defmodule Serum.Build.PageGeneratorTest do
 
   describe "run/2" do
     test "completes with a good base template", ctx do
-      TS.load(ctx.good, :template)
+      load_templates()
       GlobalBindings.load(ctx.state)
 
       assert {:ok, files} = PageGenerator.run(ctx.fragments)
@@ -32,7 +37,7 @@ defmodule Serum.Build.PageGeneratorTest do
     end
 
     test "fails with a bad base template", ctx do
-      TS.load(ctx.bad, :template)
+      load_templates(break: true)
       GlobalBindings.load(ctx.state)
 
       assert {:error, %Error{caused_by: errors}} = PageGenerator.run(ctx.fragments)
