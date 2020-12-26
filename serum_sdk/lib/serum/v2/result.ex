@@ -129,6 +129,26 @@ defmodule Serum.V2.Result do
   @doc """
   Provides a convenient syntax for working with a chain of functions returning
   values in the `t:Serum.V2.Result.t/1` type.
+
+  ## Examples
+
+      Serum.V2.Result.run do
+        # If the expression on the right hand side evaluates to `{:ok, value}`,
+        # `value` is pattern-matched against the pattern on the left hand side.
+        %Serum.V2.File{} = in_file <- Serum.V2.File.read(file)
+
+        # If you want to ignore the value of the expression,
+        # You can use the "discard" pattern...
+        _ <- Serum.V2.Console.put_msg("successfully read file")
+        # ...or omit the left hand side and an arrow.
+        Serum.V2.Console.put_msg("successfully read file")
+
+        # Ordinary pattern-match expressions are also allowed in `run` block.
+        out_file = %Serum.V2.File{dest: "output", out_data: in_file.in_data}
+
+        # The last expression is the return value of this `run` block.
+        Serum.V2.File.write(out_file)
+      end
   """
   defmacro run(do: {:__block__, _, exprs}) when is_list(exprs) do
     exprs
