@@ -6,6 +6,7 @@ Serum.V2.Console.config(mute_err: true, mute_msg: true)
 
 defmodule Serum.TestHelper do
   import Mox
+  alias Serum.Build.FileProcessor.Template
 
   @test_dir Path.join(File.cwd!(), "test_fixtures")
 
@@ -72,7 +73,7 @@ defmodule Serum.TestHelper do
 
   def load_templates(opts \\ []) do
     {:ok, _} =
-      Serum.Build.FileProcessor.Template.compile_templates(%{
+      Template.compile_templates(%{
         includes: read_template_files(~w(nav), opts),
         templates: read_template_files(~w(base list page post), opts)
       })
@@ -87,11 +88,13 @@ defmodule Serum.TestHelper do
       %V2.File{src: src}
       |> V2.File.read()
       |> elem(1)
-      |> Map.update!(:in_data, fn data ->
-        if opts[:break], do: data <> ~s(<%= raise "test" %>), else: data
-      end)
+      |> Map.update!(:in_data, &break_template(&1, opts[:break]))
     end)
   end
+
+  defp break_template(data, break?)
+  defp break_template(data, true), do: data <> ~s(<%= raise "test" %>)
+  defp break_template(data, _), do: data
 end
 
 defmodule Serum.Case do
