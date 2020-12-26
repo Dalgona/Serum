@@ -61,7 +61,7 @@ defmodule Serum.Plugins.SitemapGeneratorTest do
       [ctx.pages, ctx.posts]
       |> List.flatten()
       |> Enum.map(&to_string(%URI{project.base_url | path: &1.url}))
-      |> Enum.each(&(assert String.contains?(sitemap, &1)))
+      |> Enum.each(&assert String.contains?(sitemap, &1))
     end
   end
 end

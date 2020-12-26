@@ -77,7 +77,7 @@ defmodule Serum.Plugin.LoaderTest do
       |> expect(:implements, fn -> [] end)
       |> expect(:init, fn _ -> Result.fail("foo") end)
 
-      {:error, error } = Loader.load([Serum.V2.Plugin.Mock])
+      {:error, error} = Loader.load([Serum.V2.Plugin.Mock])
       message = to_string(error)
 
       assert message =~ "foo"

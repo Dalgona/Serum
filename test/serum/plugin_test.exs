@@ -40,7 +40,10 @@ defmodule Serum.PluginTest do
       assert {:ok, _} = processing_templates([build(:input_file, type: "html.eex")])
       assert {:ok, _} = processed_pages(build_list(3, :page))
       assert {:ok, _} = processed_posts(build_list(3, :post))
-      assert {:ok, _} = processed_templates([%Template{source: build(:input_file, type: "html.eex")}])
+
+      assert {:ok, _} =
+               processed_templates([%Template{source: build(:input_file, type: "html.eex")}])
+
       assert {:ok, _} = generated_post_lists([build_list(3, :post_list)])
       assert {:ok, _} = generating_fragment([{"p", [], ["Hello, world!"]}], %{type: :page})
       assert {:ok, _} = generated_fragment(%Fragment{dest: "test.html"})
