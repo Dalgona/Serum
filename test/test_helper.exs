@@ -69,6 +69,29 @@ defmodule Serum.TestHelper do
     |> expect(:get_templates, callbacks[:get_templates] || fn _ -> {:ok, []} end)
     |> expect(:get_assets, callbacks[:get_assets] || fn _ -> {:ok, false} end)
   end
+
+  def load_templates(opts \\ []) do
+    {:ok, _} =
+      Serum.Build.FileProcessor.Template.compile_templates(%{
+        includes: read_template_files(~w(nav), opts),
+        templates: read_template_files(~w(base list page post), opts)
+      })
+  end
+
+  defp read_template_files(names, opts) do
+    alias Serum.V2
+
+    names
+    |> Enum.map(&fixture(Path.join("templates", "#{&1}.html.eex")))
+    |> Enum.map(fn src ->
+      %V2.File{src: src}
+      |> V2.File.read()
+      |> elem(1)
+      |> Map.update!(:in_data, fn data ->
+        if opts[:break], do: data <> ~s(<%= raise "test" %>), else: data
+      end)
+    end)
+  end
 end
 
 defmodule Serum.Case do
