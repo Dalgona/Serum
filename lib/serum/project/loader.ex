@@ -45,9 +45,15 @@ defmodule Serum.Project.Loader do
 
   @spec make_project(map()) :: Project.t()
   defp make_project(%{base_url: base_url, blog: blog} = map) do
+    uri =
+      Map.update!(URI.parse(base_url), :path, fn
+        nil -> "/"
+        path when is_binary(path) -> path
+      end)
+
     new_map = %{
       map
-      | base_url: URI.parse(base_url),
+      | base_url: uri,
         blog: make_blog(blog)
     }
 
