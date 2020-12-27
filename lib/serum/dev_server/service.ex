@@ -5,6 +5,8 @@ defmodule Serum.DevServer.Service do
   Provides some useful functions while the Serum development server is running.
   """
 
+  alias Serum.V2.Result
+
   @doc "Rebuilds the current Serum project."
   @callback rebuild() :: :ok
 
@@ -19,6 +21,9 @@ defmodule Serum.DevServer.Service do
 
   @doc "Checks if the source directory is marked as dirty."
   @callback dirty?() :: boolean
+
+  @doc "Returne the result of the last website build."
+  @callback last_build_result() :: Result.t(binary())
 
   @doc "Subscribes to this GenServer for notifications."
   @callback subscribe() :: :ok
