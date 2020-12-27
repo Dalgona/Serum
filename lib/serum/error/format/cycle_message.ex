@@ -12,6 +12,11 @@ defimpl Serum.Error.Format, for: Serum.V2.Error.CycleMessage do
     ]
   end
 
+  @spec format_html(CycleMessage.t()) :: iodata()
+  def format_html(%CycleMessage{} = _msg) do
+    ~s(<span style="color: red;">Protocol not implemented for CycleMessage.</span>)
+  end
+
   endl = [:reset, ?\n]
   top = ["  ", :red, "\u256d\u2500\u2500\u2500\u2500\u2500\u256e", endl]
   arrow = ["  ", :red, "\u2502     \u2193", endl]

@@ -11,4 +11,9 @@ defimpl Serum.Error.Format, for: Serum.V2.Error.ConstraintMessage do
       [:bright, :yellow, msg.constraint, :reset]
     ]
   end
+
+  @spec format_html(ConstraintMessage.t()) :: iodata()
+  def format_html(%ConstraintMessage{} = _msg) do
+    ~s(<span style="color: red;">Protocol not implemented for ConstraintMessage.</span>)
+  end
 end

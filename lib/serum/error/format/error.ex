@@ -19,6 +19,11 @@ defimpl Serum.Error.Format, for: Serum.V2.Error do
     Enum.intersperse([head | children], ?\n)
   end
 
+  @spec format_html(Error.t()) :: iodata()
+  def format_html(%Error{} = _error) do
+    ~s(<span style="color: red;">Protocol not implemented for Error.</span>)
+  end
+
   @spec format_file_text(V2.File.t() | nil, integer()) :: binary()
   defp format_file_text(maybe_file, line)
   defp format_file_text(nil, _line), do: ""

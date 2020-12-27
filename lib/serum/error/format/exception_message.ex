@@ -12,4 +12,9 @@ defimpl Serum.Error.Format, for: Serum.V2.Error.ExceptionMessage do
       :reset
     ]
   end
+
+  @spec format_html(ExceptionMessage.t()) :: iodata()
+  def format_html(%ExceptionMessage{} = _msg) do
+    ~s(<span style="color: red;">Protocol not implemented for ExceptionMessage.</span>)
+  end
 end
