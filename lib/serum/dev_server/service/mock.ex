@@ -6,6 +6,7 @@ defmodule Serum.DevServer.Service.Mock do
   """
 
   use GenServer
+  require Serum.V2.Result, as: Result
   alias Serum.DevServer.Service
 
   @behaviour Service
@@ -35,6 +36,10 @@ defmodule Serum.DevServer.Service.Mock do
   @impl Service
   @spec dirty?() :: boolean()
   def dirty?, do: false
+
+  @impl Service
+  @spec last_build_result() :: Result.t(binary())
+  def last_build_result, do: Result.return(GenServer.call(__MODULE__, :site))
 
   @impl Service
   @spec subscribe() :: :ok

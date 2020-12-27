@@ -48,6 +48,10 @@ defmodule Serum.DevServer.Service.GenServer do
   def dirty?, do: GenServer.call(__MODULE__, :is_dirty)
 
   @impl Service
+  @spec last_build_result() :: Result.t(binary())
+  def last_build_result, do: GenServer.call(__MODULE__, :last_build_result)
+
+  @impl Service
   @spec subscribe() :: :ok
   def subscribe, do: GenServer.call(__MODULE__, :subscribe)
 
@@ -71,10 +75,10 @@ defmodule Serum.DevServer.Service.GenServer do
       site: site,
       portnum: portnum,
       is_dirty: false,
+      last_build_result: do_rebuild(dir, site),
       subscribers: %{}
     }
 
-    do_rebuild(dir, site)
     unless(is_nil(watcher), do: FileSystem.subscribe(watcher))
 
     {:ok, state}
@@ -84,9 +88,7 @@ defmodule Serum.DevServer.Service.GenServer do
   def handle_call(msg, from, state)
 
   def handle_call(:rebuild, _from, state) do
-    do_rebuild(state.dir, state.site)
-
-    {:reply, :ok, state}
+    {:reply, :ok, %{state | last_build_result: do_rebuild(state.dir, state.site)}}
   end
 
   def handle_call(:source_dir, _from, state), do: {:reply, state.dir, state}
@@ -95,6 +97,10 @@ defmodule Serum.DevServer.Service.GenServer do
 
   def handle_call(:is_dirty, _from, state),
     do: {:reply, state.is_dirty, %{state | is_dirty: false}}
+
+  def handle_call(:last_build_result, _from, state) do
+    {:reply, state.last_build_result, state}
+  end
 
   def handle_call(:subscribe, {caller, _}, state) do
     ref = Process.monitor(caller)
@@ -139,10 +145,11 @@ defmodule Serum.DevServer.Service.GenServer do
   end
 
   def handle_info(:tick, state) do
-    do_rebuild(state.dir, state.site)
+    result = do_rebuild(state.dir, state.site)
+
     Enum.each(state.subscribers, fn {_, pid} -> send(pid, :send_reload) end)
 
-    {:noreply, %{state | is_dirty: false}}
+    {:noreply, %{state | is_dirty: false, last_build_result: result}}
   end
 
   def handle_info({:DOWN, ref, :process, _, _}, state) do
@@ -159,21 +166,25 @@ defmodule Serum.DevServer.Service.GenServer do
     unless(is_nil(watcher), do: Process.exit(watcher, :shutdown))
   end
 
-  @spec do_rebuild(binary(), binary()) :: Result.t({})
+  @spec do_rebuild(binary(), binary()) :: Result.t(binary())
   defp do_rebuild(src, dest) do
-    with {:ok, %Project{} = proj} <- ProjectLoader.load(src),
-         {:ok, ^dest} <- Build.build(proj, src, dest) do
-      Result.return()
-    else
-      {:error, _} = error -> build_failed(error)
+    Result.run do
+      %Project{} = proj <- ProjectLoader.load(src)
+      Build.build(proj, src, dest)
+    end
+    |> case do
+      {:ok, ^dest} = result -> result
+      {:error, _error} = result -> build_failed(result)
     end
   end
 
-  @spec build_failed(Result.t({})) :: Result.t({})
-  defp build_failed(error) do
-    Serum.Result.show(error)
+  @spec build_failed(Result.t(binary())) :: Result.t(binary())
+  defp build_failed(result) do
+    Serum.Result.show(result)
     put_err(:warn, "Error occurred while building the website.")
     put_err(:warn, "The website may not be displayed correctly.")
+
+    result
   end
 
   @spec dotfile?(binary()) :: boolean()
