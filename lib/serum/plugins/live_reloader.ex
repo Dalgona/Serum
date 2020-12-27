@@ -36,6 +36,16 @@ defmodule Serum.Plugins.LiveReloader do
 
   def implements, do: [rendered_pages: 2]
 
+  def rendered_pages(files, state) do
+    injected_files =
+      files
+      |> Enum.map(fn %V2.File{out_data: data} = file ->
+        %V2.File{file | out_data: data <> _script_snippet()}
+      end)
+
+    Result.return({injected_files, state})
+  end
+
   script_snippet =
     :serum
     |> :code.priv_dir()
@@ -43,13 +53,6 @@ defmodule Serum.Plugins.LiveReloader do
     |> Path.join("build_resources/live_reloader.html")
     |> File.read!()
 
-  def rendered_pages(files, state) do
-    injected_files =
-      files
-      |> Enum.map(fn %V2.File{out_data: data} = file ->
-        %V2.File{file | out_data: data <> unquote(script_snippet)}
-      end)
-
-    Result.return({injected_files, state})
-  end
+  @doc false
+  def _script_snippet, do: unquote(script_snippet)
 end
