@@ -1,0 +1,35 @@
+<div class="error-message">
+  <header>
+    <span class="exception-name"><%= inspect(message.exception.__struct__) %></span><br>
+    <span class="exception-message"><%= Exception.message(trim_exception(message.exception)) %></span>
+  </header>
+  <div class="stacktrace">
+    <table class="stacktrace">
+      <thead>
+        <tr><th colspan="2">Stacktrace (most recent call first):</th></tr>
+      </thead>
+      <tbody><%= for entry <- message.stacktrace do %>
+        <tr><%= case entry do %>
+          <% {module, :__MODULE__, 0, location} -> %>
+            <td class="location"><%= format_location(location) %></td>
+            <td class="function"><%= inspect(module) %> (module)</td>
+          <% {_module, :__MODULE__, 1, location} -> %>
+            <td class="location"><%= format_location(location) %></td>
+            <td class="function">(module)</td>
+          <% {_module, :__FILE__, 1, location} -> %>
+            <td class="location"><%= format_location(location) %></td>
+            <td class="function">(file)</td>
+          <% {module, fun, arity, location} -> %>
+            <td class="location">
+              <span class="app"><%= format_application(module) %></span>
+              <%= format_location(location) %>
+            </td>
+            <td class="function"><%= Exception.format_mfa(module, fun, arity) %></td>
+          <% {fun, arity, location} -> %>
+            <td class="location"><%= format_location(location) %></td>
+            <td class="function"><%= Exception.format_fa(fun, arity) %></td>
+        <% end %></tr>
+      <% end %></tbody>
+    </table>
+  </div>
+</div>
