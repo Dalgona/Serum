@@ -1,0 +1,5 @@
+<div class="error-message">
+  <header>
+    <span><%= :file.format_error(message.reason) %> <code>(<%= message.reason %>)</code></span>
+  </header>
+</div>
