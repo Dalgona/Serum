@@ -1,0 +1,9 @@
+<div class="error-message">
+  <header>
+    <span class="constraint-message">
+      value of <code><%= message.name %></code> property,
+      <code><%= inspect(message.value) %></code>,<br>
+      violates the constraint <code><%= message.constraint %></code>.
+    </span>
+  </header>
+</div>

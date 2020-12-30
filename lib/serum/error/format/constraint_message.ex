@@ -1,4 +1,5 @@
 defimpl Serum.Error.Format, for: Serum.V2.Error.ConstraintMessage do
+  require EEx
   alias Serum.V2.Error.ConstraintMessage
 
   @spec format_text(ConstraintMessage.t(), non_neg_integer()) :: IO.ANSI.ansidata()
@@ -12,8 +13,13 @@ defimpl Serum.Error.Format, for: Serum.V2.Error.ConstraintMessage do
     ]
   end
 
+  eex_file =
+    :serum
+    |> :code.priv_dir()
+    |> Path.join("build_resources/constraint_message.html.eex")
+
+  EEx.function_from_file(:defp, :template, eex_file, [:message])
+
   @spec format_html(ConstraintMessage.t()) :: iodata()
-  def format_html(%ConstraintMessage{} = _msg) do
-    ~s(<span style="color: red;">Protocol not implemented for ConstraintMessage.</span>)
-  end
+  def format_html(%ConstraintMessage{} = message), do: template(message)
 end
