@@ -4,7 +4,7 @@
     case {error.file, error.line} do
       {nil, _line} -> :none
       {%Serum.V2.File{src: nil}, _line} -> :none
-      {%Serum.V2.File{in_data: nil}, _line} -> :none
+      {%Serum.V2.File{in_data: nil}, _line} -> :name_only
       {%Serum.V2.File{src: _src}, nil} -> :name_only
       {%Serum.V2.File{src: _src}, line} when line < 1 -> :name_only
       {%Serum.V2.File{src: _src, in_data: _in_data}, _line} -> :full
@@ -19,7 +19,7 @@
     <% :name_only -> %>
       <table class="listing">
         <thead>
-          <tr><th>Source Code: <%= Exception.format_file_line(error.file.src, error.line) %></th></tr>
+          <tr><th>File: <%= Exception.format_file_line(error.file.src, error.line) %></th></tr>
         </thead>
         <tbody>
           <tr><td class="unavailable">Source code listing is not available.</td></tr>
@@ -31,7 +31,7 @@
       %><table class="listing">
         <thead>
           <tr>
-            <th colspan="2">Source Code: <%= Exception.format_file_line(error.file.src, error.line) %></th>
+            <th colspan="2">File: <%= Exception.format_file_line(error.file.src, error.line) %></th>
           </tr>
         </thead>
         <tbody><%= for {code, line_num} <- lines do %>
