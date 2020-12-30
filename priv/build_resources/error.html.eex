@@ -1,0 +1,56 @@
+<div class="error">
+  <%= Format.format_html(error.message) %><%
+  listing_availability =
+    case {error.file, error.line} do
+      {nil, _line} -> :none
+      {%Serum.V2.File{src: nil}, _line} -> :none
+      {%Serum.V2.File{in_data: nil}, _line} -> :none
+      {%Serum.V2.File{src: _src}, nil} -> :name_only
+      {%Serum.V2.File{src: _src}, line} when line < 1 -> :name_only
+      {%Serum.V2.File{src: _src, in_data: _in_data}, _line} -> :full
+    end
+  %><%= case listing_availability do %>
+    <% :none -> %>
+      <table class="listing">
+        <tbody>
+          <tr><td class="unavailable">Source code information is not available.</td></tr>
+        </tbody>
+      </table>
+    <% :name_only -> %>
+      <table class="listing">
+        <thead>
+          <tr><th>Source Code: <%= Exception.format_file_line(error.file.src, error.line) %></th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="unavailable">Source code listing is not available.</td></tr>
+        </tbody>
+      </table>
+    <% :full -> %><%
+      {prev, current, next} = extract_lines(error.file.in_data, error.line)
+      lines = List.flatten([prev, current, next])
+      %><table class="listing">
+        <thead>
+          <tr>
+            <th colspan="2">Source Code: <%= Exception.format_file_line(error.file.src, error.line) %></th>
+          </tr>
+        </thead>
+        <tbody><%= for {code, line_num} <- lines do %>
+          <%
+          class = if(line_num === error.line, do: "line here", else: "line")
+          escaped = code |> to_charlist() |> Enum.map(&"&##{&1};")
+          %><tr class="<%= class %>">
+            <th class="line-num"><%= line_num %></th>
+            <td class="code"><code><%= escaped %></code></td>
+          </tr>
+        <% end %></tbody>
+      </table>
+  <% end %>
+  <%= unless Enum.empty?(error.caused_by) do %>
+    <div class="caused-by">
+      <header><span>This error was caused by:</span></header>
+      <%= for sub_error <- error.caused_by do %>
+        <%= Format.format_html(sub_error) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

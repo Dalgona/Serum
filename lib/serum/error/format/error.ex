@@ -1,4 +1,5 @@
 defimpl Serum.Error.Format, for: Serum.V2.Error do
+  require EEx
   alias Serum.Error.Format
   alias Serum.V2
   alias Serum.V2.Error
@@ -19,10 +20,15 @@ defimpl Serum.Error.Format, for: Serum.V2.Error do
     Enum.intersperse([head | children], ?\n)
   end
 
+  eex_file =
+    :serum
+    |> :code.priv_dir()
+    |> Path.join("build_resources/error.html.eex")
+
+  EEx.function_from_file(:defp, :template, eex_file, [:error])
+
   @spec format_html(Error.t()) :: iodata()
-  def format_html(%Error{} = _error) do
-    ~s(<span style="color: red;">Protocol not implemented for Error.</span>)
-  end
+  def format_html(%Error{} = error), do: template(error)
 
   @spec format_file_text(V2.File.t() | nil, integer()) :: binary()
   defp format_file_text(maybe_file, line)
