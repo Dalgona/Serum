@@ -1,0 +1,21 @@
+<div class="error-message">
+  <header><span>cycle detected while expanding includes:</span></header>
+  <table>
+    <tbody>
+      <tr>
+        <td>
+          <ul class="cycle-graph"><%= for item <- message.cycle do %>
+            <li class="cycle-item"><span><%= item %></span></li>
+          <% end %></ul>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Cycles are not allowed when recursively including templates.
+          Please refactor your templates to break the cycle.
+          Alternatively, you can use the <code>render/1,2</code> template helper.
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

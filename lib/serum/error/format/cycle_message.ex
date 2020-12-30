@@ -1,4 +1,5 @@
 defimpl Serum.Error.Format, for: Serum.V2.Error.CycleMessage do
+  require EEx
   alias Serum.V2.Error.CycleMessage
 
   @spec format_text(CycleMessage.t(), non_neg_integer()) :: IO.ANSI.ansidata()
@@ -12,10 +13,15 @@ defimpl Serum.Error.Format, for: Serum.V2.Error.CycleMessage do
     ]
   end
 
+  eex_file =
+    :serum
+    |> :code.priv_dir()
+    |> Path.join("build_resources/cycle_message.html.eex")
+
+  EEx.function_from_file(:defp, :template, eex_file, [:message])
+
   @spec format_html(CycleMessage.t()) :: iodata()
-  def format_html(%CycleMessage{} = _msg) do
-    ~s(<span style="color: red;">Protocol not implemented for CycleMessage.</span>)
-  end
+  def format_html(%CycleMessage{} = message), do: template(message)
 
   endl = [:reset, ?\n]
   top = ["  ", :red, "\u256d\u2500\u2500\u2500\u2500\u2500\u256e", endl]
