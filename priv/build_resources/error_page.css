@@ -1,0 +1,205 @@
+body {
+  --default-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  --monospaced-font: Menlo, Monaco, Consolas, 'Lucida Console', Courier, monospace;
+
+  --rgb-black: 64, 64, 64;
+  --rgb-background: 248, 240, 224;
+  --rgb-red: 192, 0, 0;
+
+  --padding: 1rem;
+
+  margin: 0;
+  background-color: rgb(var(--rgb-background));
+  font-family: var(--default-font);
+  font-feature-settings: 'tnum' on;
+  color: rgb(var(--rgb-black));
+}
+
+code {
+  font-family: var(--monospaced-font);
+  white-space: pre;
+}
+
+#wrapper > header {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 var(--padding);
+  background: rgb(var(--rgb-black));
+  color: rgb(var(--rgb-background));
+}
+
+section {
+  box-sizing: border-box;
+  margin: var(--padding);
+}
+
+footer {
+  opacity: 0.75;
+  padding: 0 var(--padding);
+}
+
+.error-message header {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: rgb(var(--rgb-red));
+  padding: 0.5rem;
+  background: linear-gradient(rgb(var(--rgb-red), 0.25), white 1rem);
+  border-width: 3px 1px 1px;
+  border-style: solid;
+  border-color: rgb(var(--rgb-red));
+}
+
+.error-message header span.exception-name:before {
+  opacity: 0.5;
+  content: '** ('
+}
+
+.error-message header span.exception-name:after {
+  opacity: 0.5;
+  content: ')'
+}
+
+.error-message header span.exception-message {
+  display: inline-block;
+  font-size: 0.75em;
+  padding-left: 1.5em;
+  color: rgb(var(--rgb-red));
+}
+
+.error-message header span.constraint-message code {
+  color: black;
+}
+
+.error table {
+  box-sizing: border-box;
+  width: 100%;
+  background-color: white;
+  border: 1px solid rgb(var(--rgb-black));
+  border-spacing: 0;
+}
+
+.error table th,
+.error table td {
+  padding: 0.25em 0.5em;
+}
+
+.error table thead th {
+  background-color: rgb(var(--rgb-black));
+  color: rgb(var(--rgb-background));
+  text-align: left;
+}
+
+.error table tbody {
+  font-size: 0.875em;
+}
+
+.error table tbody tr:nth-child(2n + 1) th,
+.error table tbody tr:nth-child(2n + 1) td {
+  background-color: rgba(var(--rgb-black), 0.0625);
+}
+
+.error table.stacktrace tbody .location {
+  text-align: right;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.error table.stacktrace tbody .location .app {
+  opacity: 0.5;
+  font-size: 0.875em;
+  font-weight: normal;
+}
+
+.error table.stacktrace tbody .function {
+  width: 100%;
+}
+
+.error ul.cycle-graph {
+  position: relative;
+  margin: 1em;
+  font-size: 1rem;
+  list-style-type: none;
+  border: 1px solid transparent;
+  padding-left: 5em;
+}
+
+.error ul.cycle-graph:before {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  box-sizing: border-box;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: calc(5.875em + 1px);
+  border: 2px solid rgb(var(--rgb-black));
+  border-radius: 0.5em;
+}
+
+.error ul.cycle-graph li.cycle-item {
+  position: relative;
+  margin-top: 2em;
+}
+
+.error ul.cycle-graph li.cycle-item:last-child {
+  margin-bottom: 2em;
+}
+
+.error ul.cycle-graph li.cycle-item:before {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  width: 0.75em;
+  height: 0.75em;
+  top: calc(-0.75em + 2px);
+  left: 0.5em;
+  background:
+    left / 50% 100% no-repeat linear-gradient(63.435deg, transparent 48%, rgb(var(--rgb-black)) 52%),
+    right / 50% 100% no-repeat linear-gradient(-63.435deg, transparent 48%, rgb(var(--rgb-black)) 52%);
+}
+
+.error ul.cycle-graph li.cycle-item span {
+  display: inline-block;
+  padding: 0.25em 0.5em;
+  background-color: white;
+  border: 2px solid rgb(var(--rgb-black));
+}
+
+.error ul.cycle-graph li.cycle-item:first-child span {
+  font-weight: bold;
+}
+
+.error table.listing tr.line.here th {
+  background-color: rgb(var(--rgb-red));
+  color: white;
+}
+
+.error table.listing tr.line.here td {
+  background-color: rgba(var(--rgb-red), 0.125);
+  color: rgb(var(--rgb-red));
+}
+
+.error table.listing tbody .line-num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.error table.listing tbody .code {
+  width: 100%;
+}
+
+.error table.listing tbody .unavailable {
+  color: rgba(var(--rgb-black), 0.5);
+  font-style: italic;
+}
+
+.error .caused-by {
+  background-color: rgb(var(--rgb-background));
+  margin-top: 0.5em;
+  padding: 0.25em 0 0.25em 0.75em;
+  border-left: 3px solid rgba(var(--rgb-black), 0.5);
+}
+
+.error .caused-by > .error { margin-top: 0.5em; }

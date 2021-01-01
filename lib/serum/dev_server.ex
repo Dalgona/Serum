@@ -47,8 +47,10 @@ defmodule Serum.DevServer do
       base: proj.base_url.path,
       callbacks: [Logger],
       index: true,
-      extra_routes: [
-        {"/serum_live_reloader", Serum.DevServer.LiveReloadHandler, nil}
+      gen_server_options: [name: Serum.Microscope],
+      route_overrides: [
+        {"/serum_live_reloader", Serum.DevServer.LiveReloadHandler, nil},
+        {"/[...]", Serum.DevServer.Handler, nil}
       ]
     ]
 

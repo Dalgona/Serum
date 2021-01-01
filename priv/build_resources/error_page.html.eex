@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serum Error</title>
+  <link rel="stylesheet" href="file:///Users/dalgona/repo/serum/priv/build_resources/error_page.css">
+  <style><%=
+  :serum
+  |> :code.priv_dir()
+  |> Path.join("build_resources/error_page.css")
+  |> File.read!()
+  %></style>
+</head>
+<body>
+  <div id="wrapper">
+    <header>
+      <h1>Serum Error</h1>
+    </header>
+    <section>
+      <p>Serum could not build your project. Here is some information about what went wrong.</p>
+    </section>
+    <section>
+      <%= Serum.Error.Format.format_html(error) %>
+    </section>
+    <footer>
+      <p>Powered by Serum <%= Application.spec(:serum, :vsn) %>.</p>
+    </footer>
+  </div>
+  <%= Serum.Plugins.LiveReloader._script_snippet() %>
+</body>
+</html>
