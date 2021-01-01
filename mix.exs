@@ -38,7 +38,7 @@ defmodule Serum.Mixfile do
       {:serum_sdk, sdk_spec(Mix.env())},
       {:earmark, "1.4.4"},
       {:file_system, "~> 0.2"},
-      {:microscope, "~> 1.3"},
+      {:microscope, "~> 1.4"},
       {:timex, "~> 3.5"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
       {:excoveralls, "0.13.4", only: [:test], runtime: false},

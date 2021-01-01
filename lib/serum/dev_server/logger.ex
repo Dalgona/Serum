@@ -5,7 +5,7 @@ defmodule Serum.DevServer.Logger do
 
   alias Serum.V2.Console
 
-  def on_request, do: nil
+  def on_request, do: :ok
   def on_200(from, method, path), do: log(200, from, method, path)
   def on_404(from, method, path), do: log(404, from, method, path)
 
@@ -19,6 +19,8 @@ defmodule Serum.DevServer.Logger do
       |> IO.iodata_to_binary()
 
     Console.put_msg(:info, msg)
+
+    :ok
   end
 
   defp status_color(code)
