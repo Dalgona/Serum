@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Serum Error</title>
-  <link rel="stylesheet" href="file:///Users/dalgona/repo/serum/priv/build_resources/error_page.css">
   <style><%=
   :serum
   |> :code.priv_dir()
