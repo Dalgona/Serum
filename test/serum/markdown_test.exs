@@ -43,6 +43,14 @@ defmodule Serum.MarkdownTest do
         md_pretty_post_urls()
         |> Markdown.to_html(%Project{base_url: "/test_site/", pretty_urls: :posts})
         |> Floki.parse_document!()
+  ## Prism HTML tags are applied
+
+  ```elixir
+  defmodule Awesome do
+  end
+  ```
+
+  ## These won't be processed
 
       [ul1, ul2, ul3] = Floki.find(tree, "ul")
 
