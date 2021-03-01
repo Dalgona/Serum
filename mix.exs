@@ -41,7 +41,7 @@ defmodule Serum.Mixfile do
       {:microscope, "~> 1.4"},
       {:timex, "~> 3.5"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:excoveralls, "0.13.4", only: [:test], runtime: false},
+      {:excoveralls, "0.14.0", only: [:test], runtime: false},
       {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
       {:floki, "0.29.0"},
       {:ex_doc, "~> 0.23", only: :dev, runtime: false},
