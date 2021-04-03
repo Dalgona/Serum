@@ -11,8 +11,8 @@ defmodule Serum.DevServer.Prompt do
   @type options :: [allow_detach: boolean()]
   @type result :: {:ok, :detached} | {:ok, :quitted} | {:error, :noproc}
 
-  @service Application.get_env(:serum, :service, Service.GenServer)
-  @command_handler Application.get_env(:serum, :command_handler, CommandHandler.Impl)
+  @service Application.compile_env(:serum, :service, Service.GenServer)
+  @command_handler Application.compile_env(:serum, :command_handler, CommandHandler.Impl)
 
   @doc """
   Tries to start a Serum development server command line interface.
