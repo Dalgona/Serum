@@ -3,7 +3,7 @@ defmodule Serum.Plugin.Macros do
 
   _moduledocp = "Provides macros for defining the `Serum.Plugin` module."
 
-  defmacro defcallback({:::, _, [{name, meta, args} = call, return]}) do
+  defmacro defcallback({:"::", _, [{name, meta, args} = call, return]}) do
     arg_expr = quote(do: args :: term())
 
     quote do

@@ -1,6 +1,6 @@
 language: elixir
-elixir: '1.8.0'
-otp_release: '20.3'
+elixir: '1.11.4'
+otp_release: '23.0'
 env:
   - MIX_ENV=test
 script:
