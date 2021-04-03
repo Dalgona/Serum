@@ -27,7 +27,7 @@ defmodule Mix.Tasks.Serum.Server do
 
   @impl true
   def run(args) do
-    Mix.Project.compile([])
+    Mix.Task.run("compile", [])
 
     options = CLIHelper.parse_options(args, @options)
     {:ok, _} = Application.ensure_all_started(:serum)

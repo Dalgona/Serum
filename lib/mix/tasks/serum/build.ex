@@ -36,7 +36,7 @@ defmodule Mix.Tasks.Serum.Build do
 
   @impl true
   def run(args) do
-    Mix.Project.compile([])
+    Mix.Task.run("compile", [])
 
     options = CLIHelper.parse_options(args, @options)
     dest = options[:output] || "site"
