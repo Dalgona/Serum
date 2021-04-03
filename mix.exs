@@ -39,10 +39,10 @@ defmodule Serum.Mixfile do
       {:microscope, "1.3.0", override: true},
       {:timex, "~> 3.7"},
       {:credo, "~> 1.5", only: [:dev, :test], runtime: false},
-      {:excoveralls, "~> 0.11", only: [:test], runtime: false},
+      {:excoveralls, "~> 0.14", only: [:test], runtime: false},
       {:dialyxir, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:floki, "0.26.0"},
-      {:ex_doc, "~> 0.20", only: :dev, runtime: false},
+      {:floki, "0.30.1"},
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:mox, "~> 1.0", only: :test}
     ]
