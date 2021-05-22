@@ -51,7 +51,7 @@ defmodule Serum.DevServer do
       base: base,
       callbacks: [Logger],
       index: true,
-      extra_routes: [
+      route_overrides: [
         {"/serum_live_reloader", Serum.DevServer.LiveReloadHandler, nil}
       ]
     ]
