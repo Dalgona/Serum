@@ -1,5 +1,11 @@
 # Serum Changelog
 
+## v1.5.1 &mdash; 2021-05-22
+
+### Fixed
+
+- Fixed an issue where the Serum development server may not start properly.
+
 ## v1.5.0 &mdash; 2020-07-19
 
 ### Added
