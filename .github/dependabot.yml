@@ -1,0 +1,22 @@
+version: 2
+updates:
+- package-ecosystem: mix
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "12:00"
+    timezone: Asia/Seoul
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: earmark
+    versions:
+    - "> 1.4.4"
+  - dependency-name: credo
+    versions:
+    - 1.5.4
+  - dependency-name: timex
+    versions:
+    - 3.6.3
+  - dependency-name: ex_machina
+    versions:
+    - 2.5.0
