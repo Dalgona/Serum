@@ -1,0 +1,47 @@
+name: Build and Test Serum
+
+on: [push, pull_request]
+
+jobs:
+  build-and-test:
+    name: Elixir ${{ matrix.elixir-version }} with Erlang/OTP ${{ matrix.otp-version }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        otp-version: ['22.3', '23.3', '24.0']
+        elixir-version: ['1.11.4', '1.12.2']
+
+    env:
+      MIX_ENV: test
+
+    steps:
+    - name: Setup OTP and Elixir
+      uses: erlef/setup-beam@v1
+      with:
+        otp-version: ${{ matrix.otp-version }}
+        elixir-version: ${{ matrix.elixir-version}}
+
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Cache Dependencies
+      uses: actions/cache@v2
+      with:
+        path: |
+          _build
+          deps
+        key: mix-lock-${{ matrix.otp-version }}-${{ matrix.elixir-version }}-${{ hashFiles('mix.lock') }}
+
+    - name: Fetch and Compile Dependencies
+      run: mix do deps.get, deps.compile
+
+    - name: Enforce Coding Styles
+      run: |
+        mix format --check-formatted
+        mix credo --all --strict
+
+    - name: Run Tests and Generate Coverage Report
+      run: mix coveralls.github
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
