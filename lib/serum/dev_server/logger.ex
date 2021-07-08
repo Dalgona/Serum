@@ -5,7 +5,7 @@ defmodule Serum.DevServer.Logger do
 
   alias Serum.IOProxy
 
-  def on_request, do: nil
+  def on_request, do: :ok
   def on_200(from, method, path), do: log(200, from, method, path)
   def on_404(from, method, path), do: log(404, from, method, path)
 

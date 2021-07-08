@@ -14,6 +14,7 @@ defmodule Serum.Template.Helpers do
   """
 
   alias Serum.Renderer
+  alias Serum.Result
   alias Serum.Template
   alias Serum.Template.Storage, as: TS
 
@@ -91,14 +92,29 @@ defmodule Serum.Template.Helpers do
   """
 
   def render(name, args \\ []) do
-    with %Template{} = template <- TS.get(name, :include),
-         true <- Keyword.keyword?(args),
+    with {:ok, %Template{} = template} <- fetch_template(name),
+         {:ok, _} <- ensure_keyword(args),
          {:ok, html} <- Renderer.render_fragment(template, args: args) do
       html
     else
-      nil -> raise "include not found: \"#{name}\""
-      false -> raise "'args' must be a keyword list, got: #{inspect(args)}"
       {:error, _} = error -> raise Serum.Result.get_message(error, 0)
+    end
+  end
+
+  @spec fetch_template(binary()) :: Result.t(Template.t())
+  defp fetch_template(name) do
+    case TS.get(name, :include) do
+      %Template{} = template -> {:ok, template}
+      nil -> {:error, "include not found: \"#{name}\""}
+    end
+  end
+
+  @spec ensure_keyword(term()) :: Result.t({})
+  defp ensure_keyword(args) do
+    if Keyword.keyword?(args) do
+      {:ok, {}}
+    else
+      {:error, "'args' must be a keyword list, got: #{inspect(args)}"}
     end
   end
 
