@@ -87,6 +87,7 @@ defmodule Serum.Mixfile do
         "Built-in Plugins": [
           Serum.Plugins.LiveReloader,
           Serum.Plugins.PreviewGenerator,
+          Serum.Plugins.RssGenerator,
           Serum.Plugins.SitemapGenerator,
           Serum.Plugins.TableOfContents
         ],

@@ -15,7 +15,7 @@ defmodule Serum.Markdown do
   @spec to_html(binary(), Project.t()) :: binary()
   def to_html(markdown, proj) do
     markdown
-    |> Earmark.as_html!()
+    |> Earmark.as_html!(code_class_prefix: "lang-")
     |> process_links(proj.base_url)
   end
 

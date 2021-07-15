@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+
+<channel>
+  <title><%= name %></title>
+  <link><%= Path.join(Map.fetch!(bindings, :server_root), "/~dch/rss.xml") %></link>
+  <description><%= Map.fetch!(bindings, :description) %></description>
+  <lastBuildDate><%= Timex.now() |> Timex.format!("%d %b %Y %T %z", :strftime) %></lastBuildDate>
+  <atom:link href="<%= Path.join(Map.fetch!(bindings, :server_root), "/~dch/rss.xml") %>" rel="self" type="application/rss+xml" />
+  <%= for post <- posts do %><item>
+      <link><%= Path.join(Map.fetch!(bindings, :server_root), post.url) %></link>
+      <guid><%= Path.join(Map.fetch!(bindings, :server_root), post.url) %></guid>
+      <title><%= String.replace(post.title, "&", "and") %></title>
+      <description><%= String.replace(post.preview, "&", "and") %></description>
+    </item>
+  <% end %>
+</channel>
+</rss>

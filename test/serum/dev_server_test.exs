@@ -37,7 +37,7 @@ defmodule Serum.DevServerTest do
       Process.flag(:trap_exit, true)
       Process.group_leader(self(), ctx.ignore_io)
 
-      {:ok, sock} = :gen_tcp.listen(8080, [])
+      {result, sock} = :gen_tcp.listen(8080, [])
       assert {:error, msg} = DevServer.run(ctx.tmp_dir, 8080)
       assert String.contains?(msg, "8080")
       :ok = :gen_tcp.close(sock)
