@@ -378,127 +378,32 @@ defmodule Serum.Plugin do
     end)
   end
 
-  @doc false
-  @spec build_started(src :: binary(), dest :: binary()) :: Result.t()
-  def build_started(src, dest) do
-    call_action(:build_started, [src, dest])
-  end
+  action build_started(src :: binary(), dest :: binary()) :: Result.t()
+  function reading_pages(files :: [binary()]) :: Result.t([binary()])
+  function reading_posts(files :: [binary()]) :: Result.t([binary()])
+  function reading_templates(files :: [binary()]) :: Result.t([binary()])
+  function processing_page(file :: File.t()) :: Result.t(File.t())
+  function processing_post(file :: File.t()) :: Result.t(File.t())
+  function processing_template(file :: File.t()) :: Result.t(File.t())
+  function processed_page(page :: Page.t()) :: Result.t(Page.t())
+  function processed_post(post :: Post.t()) :: Result.t(Post.t())
+  function processed_template(template :: Template.t()) :: Result.t(Template.t())
+  function processed_list(list :: PostList.t()) :: Result.t(PostList.t())
+  function processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
+  function processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
 
-  @doc false
-  @spec reading_pages(files :: [binary()]) :: Result.t([binary()])
-  def reading_pages(files) do
-    call_function(:reading_pages, [files])
-  end
+  function rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
+             Result.t(Floki.html_tree())
 
-  @doc false
-  @spec reading_posts(files :: [binary()]) :: Result.t([binary()])
-  def reading_posts(files) do
-    call_function(:reading_posts, [files])
-  end
+  function rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
+  function rendered_page(file :: File.t()) :: Result.t(File.t())
+  action wrote_file(file :: File.t()) :: Result.t()
+  action build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
 
-  @doc false
-  @spec reading_templates(files :: [binary()]) :: Result.t([binary()])
-  def reading_templates(files) do
-    call_function(:reading_templates, [files])
-  end
+  action build_failed(src :: binary(), dest :: binary(), result :: Result.t() | Result.t(term)) ::
+           Result.t()
 
-  @doc false
-  @spec processing_page(file :: File.t()) :: Result.t(File.t())
-  def processing_page(file) do
-    call_function(:processing_page, [file])
-  end
-
-  @doc false
-  @spec processing_post(file :: File.t()) :: Result.t(File.t())
-  def processing_post(file) do
-    call_function(:processing_post, [file])
-  end
-
-  @doc false
-  @spec processing_template(file :: File.t()) :: Result.t(File.t())
-  def processing_template(file) do
-    call_function(:processing_template, [file])
-  end
-
-  @doc false
-  @spec processed_page(page :: Page.t()) :: Result.t(Page.t())
-  def processed_page(page) do
-    call_function(:processed_page, [page])
-  end
-
-  @doc false
-  @spec processed_post(post :: Post.t()) :: Result.t(Post.t())
-  def processed_post(post) do
-    call_function(:processed_post, [post])
-  end
-
-  @doc false
-  @spec processed_template(template :: Template.t()) :: Result.t(Template.t())
-  def processed_template(template) do
-    call_function(:processed_template, [template])
-  end
-
-  @doc false
-  @spec processed_list(list :: PostList.t()) :: Result.t(PostList.t())
-  def processed_list(list) do
-    call_function(:processed_list, [list])
-  end
-
-  @doc false
-  @spec processed_pages(pages :: [Page.t()]) :: Result.t([Page.t()])
-  def processed_pages(pages) do
-    call_function(:processed_pages, [pages])
-  end
-
-  @doc false
-  @spec processed_posts(posts :: [Post.t()]) :: Result.t([Post.t()])
-  def processed_posts(posts) do
-    call_function(:processed_posts, [posts])
-  end
-
-  @doc false
-  @spec rendering_fragment(html :: Floki.html_tree(), metadata :: map()) ::
-          Result.t(Floki.html_tree())
-  def rendering_fragment(html, metadata) do
-    call_function(:rendering_fragment, [html, metadata])
-  end
-
-  @doc false
-  @spec rendered_fragment(frag :: Fragment.t()) :: Result.t(Fragment.t())
-  def rendered_fragment(frag) do
-    call_function(:rendered_fragment, [frag])
-  end
-
-  @doc false
-  @spec rendered_page(file :: File.t()) :: Result.t(File.t())
-  def rendered_page(file) do
-    call_function(:rendered_page, [file])
-  end
-
-  @doc false
-  @spec wrote_file(file :: File.t()) :: Result.t()
-  def wrote_file(file) do
-    call_action(:wrote_file, [file])
-  end
-
-  @doc false
-  @spec build_succeeded(src :: binary(), dest :: binary()) :: Result.t()
-  def build_succeeded(src, dest) do
-    call_action(:build_succeeded, [src, dest])
-  end
-
-  @doc false
-  @spec build_failed(src :: binary(), dest :: binary(), result :: Result.t() | Result.t(term)) ::
-          Result.t()
-  def build_failed(src, dest, result) do
-    call_action(:build_failed, [src, dest, result])
-  end
-
-  @doc false
-  @spec finalizing(src :: binary(), dest :: binary()) :: Result.t()
-  def finalizing(src, dest) do
-    call_action(:finalizing, [src, dest])
-  end
+  action finalizing(src :: binary(), dest :: binary()) :: Result.t()
 
   @spec call_action(atom(), [term()]) :: Result.t()
   defp call_action(fun, args) do
