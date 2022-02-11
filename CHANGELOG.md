@@ -344,7 +344,7 @@ and code coverage until the final release.
 - You can now let Serum plugins be loaded only in specified Mix environments.
   Please refer to the module documentation of `Serum.Plugin` for details.
 - The Serum development server now automatically rebuilds your project when
-  the source code has changed, and signals any open web browers to reload the
+  the source code has changed, and signals any open web browsers to reload the
   page. Your web browser must support the WebSocket API.
 
 ## v0.10.0 &mdash; 2019-04-12

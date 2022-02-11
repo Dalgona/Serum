@@ -38,7 +38,7 @@ defmodule Serum.HeaderParser do
 
       [key1: type1, key2: type2, ...]
 
-  See "Types" section for avilable value types.
+  See "Types" section for available value types.
 
   `required` argument is a list of required keys (in atom). If the header parser
   cannot find required keys in the header area, it returns an error.
