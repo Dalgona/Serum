@@ -16,6 +16,14 @@ defmodule Serum.MarkdownTest do
 
   ## Special Syntax in HTML
 
+  <ul>
+    <li><a href="%page:docs/index">Documentation</a></li>
+    <li><a href="%post:2019-01-01-test-post">My Post</a></li>
+  </ul>
+
+  Mixing markdown and HTML does not work in recent version of Earmark!
+  The following code will produce an undesired markup!
+
   - <a href="%page:docs/index">Documentation</a>
   - <a href="%post:2019-01-01-test-post">My Post</a>
 
@@ -34,9 +42,10 @@ defmodule Serum.MarkdownTest do
       |> Markdown.to_html(%{base_url: "/test_site/"})
       |> Floki.parse_document!()
 
-    assert [{"h1", _, ["Hello, world!"]}] = Floki.find(tree, "h1")
+    assert [{"h1", _, [h1_text]}] = Floki.find(tree, "h1")
+    assert String.trim(h1_text) === "Hello, world!"
 
-    [ul1, ul2, ul3] = Floki.find(tree, "ul")
+    [ul1, ul2, ul3, _ul4] = Floki.find(tree, "ul")
     [img1, img2] = Floki.find(tree, "img")
 
     assert ul1 === ul2
