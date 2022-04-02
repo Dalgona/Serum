@@ -2,6 +2,7 @@ defmodule Serum.Template.CompilerTest do
   use ExUnit.Case, async: true
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
+  alias Serum.Project
   alias Serum.Template.Compiler, as: TC
   alias Serum.Template.Storage, as: TS
 
@@ -15,7 +16,12 @@ defmodule Serum.Template.CompilerTest do
       file = %Serum.File{src: fixture("templates/#{key}.html.eex")}
       {:ok, file} = Serum.File.read(file)
       {:ok, %{^key => template}} = TC.compile_files([file], type: :template)
-      assigns = [site: %{base_url: "/test_site/"}]
+
+      assigns = [
+        site: %{base_url: "/test_site/"},
+        project: %Project{base_url: "/test_site/"}
+      ]
+
       {output, _} = Code.eval_quoted(template.ast, assigns: assigns)
 
       assert template.type === :template

@@ -1,11 +1,15 @@
 defmodule Serum.Template.HelpersTest do
   use ExUnit.Case
   require Serum.Template.Helpers
+  alias Serum.Project
   alias Serum.Template
   alias Serum.Template.Helpers
   alias Serum.Template.Storage, as: TS
 
-  @assigns [site: %{base_url: "/base/url"}]
+  @assigns [
+    site: %{base_url: "/base/url"},
+    project: %Project{base_url: "/base/url"}
+  ]
 
   setup_all do
     good = EEx.compile_string("Hello, <%= @args[:name] %>!")

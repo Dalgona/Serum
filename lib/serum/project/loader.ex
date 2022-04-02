@@ -25,6 +25,8 @@ defmodule Serum.Project.Loader do
           base_url: proj.base_url
         })
 
+        GlobalBindings.put(:project, proj)
+
         {:ok, %Project{proj | src: src, dest: dest}}
 
       {:error, _} = error ->

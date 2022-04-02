@@ -118,7 +118,7 @@ defmodule Serum.Template.Helpers do
     end
   end
 
-  defp base!, do: quote(do: get_in(var!(assigns), [:site, :base_url]))
+  defp base!, do: quote(do: var!(assigns)[:project].base_url)
 
   defmacro include(_) do
     raise "the include/1 macro is expanded by the Serum template compiler " <>
