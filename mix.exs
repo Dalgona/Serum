@@ -34,7 +34,7 @@ defmodule Serum.Mixfile do
 
   defp deps do
     [
-      {:earmark, "1.4.4"},
+      {:earmark, "~> 1.4"},
       {:file_system, "0.2.10"},
       {:microscope, ">= 1.4.0"},
       {:timex, "~> 3.7"},
