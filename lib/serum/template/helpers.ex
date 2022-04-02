@@ -13,6 +13,7 @@ defmodule Serum.Template.Helpers do
   exporting functions/macros with the same names.
   """
 
+  alias Serum.Project
   alias Serum.Renderer
   alias Serum.Result
   alias Serum.Template
@@ -68,7 +69,9 @@ defmodule Serum.Template.Helpers do
   """
 
   defmacro post(arg) do
-    quote do: Path.join([unquote(base!()), "posts", unquote(arg) <> ".html"])
+    quote do
+      Path.join([unquote(base!()), "posts", unquote(arg) <> unquote(pretty_suffix!(:posts))])
+    end
   end
 
   @doc """
@@ -118,7 +121,19 @@ defmodule Serum.Template.Helpers do
     end
   end
 
-  defp base!, do: quote(do: var!(assigns)[:project].base_url)
+  defp proj!, do: quote(do: var!(assigns)[:project])
+  defp base!, do: quote(do: unquote(proj!()).base_url)
+
+  @spec pretty_suffix!(Project.pretty_urls()) :: Macro.t()
+  defp pretty_suffix!(page_type) do
+    quote do
+      if unquote(proj!()).pretty_urls in [true, unquote(page_type)] do
+        ""
+      else
+        ".html"
+      end
+    end
+  end
 
   defmacro include(_) do
     raise "the include/1 macro is expanded by the Serum template compiler " <>
