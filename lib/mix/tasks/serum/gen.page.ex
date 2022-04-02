@@ -57,8 +57,7 @@ defmodule Mix.Tasks.Serum.Gen.Page do
     header =
       options2
       |> Enum.filter(fn {k, _v} -> k in @in_header end)
-      |> Enum.map(fn {k, v} -> "#{k}: #{v}" end)
-      |> Enum.join("\n")
+      |> Enum.map_join("\n", fn {k, v} -> "#{k}: #{v}" end)
 
     title = options2[:title]
 

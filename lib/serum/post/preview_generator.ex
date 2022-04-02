@@ -43,8 +43,7 @@ defmodule Serum.Post.PreviewGenerator do
     html_tree
     |> Floki.find("p")
     |> Enum.take(l)
-    |> Enum.map(&(&1 |> Floki.text() |> String.trim()))
-    |> Enum.join(" ")
+    |> Enum.map_join(" ", &(&1 |> Floki.text() |> String.trim()))
     |> Kernel.<>("\u2026")
   end
 

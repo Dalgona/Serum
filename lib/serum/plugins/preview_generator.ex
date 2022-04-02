@@ -270,8 +270,7 @@ defmodule Serum.Plugins.PreviewGenerator do
     html
     |> Floki.find("p")
     |> Enum.take(l)
-    |> Enum.map(&text_from_html/1)
-    |> Enum.join(" ")
+    |> Enum.map_join(" ", &text_from_html/1)
   end
 
   @spec text_from_html(Floki.html_tree()) :: binary()

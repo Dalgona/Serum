@@ -88,8 +88,7 @@ defmodule Mix.Tasks.Serum.Gen.Post do
   defp get_path(output, now) do
     date_part =
       [now.year, now.month, now.day]
-      |> Enum.map(&(&1 |> to_string() |> String.pad_leading(2, "0")))
-      |> Enum.join("-")
+      |> Enum.map_join("-", &(&1 |> to_string() |> String.pad_leading(2, "0")))
 
     Path.join("posts/", date_part <> "-" <> output <> ".md")
   end
