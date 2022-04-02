@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :serum, service: Serum.DevServer.Service.GenServer
 
