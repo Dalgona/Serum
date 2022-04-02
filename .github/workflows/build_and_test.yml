@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         otp-version: ['22.3', '23.3', '24.0']
-        elixir-version: ['1.11.4', '1.12.2']
+        elixir-version: ['1.13.3']
 
     env:
       MIX_ENV: test
