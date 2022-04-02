@@ -49,13 +49,13 @@ defmodule Serum.Plugins.PreviewGenerator do
 
     A keyword list which determines the maximum length of each preview text.
     Each item of this keyword list is called a "length spec," and a length
-    spec should look like one of the followings:
+    spec should look like one of the following:
 
     - `{:chars, max_chars}` - Limits the maximum length of preview texts to
       `max_chars` characters.
 
     - `{:words, max_words}` - Limits the maximum length of preview texts to
-      `max_words` words. Each word is a group of characters splitted by one
+      `max_words` words. Each word is a group of characters split by one
       or more whitespace characters.
 
     - `{:paragraphs, max_paragraphs}` - Limits the maximum length of preview

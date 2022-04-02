@@ -4,4 +4,4 @@ group: test
 order: 100
 ---
 
-This page **cannot** be processed beacuse it _lacks_ a required key (`title`).
+This page **cannot** be processed because it _lacks_ a required key (`title`).
