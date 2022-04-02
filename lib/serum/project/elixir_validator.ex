@@ -22,7 +22,8 @@ defmodule Serum.Project.ElixirValidator do
     :posts_path,
     :tags_path,
     :plugins,
-    :theme
+    :theme,
+    :pretty_urls
   ]
 
   @required_keys [
@@ -135,7 +136,8 @@ defmodule Serum.Project.ElixirValidator do
         posts_path: [is_binary: []],
         tags_path: [is_binary: []],
         plugins: [is_list: []],
-        theme: [is_atom: []]
+        theme: [is_atom: []],
+        pretty_urls: [in: [[true, false, :posts]]]
       ]
     end
 

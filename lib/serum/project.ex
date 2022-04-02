@@ -29,7 +29,8 @@ defmodule Serum.Project do
             src: nil,
             dest: nil,
             plugins: [],
-            theme: %Theme{module: nil}
+            theme: %Theme{module: nil},
+            pretty_urls: false
 
   @type t :: %__MODULE__{
           src: binary(),
@@ -50,8 +51,18 @@ defmodule Serum.Project do
           posts_path: binary(),
           tags_path: binary(),
           plugins: [Plugin.plugin_spec()],
-          theme: Theme.t()
+          theme: Theme.t(),
+          pretty_urls: pretty_urls()
         }
+
+  @typedoc """
+  Accepted value for the `pretty_urls` option
+
+  - `false` disables pretty URLs.
+  - `true` is currently the same as `:posts`.
+  - `:posts` enables pretty URLs only for blog posts.
+  """
+  @type pretty_urls() :: boolean() | :posts
 
   @spec default_date_format() :: binary()
   def default_date_format, do: @default_date_format
