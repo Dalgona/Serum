@@ -11,6 +11,11 @@ defmodule Serum.Template.HelpersTest do
     project: %Project{base_url: "/base/url"}
   ]
 
+  @assigns_pretty [
+    site: %{base_url: "/base/url"},
+    project: %Project{base_url: "/base/url", pretty_urls: :posts}
+  ]
+
   setup_all do
     good = EEx.compile_string("Hello, <%= @args[:name] %>!")
     bad = quote(do: raise("test"))
@@ -41,7 +46,7 @@ defmodule Serum.Template.HelpersTest do
   end
 
   describe "page/1 (macro)" do
-    test "returns a URL to the given page" do
+    test "returns a URL of the given page" do
       assigns = @assigns
 
       assert Helpers.page("docs/index") === "/base/url/docs/index.html"
@@ -49,15 +54,21 @@ defmodule Serum.Template.HelpersTest do
   end
 
   describe "post/1 (macro)" do
-    test "returns a URL to the given blog post" do
+    test "returns a URL of the given blog post" do
       assigns = @assigns
 
       assert Helpers.post("2019-01-01-test") === "/base/url/posts/2019-01-01-test.html"
     end
+
+    test "returns a pretty URL of the given blog post" do
+      assigns = @assigns_pretty
+
+      assert Helpers.post("2019-01-01-test") === "/base/url/posts/2019-01-01-test"
+    end
   end
 
   describe "asset/1 (macro)" do
-    test "returns a URL to the given asset" do
+    test "returns a URL of the given asset" do
       assigns = @assigns
 
       assert Helpers.asset("css/style.css") === "/base/url/assets/css/style.css"
