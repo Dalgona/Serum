@@ -3,15 +3,16 @@ defmodule Serum.Build.FileProcessor.PostTest do
   require Serum.TestHelper
   import Serum.TestHelper, only: :macros
   alias Serum.Build.FileProcessor.Post, as: PostProcessor
+  alias Serum.Project
   alias Serum.Project.Loader, as: ProjectLoader
 
   setup_all do
-    {:ok, proj} = ProjectLoader.load(fixture("proj/good/"), "/path/to/dest/")
+    {:ok, proj} = ProjectLoader.load(fixture("proj/good"), "/path/to/dest/")
 
     {:ok, [proj: proj]}
   end
 
-  describe "process_posts/2" do
+  describe "process_posts/2 with preety URLs disabled" do
     test "good post", ctx do
       {:ok, result} = process("posts/good-post.md", ctx.proj)
       {[post], [compact_post]} = result
@@ -21,6 +22,7 @@ defmodule Serum.Build.FileProcessor.PostTest do
                date: "2019-01-01",
                raw_date: {{2019, 1, 1}, {12, 34, 56}},
                tags: [%{name: "tag1"}, %{name: "tag2"}],
+               url: "/test-site/posts/good-post.html",
                output: "/path/to/dest/posts/good-post.html"
              } = post
 
@@ -69,6 +71,26 @@ defmodule Serum.Build.FileProcessor.PostTest do
       {:error, {_, errors}} = PostProcessor.process_posts(files, ctx.proj)
 
       assert length(errors) === length(files)
+    end
+  end
+
+  describe "process_posts/2 with preety URLs enabled" do
+    setup ctx, do: {:ok, [proj: %Project{ctx.proj | pretty_urls: :posts}]}
+
+    test "sets URL and output file path suitable for preety URLs", ctx do
+      {:ok, result} = process("posts/good-post.md", ctx.proj)
+      {[post], [compact_post]} = result
+
+      assert %{
+               title: "Test Post",
+               date: "2019-01-01",
+               raw_date: {{2019, 1, 1}, {12, 34, 56}},
+               tags: [%{name: "tag1"}, %{name: "tag2"}],
+               url: "/test-site/posts/good-post",
+               output: "/path/to/dest/posts/good-post/index.html"
+             } = post
+
+      assert_compact(compact_post)
     end
   end
 
