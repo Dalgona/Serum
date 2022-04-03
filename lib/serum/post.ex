@@ -59,7 +59,7 @@ defmodule Serum.Post do
     date_str = Timex.format!(datetime, proj.date_format)
     raw_date = to_erl_datetime(datetime)
     preview = PreviewGenerator.generate_preview(html, proj.preview_length)
-    output_name = Path.basename(path, ".md") <> ".html"
+    {url, output} = path |> Path.basename(".md") |> url_and_output(proj)
 
     %__MODULE__{
       file: path,
@@ -69,8 +69,8 @@ defmodule Serum.Post do
       preview: preview,
       raw_date: raw_date,
       date: date_str,
-      url: Path.join([proj.base_url, proj.posts_path, output_name]),
-      output: Path.join([proj.dest, proj.posts_path, output_name]),
+      url: url,
+      output: output,
       template: header[:template],
       extras: extras
     }
@@ -89,6 +89,21 @@ defmodule Serum.Post do
       {{_y, _m, _d}, {_h, _i, _s}} = erl_datetime -> erl_datetime
       {_y, _m, _d} = erl_date -> {erl_date, {0, 0, 0}}
       _ -> {{0, 1, 1}, {0, 0, 0}}
+    end
+  end
+
+  @spec url_and_output(binary(), Project.t()) :: {binary(), binary()}
+  defp url_and_output(basename, proj) do
+    if proj.pretty_urls in [true, :posts] do
+      {
+        Path.join([proj.base_url, proj.posts_path, basename]),
+        Path.join([proj.dest, proj.posts_path, basename, "index.html"])
+      }
+    else
+      {
+        Path.join([proj.base_url, proj.posts_path, basename <> ".html"]),
+        Path.join([proj.dest, proj.posts_path, basename <> ".html"])
+      }
     end
   end
 
