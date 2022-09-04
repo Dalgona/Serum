@@ -1,5 +1,23 @@
 # Serum Changelog
 
+## Unreleased Changes
+
+### Added
+
+- Introduces `:pretty_urls` project option, which takes one of these three value:
+
+    - `false` disables pretty URLs.
+
+    - `:posts` enables pretty URLs only for blog posts. For example:
+
+        - Pretty URLs off: `https://example.com/posts/2022-09-04-sample.html`
+
+        - Pretty URLs on: `https://example.com/posts/2022-09-04-sample`
+
+    - `true` enables pretty URLs for all type of pages. Currently this option
+      is equivalent to `:posts`, but this behavior will change as more page
+      types are supported in the future.
+
 ## v1.5.1 &mdash; 2021-05-22
 
 ### Fixed
