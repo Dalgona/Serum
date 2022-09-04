@@ -39,6 +39,7 @@ defmodule Serum.Build.FileProcessor.Post do
       title: :string,
       tags: {:list, :string},
       date: :datetime,
+      canonical_url: :string,
       template: :string
     ]
 

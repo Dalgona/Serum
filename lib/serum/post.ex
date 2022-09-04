@@ -10,6 +10,7 @@ defmodule Serum.Post do
   * `raw_date`: Post date (erlang tuple style)
   * `tags`: A list of tags
   * `url`: Absolute URL of the blog post in the website
+  * `canonical_url`: Custom canonical URL of the blog post
   * `html`: Post contents converted into HTML
   * `preview`: Preview text of the post
   * `output`: Destination path
@@ -31,6 +32,7 @@ defmodule Serum.Post do
           raw_date: :calendar.datetime(),
           tags: [Tag.t()],
           url: binary(),
+          canonical_url: binary(),
           html: binary(),
           preview: binary(),
           output: binary(),
@@ -45,6 +47,7 @@ defmodule Serum.Post do
     :raw_date,
     :tags,
     :url,
+    :canonical_url,
     :html,
     :preview,
     :output,
@@ -70,6 +73,7 @@ defmodule Serum.Post do
       raw_date: raw_date,
       date: date_str,
       url: url,
+      canonical_url: header[:canonical_url],
       output: output,
       template: header[:template],
       extras: extras
