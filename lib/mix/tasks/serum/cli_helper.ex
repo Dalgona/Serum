@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Serum.CLIHelper do
     [
       :bright,
       "Serum -- Yet another simple static website generator\n",
-      "Version #{@version}. Copyright (C) 2019 Dalgona. ",
+      "Version #{@version}. Copyright (C) 2022 Dalgona. ",
       "<project-serum@dalgona.dev>\n",
       :reset
     ]
