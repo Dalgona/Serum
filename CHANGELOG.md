@@ -4,6 +4,10 @@
 
 ### Added
 
+- You can now access the full Serum project settings in your templates using
+  `@project`. This will eventually replace the existing `@site`, which has been
+  exposing a very small subset of your project settings.
+
 - Introduces `:pretty_urls` project option, which takes one of these three value:
 
     - `false` disables pretty URLs.
@@ -17,6 +21,29 @@
     - `true` enables pretty URLs for all type of pages. Currently this option
       is equivalent to `:posts`, but this behavior will change as more page
       types are supported in the future.
+
+- You can now specify "canonical URL" for your blog posts.
+
+    ```
+    ---
+    title: Reposted Article
+    date: 2022-09-04
+    tags: sample
+    canonical_url: https://example.com/original-article
+    ---
+    ```
+
+    Then you can access the canonical URL in your templates using
+    `@page.canonical_url`.
+
+    ```html
+    <%= if @page.type === :post do %>
+      <%
+      canonical_url = @page.canonical_url || URI.merge(@project.server_root, @page.url)
+      %>
+      <link rel="canonical" href="<%= canonical_url %>">
+    <% end %>
+    ```
 
 ## v1.5.1 &mdash; 2021-05-22
 
