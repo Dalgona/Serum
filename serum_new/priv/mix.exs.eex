@@ -12,9 +12,7 @@ defmodule <%= @mod_name %>.MixFile do
   end
 
   def application do
-    [
-      applications: [:serum]
-    ]
+    []
   end
 
   defp deps do
